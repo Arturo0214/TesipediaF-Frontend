@@ -1,0 +1,285 @@
+// Variables personalizadas
+$primary: #2196f3;
+$secondary: #1565c0;
+$success: #4caf50;
+$info: #00bcd4;
+$warning: #ff9800;
+$danger: #f44336;
+
+// Importar Bootstrap correctamente con @use
+@use "sass:color";
+@use "sass:math";
+@use "bootstrap/scss/bootstrap" as bs;
+
+// Estilos personalizados
+.hero-section {
+  background: linear-gradient(135deg, bs.$primary 0%, color.mix(bs.$primary, black, 20%) 100%);
+  padding: 100px 0;
+  margin-top: -76px;
+}
+
+.min-vh-80 {
+  min-height: 80vh;
+}
+
+.service-card {
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-10px);
+  }
+
+  .service-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background: color.mix(bs.$primary, white, 10%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .service-icon {
+    font-size: 2.5rem;
+    color: bs.$primary;
+  }
+}
+
+.quote-form {
+  background: white;
+  border-radius: 15px;
+
+  .form-control {
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .form-label {
+    font-weight: 500;
+  }
+
+  h4 {
+    color: bs.$primary;
+    font-size: 1.25rem;
+
+    svg {
+      vertical-align: -0.125em;
+    }
+  }
+
+  .form-control,
+  .form-select {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+
+    &:focus {
+      border-color: bs.$primary;
+      box-shadow: 0 0 0 0.25rem color.mix(bs.$primary, white, 25%);
+    }
+  }
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.process-step {
+  .step-number {
+    width: 50px;
+    height: 50px;
+    background: bs.$primary;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+  }
+
+  .step-icon {
+    font-size: 2rem;
+    color: bs.$primary;
+  }
+}
+
+.guarantee-icon {
+  font-size: 3rem;
+  color: bs.$primary;
+}
+
+.display-4 {
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 60px 0;
+    text-align: center;
+  }
+
+  .display-4 {
+    font-size: 2.5rem;
+  }
+
+  .quote-form h4 {
+    font-size: 1.1rem;
+  }
+}
+
+.navbar {
+  transition: all 0.3s ease;
+
+  &.scrolled {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+  }
+}
+
+footer {
+  .social-links a {
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: bs.$primary !important;
+    }
+  }
+
+  ul li a {
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: bs.$primary !important;
+    }
+  }
+}
+
+.dropdown-toggle.btn-outline-primary {
+  display: flex;
+  align-items: center;
+
+  .fa-user {
+    margin-right: 0.5rem;
+  }
+}
+
+.admin-card {
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  .display-4 {
+    font-size: 2.5rem;
+  }
+}
+
+.table {
+  th {
+    background-color: bs.$light;
+    white-space: nowrap;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+.blog-card {
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.service-icon {
+  font-size: 2.5rem;
+  color: bs.$primary;
+  margin-bottom: 1rem;
+}
+
+.contact-info p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+
+  svg {
+    color: bs.$primary;
+    margin-right: 0.5rem;
+  }
+}
+
+.dashboard-card {
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  .dashboard-icon {
+    font-size: 2.5rem;
+  }
+}
+
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border: 3px solid bs.$primary;
+}
+
+.messages-sidebar {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.messages-content {
+  height: calc(100vh - 200px);
+
+  .messages-container {
+    height: calc(100% - 120px);
+    overflow-y: auto;
+  }
+}
+
+.badge {
+  padding: 0.5em 0.75em;
+  font-weight: 500;
+}
+
+.progress {
+  height: 20px;
+
+  .progress-bar {
+    background-color: bs.$primary;
+  }
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+
+  svg {
+    margin-right: 0.25rem;
+  }
+}
+
+.main-content {
+  padding-top: 76px;
+}

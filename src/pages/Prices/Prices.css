@@ -1,0 +1,351 @@
+.price-card {
+    transition: transform 0.2s ease;
+    border-radius: 10px;
+}
+
+.price-card:hover {
+    transform: translateY(-5px);
+}
+
+.price-icon {
+    font-size: 2rem;
+    color: #3498db;
+}
+
+.price-amount {
+    margin: 1rem 0;
+}
+
+.base-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.per-page {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.price-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.price-features li {
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.featured {
+    border: 2px solid #3498db;
+    transform: scale(1.02);
+    position: relative;
+}
+
+.featured:hover {
+    transform: scale(1.02) translateY(-5px);
+}
+
+.featured-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.pricing-table {
+    background: white;
+    border-radius: 8px;
+}
+
+.pricing-table th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 0.9rem;
+}
+
+.pricing-table td {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+}
+
+.pricing-details {
+    border: 1px solid #dee2e6;
+}
+
+/* Estilos para métodos de pago */
+.payment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.payment-method {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.payment-method:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.payment-icon {
+    font-size: 1.25rem;
+    color: #3498db;
+}
+
+/* Banner de soporte */
+.support-banner {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    border: none;
+}
+
+.support-icon {
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .Container {
+        padding-top: 1rem;
+    }
+
+    .price-card {
+        margin-bottom: 1rem;
+    }
+
+    .featured {
+        transform: none;
+    }
+
+    .featured:hover {
+        transform: translateY(-5px);
+    }
+
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .support-banner {
+        text-align: center;
+    }
+
+    .support-icon {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animaciones */
+.payment-method,
+.support-banner {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mejoras visuales generales */
+.pricing-details,
+.payment-section {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.payment-section {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para la sección de detalles de precios */
+.section-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-icon {
+    font-size: 1.25rem;
+    color: #3498db;
+}
+
+.area-price-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.area-price-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.area-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+    background: linear-gradient(to right, #f8f9fa, #ffffff);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.area-badge {
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.price-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.area-details {
+    padding: 0.75rem;
+}
+
+.detail-item {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+/* Estilos para métodos de pago */
+.payment-methods-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.payment-method-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.payment-method-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-color: #3498db;
+}
+
+.payment-icon {
+    font-size: 1.5rem;
+    color: #3498db;
+    flex-shrink: 0;
+}
+
+.payment-info h6 {
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.payment-info p {
+    color: #666;
+}
+
+.payment-security {
+    color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .payment-methods-container {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .section-icon-wrapper {
+        margin-bottom: 1rem;
+    }
+
+    .area-description {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Animaciones */
+.area-price-card,
+.payment-method-card {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.area-description {
+    padding: 0.75rem;
+    background-color: rgba(52, 152, 219, 0.05);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.area-description small {
+    display: block;
+    color: #495057;
+}

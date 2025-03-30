@@ -1,0 +1,56 @@
+.fixed-buttons {
+    position: fixed;
+    bottom: 20px;
+    /* Ajusta la posición vertical */
+    right:10px;
+    /* Mueve los botones un poco a la izquierda */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1000;
+    /* Asegúrate de que estén por encima de otros elementos */
+}
+
+.fixed-buttons a {
+    background-color: #25D366;
+    /* Color de fondo para WhatsApp */
+    color: white;
+    border-radius: 50%;
+    /* Hacer los botones circulares */
+    width: 60px;
+    /* Ancho del botón */
+    height: 60px;
+    /* Alto del botón */
+    display: flex;
+    /* Flex para centrar el icono */
+    align-items: center;
+    /* Centrar verticalmente */
+    justify-content: center;
+    /* Centrar horizontalmente */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Sombra más sutil */
+    text-align: center;
+    font-size: 24px;
+    /* Ajusta el tamaño de la fuente */
+    transition: background-color 0.3s, transform 0.3s;
+    /* Añadir transición para el hover */
+}
+
+.fixed-buttons a.chat-button {
+    background-color: #007bff;
+    /* Color de fondo para el chat */
+}
+
+.fixed-buttons a:hover {
+    background-color: #128C7E;
+    /* Color de fondo al pasar el mouse para WhatsApp */
+    transform: translateY(-2px);
+    /* Efecto de elevación al pasar el mouse */
+}
+
+.fixed-buttons a.chat-button:hover {
+    background-color: #0056b3;
+    /* Color de fondo al pasar el mouse para el chat */
+    transform: translateY(-2px);
+    /* Efecto de elevación al pasar el mouse */
+}
