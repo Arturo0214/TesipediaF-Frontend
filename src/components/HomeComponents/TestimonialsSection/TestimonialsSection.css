@@ -1,0 +1,460 @@
+.testimonials-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 1rem 0 2rem;
+    position: relative;
+}
+
+.testimonials-header {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.section-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #2563eb;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    position: relative;
+    display: inline-block;
+    padding: 0 1rem;
+}
+
+.section-title-decoration {
+    position: relative;
+    display: inline-block;
+}
+
+.section-title-decoration::before,
+.section-title-decoration::after {
+    content: '';
+    position: absolute;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #2563eb, transparent);
+    width: 60px;
+    top: 50%;
+}
+
+.section-title-decoration::before {
+    right: 100%;
+    margin-right: 15px;
+}
+
+.section-title-decoration::after {
+    left: 100%;
+    margin-left: 15px;
+}
+
+.testimonials-wrapper {
+    padding: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.testimonial-card {
+    padding: 1.75rem;
+    margin: 0.5rem;
+    min-height: 320px;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    transform: scale(1);
+}
+
+.testimonial-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(45deg, #2563eb, #3b82f6);
+}
+
+.testimonial-card:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    z-index: 10;
+    background: linear-gradient(to bottom, #ffffff, #f8faff);
+}
+
+.testimonial-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.testimonial-card:hover::after {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+    opacity: 1;
+}
+
+.testimonial-card:hover .testimonial-text {
+    color: #1a202c;
+}
+
+.testimonial-card:hover .testimonial-quote .quote-icon {
+    color: #2563eb;
+    opacity: 0.25;
+}
+
+.testimonial-card:hover .author-name {
+    color: #2563eb;
+}
+
+.testimonial-rating {
+    color: #fbbf24;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.testimonial-quote {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.quote-icon {
+    font-size: 1.5rem;
+    color: #2563eb;
+    opacity: 0.15;
+}
+
+.testimonial-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.testimonial-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 1rem 0;
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 180px;
+    scrollbar-width: thin;
+    scrollbar-color: #2563eb #f1f5f9;
+    padding-right: 0.5rem;
+}
+
+/* Estilizar scrollbar para Chrome/Safari */
+.testimonial-text::-webkit-scrollbar {
+    width: 4px;
+}
+
+.testimonial-text::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.testimonial-text::-webkit-scrollbar-thumb {
+    background: #2563eb;
+    border-radius: 4px;
+    opacity: 0.7;
+}
+
+.testimonial-text::-webkit-scrollbar-thumb:hover {
+    opacity: 1;
+}
+
+.testimonial-author {
+    padding-top: 0.75rem;
+    margin-top: auto;
+    border-top: 1px solid rgba(37, 99, 235, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.author-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.author-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.author-degree {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin: 0.2rem 0 0;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Estilos personalizados para Swiper */
+.testimonials-swiper {
+    padding: 0.25rem 0.5rem 2rem !important;
+}
+
+.swiper-pagination-bullet {
+    width: 6px;
+    height: 6px;
+    background: #2563eb;
+    opacity: 0.3;
+    transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+    opacity: 1;
+    width: 20px;
+    border-radius: 3px;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+    width: 35px !important;
+    height: 35px !important;
+    margin-top: -17px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.1);
+    transition: all 0.3s ease;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 1rem !important;
+    color: #2563eb !important;
+    font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .testimonials-section {
+        padding: 0.75rem 0 1.5rem;
+    }
+
+    .testimonials-header {
+        margin-bottom: 0.25rem;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+    }
+
+    .testimonial-card {
+        min-height: 300px;
+        max-height: 380px;
+        padding: 1.5rem;
+    }
+
+    .author-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .testimonial-text {
+        max-height: 150px;
+        font-size: 0.85rem;
+    }
+
+    .swiper-slide {
+        height: auto;
+    }
+
+    .testimonial-badges {
+        gap: 0.5rem;
+        top: 0.4rem;
+        right: 0.4rem;
+    }
+
+    .testimonial-card:hover {
+        transform: scale(1.05);
+    }
+}
+
+/* Animación para las cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.testimonial-card {
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+/* Transiciones mejoradas del carrusel */
+.swiper-slide {
+    transition: all 0.5s ease;
+}
+
+.swiper-slide-active {
+    z-index: 1;
+}
+
+/* Indicador visual de interactividad */
+@media (min-width: 768px) {
+    .testimonials-wrapper::before {
+        content: 'Pasa el mouse para detener';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        color: #6b7280;
+        opacity: 0.7;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .testimonials-wrapper:hover::before {
+        opacity: 0;
+    }
+}
+
+/* Ajustes para pantallas más grandes */
+@media (min-width: 1024px) {
+    .testimonials-swiper {
+        padding: 2rem 1rem 3rem !important;
+    }
+
+    .swiper-slide {
+        opacity: 0.7;
+        transition: all 0.5s ease;
+    }
+
+    .swiper-slide-active {
+        opacity: 1;
+    }
+
+    /* Ajustar el espacio entre slides para el efecto */
+    .testimonials-wrapper .swiper {
+        padding: 2rem 0;
+    }
+}
+
+/* Estilo especial para la card activa */
+.swiper-slide-active .testimonial-card {
+    transform: scale(1.1);
+}
+
+/* Cuando la card activa tiene hover */
+.swiper-slide-active .testimonial-card:hover {
+    transform: scale(1.15);
+}
+
+/* Asegurarse de que la transición sea suave */
+.testimonial-card,
+.testimonial-card:hover,
+.swiper-slide-active .testimonial-card,
+.swiper-slide-active .testimonial-card:hover {
+    transition: all 0.3s ease-in-out;
+}
+
+.testimonial-badges {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.6rem;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.testimonial-card:hover .testimonial-badges {
+    transform: translateY(2px);
+}
+
+/* Estilos base para las badges */
+.badge-type {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+}
+
+/* Badge para Licenciatura (estilo actual) */
+.badge-level[data-level="Licenciatura"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+}
+
+/* Badge para Maestría */
+.badge-level[data-level="Maestría"] {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    color: white;
+}
+
+/* Badge para Doctorado */
+.badge-level[data-level="Doctorado"] {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+}
+
+.badge-type,
+.badge-level {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect */
+.testimonial-card:hover .badge-type,
+.testimonial-card:hover .badge-level {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}

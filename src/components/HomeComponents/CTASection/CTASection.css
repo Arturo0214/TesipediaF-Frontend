@@ -1,0 +1,26 @@
+.cta-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.cta-section h2 {
+    color: #2d3748;
+    font-weight: 700;
+}
+
+.cta-section .lead {
+    color: #718096;
+}
+
+.cta-button {
+    background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+    border: none;
+    padding: 1rem 3rem;
+    font-weight: 600;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 107, 107, 0.2);
+    background: linear-gradient(45deg, #ff8e53, #ff6b6b);
+}

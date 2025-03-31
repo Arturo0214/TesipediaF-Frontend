@@ -1,20 +1,39 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+
 import authReducer from '../features/auth/authSlice';
 import orderReducer from '../features/orders/orderSlice';
 import paymentReducer from '../features/payments/paymentSlice';
 import quoteReducer from '../features/quotes/quoteSlice';
+import visitReducer from '../features/visits/visitSlice';
 
-export const store = configureStore({
-    reducer: {
-        auth: authReducer,
-        orders: orderReducer,
-        payments: paymentReducer,
-        quotes: quoteReducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-            serializableCheck: false
-        })
+// ✅ Combinar reducers primero
+const rootReducer = combineReducers({
+    auth: authReducer,
+    orders: orderReducer,
+    payments: paymentReducer,
+    quotes: quoteReducer,
+    visits: visitReducer,
 });
 
-export default store; 
+// Configuración de persistencia
+const persistConfig = {
+    key: 'root',
+    storage,
+};
+
+// ✅ Crear reducer persistido
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const store = configureStore({
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: false,
+        }),
+});
+
+const persistor = persistStore(store);
+
+export { store, persistor };
