@@ -1,36 +1,49 @@
-import { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Alert,
+  Spinner,
+} from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { register } from '../../features/auth/authSlice';
+import { register, reset } from '../../features/auth/authSlice';
 import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
 
-function Register() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-
-  const [passwordError, setPasswordError] = useState('');
-  const navigate = useNavigate();
+const Register = () => {
   const dispatch = useDispatch();
-  const { isLoading, isError, message } = useSelector(state => state.auth);
+  const navigate = useNavigate();
+
+  const { isLoading, isError, message } = useSelector((state) => state.auth);
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  useEffect(() => {
+    dispatch(reset()); // 🧼 Limpiar estado de auth
+  }, [dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setPasswordError('');
 
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setPasswordError('Las contraseñas no coinciden');
       return;
     }
 
     try {
-      await dispatch(register(formData)).unwrap();
-      navigate('/dashboard');
+      await dispatch(register({ name, email, password })).unwrap();
+      navigate('/login');
     } catch (error) {
-      console.error('Error al registrarse:', error);
+      // Error ya se maneja en Redux
     }
   };
 
@@ -43,11 +56,11 @@ function Register() {
               <h2 className="text-center mb-4">Crear Cuenta</h2>
 
               {isError && (
-                <Alert variant="danger">{message}</Alert>
+                <Alert variant="danger" className="text-center">{message}</Alert>
               )}
 
               {passwordError && (
-                <Alert variant="danger">{passwordError}</Alert>
+                <Alert variant="danger" className="text-center">{passwordError}</Alert>
               )}
 
               <Form onSubmit={handleSubmit}>
@@ -59,8 +72,8 @@ function Register() {
                   <Form.Control
                     type="text"
                     placeholder="Tu nombre"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
                 </Form.Group>
@@ -73,8 +86,8 @@ function Register() {
                   <Form.Control
                     type="email"
                     placeholder="tu@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </Form.Group>
@@ -87,8 +100,8 @@ function Register() {
                   <Form.Control
                     type="password"
                     placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </Form.Group>
@@ -101,8 +114,8 @@ function Register() {
                   <Form.Control
                     type="password"
                     placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
                 </Form.Group>
@@ -113,16 +126,21 @@ function Register() {
                   className="w-100 mb-3"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
+                  {isLoading ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Creando cuenta...
+                    </>
+                  ) : (
+                    'Crear Cuenta'
+                  )}
                 </Button>
               </Form>
             </Card.Body>
+
             <Card.Footer className="text-center bg-light py-3">
               ¿Ya tienes una cuenta?{' '}
-              <Link
-                to="/login"
-                className="text-decoration-none"
-              >
+              <Link to="/login" className="text-decoration-none">
                 Inicia Sesión
               </Link>
             </Card.Footer>
@@ -131,6 +149,6 @@ function Register() {
       </Row>
     </Container>
   );
-}
+};
 
 export default Register;

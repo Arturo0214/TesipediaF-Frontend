@@ -505,7 +505,7 @@ h1 {
 .contact-advisor-floating {
     position: fixed;
     bottom: 35px;
-    right: 120px;
+    right: 130px;
     backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 1rem 1.5rem;
@@ -513,23 +513,183 @@ h1 {
     text-align: center;
     color: white;
     max-width: 260px;
-  }
-  
-  /* Responsivo para móviles */
-  @media (max-width: 768px) {
+}
+
+/* Responsivo para móviles */
+@media (max-width: 768px) {
     .contact-advisor-floating {
-      right: 50%;
-      transform: translateX(50%);
-      bottom: 15px;
-      padding: 0.75rem 1rem;
+        right: 50%;
+        transform: translateX(50%);
+        bottom: 15px;
+        padding: 0.75rem 1rem;
     }
-  
+
     .contact-advisor-floating p {
-      font-size: 0.9rem;
+        font-size: 0.9rem;
     }
-  
+
     .contact-advisor-floating .btn {
-      font-size: 0.9rem;
-      padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        padding: 0.6rem 1.2rem;
     }
-  }
+}
+
+/* Ajustes para pantallas grandes (≥1400px) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1300px;
+    }
+
+    .hero-section {
+        min-height: 80vh;
+        padding: 80px 0;
+    }
+
+    /* Ajustes de tipografía */
+    h1.display-4 {
+        font-size: 3.5rem;
+        line-height: 1.2;
+        margin-bottom: 2rem;
+    }
+
+    .lead {
+        font-size: 1.3rem;
+        max-width: 80%;
+        margin: 0 auto 2rem;
+    }
+
+    /* Ajustes de las estadísticas */
+    .stats-showcase {
+        height: 500px;
+    }
+
+    .floating-stat-card {
+        max-width: 500px;
+        padding: 2rem;
+        gap: 1.5rem;
+    }
+
+    .stat-icon-wrapper {
+        width: 90px;
+        height: 90px;
+        font-size: 2.5rem;
+    }
+
+    .stat-number-highlight {
+        font-size: 3rem;
+    }
+
+    .stat-text-highlight {
+        font-size: 1.3rem;
+    }
+
+    /* Ajustes de las secciones de contenido */
+    section {
+        padding: 4rem 0;
+    }
+
+    /* Cards de servicios más compactas */
+    .service-card {
+        padding: 2rem;
+    }
+
+    .service-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Proceso más compacto */
+    .process-step {
+        padding: 1.5rem;
+    }
+
+    /* Botón de contacto flotante */
+    .contact-advisor-floating {
+        max-width: 250px;
+        padding: 1rem 1.5rem;
+    }
+}
+
+/* Ajustes para pantallas extra grandes (≥1800px) */
+@media (min-width: 1800px) {
+    .container {
+        max-width: 1400px;
+    }
+}
+
+.contact-advisor-floating .btn {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: #ff6b6b;
+    font-weight: bold;
+    width: 100%;
+    transition: transform 0.3s ease;
+}
+
+.contact-advisor-floating .btn:hover {
+    transform: scale(1.05);
+}
+
+/* Proceso Timeline */
+.process-timeline {
+    position: relative;
+    padding: 2rem 0;
+}
+
+.process-step-modern {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.process-step-modern:hover {
+    transform: translateX(10px);
+}
+
+.step-number {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Estilos globales para la página Home */
+section {
+    overflow: hidden;
+}
+
+h2 {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.lead {
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Animaciones globales */
+[data-aos] {
+    pointer-events: none;
+}
+
+[data-aos].aos-animate {
+    pointer-events: auto;
+}
+
+/* Ajustes responsive globales */
+@media (max-width: 768px) {
+    section {
+        padding: 3rem 0;
+    }
+}

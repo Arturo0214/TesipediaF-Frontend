@@ -1,0 +1,29 @@
+.guarantee-section {
+    background: #ffffff;
+}
+
+.guarantee-item {
+    padding: 2rem;
+    transition: transform 0.3s ease;
+}
+
+.guarantee-item:hover {
+    transform: translateY(-5px);
+}
+
+.guarantee-icon {
+    font-size: 2.5rem;
+    color: #ff6b6b;
+    margin-bottom: 1.5rem;
+}
+
+.guarantee-item h4 {
+    color: #2d3748;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.guarantee-item p {
+    color: #718096;
+    margin: 0;
+}

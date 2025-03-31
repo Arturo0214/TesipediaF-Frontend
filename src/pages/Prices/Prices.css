@@ -1,10 +1,42 @@
 .price-card {
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
     border-radius: 10px;
 }
 
-.price-card:hover {
-    transform: translateY(-5px);
+.hover-featured:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175) !important;
+}
+
+.hover-featured:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #3498db;
+}
+
+.hover-featured:hover .price-icon {
+    color: #3498db;
+    transform: scale(1.1);
+}
+
+.hover-featured:hover .fw-bold {
+    color: #3498db;
+}
+
+.hover-featured .price-icon {
+    transition: all 0.3s ease;
+}
+
+.hover-featured:hover .hover-primary {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
 }
 
 .price-icon {
@@ -40,24 +72,31 @@
 }
 
 .featured {
-    border: 2px solid #3498db;
-    transform: scale(1.02);
-    position: relative;
+    transform: translateY(-10px);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175) !important;
 }
 
-.featured:hover {
-    transform: scale(1.02) translateY(-5px);
+.featured::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #3498db;
 }
 
 .featured-badge {
     position: absolute;
     top: 1rem;
-    right: 1rem;
+    right: -2rem;
+    transform: rotate(45deg);
     background: #3498db;
     color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+    padding: 0.5rem 3rem;
     font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 1;
 }
 
 .pricing-table {
@@ -78,6 +117,7 @@
 
 .pricing-details {
     border: 1px solid #dee2e6;
+    padding: 1.5rem;
 }
 
 /* Estilos para métodos de pago */
@@ -159,7 +199,7 @@
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
 
     to {
@@ -196,28 +236,24 @@
 
 .area-price-card {
     background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 10px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.area-price-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    height: 100%;
 }
 
 .area-header {
-    padding: 1.25rem 1.25rem 0.75rem;
-    background: linear-gradient(to right, #f8f9fa, #ffffff);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     text-align: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .area-badge {
     background: #3498db;
     color: white;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3rem 1rem;
     border-radius: 20px;
     font-size: 0.8rem;
     display: inline-block;
@@ -226,126 +262,1038 @@
 
 .price-value {
     font-size: 1.75rem;
-    font-weight: 600;
+    font-weight: bold;
     color: #2c3e50;
-    margin-bottom: 0.25rem;
-}
-
-.area-details {
-    padding: 0.75rem;
+    margin: 0.25rem 0;
 }
 
 .detail-item {
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.detail-item:last-child {
-    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 .detail-label {
-    color: #666;
-    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2c3e50;
 }
 
 .detail-value {
-    font-weight: 500;
-    color: #2c3e50;
-    font-size: 0.9rem;
-}
-
-/* Estilos para métodos de pago */
-.payment-methods-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-
-.payment-method-card {
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: all 0.3s ease;
-}
-
-.payment-method-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    border-color: #3498db;
-}
-
-.payment-icon {
-    font-size: 1.5rem;
     color: #3498db;
-    flex-shrink: 0;
+    font-weight: 600;
 }
 
-.payment-info h6 {
-    color: #2c3e50;
-    margin-bottom: 0.25rem;
-}
-
-.payment-info p {
-    color: #666;
-}
-
-.payment-security {
-    color: #666;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .payment-methods-container {
-        grid-template-columns: 1fr;
-    }
-
-    .section-header {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .section-icon-wrapper {
-        margin-bottom: 1rem;
-    }
-
-    .area-description {
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
-}
-
-/* Animaciones */
-.area-price-card,
-.payment-method-card {
-    animation: fadeInUp 0.3s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.detail-note {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
 }
 
 .area-description {
-    padding: 0.75rem;
-    background-color: rgba(52, 152, 219, 0.05);
-    border-radius: 6px;
-    font-size: 0.85rem;
-    line-height: 1.4;
+    padding: 0.4rem;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
 }
 
 .area-description small {
     display: block;
     color: #495057;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
+.animate-slide-right {
+    animation: slideRight 0.6s ease-out;
+}
+
+.animate-slide-left {
+    animation: slideLeft 0.6s ease-out;
+}
+
+.animate-bounce {
+    animation: bounce 2s infinite;
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideRight {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-5px);
+    }
+
+    60% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+    }
+
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+    }
+}
+
+/* Mejoras adicionales para hover */
+.action-button:hover .animate-slide-right {
+    animation: slideRight 0.6s ease-out infinite;
+}
+
+.success-tag:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+/* Asegurarse que las animaciones sean suaves en dispositivos móviles */
+@media (prefers-reduced-motion: reduce) {
+
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-slide-right,
+    .animate-slide-left,
+    .animate-bounce,
+    .animate-pulse {
+        animation: none;
+    }
+}
+
+.discount-section {
+    margin-top: 2rem;
+}
+
+.discount-card {
+    background: linear-gradient(135deg, #EBF5FD 0%, #E3F2FD 100%);
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.discount-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.discount-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.15);
+    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+}
+
+.discount-badge {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    animation: pulse 2s infinite;
+}
+
+.discount-circle {
+    background: #e74c3c;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transform: rotate(15deg);
+    box-shadow: 0 2px 10px rgba(231, 76, 60, 0.3);
+}
+
+.discount-percentage {
+    font-size: 1.8rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.discount-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.discount-icon {
+    color: #3498db;
+}
+
+.payment-method-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.payment-method-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: #fff;
+}
+
+.payment-icon {
+    font-size: 2rem;
+    color: #3498db;
+    margin-bottom: 1rem;
+}
+
+.payment-method-card h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    padding-right: 100px;
+}
+
+.payment-method-card p {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    padding-right: 100px;
+}
+
+.discount-header {
+    padding-right: 70px;
+}
+
+.discount-footer {
+    margin-top: 1.5rem;
+}
+
+.alert-info {
+    background-color: rgba(52, 152, 219, 0.1);
+    border: none;
+    color: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .discount-badge {
+        position: relative;
+        top: 0;
+        right: 0;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .discount-header {
+        padding-right: 0;
+        text-align: center;
+    }
+
+    .discount-circle {
+        transform: rotate(0);
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes shine {
+    0% {
+        background-position: -100px;
+    }
+
+    100% {
+        background-position: 200px;
+    }
+}
+
+.discount-section {
+    margin-top: 2rem;
+}
+
+.discount-container {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.discount-banner {
+    background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.discount-banner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    animation: shine 3s infinite linear;
+}
+
+.discount-offer {
+    display: flex;
+    align-items: center;
+}
+
+.offer-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: float 3s ease-in-out infinite;
+}
+
+.save-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.percentage-container {
+    display: flex;
+    align-items: flex-start;
+}
+
+.percentage {
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.percentage-symbols {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0.5rem;
+}
+
+.percentage-symbol {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.off-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.discount-description {
+    max-width: 50%;
+}
+
+.discount-description h4 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.discount-description p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.payment-methods-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    padding: 2rem;
+    background: white;
+}
+
+.payment-method {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 15px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.payment-method:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    background: white;
+}
+
+.method-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4158D0 0%, #C850C0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1.5rem;
+}
+
+.method-icon {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.method-details {
+    flex: 1;
+}
+
+.method-details h5 {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+    color: #2c3e50;
+}
+
+.method-details p {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.savings-tag {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    background: linear-gradient(135deg, #4158D0 0%, #C850C0 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.discount-footer {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: rgba(65, 88, 208, 0.05);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.info-icon {
+    color: #4158D0;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+
+.discount-footer p {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .discount-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .discount-description {
+        max-width: 100%;
+        margin-top: 1.5rem;
+    }
+
+    .payment-methods-container {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+    }
+
+    .percentage {
+        font-size: 4rem;
+    }
+}
+
+.payment-methods-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.payment-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 0.5rem;
+}
+
+.section-icon {
+    color: #3498db;
+    font-size: 1.25rem;
+}
+
+.payment-methods-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.payment-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.5rem;
+}
+
+.payment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+}
+
+.payment-card-header {
+    margin-bottom: 0.5rem;
+}
+
+.payment-card-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 0.3rem;
+}
+
+.payment-card-header p {
+    color: #636e72;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.payment-card-logos {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 0.75rem 0;
+    justify-content: center;
+}
+
+/* Logos de tarjetas de crédito */
+.card-logo {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Ajustes específicos por logo */
+img[alt="Visa"] {
+    height: 40px;
+}
+
+img[alt="Mastercard"] {
+    height: 60px;
+}
+
+img[alt="American Express"] {
+    height: 50px;
+}
+
+/* Logo de PayPal */
+.single-logo {
+    padding: 0.5rem 0;
+}
+
+.single-logo img {
+    height: 85px;
+    max-width: 240px;
+    transition: transform 0.3s ease;
+}
+
+.single-logo img:hover {
+    transform: scale(1.08);
+}
+
+/* Efectos hover para los logos */
+.payment-card-logos img:hover {
+    transform: scale(1.1);
+}
+
+.discount-tag {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    animation: pulseTag 2s infinite;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+@keyframes pulseTag {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.discount-card:hover .discount-tag {
+    background: linear-gradient(135deg, #2980b9 0%, #2573a7 100%);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.discount-card .payment-card-header h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    padding-right: 100px;
+}
+
+.discount-card .payment-card-header p {
+    color: #34495e;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    padding-right: 100px;
+}
+
+.discount-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
+    transition: 0.5s;
+}
+
+.discount-card:hover::after {
+    left: 100%;
+}
+
+.payment-security {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.security-icon {
+    color: #00b894;
+    font-size: 1.2rem;
+}
+
+.payment-security span {
+    color: #636e72;
+    font-size: 0.95rem;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+    .discount-card {
+        padding: 1.5rem;
+    }
+
+    .discount-tag {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .discount-card .payment-card-header h5 {
+        font-size: 1.3rem;
+    }
+
+    .discount-card .payment-card-header p {
+        font-size: 1rem;
+    }
+}
+
+/* Ajustes para mantener alturas iguales */
+.pricing-details,
+.payment-methods-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-methods-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.payment-methods-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.payment-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.5rem;
+}
+
+/* Ajustar el espaciado vertical */
+.payment-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Asegurar que el footer de seguridad se mantenga al final */
+.payment-security {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Ajustes responsive */
+@media (max-width: 992px) {
+
+    .pricing-details,
+    .payment-methods-section {
+        height: auto;
+    }
+
+    .payment-methods-section {
+        margin-top: 1rem;
+    }
+}
+
+/* Ajuste del contenedor principal */
+.Container {
+    max-width: 1140px !important;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Ajuste para pantallas extra grandes */
+@media (min-width: 1400px) {
+    .Container {
+        max-width: 1200px !important;
+    }
+}
+
+/* Ajuste para pantallas medianas */
+@media (max-width: 992px) {
+    .Container {
+        max-width: 960px !important;
+    }
+}
+
+/* CTA Section Mejorada */
+.cta-section {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 0.8rem 0;
+}
+
+.cta-container {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.success-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+}
+
+.star-icon {
+    color: #f1c40f;
+    animation: shine 1.5s infinite;
+}
+
+.cta-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.trust-indicators {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    color: #34495e;
+}
+
+.trust-icon {
+    font-size: 1.1rem;
+}
+
+.trust-icon.speed {
+    color: #e67e22;
+}
+
+.trust-icon.security {
+    color: #3498db;
+}
+
+.action-wrapper {
+    text-align: center;
+}
+
+.action-button {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    padding: 0.8rem 1.8rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #2980b9, #2573a7);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+}
+
+.response-time {
+    display: block;
+    margin-top: 0.5rem;
+    color: #7f8c8d;
+    font-size: 0.85rem;
+}
+
+@keyframes shine {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .cta-container {
+        padding: 1.2rem;
+    }
+
+    .trust-indicators {
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-wrapper {
+        margin-top: 1rem;
+    }
+}
+
+/* Estilos base para elementos animados */
+.cta-section {
+    opacity: 0;
+    transition: all 0.5s ease-out;
+}
+
+.cta-section.visible {
+    opacity: 1;
+}
+
+.cta-section:not(.visible) .animate-fade-in,
+.cta-section:not(.visible) .animate-slide-up,
+.cta-section:not(.visible) .animate-slide-right,
+.cta-section:not(.visible) .animate-slide-left,
+.cta-section:not(.visible) .animate-bounce,
+.cta-section:not(.visible) .animate-pulse {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* Animaciones cuando la sección es visible */
+.cta-section.visible .animate-fade-in {
+    animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+.cta-section.visible .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+}
+
+.cta-section.visible .animate-slide-right {
+    animation: slideRight 0.6s ease-out forwards;
+}
+
+.cta-section.visible .animate-slide-left {
+    animation: slideLeft 0.6s ease-out forwards;
+}
+
+.cta-section.visible .animate-bounce {
+    animation: bounce 2s infinite;
+}
+
+.cta-section.visible .animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Retrasos en las animaciones para crear un efecto cascada */
+.cta-section.visible .success-tag {
+    animation-delay: 0.2s;
+}
+
+.cta-section.visible .cta-title {
+    animation-delay: 0.4s;
+}
+
+.cta-section.visible .trust-indicators {
+    animation-delay: 0.6s;
+}
+
+.cta-section.visible .action-wrapper {
+    animation-delay: 0.8s;
 }

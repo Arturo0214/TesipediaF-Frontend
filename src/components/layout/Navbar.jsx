@@ -11,8 +11,8 @@ function MainNavbar() {
     const { user, isAuthenticated } = useSelector(state => state.auth);
     const [showRegister, setShowRegister] = useState(false);
 
-    const handleLogout = () => {
-        dispatch(logout());
+    const handleLogout = async () => {
+        await dispatch(logout());
         navigate('/');
     };
 
