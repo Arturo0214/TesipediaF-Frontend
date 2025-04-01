@@ -1297,3 +1297,38 @@ img[alt="American Express"] {
 .cta-section.visible .action-wrapper {
     animation-delay: 0.8s;
 }
+
+.prices-title {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.35rem;
+}
+
+.prices-title-decoration {
+    background: linear-gradient(135deg, #4F46E5 0%, #2563EB 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 3rem;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.prices-subtitle {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .prices-title-decoration {
+        font-size: 2.5rem;
+    }
+}

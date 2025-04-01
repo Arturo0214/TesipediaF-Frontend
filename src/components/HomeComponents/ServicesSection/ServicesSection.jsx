@@ -6,7 +6,9 @@ import {
     FaTag,
     FaBookReader,
     FaHeadset,
-    FaUserGraduate
+    FaUserGraduate,
+    FaWhatsapp,
+    FaComments
 } from 'react-icons/fa';
 import './ServicesSection.css';
 
@@ -53,7 +55,12 @@ const sections = [
         icon: <FaHeadset />,
         path: "/contacto",
         color: "#0891b2",
-        gradient: "linear-gradient(135deg, #06b6d4, #0891b2)"
+        gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
+        isContact: true,
+        buttons: [
+            { text: "Chat Interno", path: "/chat", primary: true, icon: <FaComments /> },
+            { text: "WhatsApp", path: "https://wa.me/525583352096", primary: false, icon: <FaWhatsapp /> }
+        ]
     },
     {
         title: "Área de Estudiantes",
@@ -87,7 +94,7 @@ const ServicesSection = () => {
                             >
                                 <div className="card-content">
                                     <div className="icon-wrapper">
-                                        <span className="icon">{section.icon}</span>
+                                        {section.icon}
                                     </div>
                                     <h3 className="card-title">{section.title}</h3>
                                     <p className="card-description">{section.description}</p>
@@ -128,6 +135,29 @@ const ServicesSection = () => {
                                                 className="action-btn"
                                             >
                                                 Cotizar Tesis
+                                            </Button>
+                                        </div>
+                                    ) : section.isContact ? (
+                                        <div className="action-buttons">
+                                            <Button
+                                                as={Link}
+                                                to="/chat"
+                                                variant="primary"
+                                                className="action-btn"
+                                            >
+                                                <FaComments className="me-2" />
+                                                Chat Interno
+                                            </Button>
+                                            <Button
+                                                as="a"
+                                                href="https://wa.me/525583352096"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                variant="outline-primary"
+                                                className="action-btn"
+                                            >
+                                                <FaWhatsapp className="me-2" />
+                                                WhatsApp
                                             </Button>
                                         </div>
                                     ) : (
