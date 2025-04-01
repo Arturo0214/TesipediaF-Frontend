@@ -76,7 +76,7 @@ function MainNavbar() {
                                 <Button as={Link} to="/login" variant="outline-secondary" className="me-2">
                                     Iniciar Sesión
                                 </Button>
-                                <Button onClick={handleRegister} variant="outline-primary">
+                                <Button as={Link} to="/register" variant="outline-primary">
                                     Regístrate
                                 </Button>
                             </>

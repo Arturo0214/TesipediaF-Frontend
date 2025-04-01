@@ -1,71 +1,241 @@
-# Tesipedia
+# 🎓 Tesipedia - Academic Services Platform
 
-**Tesipedia** is a web application designed to provide professional thesis development services, personalized methodology guidance, and comprehensive support for students. The application is built using React and Vite, leveraging Redux for state management and integrating various features to enhance user experience.
+## 📋 Description
+Tesipedia is a professional platform designed to provide specialized academic services, primarily focused on the development and advisory of university theses. Our platform offers an intuitive and professional experience for students seeking support in their graduation process.
 
-## Table of Contents
+## ✨ Main Features
 
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Folder Structure](#folder-structure)
-- [Contributing](#contributing)
-- [License](#license)
+### 🔍 Academic Services
+- **Thesis Development**
+  - Complete development from scratch
+  - Turnitin® anti-plagiarism scanner
+  - AI Scanner
+  - 3-week delivery
+  - Rigorous scientific methodology
+  - 100% approval guarantee
+  - Personalized follow-up
+  - Compliance with institutional regulations
+  - Oral defense coaching
 
-## Features
+### 👨‍🏫 Academic Advisory
+- Theses and dissertations
+- Research projects
+- Academic essays
+- Scientific articles
+- Professional exams
+- Personalized thematic advice
 
-- **User Authentication**: Secure registration and login processes, allowing users to create accounts and manage their profiles.
-- **Service Offerings**: Detailed information about various services, including thesis development, personalized consulting, and revision services.
-- **Dashboard**: A user-friendly dashboard for clients to track their orders, manage their profiles, and access personalized content.
-- **Responsive Design**: Fully responsive design ensuring a seamless experience across devices.
-- **Real-time Chat Support**: Integrated chat functionality for immediate assistance and communication with advisors.
-- **Admin Panel**: Administrative features for managing users, orders, and content, ensuring smooth operation of the platform.
+### 📚 Professional Exam Preparation
+- Comprehensive topic preparation
+- Exam simulations
+- Personalized study materials
+- Presentation strategies
+- Psychological support
+- Public speaking techniques
 
-## Technologies Used
+### 📊 Statistical Analysis
+- Descriptive analysis
+- Statistical tests
+- Data visualization
+- Results interpretation
+- Specialized software
+- Detailed reports
 
-- **Frontend**: 
-  - React
-  - Vite
-  - Redux Toolkit
-  - React Bootstrap
-  - Axios
-  - React Router
-  - Sass
+## 💻 System Functionalities
 
-- **Backend**: 
-  - Node.js
-  - Express
-  - MongoDB
-  - Mongoose
-  - JWT for authentication
-  - Bcrypt for password hashing
+### 🔐 Authentication and Users
+- User registration
+- Login
+- Customized user profiles
+- User control panel
+- Session management
 
-## Installation
+### 💰 Quotation System
+- Personalized quotations
+- Price calculator
+- Different plans by academic level
+- Special discounts
+- Various payment methods
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/tesipedia.git
-   cd tesipedia/Frontend
-   ```
+### 📱 Interface Features
+- Responsive design
+- Intuitive navigation
+- Administration panel
+- Live chat support
+- Real-time notifications
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+## 🛠️ Technologies Used
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+### Frontend
+- React.js
+- React Router DOM
+- Redux for state management
+- React Bootstrap for UI
+- Modern CSS with effects and animations
+- Axios for HTTP requests
 
-4. Open your browser and navigate to `http://localhost:3000` (or the port specified in your terminal).
+### Technical Features
+- Responsive design for all devices
+- Smooth animations and transitions
+- Performance optimization
+- Efficient state management
+- Protected routes handling
 
-## Usage
+## 🚀 Installation and Setup
 
-- **Register**: Create a new account by filling out the registration form.
-- **Login**: Use your credentials to log in to your account.
-- **Dashboard**: Access your dashboard to manage your orders and profile.
-- **Services**: Explore the various services offered by Tesipedia.
-- **Contact Support**: Use the integrated chat feature for immediate assistance.
+1. **Clone the repository**
+```bash
+git clone [REPOSITORY_URL]
+cd Tesipedia-F/Frontend
+```
 
-## Folder Structure
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Configure environment variables**
+Create a `.env` file in the project root:
+```env
+VITE_API_URL=your_api_url
+```
+
+4. **Start development server**
+```bash
+npm run dev
+```
+
+## 📘 User Guide
+
+### 🔑 Authentication
+1. **User Registration**
+   - Navigate to the registration page
+   - Complete the form with your personal data
+   - Verify your email
+   - Access your account
+
+2. **Login**
+   - Enter with your email and password
+   - "Remember session" option
+   - Password recovery available
+
+### 💼 User Panel
+1. **Main Dashboard**
+   - Overview of active services
+   - Quotation status
+   - Important notifications
+   - Quick access to main functions
+
+2. **Profile Management**
+   - Update personal information
+   - Password change
+   - Notification preferences
+   - Service history
+
+### 📝 Service Requests
+1. **Quotation**
+   - Select service type
+   - Specify academic level
+   - Complete requirements form
+   - Receive instant quote
+
+2. **Project Tracking**
+   - Detailed progress view
+   - Communication with advisors
+   - Delivery review
+   - Modification requests
+
+### 💬 Chat System
+1. **Live Support**
+   - Direct chat with advisors
+   - File sharing
+   - Conversation history
+   - Real-time notifications
+
+2. **Advisor Communication**
+   - Meeting scheduling
+   - Specific consultations
+   - Direct feedback
+   - Agreement tracking
+
+### 📊 Payment Management
+1. **Payment Methods**
+   - Credit/debit cards
+   - PayPal
+   - Bank transfer
+   - Cash payments (OXXO)
+
+2. **Financial History**
+   - Transaction records
+   - Invoices and receipts
+   - Payment status
+   - Applied discounts
+
+### 📚 Academic Resources
+1. **Digital Library**
+   - Document templates
+   - Methodological guides
+   - Thesis examples
+   - Reference materials
+
+2. **Support Tools**
+   - Plagiarism checker
+   - Citation editor
+   - Bibliography generator
+   - Style checker
+
+### 📱 Mobile Access
+1. **Responsive Application**
+   - Access from any device
+   - Adaptive interface
+   - Full functionality
+   - Push notifications
+
+2. **Offline Features**
+   - Document downloads
+   - Access to saved resources
+   - Automatic synchronization
+   - Data saving mode
+
+## 📦 Available Scripts
+
+- `npm run dev` - Starts development server
+- `npm run build` - Builds the application for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Runs the linter
+
+## 🔒 Security
+- JWT Authentication
+- Route protection
+- Form validation
+- Data sanitization
+- Sensitive information encryption
+
+## 🌟 Premium Features
+- Live chat with advisors
+- Project tracking system
+- Academic resource library
+- Customizable templates
+- Detailed progress reports
+
+## 📱 Responsive Design
+- Adaptive design for mobile
+- Tablets and medium devices
+- Desktop screens
+- High-resolution displays
+
+## 🤝 Contribution
+If you wish to contribute to the project, please:
+1. Fork the repository
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+This project is under the MIT License. See the `LICENSE` file for more details.
+
+## 📞 Contact
+- Website: [tesipedia.com](https://tesipedia.com)
+- Email: tesipedia.oficial@gmail.com
+- WhatsApp: +52 55 8335 2096
