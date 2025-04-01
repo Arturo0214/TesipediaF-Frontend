@@ -1,29 +1,712 @@
-.guarantee-section {
-    background: #ffffff;
+:root {
+    --item-color: #4F46E5;
+    --item-color-transparent-08: rgba(79, 70, 229, 0.08);
+    --item-color-transparent-12: rgba(79, 70, 229, 0.12);
+    --item-color-rgb: 79, 70, 229;
 }
 
-.guarantee-item {
+.tesi-guarantee-section {
+    padding: 3rem 1.5rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.tesi-guarantee-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent);
+}
+
+.tesi-guarantee-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.tesi-guarantee-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.tesi-guarantee-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.tesi-highlight {
+    color: var(--item-color, #4F46E5);
+    position: relative;
+    display: inline-block;
+}
+
+.tesi-highlight::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #4F46E5, #8B5CF6);
+    border-radius: 2px;
+}
+
+.tesi-guarantee-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.tesi-guarantee-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.tesi-guarantee-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    position: relative;
+    padding: 0.5rem 0;
+    transition: transform 0.2s ease;
+    will-change: transform;
+}
+
+.tesi-guarantee-item:hover {
+    transform: translateX(4px);
+}
+
+.tesi-guarantee-icon-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tesi-guarantee-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tesi-guarantee-icon svg {
+    font-size: 1.1rem;
+    color: var(--item-color, #4F46E5);
+}
+
+.tesi-guarantee-connector {
+    position: absolute;
+    top: 42px;
+    width: 2px;
+    height: calc(100% + 1.5rem);
+    background: linear-gradient(to bottom, var(--item-color, #4F46E5), transparent);
+    opacity: 0.15;
+}
+
+.tesi-guarantee-content {
+    flex: 1;
+    padding-top: 0.15rem;
+}
+
+.tesi-guarantee-item-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tesi-guarantee-item-title::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: var(--item-color, #4F46E5);
+    border-radius: 50%;
+    opacity: 0.5;
+}
+
+.tesi-guarantee-item-description {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.tesi-guarantee-highlight {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--item-color, #4F46E5);
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    background: linear-gradient(135deg, var(--item-color-transparent-08), transparent);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.tesi-guarantee-highlight:hover {
+    transform: translateX(2px);
+    background: linear-gradient(135deg, var(--item-color-transparent-12), transparent);
+}
+
+.tesi-check-icon {
+    font-size: 0.8rem;
+}
+
+.tesi-guarantee-cta {
+    margin-top: 3rem;
     padding: 2rem;
-    transition: transform 0.3s ease;
+    background: linear-gradient(135deg,
+            #0EA5E9 0%,
+            /* Sky blue - Confianza y claridad */
+            #2563EB 25%,
+            /* Royal blue - Profesionalismo */
+            #1E40AF 50%,
+            /* Deep blue - Estabilidad */
+            #1E3A8A 75%,
+            /* Navy blue - Autoridad */
+            #172554 100%);
+    /* Dark blue - Prestigio */
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    box-shadow:
+        0 20px 40px rgba(14, 165, 233, 0.25),
+        inset 0 0 60px rgba(37, 99, 235, 0.2);
+    transition: all 0.5s ease;
 }
 
-.guarantee-item:hover {
-    transform: translateY(-5px);
+/* Anime shine effect with enhanced blue reflection */
+.tesi-guarantee-cta::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent 0%,
+            transparent 30%,
+            rgba(186, 230, 253, 0.2) 45%,
+            /* Light blue reflection */
+            rgba(186, 230, 253, 0.4) 50%,
+            rgba(186, 230, 253, 0.2) 55%,
+            transparent 70%,
+            transparent 100%);
+    transform: rotate(30deg);
+    animation: shineSweep 5s infinite ease-in-out;
+    z-index: 1;
+    pointer-events: none;
 }
 
-.guarantee-icon {
+@keyframes shineSweep {
+    0% {
+        transform: rotate(30deg) translateX(-100%);
+    }
+
+    25%,
+    100% {
+        transform: rotate(30deg) translateX(100%);
+    }
+}
+
+/* Adjust content z-index to appear above the shine */
+.tesi-guarantee-cta-left,
+.tesi-guarantee-cta-right {
+    position: relative;
+    z-index: 2;
+}
+
+/* Enhance the glow effect */
+.tesi-guarantee-cta:hover {
+    transform: translateY(-2px);
+    animation:
+        glowAnimation 2s infinite ease-in-out,
+        borderGlow 2s infinite ease-in-out;
+}
+
+.tesi-guarantee-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.12;
+    animation: shimmer 3s infinite linear;
+    background-size: 30px 30px;
+    z-index: 1;
+}
+
+/* Enhance payment method cards with shine */
+.payment-method {
+    position: relative;
+    overflow: hidden;
+}
+
+.payment-method::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent 0%,
+            transparent 30%,
+            rgba(14, 165, 233, 0.1) 45%,
+            rgba(37, 99, 235, 0.2) 50%,
+            rgba(14, 165, 233, 0.1) 55%,
+            transparent 70%,
+            transparent 100%);
+    transform: rotate(30deg);
+    animation: cardShineSweep 3s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes cardShineSweep {
+    0% {
+        transform: rotate(30deg) translateX(-200%);
+    }
+
+    100% {
+        transform: rotate(30deg) translateX(200%);
+    }
+}
+
+@keyframes glowAnimation {
+    0% {
+        box-shadow:
+            0 20px 40px rgba(14, 165, 233, 0.25),
+            inset 0 0 60px rgba(37, 99, 235, 0.2);
+    }
+
+    50% {
+        box-shadow:
+            0 20px 40px rgba(14, 165, 233, 0.35),
+            0 0 30px rgba(37, 99, 235, 0.3),
+            inset 0 0 60px rgba(37, 99, 235, 0.25);
+    }
+
+    100% {
+        box-shadow:
+            0 20px 40px rgba(14, 165, 233, 0.25),
+            inset 0 0 60px rgba(37, 99, 235, 0.2);
+    }
+}
+
+@keyframes borderGlow {
+    0% {
+        border: 1px solid rgba(147, 51, 234, 0);
+    }
+
+    50% {
+        border: 1px solid rgba(147, 51, 234, 0.3);
+    }
+
+    100% {
+        border: 1px solid rgba(147, 51, 234, 0);
+    }
+}
+
+.tesi-guarantee-cta-left {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.tesi-guarantee-cta-header {
+    margin-bottom: 0;
+}
+
+.tesi-guarantee-cta-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tesi-guarantee-discount-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 1rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.discount-icon {
+    font-size: 1rem;
+    color: #EA580C;
+}
+
+.tesi-guarantee-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.tesi-guarantee-benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.benefit-icon {
+    color: #4ADE80;
+    font-size: 1.1rem;
+}
+
+.tesi-guarantee-cta-text {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin: 0;
+    text-align: center;
+}
+
+.tesi-guarantee-cta-text .highlight {
+    color: #FCD34D;
+    font-weight: 700;
+}
+
+.tesi-guarantee-cta-right {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tesi-guarantee-cta-price {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-content {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.original-price {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+}
+
+.discount-price {
     font-size: 2.5rem;
-    color: #ff6b6b;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.discount-label {
+    background: #FF4F4F;
+    color: white;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.tesi-guarantee-payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
-.guarantee-item h4 {
-    color: #2d3748;
-    margin-bottom: 1rem;
+.payment-method {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: white;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.payment-method:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.payment-icon {
+    font-size: 1.25rem;
+    color: #2563EB;
+}
+
+.payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.payment-info span {
+    color: #1F2937;
     font-weight: 600;
 }
 
-.guarantee-item p {
-    color: #718096;
-    margin: 0;
+.payment-discount {
+    color: #FF4F4F !important;
+    font-size: 0.875rem;
+}
+
+.tesi-guarantee-cta-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+    /* Naranja más suave y profesional */
+    color: white !important;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(234, 88, 12, 0.2);
+    width: 100%;
+}
+
+.tesi-guarantee-cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(234, 88, 12, 0.25);
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    /* Más brillante en hover pero no excesivo */
+}
+
+.arrow-icon {
+    transition: transform 0.2s ease;
+}
+
+.tesi-guarantee-cta-button:hover .arrow-icon {
+    transform: translateX(4px);
+}
+
+.tesi-guarantee-cta-note {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+}
+
+.tesi-guarantee-cta-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.social-proof {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    text-align: left;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stars {
+    color: #FFD700;
+    font-size: 1.2rem;
+}
+
+.rating-text {
+    color: white;
+    font-weight: 700;
+}
+
+.testimonial {
+    color: white;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+.tesi-author {
+    display: flex;
+    flex-direction: column;
+}
+
+.tesi-author-name {
+    color: white;
+    font-weight: 600;
+}
+
+.tesi-author-title {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+}
+
+.urgency-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 107, 107, 0.2);
+    padding: 1rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+.clock-icon {
+    color: #FF6B6B;
+}
+
+@keyframes moveBackground {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 100% 100%;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 992px) {
+    .tesi-guarantee-cta {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 2rem;
+    }
+
+    .tesi-guarantee-cta-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+
+    .tesi-guarantee-cta-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .tesi-guarantee-benefits {
+        align-items: center;
+        text-align: center;
+    }
+
+    .tesi-guarantee-cta-text {
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .tesi-guarantee-cta {
+        margin-top: 3rem;
+        padding: 1.5rem;
+    }
+
+    .tesi-guarantee-cta-right {
+        padding: 1.25rem;
+    }
+
+    .tesi-guarantee-cta-price {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .price-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .discount-price {
+        font-size: 2rem;
+    }
+
+    .payment-method {
+        padding: 0.875rem 1rem;
+    }
+
+    .tesi-guarantee-cta-button {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
 }

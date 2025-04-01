@@ -50,8 +50,12 @@ function Prices() {
     return (
         <Container className="py-3">
             <div className="text-center mb-4">
-                <h2 className="fw-bold">Precios y Planes</h2>
-                <p className="text-muted">Inversión en tu futuro académico</p>
+                <h2 className="prices-title">
+                    <span className="prices-title-decoration">
+                        Precios y Planes
+                    </span>
+                </h2>
+                <div className="prices-subtitle">Inversión en tu futuro académico</div>
             </div>
 
             <Row className="justify-content-center mb-4">

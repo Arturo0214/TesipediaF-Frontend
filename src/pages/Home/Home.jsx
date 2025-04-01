@@ -12,9 +12,7 @@ import AOS from 'aos';
 import HeroSection from '../../components/HomeComponents/HeroSection/HeroSection';
 import TestimonialsSection from '../../components/HomeComponents/TestimonialsSection/TestimonialsSection';
 import ServicesSection from '../../components/HomeComponents/ServicesSection/ServicesSection';
-import ProcessSection from '../../components/HomeComponents/ProcessSection/ProcessSection';
 import GuaranteeSection from '../../components/HomeComponents/GuaranteeSection/GuaranteeSection';
-import CTASection from '../../components/HomeComponents/CTASection/CTASection';
 
 import './Home.css';
 
@@ -62,9 +60,7 @@ function Home() {
       <HeroSection stats={stats} currentStat={currentStat} />
       <TestimonialsSection />
       <ServicesSection />
-      <ProcessSection />
       <GuaranteeSection />
-      <CTASection />
     </>
   );
 }

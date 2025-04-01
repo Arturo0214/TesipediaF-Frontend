@@ -9,7 +9,7 @@ import './chartSetup';
 import Home from './pages/Home/Home.jsx';
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
-import Services from './pages/Services.jsx';
+import Services from './pages/Services/Services.jsx';
 import HowItWorks from './pages/HowItWorks.jsx';
 import Quote from './pages/Quote/Quote.jsx';
 import Blog from './pages/Blog.jsx';
