@@ -1,0 +1,122 @@
+.how-it-works-button {
+    background: var(--button-gradient);
+    border: none;
+    color: var(--text-light);
+    padding: 0.85rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
+}
+
+/* Efecto de brillo */
+.how-it-works-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+    transform: translate(-100%, -100%) rotate(0deg);
+    animation: buttonGlow 3s infinite linear;
+    z-index: -1;
+}
+
+/* Borde brillante */
+.how-it-works-button::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(37, 99, 235, 0.5));
+    z-index: -2;
+    animation: borderPulse 2s infinite;
+}
+
+.how-it-works-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 25px rgba(37, 99, 235, 0.5);
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+}
+
+.how-it-works-button:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+}
+
+/* Animación del icono */
+.how-it-works-button svg {
+    transition: all 0.3s ease;
+    animation: iconFloat 2s infinite;
+}
+
+.how-it-works-button:hover svg {
+    transform: translateY(-1px) rotate(180deg);
+    animation: iconPulse 1s infinite;
+}
+
+/* Estado activo del botón */
+.how-it-works-button.active {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    transform: translateY(0);
+}
+
+.how-it-works-button.active svg {
+    transform: rotate(180deg);
+}
+
+@keyframes buttonGlow {
+    0% {
+        transform: translate(-100%, -100%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(0%, 0%) rotate(360deg);
+    }
+}
+
+@keyframes borderPulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes iconFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes iconPulse {
+
+    0%,
+    100% {
+        transform: scale(1) rotate(180deg);
+    }
+
+    50% {
+        transform: scale(1.2) rotate(180deg);
+    }
+}

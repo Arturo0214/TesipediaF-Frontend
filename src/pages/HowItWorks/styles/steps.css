@@ -1,0 +1,550 @@
+/* Steps Section con línea de progreso */
+.how-it-works-steps {
+    padding: 0;
+    position: relative;
+    z-index: 20;
+    max-height: 0;
+    overflow: visible;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+}
+
+.how-it-works-steps.show {
+    max-height: 3000px;
+    opacity: 1;
+    padding: 0;
+}
+
+.how-it-works-steps::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom,
+            rgba(59, 130, 246, 0.2) 0%,
+            rgba(59, 130, 246, 0.4) 50%,
+            rgba(59, 130, 246, 0.2) 100%);
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top;
+    transition: transform 1s ease-in-out;
+    opacity: 0.5;
+}
+
+.how-it-works-steps.show::before {
+    transform: translateX(-50%) scaleY(1);
+}
+
+/* Process Steps con animación secuencial */
+.how-it-works-step {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: 100%;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 0.5rem;
+    overflow: visible;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition-delay: calc(var(--step-index, 0) * 100ms);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 25;
+}
+
+/* Header row con flexbox */
+.step-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    min-height: 48px;
+    padding-right: 20px;
+}
+
+/* Step Icons */
+.step-icon {
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 10px;
+    margin: 0;
+}
+
+/* Step Numbers */
+.step-number {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -2px;
+    opacity: 0.2;
+    margin: 0;
+}
+
+/* Efecto de resaltado para el paso actual */
+.how-it-works-step.active {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    z-index: 30;
+}
+
+/* Efecto de brillo para el paso activo */
+.how-it-works-step.active::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.4),
+            rgba(255, 255, 255, 0.1));
+    z-index: -1;
+    animation: stepGlow 2s infinite;
+}
+
+/* Animación de entrada secuencial */
+.how-it-works-steps.show .how-it-works-step {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Efecto de hover mejorado */
+.how-it-works-step:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 50;
+}
+
+/* Step Content */
+.step-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.step-description {
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.step-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+}
+
+.step-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    color: var(--text-gray);
+}
+
+.step-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+}
+
+.step-link:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.95);
+}
+
+.step-details {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-gray);
+}
+
+.step-details p {
+    margin: 0;
+    line-height: 1.5;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.step-details p::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+}
+
+@keyframes stepGlow {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
+/* Ajuste para dispositivos móviles */
+@media (max-width: 768px) {
+    .how-it-works-steps {
+        padding: 0;
+    }
+
+    .how-it-works-steps.show {
+        padding: 0;
+    }
+
+    .how-it-works-step {
+        padding: 1.25rem;
+    }
+
+    .step-icon {
+        font-size: 1.5rem;
+    }
+
+    .step-number {
+        font-size: 2.5rem;
+    }
+
+    .step-modal-button {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Botón Saber Más */
+.step-modal-button {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    margin-right: -20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: buttonPulse 2s infinite;
+}
+
+/* Efecto de brillo al hover */
+.step-modal-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent);
+    transform: rotate(45deg);
+    animation: buttonShine 3s infinite;
+}
+
+/* Efecto de elevación al hover */
+.step-modal-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: none;
+}
+
+/* Efecto de presión al click */
+.step-modal-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de pulso suave */
+@keyframes buttonPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* Animación de brillo deslizante */
+@keyframes buttonShine {
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+
+    20%,
+    100% {
+        transform: translateX(100%) rotate(45deg);
+    }
+}
+
+/* Ajuste para dispositivos móviles */
+@media (max-width: 768px) {
+    .step-modal-button {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        animation: buttonPulse 3s infinite;
+        /* Pulso más lento en móvil */
+    }
+}
+
+/* Asistente Virtual */
+.step-assistant {
+    position: absolute;
+    bottom: calc(100% + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-md);
+    z-index: 9999;
+    width: max-content;
+    max-width: calc(100% - 2rem);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+/* Regla general para mostrar el asistente en hover */
+.how-it-works-step:hover .step-assistant {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+/* Ajuste de la flecha para todos los asistentes */
+.step-assistant::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translateX(-50%) rotate(45deg);
+    width: 16px;
+    height: 16px;
+    z-index: 9999;
+}
+
+/* Colores del asistente para cada paso */
+.step-1 .step-assistant,
+.step-1 .step-assistant::after {
+    background: #bae6fd;
+    color: #0c4a6e;
+}
+
+.step-2 .step-assistant,
+.step-2 .step-assistant::after {
+    background: #bbf7d0;
+    color: #14532d;
+}
+
+.step-3 .step-assistant,
+.step-3 .step-assistant::after {
+    background: #fbcfe8;
+    color: #831843;
+}
+
+.step-4 .step-assistant,
+.step-4 .step-assistant::after {
+    background: #fde68a;
+    color: #78350f;
+}
+
+.step-5 .step-assistant,
+.step-5 .step-assistant::after {
+    background: #ddd6fe;
+    color: #4c1d95;
+}
+
+.step-6 .step-assistant,
+.step-6 .step-assistant::after {
+    background: #fed7aa;
+    color: #7c2d12;
+}
+
+.step-7 .step-assistant,
+.step-7 .step-assistant::after {
+    background: #99f6e4;
+    color: #134e4a;
+}
+
+.step-8 .step-assistant,
+.step-8 .step-assistant::after {
+    background: #e9d5ff;
+    color: #581c87;
+}
+
+.step-9 .step-assistant,
+.step-9 .step-assistant::after {
+    background: #fecdd3;
+    color: #881337;
+}
+
+.step-10 .step-assistant,
+.step-10 .step-assistant::after {
+    background: #a5f3fc;
+    color: #164e63;
+}
+
+.step-11 .step-assistant,
+.step-11 .step-assistant::after {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.assistant-icon {
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.assistant-text {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Contenedor de los pasos */
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    position: relative;
+    z-index: 10;
+    margin-top: -0.75rem;
+    margin-bottom: 4rem;
+}
+
+/* Wrapper para cada paso con animación */
+.step-wrapper {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: calc(var(--step-index, 0) * 100ms);
+    position: relative;
+    z-index: 15;
+}
+
+/* Animación de entrada secuencial */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ajuste responsive */
+@media (max-width: 1200px) {
+    .steps-container {
+        grid-template-columns: repeat(2, 1fr);
+        margin-top: -1.5rem;
+        margin-bottom: 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .steps-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: -1rem;
+        margin-bottom: 2rem;
+    }
+}
+
+/* Ajuste responsive para el asistente */
+@media (max-width: 768px) {
+
+    /* Ajuste general para todos los asistentes en móvil */
+    .step-assistant {
+        position: absolute;
+        left: 50%;
+        right: auto;
+        top: auto;
+        bottom: -60px;
+        transform: translateX(-50%);
+        width: calc(100% - 2rem);
+        max-width: none;
+        padding: 0.75rem 1rem;
+        text-align: center;
+    }
+
+    /* Ajuste del hover en móvil */
+    .how-it-works-step:hover .step-assistant {
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    /* Ajuste de la flecha en móvil */
+    .step-assistant::after {
+        left: 50%;
+        right: auto;
+        top: -8px;
+        bottom: auto;
+        transform: translateX(-50%) rotate(45deg);
+    }
+}
+
+/* Ajuste para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .step-assistant {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .assistant-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 0.75rem;
+    }
+
+    .assistant-text {
+        font-size: 0.75rem;
+    }
+}

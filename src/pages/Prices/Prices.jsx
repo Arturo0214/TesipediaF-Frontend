@@ -373,15 +373,14 @@ function Prices() {
                                         </div>
                                     </div>
                                 </Col>
-                                <Col md={5} className="text-md-end">
-                                    <div className="action-wrapper animate-slide-left">
+                                <Col md={5} className="">
+                                    <div className="text-center">
                                         <Button
                                             as={Link}
                                             to="/cotizar"
-                                            className="action-button animate-pulse"
+                                            className="quote-cta-button quote-cta-pulse"
                                         >
                                             Solicitar Cotización
-                                            <FaArrowRight className="ms-2 animate-slide-right" />
                                         </Button>
                                         <span className="response-time animate-fade-in">Cotización en menos de 5 minutos</span>
                                     </div>

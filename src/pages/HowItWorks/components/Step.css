@@ -1,0 +1,298 @@
+.step-hint {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.how-it-works-step:hover .step-hint {
+    opacity: 1;
+}
+
+.step-hint svg {
+    font-size: 1rem;
+    color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+    .step-hint {
+        display: none;
+    }
+}
+
+.step-modal-button.center-button {
+    display: block;
+    margin: 0 auto 1rem auto;
+    position: relative;
+    z-index: 2;
+    top: -10px;
+}
+
+@media (max-width: 768px) {
+    .step-modal-button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+.step-header-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.step-icon {
+    font-size: 1.8rem;
+    margin-right: 0.5rem;
+    color: inherit;
+}
+
+.step-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.1);
+    margin-left: auto;
+    padding-left: 1rem;
+}
+
+.step-modal-button {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: none;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step-modal-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos del modal */
+.modal-section {
+    padding: 1.5rem;
+}
+
+.modal-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.modal-text {
+    color: #4b5563;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.modal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+}
+
+.modal-list-item {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    color: #4b5563;
+}
+
+.modal-list-item::before {
+    content: '•';
+    position: absolute;
+    left: 0.5rem;
+    color: #3b82f6;
+}
+
+/* Estilos de las tarjetas de precio */
+.modal-price-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-price-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.modal-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 0.5rem;
+}
+
+.modal-price-details {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.modal-price-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-price-feature {
+    padding: 0.25rem 0;
+    color: #4b5563;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-price-feature::before {
+    content: '✓';
+    color: #10b981;
+    margin-right: 0.5rem;
+    font-weight: bold;
+}
+
+/* Botones del modal */
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.modal-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.modal-button-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.modal-button-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.modal-button-secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.modal-button-secondary:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+}
+
+/* Botón Saber Más */
+.step-modal-button {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    margin-right: -20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: button-pulse 2s infinite;
+}
+
+/* Efecto de brillo al hover */
+.step-modal-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent);
+    transform: rotate(45deg);
+    animation: button-shine 3s infinite;
+}
+
+/* Efecto de elevación al hover */
+.step-modal-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: none;
+}
+
+/* Efecto de presión al click */
+.step-modal-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de pulso suave */
+@keyframes button-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* Animación de brillo deslizante */
+@keyframes button-shine {
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+
+    20%,
+    100% {
+        transform: translateX(100%) rotate(45deg);
+    }
+}
+
+/* Ajuste para dispositivos móviles */
+@media (max-width: 768px) {
+    .step-modal-button {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        animation: button-pulse 3s infinite;
+        /* Pulso más lento en móvil */
+    }
+
+    .modal-section {
+        padding: 1rem;
+    }
+
+    .modal-price-card {
+        padding: 1rem;
+    }
+}

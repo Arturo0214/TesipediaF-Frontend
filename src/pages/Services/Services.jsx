@@ -320,12 +320,12 @@ function Services() {
           </Modal.Body>
         </Modal>
 
-        <div className="services-cta-section">
-          <div className="shine-effect"></div>
-          <h3>¿Listo para alcanzar la excelencia académica?</h3>
-          <p>Obtén una cotización personalizada para tu proyecto en menos de 5 minutos</p>
-          <a href="/cotizar" className="btn btn-primary">
-            Cotiza tu proyecto ahora <FaArrowRight className="ms-2" />
+        <div className="services-cta-wrapper">
+          <div className="services-cta-shine-effect"></div>
+          <h3 className="services-cta-title">¿Listo para alcanzar la excelencia académica?</h3>
+          <p className="services-cta-description">Obtén una cotización personalizada para tu proyecto en menos de 5 minutos</p>
+          <a href="/cotizar" className="services-cta-button">
+            Cotiza tu proyecto ahora <FaArrowRight className="services-cta-icon" />
           </a>
         </div>
       </Container>
