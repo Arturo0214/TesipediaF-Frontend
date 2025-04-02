@@ -1,9 +1,10 @@
 import { Navbar, Nav, Container, Button, Dropdown, NavDropdown } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import { FaUser } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
+import TesipediaLogo from '../../assets/images/Tesipedia-logo.png';
 import './Navbar.css';
 
 function MainNavbar() {
@@ -37,20 +38,27 @@ function MainNavbar() {
     return (
         <Navbar bg="white" variant="light" expand="lg" fixed="top" className={`shadow-sm ${scrolled ? 'scrolled' : ''}`}>
             <Container>
-                <Navbar.Brand as={Link} to="/">
-                    <img src="/logo.png" alt="Tesipedia" height="40" className="d-inline-block align-top" />
+                <Navbar.Brand as={Link} to="/" className="brand-container">
+                    <img
+                        src={TesipediaLogo}
+                        alt="Tesipedia"
+                        className="brand-logo"
+                    />
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
-                        <Nav.Link as={Link} to="/">Inicio</Nav.Link>
-                        <Nav.Link as={Link} to="/servicios">Servicios</Nav.Link>
-                        <Nav.Link as={Link} to="/como-funciona">¿Cómo Funciona?</Nav.Link>
-                        <Nav.Link as={Link} to="/precios">Precios</Nav.Link>
-                        <Nav.Link as={Link} to="/cotizar" className="nav-link-cotizar">Cotizar</Nav.Link>
+                        <Nav.Link as={NavLink} to="/" className={({ isActive }) => isActive ? 'active' : ''}>Inicio</Nav.Link>
+                        <Nav.Link as={NavLink} to="/servicios" className={({ isActive }) => isActive ? 'active' : ''}>Servicios</Nav.Link>
+                        <Nav.Link as={NavLink} to="/como-funciona" className={({ isActive }) => isActive ? 'active' : ''}>¿Cómo Funciona?</Nav.Link>
+                        <Nav.Link as={NavLink} to="/precios" className={({ isActive }) => isActive ? 'active' : ''}>Precios</Nav.Link>
+                        <Nav.Link as={NavLink} to="/cotizar" className="nav-link-cotizar" style={{ color: '#4F46E5' }}>Cotizar</Nav.Link>
                         <NavDropdown title="Más" id="nav-dropdown" className="nav-dropdown">
-                            <NavDropdown.Item as={Link} to="/contacto">Contacto</NavDropdown.Item>
-                            <NavDropdown.Item as={Link} to="/blog">Blog</NavDropdown.Item>
+                            <NavDropdown.Item as={NavLink} to="/sobre-nosotros" className={({ isActive }) => isActive ? 'active' : ''}>Sobre Nosotros</NavDropdown.Item>
+                            <NavDropdown.Item as={NavLink} to="/preguntas-frecuentes" className={({ isActive }) => isActive ? 'active' : ''}>Preguntas Frecuentes</NavDropdown.Item>
+                            <NavDropdown.Divider />
+                            <NavDropdown.Item as={NavLink} to="/contacto" className={({ isActive }) => isActive ? 'active' : ''}>Contacto</NavDropdown.Item>
+                            <NavDropdown.Item as={NavLink} to="/blog" className={({ isActive }) => isActive ? 'active' : ''}>Blog</NavDropdown.Item>
                         </NavDropdown>
                     </Nav>
                     <Nav className="align-items-center">

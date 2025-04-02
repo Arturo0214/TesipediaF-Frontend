@@ -1,0 +1,1073 @@
+@keyframes backgroundMove {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 24px 24px;
+    }
+}
+
+@keyframes glowPulse {
+    0% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes twinkle {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes floatIcon {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes glowEffect {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 12px currentColor;
+        opacity: 0.5;
+    }
+
+    50% {
+        box-shadow: 0 4px 20px currentColor;
+        opacity: 0.8;
+    }
+}
+
+.page-aboutUs {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    padding-top: 0;
+}
+
+.page-aboutUs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.95) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 50px 160px, rgba(255, 255, 255, 0.8) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 90px 40px, rgba(255, 255, 255, 0.7) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.85) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0));
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    opacity: 0.3;
+    animation: twinkle 4s infinite alternate;
+}
+
+.page-aboutUs::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(2px 2px at 170px 150px, rgba(255, 255, 255, 0.95) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 150px 180px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 130px 110px, rgba(255, 255, 255, 0.8) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 200px 120px, rgba(255, 255, 255, 0.7) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 180px 60px, rgba(255, 255, 255, 0.85) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 120px 50px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0));
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    opacity: 0.2;
+    animation: twinkle 4s infinite alternate-reverse;
+}
+
+.page-aboutUs__hero {
+    min-height: 35vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    padding-top: 1rem;
+}
+
+.page-aboutUs__heroRow {
+    position: relative;
+    z-index: 2;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0;
+}
+
+.page-aboutUs__logoColumn {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 1rem;
+}
+
+.page-aboutUs__logoContainer {
+    width: 100%;
+    max-width: 200px;
+}
+
+.page-aboutUs__logo {
+    width: 100%;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.page-aboutUs__logo:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.5)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 30px rgba(192, 132, 252, 0.2));
+}
+
+.page-aboutUs__contentColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 1rem;
+}
+
+.page-aboutUs__headerContent {
+    max-width: 540px;
+    text-align: center;
+}
+
+.page-aboutUs__title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    line-height: 1.1;
+}
+
+.page-aboutUs__titleText {
+    background: linear-gradient(135deg,
+            #FFFFFF 0%,
+            #F8F9FA 25%,
+            #E2E8F0 50%,
+            #FFFFFF 75%,
+            #F8F9FA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+    position: relative;
+    display: inline-block;
+}
+
+.page-aboutUs__titleText::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.5) 50%,
+            transparent 100%);
+}
+
+.page-aboutUs__subtitle {
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.page-aboutUs__description {
+    max-width: 540px;
+}
+
+.page-aboutUs__description p {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+}
+
+.page-aboutUs__description-section {
+    position: relative;
+    padding: 3rem 0;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    margin-top: -1rem;
+    z-index: 3;
+}
+
+.page-aboutUs__description-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    transition: all 0.3s ease;
+}
+
+.page-aboutUs__description-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(31, 38, 135, 0.25);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.page-aboutUs__description-icon {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+    position: relative;
+    display: inline-block;
+}
+
+.page-aboutUs__description-icon::after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: rgba(147, 51, 234, 0.2);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    animation: pulse 2s infinite;
+}
+
+.page-aboutUs__description-content {
+    position: relative;
+    z-index: 2;
+}
+
+.page-aboutUs__description-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    text-align: justify;
+}
+
+.page-aboutUs__description-decoration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.page-aboutUs__description-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(147, 51, 234, 0.5),
+            transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@media (max-width: 1024px) {
+    .page-aboutUs__title {
+        font-size: 2.5rem;
+    }
+
+    .page-aboutUs__subtitle {
+        font-size: 1.1rem;
+    }
+
+    .page-aboutUs__description p {
+        font-size: 0.95rem;
+    }
+
+    .page-aboutUs__logoContainer {
+        max-width: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-aboutUs {
+        margin-top: -76px;
+        padding-top: 76px;
+    }
+
+    .page-aboutUs__hero {
+        min-height: 40vh;
+        padding-top: 0.5rem;
+    }
+
+    .page-aboutUs__logoColumn {
+        justify-content: center;
+        padding-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-aboutUs__contentColumn {
+        align-items: center;
+        padding-left: 0;
+    }
+
+    .page-aboutUs__logoContainer {
+        max-width: 180px;
+    }
+
+    .page-aboutUs__title {
+        font-size: 2.25rem;
+    }
+
+    .page-aboutUs__subtitle {
+        font-size: 1rem;
+    }
+
+    .page-aboutUs__description p {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-aboutUs__title {
+        font-size: 2rem;
+    }
+
+    .page-aboutUs__logoContainer {
+        max-width: 160px;
+    }
+}
+
+.page-aboutUs__info-section {
+    position: relative;
+    padding: 2rem 0;
+    z-index: 3;
+}
+
+.page-aboutUs__info-row {
+    margin: 0 -0.75rem;
+}
+
+.page-aboutUs__info-card {
+    background: linear-gradient(145deg, #1e3a6d 0%, #2d4b8a 100%);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    height: 100%;
+    position: relative;
+    overflow: visible;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 0 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-aboutUs__info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.page-aboutUs__info-card.description::before {
+    background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+}
+
+.page-aboutUs__info-card.mission::before {
+    background: linear-gradient(90deg, #FFD700, #FFA500);
+}
+
+.page-aboutUs__info-card.vision::before {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.page-aboutUs__info-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.page-aboutUs__info-card:hover::before {
+    opacity: 1;
+}
+
+.page-aboutUs__info-icon {
+    position: absolute;
+    top: -20px;
+    right: 20px;
+    font-size: 1.5rem;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 3;
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+.description .page-aboutUs__info-icon {
+    background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.mission .page-aboutUs__info-icon {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.vision .page-aboutUs__info-icon {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.page-aboutUs__info-card:hover .page-aboutUs__info-icon {
+    transform: scale(1.15) translateY(-2px);
+}
+
+.description .page-aboutUs__info-icon {
+    animation: floatIcon 3s ease-in-out infinite, glowEffect 2s infinite;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.mission .page-aboutUs__info-icon {
+    animation: floatIcon 3.5s ease-in-out infinite, glowEffect 2.5s infinite;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.vision .page-aboutUs__info-icon {
+    animation: floatIcon 4s ease-in-out infinite, glowEffect 3s infinite;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.page-aboutUs__info-content {
+    position: relative;
+    z-index: 2;
+    padding-top: 0.5rem;
+}
+
+.page-aboutUs__info-content h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+    position: relative;
+    display: inline-block;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: titleShine 3s linear infinite;
+}
+
+.description .page-aboutUs__info-content h3 {
+    background-image: linear-gradient(120deg, #38bdf8 0%, #0ea5e9 50%, #38bdf8 100%);
+    text-shadow: 0 2px 15px rgba(56, 189, 248, 0.3);
+}
+
+.mission .page-aboutUs__info-content h3 {
+    background-image: linear-gradient(120deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+    text-shadow: 0 2px 15px rgba(255, 215, 0, 0.3);
+}
+
+.vision .page-aboutUs__info-content h3 {
+    background-image: linear-gradient(120deg, #22c55e 0%, #16a34a 50%, #22c55e 100%);
+    text-shadow: 0 2px 15px rgba(34, 197, 94, 0.3);
+}
+
+@keyframes titleShine {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.page-aboutUs__info-card:hover .page-aboutUs__info-content h3 {
+    animation: titleShine 2s linear infinite;
+}
+
+.page-aboutUs__info-content p {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-weight: 400;
+    letter-spacing: 0.2px;
+    text-align: justify;
+    hyphens: auto;
+}
+
+.description .page-aboutUs__info-content h3::after {
+    background: linear-gradient(90deg, #38bdf8, transparent);
+}
+
+.mission .page-aboutUs__info-content h3::after {
+    background: linear-gradient(90deg, #FFD700, transparent);
+}
+
+.vision .page-aboutUs__info-content h3::after {
+    background: linear-gradient(90deg, #22c55e, transparent);
+}
+
+@media (max-width: 991px) {
+    .page-aboutUs__info-section {
+        padding: 1.25rem 0;
+    }
+
+    .page-aboutUs__info-card {
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .page-aboutUs__info-icon {
+        top: -18px;
+        right: 18px;
+        width: 38px;
+        height: 38px;
+        font-size: 1.35rem;
+    }
+
+    .page-aboutUs__info-content h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.6rem;
+        background-size: 150% auto;
+    }
+
+    .page-aboutUs__info-content p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-aboutUs__info-section {
+        padding: 1rem 0;
+    }
+
+    .page-aboutUs__info-card {
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .page-aboutUs__info-icon {
+        top: -16px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+        font-size: 1.25rem;
+    }
+
+    .page-aboutUs__info-content {
+        padding-top: 0.25rem;
+    }
+
+    .page-aboutUs__info-content h3 {
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+        background-size: 120% auto;
+    }
+
+    .page-aboutUs__info-content p {
+        font-size: 0.88rem;
+        line-height: 1.5;
+        text-align: left;
+    }
+}
+
+/* Modern Advisors Section Styles */
+.page-aboutUs__advisors-section {
+    position: relative;
+    padding: 2rem 0 3rem;
+    z-index: 2;
+}
+
+.page-aboutUs__advisors-row {
+    display: flex;
+    align-items: stretch;
+}
+
+.page-aboutUs__advisors-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-aboutUs__advisors-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.page-aboutUs__advisors-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.page-aboutUs__advisors-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg,
+            #E0F2FE 0%,
+            /* Azul celeste muy claro */
+            #BAE6FD 25%,
+            /* Azul celeste claro */
+            #7DD3FC 50%,
+            /* Azul celeste medio */
+            #38BDF8 75%,
+            /* Azul celeste */
+            #0EA5E9 100%
+            /* Azul celeste profundo */
+        );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: gradientTitle 4s ease infinite;
+    text-shadow: 0 2px 10px rgba(14, 165, 233, 0.1);
+}
+
+.page-aboutUs__advisors-subtitle {
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+    animation: fadeInUp 0.8s ease 0.2s forwards;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.page-aboutUs__advisor-feature {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.page-aboutUs__advisor-feature:hover {
+    transform: translateX(5px);
+}
+
+.page-aboutUs__advisor-icon {
+    font-size: 1.75rem;
+    min-width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.expertise .page-aboutUs__advisor-icon {
+    color: #60a5fa;
+    animation: floatIcon 4s ease-in-out infinite;
+}
+
+.success .page-aboutUs__advisor-icon {
+    color: #34d399;
+    animation: floatIcon 4s ease-in-out infinite 0.5s;
+}
+
+.page-aboutUs__advisor-text h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 0.75rem;
+    position: relative;
+}
+
+.page-aboutUs__advisor-text h3::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.3;
+    transition: width 0.3s ease;
+}
+
+.page-aboutUs__advisor-feature:hover .page-aboutUs__advisor-text h3::after {
+    width: 100%;
+    opacity: 0.6;
+}
+
+.page-aboutUs__advisor-text p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    font-weight: 300;
+}
+
+/* CTA Section Styles */
+.page-aboutUs__cta-col {
+    display: flex;
+    align-items: center;
+}
+
+.page-aboutUs__cta-content {
+    background: none;
+    border: none;
+    backdrop-filter: none;
+    padding: 2rem;
+    width: 100%;
+    animation: fadeInRight 0.8s ease forwards;
+}
+
+.page-aboutUs__cta-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg,
+            #FFF7ED 0%,
+            /* Naranja muy suave */
+            #FFEDD5 25%,
+            /* Naranja suave */
+            #FED7AA 50%,
+            /* Naranja medio suave */
+            #FDBA74 75%,
+            /* Naranja cálido */
+            #FB923C 100%
+            /* Naranja sutil */
+        );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: gradientTitle 4s ease infinite;
+    text-align: center;
+    text-shadow: none;
+    position: relative;
+}
+
+.page-aboutUs__cta-text {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+    font-weight: 300;
+    line-height: 1.6;
+    text-align: center;
+    text-shadow: none;
+}
+
+.page-aboutUs__cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    margin-top: 1.75rem;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-aboutUs__cta-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    gap: 0.5rem;
+    overflow: hidden;
+    letter-spacing: 0.01em;
+    width: 100%;
+}
+
+.page-aboutUs__cta-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    z-index: 2;
+    display: block;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.2) 50%,
+            transparent 100%);
+    transform: skewX(-25deg);
+    animation: shine 2.5s infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -75%;
+        opacity: 0;
+    }
+
+    20% {
+        left: -75%;
+        opacity: 0.5;
+    }
+
+    45% {
+        left: 125%;
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        left: 125%;
+        opacity: 0;
+    }
+}
+
+.page-aboutUs__cta-button.blue-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+}
+
+.page-aboutUs__cta-button.green-btn {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+}
+
+.page-aboutUs__cta-button.orange-btn {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.1);
+    position: relative;
+    overflow: hidden;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.page-aboutUs__cta-button.orange-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    z-index: 2;
+    display: block;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.1) 50%,
+            transparent 100%);
+    transform: skewX(-25deg);
+    animation: shine 3s infinite;
+}
+
+.page-aboutUs__cta-button.orange-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 15px rgba(147, 51, 234, 0.5),
+        0 0 30px rgba(168, 85, 247, 0.3),
+        0 0 45px rgba(192, 132, 252, 0.2);
+    border-color: rgba(147, 51, 234, 0.5);
+    opacity: 1;
+}
+
+.page-aboutUs__cta-button.orange-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+}
+
+.page-aboutUs__cta-button svg {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.page-aboutUs__cta-button:hover svg {
+    transform: translateX(3px);
+}
+
+@media (max-width: 991px) {
+    .page-aboutUs__advisors-row {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .page-aboutUs__advisors-col,
+    .page-aboutUs__cta-col {
+        max-width: 100%;
+    }
+
+    .page-aboutUs__advisors-title {
+        font-size: 2.25rem;
+    }
+
+    .page-aboutUs__cta-title {
+        font-size: 1.75rem;
+    }
+
+    .page-aboutUs__cta-content {
+        position: static;
+        padding: 2rem;
+    }
+
+    .page-aboutUs__cta-buttons {
+        max-width: 260px;
+        gap: 0.75rem;
+    }
+
+    .page-aboutUs__cta-button {
+        padding: 0.675rem 1.125rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-aboutUs__advisors-section {
+        padding: 1rem 0;
+    }
+
+    .page-aboutUs__advisors-title {
+        font-size: 2rem;
+    }
+
+    .page-aboutUs__advisor-feature {
+        padding: 0.75rem;
+    }
+
+    .page-aboutUs__cta-buttons {
+        max-width: 100%;
+    }
+
+    .page-aboutUs__cta-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Keyframes for animations */
+@keyframes fadeInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes gradientTitle {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}

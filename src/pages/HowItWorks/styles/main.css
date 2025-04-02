@@ -1,0 +1,250 @@
+/* Variables y estilos base */
+:root {
+    --primary-gradient: linear-gradient(135deg, #0a1930 0%, #1e3a8a 100%);
+    --button-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    --text-light: #ffffff;
+    --text-gray: #4b5563;
+    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 12px 25px rgba(0, 0, 0, 0.15);
+    --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.how-it-works-container {
+    min-height: 100vh;
+    background: var(--primary-gradient);
+    position: relative;
+    overflow: hidden;
+    color: var(--text-light);
+    padding-top: 0;
+}
+
+/* Background animations */
+.how-it-works-container::before,
+.how-it-works-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-repeat: repeat;
+    background-size: 200px 200px;
+}
+
+.how-it-works-container::before {
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.95) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 50px 160px, rgba(255, 255, 255, 0.8) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 90px 40px, rgba(255, 255, 255, 0.7) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.85) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0));
+    opacity: 0.3;
+    animation: twinkle 4s infinite alternate;
+}
+
+.how-it-works-container::after {
+    background-image:
+        radial-gradient(2px 2px at 170px 150px, rgba(255, 255, 255, 0.95) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 150px 180px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 130px 110px, rgba(255, 255, 255, 0.8) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 200px 120px, rgba(255, 255, 255, 0.7) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 180px 60px, rgba(255, 255, 255, 0.85) 50%, rgba(0, 0, 0, 0)),
+        radial-gradient(2px 2px at 120px 50px, rgba(255, 255, 255, 0.9) 50%, rgba(0, 0, 0, 0));
+    opacity: 0.2;
+    animation: twinkle 4s infinite alternate-reverse;
+}
+
+@keyframes twinkle {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 991px) {
+    .how-it-works-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .how-it-works-container {
+        padding-top: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .how-it-works-title {
+        font-size: 1.75rem;
+    }
+}
+
+.how-it-works-hero {
+    height: 35vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    z-index: 3;
+}
+
+.how-it-works-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+}
+
+.how-it-works-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-light-muted);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .how-it-works-hero {
+        height: 25vh;
+        padding: 1rem;
+    }
+
+    .how-it-works-title {
+        font-size: 2rem;
+    }
+
+    .how-it-works-subtitle {
+        font-size: 1rem;
+    }
+}
+
+.guide-tooltip {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: var(--shadow-md);
+    max-width: 300px;
+    z-index: 1000;
+    animation: tooltipFadeIn 0.3s ease-in-out;
+    border: 2px solid #3b82f6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.guide-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.98);
+    border: 2px solid #3b82f6;
+    transform: rotate(45deg);
+}
+
+.guide-tooltip.bottom::before {
+    top: -7px;
+    left: 50%;
+    margin-left: -6px;
+    border-bottom: none;
+    border-right: none;
+}
+
+.guide-tooltip.right::before {
+    left: -7px;
+    top: 50%;
+    margin-top: -6px;
+    border-right: none;
+    border-top: none;
+}
+
+.guide-tooltip.left::before {
+    right: -7px;
+    top: 50%;
+    margin-top: -6px;
+    border-left: none;
+    border-bottom: none;
+}
+
+.guide-icon {
+    width: 30px;
+    height: 30px;
+    background: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.guide-message {
+    color: #1f2937;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.guide-next {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    align-self: flex-end;
+}
+
+.guide-next:hover {
+    background: #2563eb;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Posicionamiento del tooltip según el target */
+[data-target="button"] {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 1rem;
+}
+
+[data-target="step-1"] {
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    margin-left: 1rem;
+}
+
+[data-target="step-2"] {
+    top: 50%;
+    right: 100%;
+    transform: translateY(-50%);
+    margin-right: 1rem;
+}
+
+[data-target="step-3"] {
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    margin-left: 1rem;
+}
