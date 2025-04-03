@@ -15,12 +15,14 @@ function HowItWorks() {
   const [showSteps, setShowSteps] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [activeModal, setActiveModal] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (showSteps) {
+    if (showSteps && isAnimating) {
       const interval = setInterval(() => {
         setActiveStep((prevStep) => {
           if (prevStep >= steps.length - 1) {
+            setIsAnimating(false);
             clearInterval(interval);
             return prevStep;
           }
@@ -29,10 +31,19 @@ function HowItWorks() {
       }, 3000);
 
       return () => clearInterval(interval);
-    } else {
+    } else if (!showSteps) {
       setActiveStep(0);
+      setIsAnimating(false);
     }
-  }, [showSteps]);
+  }, [showSteps, isAnimating]);
+
+  const handleToggleSteps = () => {
+    setShowSteps(!showSteps);
+    if (!showSteps) {
+      setIsAnimating(true);
+      setActiveModal(null);
+    }
+  };
 
   const steps = [
     {
@@ -118,6 +129,7 @@ function HowItWorks() {
 
   const handleShowModal = (stepIndex) => {
     setActiveModal(stepIndex);
+    setIsAnimating(false);
   };
 
   const handleHideModal = () => {
@@ -127,7 +139,7 @@ function HowItWorks() {
   return (
     <div className="how-it-works-container">
       <div className="how-it-works-content">
-        <Hero showSteps={showSteps} onToggleSteps={() => setShowSteps(!showSteps)} />
+        <Hero showSteps={showSteps} onToggleSteps={handleToggleSteps} />
         <div className="steps-wrapper">
           <StepsList
             steps={steps}

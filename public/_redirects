@@ -1,0 +1,35 @@
+/* /index.html 200
+
+# Rutas públicas principales
+/servicios              /index.html 200
+/precios               /index.html 200
+/cotizar               /index.html 200
+/contacto              /index.html 200
+/chat                  /index.html 200
+/como-funciona         /index.html 200
+/blog                  /index.html 200
+/sobre-nosotros        /index.html 200
+/preguntas-frecuentes  /index.html 200
+
+# Rutas de autenticación
+/login                 /index.html 200
+/register              /index.html 200
+/forgot-password       /index.html 200
+/reset-password/*      /index.html 200
+
+# Rutas de usuario
+/dashboard             /index.html 200
+/perfil               /index.html 200
+/mis-cotizaciones     /index.html 200
+/mis-pedidos          /index.html 200
+/mensajes             /index.html 200
+/pagos                /index.html 200
+
+# Rutas de administración
+/admin                 /index.html 200
+/admin/*               /index.html 200
+/admin/usuarios        /index.html 200
+/admin/pedidos         /index.html 200
+/admin/cotizaciones    /index.html 200
+/admin/escritores      /index.html 200
+/admin/visitas         /index.html 200 
