@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaCheck, FaCheckCircle, FaShieldAlt, FaClock, FaUserGraduate, FaHandshake, FaChartLine, FaPercent, FaMoneyBillWave, FaCreditCard, FaArrowRight, FaStar } from 'react-icons/fa';
+import { FaCheck, FaCheckCircle, FaShieldAlt, FaClock, FaUserGraduate, FaHandshake, FaChartLine, FaPercent, FaMoneyBillWave, FaCreditCard, FaArrowRight } from 'react-icons/fa';
 import './GuaranteeSection.css';
 
 const GuaranteeSection = () => {
@@ -72,9 +72,6 @@ const GuaranteeSection = () => {
                                 <div className="tesi-guarantee-icon" style={{ backgroundColor: `${guarantee.color}15` }}>
                                     {guarantee.icon}
                                 </div>
-                                {index < guarantees.length - 1 && (
-                                    <div className="tesi-guarantee-connector"></div>
-                                )}
                             </div>
                             <div className="tesi-guarantee-content">
                                 <h3 className="tesi-guarantee-item-title">{guarantee.title}</h3>
@@ -91,7 +88,7 @@ const GuaranteeSection = () => {
                 <div className="tesi-guarantee-cta">
                     <div className="tesi-guarantee-cta-left">
                         <div className="tesi-guarantee-cta-header">
-                            <h2 className="tesi-guarantee-cta-title">¡Oferta Especial por<br />Tiempo Limitado!</h2>
+                            <h2 className="tesi-guarantee-cta-title">¡Oferta Especial por Tiempo Limitado!</h2>
                             <div className="tesi-guarantee-discount-tag">
                                 <FaPercent className="discount-icon" />
                                 10% DE DESCUENTO

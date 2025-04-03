@@ -502,6 +502,11 @@
 /* Ajuste responsive para el asistente */
 @media (max-width: 768px) {
 
+    /* Ocultar el asistente en dispositivos móviles */
+    .step-assistant {
+        display: none;
+    }
+
     /* Ajuste general para todos los asistentes en móvil */
     .step-assistant {
         position: absolute;

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import {
   FaInfoCircle, FaMoneyBillWave, FaFileAlt, FaUserTie, FaLock, FaCreditCard,
@@ -13,6 +14,7 @@ import './styles/step-colors.css';
 function HowItWorks() {
   const [showSteps, setShowSteps] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [activeModal, setActiveModal] = useState(null);
 
   useEffect(() => {
     if (showSteps) {
@@ -114,11 +116,28 @@ function HowItWorks() {
     }
   ];
 
+  const handleShowModal = (stepIndex) => {
+    setActiveModal(stepIndex);
+  };
+
+  const handleHideModal = () => {
+    setActiveModal(null);
+  };
+
   return (
     <div className="how-it-works-container">
-      <Hero showSteps={showSteps} onToggleSteps={() => setShowSteps(!showSteps)} />
-      <div className="steps-wrapper">
-        <StepsList steps={steps} activeStep={activeStep} showSteps={showSteps} />
+      <div className="how-it-works-content">
+        <Hero showSteps={showSteps} onToggleSteps={() => setShowSteps(!showSteps)} />
+        <div className="steps-wrapper">
+          <StepsList
+            steps={steps}
+            activeStep={activeStep}
+            showSteps={showSteps}
+            activeModal={activeModal}
+            onShowModal={handleShowModal}
+            onHideModal={handleHideModal}
+          />
+        </div>
       </div>
     </div>
   );

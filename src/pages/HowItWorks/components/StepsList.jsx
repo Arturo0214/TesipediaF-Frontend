@@ -1,8 +1,8 @@
 import React from 'react';
-import Step from './Step';
+import Step from './Steps/Step';
 import '../styles/steps.css';
 
-const StepsList = ({ steps, activeStep, showSteps }) => {
+const StepsList = ({ steps, activeStep, showSteps, activeModal, onShowModal, onHideModal }) => {
     return (
         <div className={`how-it-works-steps ${showSteps ? 'show' : ''}`}>
             <div className="steps-container">
@@ -16,6 +16,9 @@ const StepsList = ({ steps, activeStep, showSteps }) => {
                             step={step}
                             index={index}
                             isActive={activeStep === index}
+                            isModalOpen={activeModal === index}
+                            onShowModal={() => onShowModal(index)}
+                            onHideModal={onHideModal}
                         />
                     </div>
                 ))}

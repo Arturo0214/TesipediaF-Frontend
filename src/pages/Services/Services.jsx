@@ -1,4 +1,5 @@
 import { Container, Row, Col, ListGroup, Modal } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { FaGraduationCap, FaUserTie, FaClipboardCheck, FaChartLine, FaCheckCircle, FaArrowRight, FaTimes } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import './Services.css';
@@ -324,9 +325,9 @@ function Services() {
           <div className="services-cta-shine-effect"></div>
           <h3 className="services-cta-title">¿Listo para alcanzar la excelencia académica?</h3>
           <p className="services-cta-description">Obtén una cotización personalizada para tu proyecto en menos de 5 minutos</p>
-          <a href="/cotizar" className="services-cta-button">
+          <Link to="/cotizar" className="services-cta-button">
             Cotiza tu proyecto ahora <FaArrowRight className="services-cta-icon" />
-          </a>
+          </Link>
         </div>
       </Container>
     </div>

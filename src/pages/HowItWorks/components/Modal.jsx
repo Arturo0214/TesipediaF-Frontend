@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal as BootstrapModal } from 'react-bootstrap';
-import './modals.css';
+import '../styles/modals.css';
 
 const Modal = ({ show, onHide, title, children, stepColor }) => {
     return (
@@ -8,6 +8,7 @@ const Modal = ({ show, onHide, title, children, stepColor }) => {
             show={show}
             onHide={onHide}
             centered
+            size="xl"
             className="custom-modal"
             backdrop="static"
             keyboard={false}

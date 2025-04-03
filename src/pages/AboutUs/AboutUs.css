@@ -408,6 +408,22 @@
     }
 }
 
+@media (max-width: 430px) {
+    .page-aboutUs__hero {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .page-aboutUs__info-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .page-aboutUs__info-section {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+}
+
 .page-aboutUs__info-section {
     position: relative;
     padding: 2rem 0;
