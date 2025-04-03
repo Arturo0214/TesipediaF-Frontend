@@ -1,0 +1,250 @@
+.pricing-modal-section {
+    padding: 1rem;
+}
+
+.pricing-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.pricing-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-description {
+    font-size: 0.875rem;
+    color: #4a5568;
+    margin: 0;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.price-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.price-card.featured {
+    border-color: #4299e1;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.1);
+}
+
+.price-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.price-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.price-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.25rem 0;
+}
+
+.price-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #4299e1;
+    margin-bottom: 0.25rem;
+}
+
+.price-pages {
+    font-size: 0.75rem;
+    color: #718096;
+}
+
+.price-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+.price-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.price-feature:last-child {
+    margin-bottom: 0;
+}
+
+.price-feature svg {
+    color: #48bb78;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.price-guarantee {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #4299e1;
+    margin-bottom: 0.5rem;
+}
+
+.price-discount {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #48bb78;
+    font-weight: 500;
+}
+
+.payment-section {
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.payment-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.25rem 0;
+}
+
+.payment-subtitle {
+    font-size: 0.75rem;
+    color: #718096;
+    margin: 0;
+}
+
+.payment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.payment-method {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 1rem;
+    position: relative;
+    transition: all 0.2s ease;
+    height: 100%;
+}
+
+.payment-method:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #cbd5e1;
+}
+
+.payment-method-logo {
+    width: 60px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.payment-method-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.payment-discount-tag {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #48bb78;
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(72, 187, 120, 0.2);
+    z-index: 1;
+}
+
+.payment-cta {
+    text-align: center;
+}
+
+.payment-cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #4299e1;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+}
+
+.payment-cta-button:hover {
+    background: #3182ce;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.2);
+}
+
+.payment-cta-text {
+    font-size: 0.625rem;
+    color: #718096;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .payment-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .payment-method {
+        padding: 0.5rem;
+    }
+
+    .payment-method-logo {
+        width: 32px;
+        height: 32px;
+    }
+
+    .payment-method-title {
+        font-size: 0.625rem;
+    }
+
+    .payment-discount-tag {
+        font-size: 0.5rem;
+        padding: 0.125rem 0.25rem;
+    }
+}

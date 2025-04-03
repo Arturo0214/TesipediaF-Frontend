@@ -26,6 +26,7 @@
     max-width: 1100px;
     margin: 0 auto;
     position: relative;
+    width: 100%;
 }
 
 .tesi-guarantee-header {
@@ -79,20 +80,38 @@
     align-items: flex-start;
     gap: 1.25rem;
     position: relative;
-    padding: 0.5rem 0;
-    transition: transform 0.2s ease;
-    will-change: transform;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+}
+
+.tesi-guarantee-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
 }
 
 .tesi-guarantee-item:hover {
-    transform: translateX(4px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
 }
 
-.tesi-guarantee-icon-wrapper {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.tesi-guarantee-item:hover::before {
+    opacity: 1;
 }
 
 .tesi-guarantee-icon {
@@ -102,14 +121,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    background: rgba(var(--item-color-rgb), 0.1);
 }
 
 .tesi-guarantee-icon svg {
     font-size: 1.1rem;
-    color: var(--item-color, #4F46E5);
+    color: var(--item-color);
 }
 
 .tesi-guarantee-connector {
@@ -123,6 +141,8 @@
 
 .tesi-guarantee-content {
     flex: 1;
+    min-width: 0;
+    /* Previene desbordamiento en flexbox */
     padding-top: 0.15rem;
 }
 
@@ -150,6 +170,7 @@
     color: #64748b;
     line-height: 1.4;
     margin-bottom: 0.5rem;
+    word-wrap: break-word;
 }
 
 .tesi-guarantee-highlight {
@@ -673,40 +694,134 @@
 }
 
 @media (max-width: 768px) {
-    .tesi-guarantee-cta {
-        margin-top: 3rem;
-        padding: 1.5rem;
+    .tesi-guarantee-section {
+        padding: 2rem 1rem;
     }
 
-    .tesi-guarantee-cta-right {
+    .tesi-guarantee-title {
+        font-size: 1.75rem;
+    }
+
+    .tesi-guarantee-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .tesi-guarantee-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .tesi-guarantee-item {
         padding: 1.25rem;
     }
 
-    .tesi-guarantee-cta-price {
-        flex-direction: column;
-        align-items: center;
+    .tesi-guarantee-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .tesi-guarantee-icon svg {
+        font-size: 1rem;
+    }
+
+    .tesi-guarantee-item-title {
+        font-size: 1.1rem;
+    }
+
+    .tesi-guarantee-item-description {
+        font-size: 0.85rem;
+    }
+
+    .tesi-guarantee-highlight {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    .tesi-guarantee-cta {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .tesi-guarantee-cta-title {
+        font-size: 1.75rem;
         text-align: center;
-        gap: 0.75rem;
-        padding-bottom: 1rem;
-        margin-bottom: 1rem;
     }
 
-    .price-content {
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
+    .tesi-guarantee-discount-tag {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
     }
 
-    .discount-price {
-        font-size: 2rem;
+    .tesi-guarantee-benefit-item {
+        font-size: 0.95rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .tesi-guarantee-cta-text {
+        font-size: 1rem;
     }
 
     .payment-method {
-        padding: 0.875rem 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .payment-icon {
+        font-size: 1.1rem;
+    }
+
+    .payment-info span {
+        font-size: 0.9rem;
+    }
+
+    .payment-discount {
+        font-size: 0.8rem;
     }
 
     .tesi-guarantee-cta-button {
-        padding: 0.875rem 1.5rem;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tesi-guarantee-section {
+        padding: 2rem 1rem;
+    }
+
+    .tesi-guarantee-item {
+        padding: 1rem;
+    }
+
+    .tesi-guarantee-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .tesi-guarantee-item-title {
         font-size: 1rem;
+    }
+
+    .tesi-guarantee-item-description {
+        font-size: 0.85rem;
+    }
+
+    .tesi-guarantee-highlight {
+        font-size: 0.75rem;
+    }
+
+    .tesi-guarantee-cta {
+        margin-top: 1.5rem;
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .tesi-guarantee-grid {
+        gap: 2rem;
+    }
+
+    .tesi-guarantee-item {
+        padding: 1.25rem;
     }
 }

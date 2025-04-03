@@ -10,7 +10,7 @@ import Register from './pages/auth/Register';
 import Services from './pages/Services/Services';
 import HowItWorks from './pages/HowItWorks/HowItWorks';
 import Quote from './pages/Quote/Quote';
-import Blog from './pages/Blog';
+import Blog from './pages/Blog/Blog';
 import Contact from './pages/Contact';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
