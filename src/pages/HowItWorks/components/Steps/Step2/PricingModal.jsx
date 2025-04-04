@@ -1,14 +1,15 @@
 import React from 'react';
 import { FaCheck, FaShieldAlt, FaArrowRight } from 'react-icons/fa';
-import visaLogo from '../../../../../assets/images/visa-svgrepo-com.svg';
-import mastercardLogo from '../../../../../assets/images/mc_symbol.svg';
-import amexLogo from '../../../../../assets/images/amex-svgrepo-com.svg';
-import paypalLogo from '../../../../../assets/images/paypal-svgrepo-com.svg';
-import bankTransferLogo from '../../../../../assets/images/bank-transfer.png';
-import qrCodeLogo from '../../../../../assets/images/qr-code.png';
 import './PricingModal.css';
 
 const PricingModal = () => {
+    const visaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/visa-svgrepo-com_lpwqqd.svg';
+    const mastercardLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/mc_symbol_zpes4d.svg';
+    const amexLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/amex-svgrepo-com_m3vtdk.svg';
+    const paypalLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/paypal-svgrepo-com_wl94rq.svg';
+    const bankTransferLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/bank-transfer_shbqgk.png';
+    const qrCodeLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/qr-code_bk38y1.png';
+
     return (
         <div className="pricing-modal-section">
             <div className="pricing-header">

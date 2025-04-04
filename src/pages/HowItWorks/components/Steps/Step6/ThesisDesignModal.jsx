@@ -1,95 +1,90 @@
 import React from 'react';
-import { FaFileAlt, FaFont, FaRuler, FaList, FaBook } from 'react-icons/fa';
-import './ThesisDesignModal.css';
+import { FaCreditCard, FaPaypal, FaUniversity, FaClock, FaShieldAlt, FaMoneyBillWave } from 'react-icons/fa';
+import './PaymentModal.css';
 
-const ThesisDesignModal = () => {
+const PaymentModal = () => {
     return (
-        <div className="thesis-design-modal-section">
-            <div className="thesis-design-modal-header">
-                <h3 className="thesis-design-modal-title">Diseño Profesional de Tesis</h3>
-                <p className="thesis-design-modal-description">Cumplimos con los estándares académicos más exigentes para garantizar la presentación perfecta de tu trabajo</p>
+        <div className="payment-modal-section">
+            <div className="payment-modal-header">
+                <h3 className="payment-modal-title">Realizar el Pago</h3>
+                <p className="payment-modal-description">Procede a realizar el pago según el método elegido</p>
+                <div className="payment-time">
+                    <FaClock className="time-icon" />
+                    <span>1-2 minutos</span>
+                </div>
             </div>
 
-            <div className="thesis-design-modal-grid">
-                <div className="thesis-design-modal-card">
-                    <div className="thesis-design-modal-card-icon">
-                        <FaFileAlt />
+            <div className="payment-methods-grid">
+                <div className="payment-method-card">
+                    <div className="payment-method-icon">
+                        <FaCreditCard />
                     </div>
-                    <div className="thesis-design-modal-card-content">
-                        <h4>Formato Institucional</h4>
-                        <ul className="thesis-design-modal-list">
-                            <li>Portada oficial según normas</li>
-                            <li>Estructura requerida</li>
-                            <li>Secciones obligatorias</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="thesis-design-modal-card">
-                    <div className="thesis-design-modal-card-icon">
-                        <FaFont />
-                    </div>
-                    <div className="thesis-design-modal-card-content">
-                        <h4>Tipografía Profesional</h4>
-                        <ul className="thesis-design-modal-list">
-                            <li>Fuentes académicas</li>
-                            <li>Tamaños apropiados</li>
-                            <li>Jerarquía visual</li>
-                        </ul>
+                    <div className="payment-method-content">
+                        <h4>Tarjeta de Crédito/Débito</h4>
+                        <p className="centered-text">Pago seguro a meses sin intereses</p>
+                        <button className="payment-method-button primary">
+                            Pagar con Tarjeta
+                        </button>
                     </div>
                 </div>
 
-                <div className="thesis-design-modal-card">
-                    <div className="thesis-design-modal-card-icon">
-                        <FaRuler />
+                <div className="payment-method-card">
+                    <div className="payment-method-icon">
+                        <FaPaypal />
                     </div>
-                    <div className="thesis-design-modal-card-content">
-                        <h4>Espaciado y Márgenes</h4>
-                        <ul className="thesis-design-modal-list">
-                            <li>Márgenes exactos</li>
-                            <li>Interlineado correcto</li>
-                            <li>Espaciado uniforme</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="thesis-design-modal-card">
-                    <div className="thesis-design-modal-card-icon">
-                        <FaList />
-                    </div>
-                    <div className="thesis-design-modal-card-content">
-                        <h4>Índices Automáticos</h4>
-                        <ul className="thesis-design-modal-list">
-                            <li>Tabla de contenidos</li>
-                            <li>Índice de figuras</li>
-                            <li>Índice de tablas</li>
-                        </ul>
+                    <div className="payment-method-content">
+                        <h4>PayPal</h4>
+                        <p className="centered-text">Pago rápido y seguro con PayPal</p>
+                        <button className="payment-method-button paypal">
+                            Pagar con PayPal
+                        </button>
                     </div>
                 </div>
 
-                <div className="thesis-design-modal-card">
-                    <div className="thesis-design-modal-card-icon">
-                        <FaBook />
+                <div className="payment-method-card">
+                    <div className="payment-method-icon">
+                        <FaUniversity />
                     </div>
-                    <div className="thesis-design-modal-card-content">
-                        <h4>Referencias Bibliográficas</h4>
-                        <ul className="thesis-design-modal-list">
-                            <li>Estilos requeridos (APA, Chicago, etc.)</li>
-                            <li>Citas en texto</li>
-                            <li>Bibliografía completa</li>
-                        </ul>
+                    <div className="payment-method-content">
+                        <h4>Transferencia Bancaria</h4>
+                        <p className="centered-text">10% de descuento en transferencias</p>
+                        <button className="payment-method-button secondary">
+                            Contacta con un asesor
+                        </button>
+                    </div>
+                </div>
+
+                <div className="payment-method-card">
+                    <div className="payment-method-icon">
+                        <FaMoneyBillWave />
+                    </div>
+                    <div className="payment-method-content">
+                        <h4>Efectivo / Retiro</h4>
+                        <p className="centered-text">10% de descuento en pagos sin tarjeta</p>
+                        <button className="payment-method-button chat-button">
+                            Abrir Chat
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div className="thesis-design-modal-cta">
-                <a href="/cotizar" className="thesis-design-modal-button">
-                    Solicitar Diseño Profesional
+            <div className="payment-info-section">
+                <div className="payment-guarantee">
+                    <FaShieldAlt className="guarantee-icon" />
+                    <div className="guarantee-content">
+                        <h4>Pago Seguro Garantizado</h4>
+                        <p>Modalidad de pago: 50% al iniciar, 50% al entregar para pagos en efectivo</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="payment-cta">
+                <a href="/contacto" className="payment-support-button">
+                    ¿Necesitas ayuda con tu pago?
                 </a>
-                <p className="thesis-design-modal-note">* Este servicio está incluido en todos nuestros servicios de asesoría</p>
             </div>
         </div>
     );
 };
 
-export default ThesisDesignModal; 
+export default PaymentModal; 

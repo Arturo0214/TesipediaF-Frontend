@@ -217,3 +217,392 @@
         padding: 0.75rem 1rem;
     }
 }
+
+.notification-tracking-section {
+    padding: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.notification-header {
+    background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.notification-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,.075)' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.notification-pulse {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+}
+
+.notification-pulse::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+
+    70% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+}
+
+.notification-bell-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 2rem;
+    animation: bell-shake 5s infinite;
+}
+
+@keyframes bell-shake {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%);
+    }
+
+    3%,
+    7% {
+        transform: translate(-52%, -50%) rotate(-5deg);
+    }
+
+    5%,
+    9% {
+        transform: translate(-48%, -50%) rotate(5deg);
+    }
+
+    11% {
+        transform: translate(-50%, -50%);
+    }
+}
+
+.notification-title {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.notification-description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    max-width: 80%;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.notification-channels {
+    display: flex;
+    justify-content: center;
+    margin: -25px auto 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.channel-item {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 0.8rem 1.5rem;
+    margin: 0 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.channel-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.channel-icon {
+    width: 40px;
+    height: 40px;
+    background: #f3e8ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    color: #9333ea;
+    font-size: 1.2rem;
+}
+
+.channel-type {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.notification-updates {
+    padding: 1rem 1.5rem 0.75rem;
+}
+
+.update-message {
+    display: flex;
+    align-items: flex-start;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.update-message:hover {
+    background: #f3f4f6;
+    transform: translateX(3px);
+}
+
+.update-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #10b981;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    margin-right: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.update-badge.pending {
+    background: #f59e0b;
+}
+
+.update-badge.progress {
+    background: #6366f1;
+}
+
+.update-content {
+    flex: 1;
+}
+
+.update-content h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.3rem 0;
+}
+
+.update-content p {
+    font-size: 0.8rem;
+    color: #4b5563;
+    margin: 0 0 0.5rem 0;
+}
+
+.update-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    display: block;
+}
+
+.notification-features {
+    display: flex;
+    padding: 1rem 1.25rem 1.5rem;
+    gap: 1rem;
+}
+
+.feature-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feature-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #d8b4fe;
+}
+
+.feature-icon {
+    width: 40px;
+    height: 40px;
+    background: #f3e8ff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9333ea;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.feature-content {
+    flex: 1;
+}
+
+.feature-content h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.feature-content p {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.notification-cta {
+    background: #f3f4f6;
+    border-top: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.notification-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.notification-button.quote {
+    background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(147, 51, 234, 0.2);
+    min-width: 250px;
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-button.quote::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.notification-button.quote:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+}
+
+.notification-button.quote:hover::before {
+    left: 100%;
+}
+
+.notification-button.primary {
+    background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(147, 51, 234, 0.2);
+}
+
+.notification-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(147, 51, 234, 0.3);
+}
+
+.notification-button.secondary {
+    background: white;
+    color: #9333ea;
+    border: 1px solid #e5e7eb;
+}
+
+.notification-button.secondary:hover {
+    background: #f9fafb;
+    border-color: #d8b4fe;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .notification-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .notification-title {
+        font-size: 1.5rem;
+    }
+
+    .notification-description {
+        font-size: 0.85rem;
+        max-width: 95%;
+    }
+
+    .notification-channels {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .channel-item {
+        padding: 0.6rem 1rem;
+        min-width: 90px;
+    }
+
+    .notification-features {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .notification-cta {
+        padding: 1.25rem 1rem;
+    }
+
+    .notification-button.quote {
+        width: 100%;
+        min-width: auto;
+    }
+}

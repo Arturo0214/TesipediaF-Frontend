@@ -2,12 +2,12 @@ import { Navbar, Nav, Container, Button, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout, reset } from '../../features/auth/authSlice';
-import TesipediaLogo from '../../assets/images/Tesipedia-logo.png';
 import './Navbar.css';
 
 function NavbarAdmin() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
 
     const handleLogout = async () => {
         await dispatch(logout());

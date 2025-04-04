@@ -23,7 +23,7 @@ const ContactModal = () => {
                 </div>
 
                 <div className="contact-option">
-                    <div className="contact-icon">
+                    <div className="contact-icon" style={{ color: '#25D366' }}>
                         <FaWhatsapp />
                     </div>
                     <div className="contact-content">

@@ -7,18 +7,14 @@ import QuoteModal from './Step3/QuoteModal';
 import ContactModal from './Step4/ContactModal';
 import QuoteProcessModal from './Step5/QuoteProcessModal';
 import ThesisDesignModal from './Step6/ThesisDesignModal';
+import ProjectStartModal from './Step7/ProjectStartModal';
 import ProcessTrackingModal from './Step8/ProcessTrackingModal';
 import FinalDeliveryModal from './Step9/FinalDeliveryModal';
 import PostDeliveryModal from './Step10/PostDeliveryModal';
 import '../../styles/Step.css';
-import visaLogo from '../../../../assets/images/visa-svgrepo-com.svg';
-import mastercardLogo from '../../../../assets/images/mc_symbol.svg';
-import amexLogo from '../../../../assets/images/amex-svgrepo-com.svg';
-import paypalLogo from '../../../../assets/images/paypal-svgrepo-com.svg';
-import bankTransferLogo from '../../../../assets/images/bank-transfer.png';
-import qrCodeLogo from '../../../../assets/images/qr-code.png';
 
 const Step = ({ step, index, isActive, isModalOpen, onShowModal, onHideModal }) => {
+
     const getAssistantText = () => {
         switch (index) {
             case 0:
@@ -34,7 +30,7 @@ const Step = ({ step, index, isActive, isModalOpen, onShowModal, onHideModal }) 
             case 5:
                 return "Te explico las formas de pago disponibles";
             case 6:
-                return "Conoce a tu asesor especializado";
+                return "¡Tu proyecto ya está en marcha! Te muestro los siguientes pasos";
             case 7:
                 return "Te mantendremos informado de todo el proceso";
             case 8:
@@ -63,149 +59,7 @@ const Step = ({ step, index, isActive, isModalOpen, onShowModal, onHideModal }) 
             case 5:
                 return <ThesisDesignModal />;
             case 6:
-                return (
-                    <div className="hiw-service-modal-section">
-                        <div className="hiw-service-header">
-                            <h3 className="hiw-service-title">Inversión en tu Futuro Académico</h3>
-                            <p className="hiw-service-description">Planes diseñados para garantizar el éxito de tu tesis</p>
-                        </div>
-
-                        <div className="hiw-pricing-grid">
-                            <div className="hiw-price-card">
-                                <div className="hiw-price-header">
-                                    <h4 className="hiw-price-title">Maestría</h4>
-                                    <div className="hiw-price-amount">$380-$420 MXN</div>
-                                    <div className="hiw-price-pages">Por página</div>
-                                </div>
-                                <ul className="hiw-price-features">
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Investigación especializada
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Metodología avanzada
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Análisis profundo de datos
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Todo lo de licenciatura
-                                    </li>
-                                </ul>
-                                <div className="hiw-price-guarantee">
-                                    <FaShieldAlt /> Garantía de satisfacción
-                                </div>
-                                <div className="hiw-price-discount">10% OFF en pago directo</div>
-                            </div>
-
-                            <div className="hiw-price-card featured">
-                                <div className="hiw-price-header">
-                                    <h4 className="hiw-price-title">Licenciatura</h4>
-                                    <div className="hiw-price-amount">$280-$320 MXN</div>
-                                    <div className="hiw-price-pages">Por página</div>
-                                </div>
-                                <ul className="hiw-price-features">
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Corrección de fondo y estilo
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Escáner antiplagio profesional
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Escáner antiIA incluido
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Asesoría personalizada
-                                    </li>
-                                </ul>
-                                <div className="hiw-price-guarantee">
-                                    <FaShieldAlt /> Garantía de satisfacción
-                                </div>
-                                <div className="hiw-price-discount">10% OFF en pago directo</div>
-                            </div>
-
-                            <div className="hiw-price-card">
-                                <div className="hiw-price-header">
-                                    <h4 className="hiw-price-title">Doctorado</h4>
-                                    <div className="hiw-price-amount">$480-$520 MXN</div>
-                                    <div className="hiw-price-pages">Por página</div>
-                                </div>
-                                <ul className="hiw-price-features">
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Investigación doctoral
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Análisis avanzado
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Publicación científica
-                                    </li>
-                                    <li className="hiw-price-feature">
-                                        <FaCheck /> Todo lo de maestría
-                                    </li>
-                                </ul>
-                                <div className="hiw-price-guarantee">
-                                    <FaShieldAlt /> Garantía de satisfacción
-                                </div>
-                                <div className="hiw-price-discount">10% OFF en pago directo</div>
-                            </div>
-                        </div>
-
-                        <div className="hiw-payment-section">
-                            <div className="hiw-payment-header">
-                                <h4 className="hiw-payment-title">Métodos de Pago Flexibles</h4>
-                                <p className="hiw-payment-subtitle">Elige la opción que mejor se adapte a ti</p>
-                            </div>
-
-                            <div className="hiw-payment-grid">
-                                <div className="hiw-payment-method">
-                                    <img src={visaLogo} alt="Visa" className="hiw-payment-method-logo" />
-                                    <h5 className="hiw-payment-method-title">Visa</h5>
-                                    <p className="hiw-payment-method-subtitle">Crédito o Débito</p>
-                                </div>
-
-                                <div className="hiw-payment-method">
-                                    <img src={mastercardLogo} alt="Mastercard" className="hiw-payment-method-logo" />
-                                    <h5 className="hiw-payment-method-title">Mastercard</h5>
-                                    <p className="hiw-payment-method-subtitle">Crédito o Débito</p>
-                                </div>
-
-                                <div className="hiw-payment-method">
-                                    <img src={amexLogo} alt="American Express" className="hiw-payment-method-logo" />
-                                    <h5 className="hiw-payment-method-title">American Express</h5>
-                                    <p className="hiw-payment-method-subtitle">Crédito</p>
-                                </div>
-
-                                <div className="hiw-payment-method">
-                                    <img src={paypalLogo} alt="PayPal" className="hiw-payment-method-logo" />
-                                    <h5 className="hiw-payment-method-title">PayPal</h5>
-                                    <p className="hiw-payment-method-subtitle">Pago seguro online</p>
-                                </div>
-
-                                <div className="hiw-payment-method">
-                                    <img src={bankTransferLogo} alt="Transferencia" className="hiw-payment-method-logo" />
-                                    <h5 className="hiw-payment-method-title">Transferencia SPEI</h5>
-                                    <p className="hiw-payment-method-subtitle">10% de descuento</p>
-                                    <span className="hiw-payment-discount-tag">AHORRA</span>
-                                </div>
-
-                                <div className="hiw-payment-method">
-                                    <img src={qrCodeLogo} alt="QR" className="hiw-payment-method-logo" />
-                                    <h5 className="hiw-payment-method-title">Pago con QR</h5>
-                                    <p className="hiw-payment-method-subtitle">10% de descuento</p>
-                                    <span className="hiw-payment-discount-tag">AHORRA</span>
-                                </div>
-                            </div>
-
-                            <div className="hiw-payment-cta">
-                                <h4 className="hiw-payment-cta-title">¿Listo para Comenzar?</h4>
-                                <p className="hiw-payment-cta-text">Obtén tu cotización personalizada en menos de 5 minutos</p>
-                                <a href="/cotizar" className="hiw-payment-cta-button">
-                                    <FaArrowRight /> Cotizar Ahora
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <ProjectStartModal />;
             case 7:
                 return <ProcessTrackingModal />;
             case 8:

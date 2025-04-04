@@ -10,10 +10,11 @@ import {
     FaWhatsapp,
     FaCalculator
 } from 'react-icons/fa';
-import TesipediaLogo from '../../assets/images/Tesipedia-logo.png';
 import './AboutUs.css';
 
 function AboutUs() {
+    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
+
     return (
         <div className="page-aboutUs">
             <div className="page-aboutUs__hero">

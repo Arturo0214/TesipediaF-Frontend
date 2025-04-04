@@ -44,7 +44,7 @@ function FAQ() {
                             <Accordion.Item eventKey="4">
                                 <Accordion.Header>¿Ofrecen garantía de aprobación?</Accordion.Header>
                                 <Accordion.Body>
-                                    Sí, ofrecemos una garantía de aprobación del 100%. Si tu trabajo requiere modificaciones después de la revisión del comité académico, las realizaremos sin costo adicional hasta obtener la aprobación.
+                                    Sí, ofrecemos una garantía de aprobación del 100%. Si tu trabajo requiere modificaciones después de la revisión de fondo y estilo incluidas en el paquete, las realizaremos con un costo adicional hasta obtener la aprobación.
                                 </Accordion.Body>
                             </Accordion.Item>
 

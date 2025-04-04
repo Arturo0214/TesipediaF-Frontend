@@ -1,0 +1,327 @@
+.project-start-section {
+    padding: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+}
+
+.project-start-header {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.project-start-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 25%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 20%);
+}
+
+.rocket-animation {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+}
+
+.rocket-icon {
+    color: #ffffff;
+    font-size: 2.5rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: rocketFloat 3s ease-in-out infinite;
+}
+
+@keyframes rocketFloat {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%);
+    }
+
+    50% {
+        transform: translate(-50%, -60%);
+    }
+}
+
+.project-start-title {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.project-start-description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    max-width: 80%;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.project-timeline {
+    padding: 2rem 1rem 1rem;
+    position: relative;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 42px;
+    top: 3rem;
+    bottom: 2rem;
+    width: 3px;
+    background: linear-gradient(to bottom, #e0e7ff 0%, #c7d2fe 100%);
+    border-radius: 3px;
+}
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 1.75rem;
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.timeline-item:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.timeline-item:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.timeline-item:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+.timeline-item:nth-child(5) {
+    animation-delay: 0.8s;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.timeline-icon {
+    width: 48px;
+    height: 48px;
+    background: #6366f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.25rem;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.1);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover .timeline-icon {
+    transform: scale(1.1);
+    background: #4f46e5;
+}
+
+.timeline-content {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    flex: 1;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.timeline-item:hover .timeline-content {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #c7d2fe;
+}
+
+.timeline-tag {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #4f46e5;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem;
+}
+
+.timeline-content p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.project-guarantees {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.5rem 1.5rem;
+}
+
+.guarantee-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #eff6ff;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border: 1px dashed #93c5fd;
+    transition: all 0.3s ease;
+}
+
+.guarantee-item:hover {
+    background: #dbeafe;
+    border-color: #60a5fa;
+}
+
+.guarantee-icon {
+    font-size: 1.5rem;
+    color: #3b82f6;
+}
+
+.guarantee-content h4 {
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem;
+}
+
+.guarantee-content p {
+    align-items: center;
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.project-cta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+}
+
+.project-cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.project-cta-button.primary {
+    background: #4f46e5;
+    color: white;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.project-cta-button.primary:hover {
+    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+}
+
+.project-cta-button.secondary {
+    background: #ffffff;
+    color: #4f46e5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e7ff;
+}
+
+.project-cta-button.secondary:hover {
+    background: #f5f3ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .project-start-header {
+        padding: 2rem 1rem 1.5rem;
+    }
+
+    .rocket-animation {
+        width: 50px;
+        height: 50px;
+    }
+
+    .rocket-icon {
+        font-size: 2rem;
+    }
+
+    .project-start-title {
+        font-size: 1.4rem;
+    }
+
+    .project-start-description {
+        font-size: 0.9rem;
+        max-width: 95%;
+    }
+
+    .timeline-line {
+        left: 34px;
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        margin-right: 0.75rem;
+    }
+
+    .timeline-content {
+        padding: 0.75rem 1rem;
+    }
+
+    .timeline-content h4 {
+        font-size: 1rem;
+    }
+
+    .timeline-content p {
+        font-size: 0.85rem;
+    }
+
+    .project-cta {
+        grid-template-columns: 1fr;
+    }
+
+    .project-cta-button {
+        padding: 0.75rem 1rem;
+    }
+}
