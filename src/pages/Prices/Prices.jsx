@@ -5,15 +5,16 @@ import {
     FaCreditCard, FaPaypal, FaUniversity, FaHandHoldingUsd, FaUserGraduate, FaLock, FaPercent, FaQrcode, FaInfoCircle, FaMoneyBillWave, FaArrowRight, FaClock, FaStar, FaBolt, FaShieldAlt
 } from 'react-icons/fa';
 import './Prices.css';
-import visaLogo from '../../assets/images/visa-svgrepo-com.svg';
-import mastercardLogo from '../../assets/images/mc_symbol.svg';
-import amexLogo from '../../assets/images/amex-svgrepo-com.svg';
-import paypalLogo from '../../assets/images/paypal-svgrepo-com.svg';
-import bankTransferLogo from '../../assets/images/bank-transfer.png';
-import qrCodeLogo from '../../assets/images/qr-code.png';
 import { useEffect, useRef } from 'react';
 
 function Prices() {
+    const visaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/visa-svgrepo-com_lpwqqd.svg';
+    const mastercardLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/mc_symbol_zpes4d.svg';
+    const amexLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/amex-svgrepo-com_m3vtdk.svg';
+    const paypalLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/paypal-svgrepo-com_wl94rq.svg';
+    const bankTransferLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/bank-transfer_shbqgk.png';
+    const qrCodeLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/qr-code_bk38y1.png';
+
     const caracteristicasComunes = [
         { icon: <FaCheck />, text: "1 corrección de fondo" },
         { icon: <FaPencilAlt />, text: "1 corrección de estilo" },

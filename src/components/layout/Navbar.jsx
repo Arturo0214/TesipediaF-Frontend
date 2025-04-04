@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import { FaUser } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
-import TesipediaLogo from '../../assets/images/Tesipedia-logo.png';
 import './Navbar.css';
 
 function MainNavbar() {
@@ -14,6 +13,7 @@ function MainNavbar() {
     const [showRegister, setShowRegister] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [expanded, setExpanded] = useState(false);
+    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
 
     useEffect(() => {
         const handleScroll = () => {

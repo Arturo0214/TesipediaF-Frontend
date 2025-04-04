@@ -1,4 +1,5 @@
 .contact-modal-section {
+    margin-top: -20px;
     padding: 0;
     background: #ffffff;
     border-radius: 12px;
@@ -6,33 +7,33 @@
 
 .contact-title {
     padding: 0;
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #F59E0B;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
     text-align: center;
 }
 
 .contact-description {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #4a5568;
     text-align: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 
 .contact-options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    padding: 0 0.5rem;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+    padding: 0 0.4rem;
 }
 
 .contact-option {
     background: #FFFBEB;
     border: 1px solid #FCD34D;
     border-radius: 6px;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.4rem;
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
@@ -48,15 +49,15 @@
 }
 
 .contact-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
     color: #F59E0B;
     transition: all 0.2s ease;
 }
@@ -72,27 +73,27 @@
 }
 
 .contact-content h4 {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #2d3748;
-    margin: 0 0 0.15rem 0;
+    margin: 0 0 0.1rem 0;
 }
 
 .contact-content p {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #4a5568;
-    margin: 0 0 0.5rem 0;
-    line-height: 1.3;
+    margin: 0 0 0.4rem 0;
+    line-height: 1.2;
 }
 
 .contact-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.35rem 0.75rem;
+    padding: 0.3rem 0.65rem;
     border-radius: 20px;
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-decoration: none;
     transition: all 0.2s ease;
     width: auto;
@@ -139,23 +140,23 @@
     background: #FFFBEB;
     border: 1px solid #FCD34D;
     border-radius: 6px;
-    padding: 0.5rem;
+    padding: 0.4rem;
     text-align: center;
-    margin: 0.5rem;
+    margin: 0.4rem;
 }
 
 .guarantee-content h4 {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #F59E0B;
-    margin: 0 0 0.15rem 0;
+    margin: 0 0 0.1rem 0;
 }
 
 .guarantee-content p {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #4a5568;
     margin: 0;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 @media (max-width: 768px) {

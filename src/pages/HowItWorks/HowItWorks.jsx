@@ -96,9 +96,9 @@ function HowItWorks() {
     },
     {
       icon: <FaUserCheck />,
-      title: 'Se te asigna un asesor',
-      description: 'Un profesional de tu área comenzará tu proyecto.',
-      details: 'La fecha de entrega queda establecida en tu cotización.'
+      title: '¡Tu Proyecto está en Marcha!',
+      description: 'Seguimiento detallado y comunicación constante desde el primer momento',
+      details: 'Cronograma con fechas de entrega, reuniones de alineación y reportes periódicos de avance.'
     },
     {
       icon: <FaBell />,
