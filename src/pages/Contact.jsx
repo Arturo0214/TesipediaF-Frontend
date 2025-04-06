@@ -1,49 +1,93 @@
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { Container, Row, Col, Button } from 'react-bootstrap';
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaComments, FaWhatsapp } from 'react-icons/fa';
+import ChatPanel from '../components/chat/ChatPanel';
+import './Contact.css';
 
 function Contact() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Lógica para manejar el envío del formulario
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const handleWhatsAppClick = () => {
+    window.open('https://wa.me/525583352096', '_blank');
   };
 
   return (
-    <Container className="py-5">
-      <h1 className="text-center mb-5">Contacto</h1>
-      <Row className="g-4">
-        <Col md={6}>
-          <h2 className="h4 mb-4">Envíanos un mensaje</h2>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Nombre</Form.Label>
-              <Form.Control type="text" placeholder="Tu nombre" required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control type="email" placeholder="tu@email.com" required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Mensaje</Form.Label>
-              <Form.Control as="textarea" rows={5} required />
-            </Form.Group>
-            <Button type="submit" variant="primary">Enviar Mensaje</Button>
-          </Form>
-        </Col>
-        <Col md={6}>
-          <h2 className="h4 mb-4">Información de Contacto</h2>
-          <div className="contact-info">
-            <p><FaEnvelope /> info@tesipedia.com</p>
-            <p><FaPhone /> +52 (123) 456-7890</p>
-            <p><FaMapMarkerAlt /> Ciudad de México, CDMX</p>
-          </div>
-          <div className="mt-4">
-            <h3 className="h5">Horario de Atención</h3>
-            <p>Lunes a Viernes: 9:00 AM - 6:00 PM</p>
-            <p>Sábados: 9:00 AM - 2:00 PM</p>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+    <div className="contact-page-container">
+      <div className="contact-hero-section">
+        <h1 className="contact-main-title">Contacto</h1>
+        <p className="contact-hero-text">Estamos aquí para ayudarte en tu proyecto académico</p>
+      </div>
+
+      <Container className="contact-main-content">
+        <Row className="g-4">
+          <Col lg={5}>
+            <div className="contact-chat-section">
+              <div className="contact-chat-content">
+                <h2 className="contact-section-title">¿Necesitas ayuda?</h2>
+                <p className="contact-section-text">
+                  Escríbenos directamente y te ayudaremos a encontrar la mejor solución
+                </p>
+                <div className="contact-buttons-container">
+                  <Button
+                    onClick={() => setIsChatOpen(true)}
+                    className="contact-chat-button"
+                  >
+                    <FaComments /> Iniciar Chat
+                  </Button>
+                  <Button
+                    onClick={handleWhatsAppClick}
+                    className="contact-whatsapp-button"
+                  >
+                    <FaWhatsapp /> Contactar por WhatsApp
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Col>
+          <Col lg={7}>
+            <div className="contact-info-section">
+              <div className="contact-info-grid">
+                <div className="contact-info-card">
+                  <FaEnvelope className="contact-info-icon" />
+                  <div>
+                    <h3 className="contact-info-title">Correo Electrónico</h3>
+                    <p className="contact-info-text">tesipediaoficial@gmail.com</p>
+                  </div>
+                </div>
+                <div className="contact-info-card">
+                  <FaPhone className="contact-info-icon" />
+                  <div>
+                    <h3 className="contact-info-title">Teléfono</h3>
+                    <p className="contact-info-text">+52 55 8335 2096</p>
+                  </div>
+                </div>
+                <div className="contact-info-card">
+                  <FaMapMarkerAlt className="contact-info-icon" />
+                  <div>
+                    <h3 className="contact-info-title">Ubicación</h3>
+                    <p className="contact-info-text">Ciudad de México, CDMX</p>
+                  </div>
+                </div>
+                <div className="contact-info-card">
+                  <FaClock className="contact-info-icon" />
+                  <div>
+                    <h3 className="contact-info-title">Horario de Atención</h3>
+                    <p className="contact-info-text">Lun - Vie: 9:00 AM - 6:00 PM</p>
+                    <p className="contact-info-text">Sáb: 9:00 AM - 2:00 PM</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+
+      <ChatPanel
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        isPublic={true}
+      />
+    </div>
   );
 }
 

@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Card, Alert, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { FaGraduationCap, FaFileAlt, FaArrowRight } from 'react-icons/fa';
+import { FaGraduationCap, FaFileAlt, FaArrowRight, FaCheckCircle, FaCreditCard, FaMoneyBillWave } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { createQuote, resetQuoteState } from '../../features/quotes/quoteSlice';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import './Quote.css';
 
 function Quote() {
-    const navigate = useNavigate();
     const dispatch = useDispatch();
-
     const { loading, success, error } = useSelector((state) => state.quotes);
 
     const [formData, setFormData] = useState({
@@ -131,22 +128,24 @@ function Quote() {
             return;
         }
 
-        const payload = {
-            taskType: formData.tipoTesis,
-            studyArea: formData.areaEstudio,
-            educationLevel: formData.nivelAcademico,
-            taskTitle: formData.tema,
-            pages: Number(formData.numPaginas),
-            dueDate: formData.fechaEntrega,
-            email: formData.email,
-            name: formData.nombre,
-            phone: formData.telefono ? `${formData.codigoPais}${formData.telefono}` : '',
-            career: finalCarrera,
-            requirements: {
-                text: formData.descripcion,
-                file: formData.archivos?.[0] || null,
-            },
-        };
+        // Crear FormData para manejar la subida de archivos
+        const formDataToSend = new FormData();
+        formDataToSend.append('taskType', formData.tipoTesis);
+        formDataToSend.append('studyArea', formData.areaEstudio);
+        formDataToSend.append('educationLevel', formData.nivelAcademico);
+        formDataToSend.append('taskTitle', formData.tema);
+        formDataToSend.append('pages', Number(formData.numPaginas));
+        formDataToSend.append('dueDate', formData.fechaEntrega);
+        formDataToSend.append('email', formData.email);
+        formDataToSend.append('name', formData.nombre);
+        formDataToSend.append('phone', formData.telefono ? `${formData.codigoPais}${formData.telefono}` : '');
+        formDataToSend.append('career', finalCarrera);
+        formDataToSend.append('descripcion', formData.descripcion);
+
+        // Agregar el archivo solo si existe
+        if (formData.archivos && formData.archivos.length > 0) {
+            formDataToSend.append('file', formData.archivos[0]);
+        }
 
         // Validar campos obligatorios según el modelo
         const requiredFields = {
@@ -162,7 +161,7 @@ function Quote() {
         };
 
         const missingFields = Object.entries(requiredFields)
-            .filter(([key]) => !payload[key])
+            .filter(([key]) => !formDataToSend.get(key))
             .map(([_, label]) => label);
 
         if (missingFields.length > 0) {
@@ -171,29 +170,29 @@ function Quote() {
         }
 
         // Validaciones adicionales según el modelo
-        if (payload.taskTitle.length < 5) {
+        if (formDataToSend.get('taskTitle').length < 5) {
             alert('El título debe tener al menos 5 caracteres');
             return;
         }
 
-        if (payload.requirements.text.length < 10) {
+        if (formDataToSend.get('descripcion').length < 10) {
             alert('La descripción debe tener al menos 10 caracteres');
             return;
         }
 
-        if (payload.name.length < 3) {
+        if (formDataToSend.get('name').length < 3) {
             alert('El nombre debe tener al menos 3 caracteres');
             return;
         }
 
         // Validar formato de email
         const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(payload.email)) {
+        if (!emailRegex.test(formDataToSend.get('email'))) {
             alert('Por favor ingrese un email válido');
             return;
         }
 
-        dispatch(createQuote(payload));
+        dispatch(createQuote(formDataToSend));
     };
 
     const handleFileChange = (e) => {
@@ -201,17 +200,113 @@ function Quote() {
     };
 
     useEffect(() => {
-        if (success) {
-            navigate('/cotizacion-enviada');
-            dispatch(resetQuoteState());
-        }
-    }, [success, navigate, dispatch]);
-
-    useEffect(() => {
         if (error) {
             dispatch(resetQuoteState());
         }
     }, [error, dispatch]);
+
+    // Calculate price based on pages and education level
+    const calculatePrice = () => {
+        const basePrice = Number(formData.numPaginas) * 100; // $100 per page
+        const levelMultiplier = {
+            'Licenciatura': 1,
+            'Maestría': 1.2,
+            'Doctorado': 1.5
+        };
+        return Math.round(basePrice * levelMultiplier[formData.nivelAcademico]);
+    };
+
+    const handleNewQuote = () => {
+        setFormData({
+            tipoTesis: '',
+            nivelAcademico: '',
+            tema: '',
+            areaEstudio: '',
+            carrera: '',
+            otraCarrera: '',
+            numPaginas: '',
+            fechaEntrega: '',
+            descripcion: '',
+            archivos: [],
+            nombre: '',
+            email: '',
+            codigoPais: '+52',
+            telefono: ''
+        });
+        dispatch(resetQuoteState());
+    };
+
+    const renderCTASection = () => {
+        const price = calculatePrice();
+        const discountedPrice = Math.round(price * 0.9); // 10% discount
+
+        return (
+            <Card className="mt-4 border-0 shadow-sm">
+                <Card.Body className="p-4">
+                    <Row>
+                        <Col lg={6} className="border-end">
+                            <h5 className="mb-3">Tu Proyecto Incluye</h5>
+                            <div className="d-flex flex-column gap-3">
+                                <div className="d-flex align-items-center">
+                                    <FaCheckCircle className="text-success me-2" />
+                                    <span>Escáner Antiplagio</span>
+                                </div>
+                                <div className="d-flex align-items-center">
+                                    <FaCheckCircle className="text-success me-2" />
+                                    <span>Escáner Anti IA</span>
+                                </div>
+                                <div className="d-flex align-items-center">
+                                    <FaCheckCircle className="text-success me-2" />
+                                    <span>1 Asesoría de 1 hora sobre tu tema</span>
+                                </div>
+                                <div className="d-flex align-items-center">
+                                    <FaCheckCircle className="text-success me-2" />
+                                    <span>1 Corrección de estilo y fondo</span>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <h4 className="text-primary mb-2">Precio Total</h4>
+                                <div className="d-flex align-items-baseline">
+                                    <span className="text-decoration-line-through text-muted me-3">${price}</span>
+                                    <span className="h3 mb-0">${discountedPrice}</span>
+                                </div>
+                            </div>
+                        </Col>
+                        <Col lg={6}>
+                            <h5 className="mb-3">Métodos de Pago</h5>
+                            <div className="d-flex flex-column gap-3">
+                                <div className="payment-method p-3 border rounded">
+                                    <div className="d-flex align-items-center mb-2">
+                                        <FaCreditCard className="text-primary me-2" />
+                                        <h6 className="mb-0">Tarjeta de Crédito/Débito</h6>
+                                    </div>
+                                    <p className="small text-muted mb-0">Pago seguro con tarjeta</p>
+                                </div>
+                                <div className="payment-method p-3 border rounded">
+                                    <div className="d-flex align-items-center mb-2">
+                                        <FaMoneyBillWave className="text-success me-2" />
+                                        <h6 className="mb-0">Retiro sin Tarjeta</h6>
+                                    </div>
+                                    <p className="small text-muted mb-0">10% de descuento incluido</p>
+                                </div>
+                                <div className="payment-method p-3 border rounded">
+                                    <div className="d-flex align-items-center mb-2">
+                                        <h6 className="mb-0">Transferencia o Depósito</h6>
+                                    </div>
+                                    <p className="small text-muted mb-0">10% de descuento incluido</p>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <Button variant="primary" size="lg" className="w-100">
+                                    Proceder al Pago
+                                </Button>
+                            </div>
+                        </Col>
+                    </Row>
+                </Card.Body>
+            </Card>
+        );
+    };
 
     return (
         <Container fluid className="py-1 px-3 px-md-4">
@@ -225,7 +320,19 @@ function Quote() {
                             </div>
 
                             {error && <Alert variant="danger" className="py-1 mb-2">{error}</Alert>}
-                            {success && <Alert variant="success" className="py-1 mb-2">Cotización enviada con éxito!</Alert>}
+                            {success && (
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <Alert variant="success" className="py-1 mb-0 flex-grow-1 me-3">¡Cotización enviada con éxito!</Alert>
+                                    <Button
+                                        variant="outline-primary"
+                                        size="sm"
+                                        onClick={handleNewQuote}
+                                        className="px-3"
+                                    >
+                                        Nueva Cotización
+                                    </Button>
+                                </div>
+                            )}
 
                             <Form onSubmit={handleSubmit} className="modern-form">
                                 <Row className="g-2">
@@ -459,6 +566,7 @@ function Quote() {
                             </Form>
                         </Card.Body>
                     </Card>
+                    {success && renderCTASection()}
                 </Col>
             </Row>
         </Container>

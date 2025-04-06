@@ -1,0 +1,233 @@
+.contact-page-container {
+    min-height: calc(100vh - 80px);
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-hero-section {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    padding: 2rem 0;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,.075)' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.contact-main-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contact-hero-text {
+    font-size: 1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contact-main-content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+.contact-chat-section,
+.contact-info-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+.contact-chat-section {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.contact-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.contact-section-text {
+    color: #64748b;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.contact-buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.contact-chat-button,
+.contact-whatsapp-button {
+    border: none;
+    padding: 0.75rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    font-size: 0.95rem;
+}
+
+.contact-chat-button::before,
+.contact-whatsapp-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    transition: 0.3s ease;
+    z-index: -1;
+}
+
+.contact-chat-button {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+}
+
+.contact-whatsapp-button {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+}
+
+.contact-chat-button:hover,
+.contact-whatsapp-button:hover {
+    transform: translateY(-2px);
+    color: white;
+}
+
+.contact-chat-button:hover {
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.contact-whatsapp-button:hover {
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+}
+
+.contact-chat-button:hover::before,
+.contact-whatsapp-button:hover::before {
+    filter: brightness(1.1);
+}
+
+.contact-chat-button:active,
+.contact-whatsapp-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.contact-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.contact-info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.contact-info-card:hover {
+    background: #f1f5f9;
+}
+
+.contact-info-icon {
+    font-size: 1.1rem;
+    color: #1e293b;
+    flex-shrink: 0;
+}
+
+.contact-info-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.contact-info-text {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 992px) {
+    .contact-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .contact-info-card {
+        padding: 0.75rem;
+    }
+
+    .contact-chat-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .contact-main-content {
+        padding: 1rem 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .contact-hero-section {
+        padding: 1.5rem 0;
+    }
+
+    .contact-main-title {
+        font-size: 1.75rem;
+    }
+
+    .contact-hero-text {
+        font-size: 0.9rem;
+        padding: 0 1rem;
+    }
+
+    .contact-buttons-container {
+        gap: 0.625rem;
+    }
+
+    .contact-chat-button,
+    .contact-whatsapp-button {
+        padding: 0.625rem;
+        font-size: 0.9rem;
+    }
+}

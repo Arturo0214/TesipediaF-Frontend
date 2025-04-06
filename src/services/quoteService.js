@@ -4,7 +4,11 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // 📝 Crear cotización pública (sin login)
 const createQuote = async (quoteData) => {
-    const response = await axiosWithAuth.post(`${BASE_URL}/quotes`, quoteData);
+    const response = await axiosWithAuth.post(`${BASE_URL}/quotes`, quoteData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
     return response.data;
 };
 
