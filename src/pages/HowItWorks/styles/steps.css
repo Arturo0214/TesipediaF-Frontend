@@ -10,7 +10,7 @@
 }
 
 .how-it-works-steps.show {
-    max-height: 3000px;
+    max-height: 5000px;
     opacity: 1;
     padding: 0;
 }
@@ -552,4 +552,83 @@
     .assistant-text {
         font-size: 0.75rem;
     }
+}
+
+/* Estilos específicos para el step 12 */
+.how-it-works-steps .step-12 {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2) !important;
+    backdrop-filter: none !important;
+}
+
+.how-it-works-steps .step-12 .step-title,
+.how-it-works-steps .step-12 .step-description,
+.how-it-works-steps .step-12 .step-duration,
+.how-it-works-steps .step-12 .step-link {
+    color: white !important;
+}
+
+.how-it-works-steps .step-12 .step-modal-button {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.how-it-works-steps .step-12 .step-modal-button:hover {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+.how-it-works-steps .step-12 .step-modal-button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
+}
+
+.how-it-works-steps .step-12 .step-icon {
+    color: white !important;
+}
+
+.how-it-works-steps .step-12 .step-number {
+    color: rgba(255, 255, 255, 0.2) !important;
+    font-weight: 900 !important;
+    opacity: 1 !important;
+}
+
+.how-it-works-steps .step-12 .step-details {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    padding: 0.75rem !important;
+    margin-top: 0.75rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: none !important;
+}
+
+.how-it-works-steps .step-12 .step-details p {
+    margin: 0.35rem 0 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+}
+
+.how-it-works-steps .step-12 .step-details p:first-child {
+    color: white !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 0.9rem !important;
+}
+
+.how-it-works-steps .step-12 .step-details p::before {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Asistente para el step 12 */
+.step-12 .step-assistant,
+.step-12 .step-assistant::after {
+    background: #7c3aed !important;
+    color: white !important;
 }

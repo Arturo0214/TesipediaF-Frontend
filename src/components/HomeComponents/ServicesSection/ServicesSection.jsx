@@ -58,7 +58,7 @@ const sections = [
         gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
         isContact: true,
         buttons: [
-            { text: "Chat Interno", path: "/chat", primary: true, icon: <FaComments /> },
+            { text: "Chat Interno", action: "openChat", primary: true, icon: <FaComments /> },
             { text: "WhatsApp", path: "https://wa.me/525583352096", primary: false, icon: <FaWhatsapp /> }
         ]
     },
@@ -72,7 +72,13 @@ const sections = [
     }
 ];
 
-const ServicesSection = () => {
+const ServicesSection = ({ onOpenChat }) => {
+    const handleButtonClick = (button) => {
+        if (button.action === "openChat") {
+            onOpenChat();
+        }
+    };
+
     return (
         <section className="sections-overview">
             <Container>
@@ -140,8 +146,7 @@ const ServicesSection = () => {
                                     ) : section.isContact ? (
                                         <div className="action-buttons">
                                             <Button
-                                                as={Link}
-                                                to="/chat"
+                                                onClick={() => handleButtonClick(section.buttons[0])}
                                                 variant="primary"
                                                 className="action-btn"
                                             >

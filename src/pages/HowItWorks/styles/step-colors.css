@@ -54,6 +54,11 @@
     background: linear-gradient(135deg, #f1f5f9 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
+.step-12 {
+    --step-index: 12;
+    background: linear-gradient(135deg, #ffedd5 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
 /* Step Icons and Links Colors */
 .step-1 .step-icon,
 .step-1 .step-link {
@@ -119,6 +124,19 @@
 .step-11 .step-link {
     color: #475569;
     background: #f1f5f9;
+}
+
+.step-12 .step-icon,
+.step-12 .step-link {
+    color: #fb923c;
+    background: rgba(251, 146, 60, 0.1);
+    transition: all 0.3s ease;
+}
+
+.step-12 .step-icon:hover,
+.step-12 .step-link:hover {
+    background: rgba(251, 146, 60, 0.2);
+    transform: translateY(-2px);
 }
 
 /* Step Numbers Gradients */
@@ -210,11 +228,29 @@
     text-shadow: 2px 2px 4px rgba(71, 85, 105, 0.2);
 }
 
+.step-12 .step-number {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.3;
+    text-shadow: 2px 2px 4px rgba(249, 115, 22, 0.2);
+    font-size: 4rem !important;
+    margin-right: -8px !important;
+    letter-spacing: -6px !important;
+    padding-right: 5px !important;
+    transform: scale(0.9) !important;
+}
+
 /* Hover effects for numbers */
 .how-it-works-step:hover .step-number {
     opacity: 0.5;
     transform: scale(1.1);
     transition: all 0.3s ease;
+}
+
+.step-12:hover .step-number {
+    opacity: 0.5 !important;
+    transform: scale(1) !important;
 }
 
 /* Transición suave para el hover */
@@ -264,4 +300,8 @@
 
 .step-11:hover {
     background: linear-gradient(135deg, #e2e8f0 0%, rgba(241, 245, 249, 0.95) 100%);
+}
+
+.step-12:hover {
+    background: linear-gradient(135deg, #ffedd5 0%, rgba(255, 255, 255, 0.95) 100%);
 }

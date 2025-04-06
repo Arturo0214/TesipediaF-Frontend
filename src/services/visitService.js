@@ -13,7 +13,7 @@ const getVisitById = async (id) => {
 };
 
 const trackVisit = async (visitData) => {
-    const response = await axios.post(`${API_URL}/track`, visitData, { withCredentials: true });
+    const response = await axios.post(`${API_URL}/track`, visitData);
     return response.data;
 };
 

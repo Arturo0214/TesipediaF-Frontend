@@ -11,6 +11,8 @@ import ProjectStartModal from './Step7/ProjectStartModal';
 import ProcessTrackingModal from './Step8/ProcessTrackingModal';
 import FinalDeliveryModal from './Step9/FinalDeliveryModal';
 import PostDeliveryModal from './Step10/PostDeliveryModal';
+import AdditionalServicesModal from './Step11/AdditionalServicesModal';
+import ExploreSectionsModal from './Step12/ExploreSectionsModal';
 import '../../styles/Step.css';
 
 const Step = ({ step, index, isActive, isModalOpen, onShowModal, onHideModal }) => {
@@ -39,6 +41,8 @@ const Step = ({ step, index, isActive, isModalOpen, onShowModal, onHideModal }) 
                 return "Te acompañamos hasta después de la entrega";
             case 10:
                 return "¿Necesitas servicios adicionales? Te ayudo";
+            case 11:
+                return "¿Quieres explorar más sobre nuestras secciones?";
             default:
                 return "¿Necesitas ayuda con este paso?";
         }
@@ -67,29 +71,9 @@ const Step = ({ step, index, isActive, isModalOpen, onShowModal, onHideModal }) 
             case 9:
                 return <PostDeliveryModal />;
             case 10:
-                return (
-                    <div className="how-it-works-modal-section">
-                        <h3 className="how-it-works-modal-section-title">Servicios Adicionales</h3>
-                        <div className="how-it-works-modal-price-card">
-                            <h4 className="how-it-works-modal-price-title">Corrección de Estilo</h4>
-                            <div className="how-it-works-modal-price">$2,000 - $3,000</div>
-                            <p className="how-it-works-modal-price-details">Por cada 50 páginas</p>
-                        </div>
-                        <div className="how-it-works-modal-price-card">
-                            <h4 className="how-it-works-modal-price-title">Simulacro de Defensa</h4>
-                            <div className="how-it-works-modal-price">$3,000 - $4,000</div>
-                            <p className="how-it-works-modal-price-details">Incluye retroalimentación detallada</p>
-                        </div>
-                        <div className="how-it-works-modal-price-card">
-                            <h4 className="how-it-works-modal-price-title">Presentaciones PowerPoint</h4>
-                            <div className="how-it-works-modal-price">$1,500 - $2,500</div>
-                            <p className="how-it-works-modal-price-details">Diseño profesional y animaciones</p>
-                        </div>
-                        <a href="/chat" className="how-it-works-modal-button how-it-works-modal-button-primary">
-                            Solicitar servicio adicional
-                        </a>
-                    </div>
-                );
+                return <AdditionalServicesModal onClose={onHideModal} />;
+            case 11:
+                return <ExploreSectionsModal />;
             default:
                 return null;
         }
@@ -166,7 +150,8 @@ const getStepColor = (index) => {
         '#c084fc', // Step 8
         '#f43f5e', // Step 9
         '#06b6d4', // Step 10
-        '#64748b'  // Step 11
+        '#64748b',  // Step 11
+        '#f59e0b'  // Step 12
     ];
     return colors[index] || '#3b82f6';
 };

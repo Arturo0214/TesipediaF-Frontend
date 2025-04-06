@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import {
   FaInfoCircle, FaMoneyBillWave, FaFileAlt, FaUserTie, FaLock, FaCreditCard,
-  FaUserCheck, FaBell, FaFileExport, FaComments, FaPlusCircle
+  FaUserCheck, FaBell, FaFileExport, FaComments, FaPlusCircle, FaCompass
 } from 'react-icons/fa';
 import Hero from './components/Hero';
 import StepsList from './components/StepsList';
@@ -42,6 +42,9 @@ function HowItWorks() {
     if (!showSteps) {
       setIsAnimating(true);
       setActiveModal(null);
+    } else {
+      setActiveModal(null);
+      setIsAnimating(false);
     }
   };
 
@@ -53,7 +56,7 @@ function HowItWorks() {
       duration: '1 minuto',
       link: '/servicios',
       linkText: 'Ver servicios',
-      details: 'Ofrecemos desde asesorías personalizadas hasta corrección de fondo, estilo, presentaciones, escáner antiplagio y antiIA.'
+      details: 'Ofrecemos desde asesorías personalizadas hasta corrección de fondo, estilo, presentaciones, escáner antiplagio y anti-IA.'
     },
     {
       icon: <FaMoneyBillWave />,
@@ -62,7 +65,7 @@ function HowItWorks() {
       duration: '1 minuto',
       link: '/precios',
       linkText: 'Ver precios',
-      details: 'Todos los proyectos incluyen escáner antiplagio y antiIA profesional.'
+      details: 'Todos los proyectos incluyen escáner antiplagio y anti-IA profesional.'
     },
     {
       icon: <FaFileAlt />,
@@ -109,21 +112,28 @@ function HowItWorks() {
       icon: <FaFileExport />,
       title: 'Entrega de tu proyecto final',
       description: 'Tu entrega incluye:',
-      details: '• Escáner antiplagio profesional\n• Escáner anti inteligencia artificial'
+      details: 'Escáner antiplagio profesional\nEscáner anti inteligencia artificial'
     },
     {
       icon: <FaComments />,
       title: 'Acompañamiento post-entrega',
       description: 'Seguimos en contacto para ayudarte con:',
-      details: '• Correcciones de tu asesor o sinodales\n• Preparación para defensa o presentación\n• Asesoría puntual en tu tema\n\nTú eliges si prefieres comunicarte por WhatsApp o correo.'
+      details: 'Correcciones de tu asesor o sinodales\nPreparación para defensa o presentación\nAsesoría puntual en tu tema\n\nTú eliges si prefieres comunicarte por WhatsApp o correo.'
     },
     {
       icon: <FaPlusCircle />,
       title: 'Cotiza servicios adicionales',
       description: '¿Necesitas apoyo extra? Escríbenos directamente y lo evaluamos contigo.',
-      details: 'Ejemplos de servicios adicionales:\n• Corrección de estilo u ortografía\n• Corrección de fondo teórico\n• Simulacro de defensa profesional\n• Presentaciones PowerPoint\n• Asesorías académicas personalizadas',
+      details: 'Ejemplos de servicios adicionales:\nCorrección de estilo u ortografía\nCorrección de fondo teórico\nSimulacro de defensa profesional\nPresentaciones PowerPoint\nAsesorías académicas personalizadas',
       link: '/chat',
       linkText: 'Chatear ahora o WhatsApp directo'
+    },
+    {
+      icon: <FaCompass />,
+      title: 'Explora las secciones de la página',
+      description: 'Descubre todas las secciones que tenemos para ti.',
+      duration: '2-3 minutos',
+      details: 'Secciones disponibles:\nInicio - Información general y destacados\n Precios - Tarifas y opciones de pago\nServicios - Catálogo completo de asesorías\nNosotros - Conoce nuestro equipo\nFAQ - Preguntas frecuentes\nBlog - Recursos y artículos\nContacto - Canales de comunicación'
     }
   ];
 
@@ -134,6 +144,24 @@ function HowItWorks() {
 
   const handleHideModal = () => {
     setActiveModal(null);
+  };
+
+  const getStepColor = (index) => {
+    const colors = [
+      '#0ea5e9', // Step 1
+      '#22c55e', // Step 2
+      '#ec4899', // Step 3
+      '#eab308', // Step 4
+      '#a855f7', // Step 5
+      '#f97316', // Step 6
+      '#14b8a6', // Step 7
+      '#c084fc', // Step 8
+      '#f43f5e', // Step 9
+      '#06b6d4', // Step 10
+      '#64748b', // Step 11
+      'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'  // Step 12 - Nuevo gradiente elegante
+    ];
+    return colors[index] || '#3b82f6';
   };
 
   return (

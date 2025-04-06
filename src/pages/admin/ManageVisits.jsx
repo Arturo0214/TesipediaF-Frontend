@@ -1,7 +1,7 @@
 import { Container, Table, Spinner, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchVisits, deleteVisit, createVisit, updateVisit } from '../../features/visits/visitSlice';
+import { getVisits, clearVisits, clearError } from '../../features/visits/visitsSlice';
 import { Bar } from 'react-chartjs-2';
 
 function ManageVisits() {
@@ -9,41 +9,92 @@ function ManageVisits() {
     const { visits, loading, error } = useSelector((state) => state.visits);
     const [showModal, setShowModal] = useState(false);
     const [currentVisit, setCurrentVisit] = useState(null);
-    const [visitData, setVisitData] = useState({ ip: '', userAgent: '', path: '', city: '', region: '', country: '' });
-    const [filters, setFilters] = useState({ city: '', country: '', startDate: '', endDate: '' });
+    const [visitData, setVisitData] = useState({
+        ip: '',
+        userAgent: '',
+        path: '',
+        geoLocation: {
+            city: '',
+            region: '',
+            country: '',
+            org: '',
+            coordinates: ''
+        }
+    });
+    const [filters, setFilters] = useState({
+        city: '',
+        country: '',
+        startDate: '',
+        endDate: ''
+    });
 
     useEffect(() => {
-        dispatch(fetchVisits());
+        dispatch(getVisits());
+        return () => {
+            dispatch(clearError());
+        };
     }, [dispatch]);
 
     const handleShow = (visit) => {
         setCurrentVisit(visit);
-        setVisitData(visit ? { ...visit } : { ip: '', userAgent: '', path: '', city: '', region: '', country: '' });
+        if (visit) {
+            setVisitData({
+                ip: visit.ip,
+                userAgent: visit.userAgent,
+                path: visit.path,
+                geoLocation: visit.geoLocation || {
+                    city: '',
+                    region: '',
+                    country: '',
+                    org: '',
+                    coordinates: ''
+                }
+            });
+        } else {
+            setVisitData({
+                ip: '',
+                userAgent: '',
+                path: '',
+                geoLocation: {
+                    city: '',
+                    region: '',
+                    country: '',
+                    org: '',
+                    coordinates: ''
+                }
+            });
+        }
         setShowModal(true);
     };
 
     const handleClose = () => {
         setShowModal(false);
         setCurrentVisit(null);
+        setVisitData({
+            ip: '',
+            userAgent: '',
+            path: '',
+            geoLocation: {
+                city: '',
+                region: '',
+                country: '',
+                org: '',
+                coordinates: ''
+            }
+        });
     };
 
     const handleDelete = (id) => {
-        dispatch(deleteVisit(id));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (currentVisit) {
-            dispatch(updateVisit({ id: currentVisit._id, visitData }));
-        } else {
-            dispatch(createVisit(visitData));
+        if (window.confirm('¿Estás seguro de que deseas eliminar esta visita?')) {
+            dispatch(clearVisits());
         }
-        handleClose();
     };
 
     const filteredVisits = visits.filter(visit => {
-        const matchesCity = filters.city ? visit.city.toLowerCase().includes(filters.city.toLowerCase()) : true;
-        const matchesCountry = filters.country ? visit.country.toLowerCase().includes(filters.country.toLowerCase()) : true;
+        const matchesCity = filters.city ?
+            visit.geoLocation?.city?.toLowerCase().includes(filters.city.toLowerCase()) : true;
+        const matchesCountry = filters.country ?
+            visit.geoLocation?.country?.toLowerCase().includes(filters.country.toLowerCase()) : true;
         const visitDate = new Date(visit.createdAt);
         const matchesStartDate = filters.startDate ? visitDate >= new Date(filters.startDate) : true;
         const matchesEndDate = filters.endDate ? visitDate <= new Date(filters.endDate) : true;
@@ -52,11 +103,12 @@ function ManageVisits() {
 
     // Prepare data for the chart
     const chartData = {
-        labels: [...new Set(filteredVisits.map(visit => visit.country))],
+        labels: [...new Set(filteredVisits.map(visit => visit.geoLocation?.country))],
         datasets: [{
             label: 'Visitas por País',
             data: filteredVisits.reduce((acc, visit) => {
-                acc[visit.country] = (acc[visit.country] || 0) + 1;
+                const country = visit.geoLocation?.country || 'Desconocido';
+                acc[country] = (acc[country] || 0) + 1;
                 return acc;
             }, {}),
             backgroundColor: 'rgba(75, 192, 192, 0.6)',
@@ -68,7 +120,6 @@ function ManageVisits() {
             <h2 className="mb-3">Gestión de Visitas</h2>
             {loading && <Spinner animation="border" />}
             {error && <Alert variant="danger">{error}</Alert>}
-            <Button variant="primary" onClick={() => handleShow(null)} className="mb-3">Agregar Visita</Button>
 
             {/* Filtros */}
             <InputGroup className="mb-3">
@@ -129,12 +180,12 @@ function ManageVisits() {
                             <td>{visit.ip}</td>
                             <td>{visit.userAgent}</td>
                             <td>{visit.path}</td>
-                            <td>{visit.city}</td>
-                            <td>{visit.region}</td>
-                            <td>{visit.country}</td>
+                            <td>{visit.geoLocation?.city || 'N/A'}</td>
+                            <td>{visit.geoLocation?.region || 'N/A'}</td>
+                            <td>{visit.geoLocation?.country || 'N/A'}</td>
                             <td>{new Date(visit.createdAt).toLocaleString()}</td>
                             <td>
-                                <Button variant="warning" onClick={() => handleShow(visit)}>Editar</Button>
+                                <Button variant="warning" onClick={() => handleShow(visit)}>Ver Detalles</Button>
                                 <Button variant="danger" onClick={() => handleDelete(visit._id)}>Eliminar</Button>
                             </td>
                         </tr>
@@ -142,20 +193,19 @@ function ManageVisits() {
                 </tbody>
             </Table>
 
-            {/* Modal para agregar/editar visita */}
+            {/* Modal para ver detalles de visita */}
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{currentVisit ? 'Editar Visita' : 'Agregar Visita'}</Modal.Title>
+                    <Modal.Title>Detalles de la Visita</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Form onSubmit={handleSubmit}>
+                    <Form>
                         <Form.Group controlId="formIP">
                             <Form.Label>IP</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={visitData.ip}
-                                onChange={(e) => setVisitData({ ...visitData, ip: e.target.value })}
-                                required
+                                readOnly
                             />
                         </Form.Group>
                         <Form.Group controlId="formUserAgent">
@@ -163,8 +213,7 @@ function ManageVisits() {
                             <Form.Control
                                 type="text"
                                 value={visitData.userAgent}
-                                onChange={(e) => setVisitData({ ...visitData, userAgent: e.target.value })}
-                                required
+                                readOnly
                             />
                         </Form.Group>
                         <Form.Group controlId="formPath">
@@ -172,40 +221,49 @@ function ManageVisits() {
                             <Form.Control
                                 type="text"
                                 value={visitData.path}
-                                onChange={(e) => setVisitData({ ...visitData, path: e.target.value })}
-                                required
+                                readOnly
                             />
                         </Form.Group>
                         <Form.Group controlId="formCity">
                             <Form.Label>Ciudad</Form.Label>
                             <Form.Control
                                 type="text"
-                                value={visitData.city}
-                                onChange={(e) => setVisitData({ ...visitData, city: e.target.value })}
-                                required
+                                value={visitData.geoLocation.city}
+                                readOnly
                             />
                         </Form.Group>
                         <Form.Group controlId="formRegion">
                             <Form.Label>Región</Form.Label>
                             <Form.Control
                                 type="text"
-                                value={visitData.region}
-                                onChange={(e) => setVisitData({ ...visitData, region: e.target.value })}
-                                required
+                                value={visitData.geoLocation.region}
+                                readOnly
                             />
                         </Form.Group>
                         <Form.Group controlId="formCountry">
                             <Form.Label>País</Form.Label>
                             <Form.Control
                                 type="text"
-                                value={visitData.country}
-                                onChange={(e) => setVisitData({ ...visitData, country: e.target.value })}
-                                required
+                                value={visitData.geoLocation.country}
+                                readOnly
                             />
                         </Form.Group>
-                        <Button variant="primary" type="submit">
-                            {currentVisit ? 'Actualizar' : 'Agregar'}
-                        </Button>
+                        <Form.Group controlId="formOrg">
+                            <Form.Label>Organización</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={visitData.geoLocation.org}
+                                readOnly
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formCoordinates">
+                            <Form.Label>Coordenadas</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={visitData.geoLocation.coordinates}
+                                readOnly
+                            />
+                        </Form.Group>
                     </Form>
                 </Modal.Body>
             </Modal>

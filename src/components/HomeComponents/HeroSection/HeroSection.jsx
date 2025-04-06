@@ -1,9 +1,9 @@
 import { Col, Container, Row, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaCheck, FaClock, FaShieldAlt, FaArrowRight } from 'react-icons/fa';
+import { FaCheck, FaClock, FaShieldAlt, FaArrowRight, FaComments, FaWhatsapp } from 'react-icons/fa';
 import './HeroSection.css';
 
-const HeroSection = ({ stats, currentStat }) => {
+const HeroSection = ({ stats, currentStat, onOpenChat }) => {
   return (
     <section className="hero-section-container text-white position-relative overflow-hidden">
       <div className="hero-section-background"></div>
@@ -70,24 +70,34 @@ const HeroSection = ({ stats, currentStat }) => {
                 </div>
               ))}
             </div>
-            <div className="hero-section-contact-advisor">
-              <p className="mb-2 text-center">¿Tienes preguntas?</p>
-              <a
-                role="button"
-                href="https://wa.me/525583352096"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-lg"
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderColor: '#ffffff',
-                  color: '#ff6b6b',
-                  fontWeight: 'bold',
-                  width: '100%',
-                }}
-              >
-                Contactar Asesor
-              </a>
+            <div className="hero-section-contact-new">
+              <h3 className="contact-title-new">¿Tienes dudas sobre tu tesis?</h3>
+              <p className="contact-subtitle-new">¡Habla con un asesor ahora!</p>
+              <div className="contact-buttons-new">
+                <Button
+                  onClick={onOpenChat}
+                  className="contact-btn-new contact-btn-chat-new"
+                >
+                  <FaComments className="contact-btn-icon-new" />
+                  <div className="contact-btn-content-new">
+                    <span className="contact-btn-text-new">Chatear en la Página</span>
+                    <span className="contact-btn-subtext-new">Respuesta inmediata</span>
+                  </div>
+                </Button>
+                <Button
+                  as="a"
+                  href="https://wa.me/525583352096"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contact-btn-new contact-btn-whatsapp-new"
+                >
+                  <FaWhatsapp className="contact-btn-icon-new" />
+                  <div className="contact-btn-content-new">
+                    <span className="contact-btn-text-new">Contactar por WhatsApp</span>
+                    <span className="contact-btn-subtext-new">Asesoría 24/7</span>
+                  </div>
+                </Button>
+              </div>
             </div>
           </Col>
         </Row>

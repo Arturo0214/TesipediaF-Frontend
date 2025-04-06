@@ -1,0 +1,251 @@
+.step11-modal-section {
+    padding: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.step11-modal-header {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.step11-modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,.075)' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.step11-modal-animation {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+}
+
+.step11-modal-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 2.5rem;
+    animation: step11-float 3s ease-in-out infinite;
+}
+
+@keyframes step11-float {
+    0% {
+        transform: translate(-50%, -50%);
+    }
+
+    50% {
+        transform: translate(-50%, -60%);
+    }
+
+    100% {
+        transform: translate(-50%, -50%);
+    }
+}
+
+.step11-modal-title {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step11-modal-description {
+    color: white;
+    font-size: 0.95rem;
+    max-width: 80%;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.step11-modal-grid {
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.step11-modal-item {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    gap: 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+.step11-modal-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: #64748b;
+}
+
+.step11-modal-icon-container {
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.step11-modal-content {
+    flex: 1;
+}
+
+.step11-modal-content h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem;
+}
+
+.step11-modal-content p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0 0 0.75rem;
+    line-height: 1.5;
+}
+
+.step11-modal-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.step11-modal-features li {
+    font-size: 0.85rem;
+    color: #4b5563;
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+}
+
+.step11-modal-contact {
+    background: #f3f4f6;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+}
+
+.step11-modal-contact-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem;
+}
+
+.step11-modal-contact-description {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 0 0 1.5rem;
+    line-height: 1.5;
+}
+
+.step11-modal-contact-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.step11-modal-contact-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    min-width: 200px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: none;
+    cursor: pointer;
+}
+
+.step11-modal-contact-button.chat {
+    background: linear-gradient(135deg, #64748b, #475569);
+    color: white;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+}
+
+.step11-modal-contact-button.whatsapp {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+
+.step11-modal-contact-button:hover {
+    transform: translateY(-3px);
+}
+
+.step11-modal-contact-button.chat:hover {
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+}
+
+.step11-modal-contact-button.whatsapp:hover {
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+}
+
+@media (max-width: 768px) {
+    .step11-modal-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .step11-modal-title {
+        font-size: 1.5rem;
+    }
+
+    .step11-modal-description {
+        font-size: 0.85rem;
+        max-width: 95%;
+    }
+
+    .step11-modal-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .step11-modal-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .step11-modal-features {
+        justify-content: center;
+    }
+
+    .step11-modal-contact-buttons {
+        flex-direction: column;
+    }
+
+    .step11-modal-contact-button {
+        width: 100%;
+        min-width: auto;
+    }
+}

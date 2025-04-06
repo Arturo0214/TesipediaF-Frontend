@@ -2,6 +2,14 @@ import axiosWithAuth from '../utils/axioswithAuth';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+// Obtener token de las cookies
+export const getToken = () => {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('jwt='))
+        ?.split('=')[1];
+};
+
 // Registrar un nuevo usuario
 const register = async (userData) => {
     const response = await axiosWithAuth.post(`${BASE_URL}/auth/register`, userData, { withCredentials: true });
@@ -45,6 +53,7 @@ const authService = {
     getProfile,
     resetPassword,
     forgotPassword,
+    getToken
 };
 
 export default authService;
