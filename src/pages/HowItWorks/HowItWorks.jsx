@@ -140,28 +140,11 @@ function HowItWorks() {
   const handleShowModal = (stepIndex) => {
     setActiveModal(stepIndex);
     setIsAnimating(false);
+    setActiveStep(stepIndex);
   };
 
   const handleHideModal = () => {
     setActiveModal(null);
-  };
-
-  const getStepColor = (index) => {
-    const colors = [
-      '#0ea5e9', // Step 1
-      '#22c55e', // Step 2
-      '#ec4899', // Step 3
-      '#eab308', // Step 4
-      '#a855f7', // Step 5
-      '#f97316', // Step 6
-      '#14b8a6', // Step 7
-      '#c084fc', // Step 8
-      '#f43f5e', // Step 9
-      '#06b6d4', // Step 10
-      '#64748b', // Step 11
-      'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'  // Step 12 - Nuevo gradiente elegante
-    ];
-    return colors[index] || '#3b82f6';
   };
 
   return (

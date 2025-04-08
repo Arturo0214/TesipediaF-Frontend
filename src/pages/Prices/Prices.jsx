@@ -155,7 +155,7 @@ function Prices() {
                             </div>
                             <div>
                                 <h4 className="mb-1">Detalles de Precios por Área</h4>
-                                <p className="text-muted mb-0 small">Precios según área de conocimiento UNAM</p>
+                                <p className="text-muted mb-0 small">Precios según área de conocimiento</p>
                             </div>
                         </div>
 
