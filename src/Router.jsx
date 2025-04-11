@@ -1,7 +1,6 @@
-import {
-  createBrowserRouter,
-} from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
+import AdminLayout from './components/layout/AdminLayout'; // <-- Nuevo AdminLayout
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 import Home from './pages/Home/Home';
@@ -11,12 +10,14 @@ import Services from './pages/Services/Services';
 import HowItWorks from './pages/HowItWorks/HowItWorks';
 import Quote from './pages/Quote/Quote';
 import Blog from './pages/Blog/Blog';
-import Contact from './pages/Contact';
+import Contact from './pages/Contact/Contact';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Prices from './pages/Prices/Prices';
 import AboutUs from './pages/AboutUs/AboutUs';
 import FAQ from './pages/FAQ/FAQ';
+import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel/PaymentCancel';
 
 import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/dashboard/Profile';
@@ -25,18 +26,17 @@ import MyOrders from './pages/dashboard/MyOrders';
 import Messages from './pages/dashboard/Messages';
 import Payments from './pages/dashboard/Payments';
 
-import AdminDashboard from './pages/admin/AdminDashboard';
-import ManageUsers from './pages/admin/ManageUsers';
-import ManageOrders from './pages/admin/ManageOrders';
-import ManageQuotes from './pages/admin/ManageQuotes';
-import ManageWriters from './pages/admin/ManageWriters';
-import ManageVisits from './pages/admin/ManageVisits';
+// Admin Pages
+import AdminDashboard from './pages/admin/adminDashboard/AdminDashboard';
+import AdminPanel from './pages/admin/adminPanel/AdminPanel';
+import AdminMessages from './pages/admin/adminMessages/AdminMessages';
+import UrgentProjects from './pages/admin/urgentProjects/UrgentProjects';
 
 const router = createBrowserRouter(
   [
     {
       path: '/',
-      element: <MainLayout />,
+      element: <MainLayout />, // Público y clientes
       children: [
         { index: true, element: <Home /> },
         { path: 'login', element: <Login /> },
@@ -47,10 +47,12 @@ const router = createBrowserRouter(
         { path: 'blog', element: <Blog /> },
         { path: 'contacto', element: <Contact /> },
         { path: 'forgot-password', element: <ForgotPassword /> },
-        { path: 'reset-password/:token', element: <ResetPassword /> },
+        { path: 'auth/reset-password/:token', element: <ResetPassword /> },
         { path: 'precios', element: <Prices /> },
         { path: 'sobre-nosotros', element: <AboutUs /> },
         { path: 'preguntas-frecuentes', element: <FAQ /> },
+        { path: 'payment/success', element: <PaymentSuccess /> },
+        { path: 'payment/cancel', element: <PaymentCancel /> },
 
         {
           element: <ProtectedRoute />,
@@ -63,16 +65,19 @@ const router = createBrowserRouter(
             { path: 'pagos', element: <Payments /> },
           ],
         },
-
+      ],
+    },
+    {
+      element: <ProtectedRoute requireAdmin />, // Protegido para Admin
+      children: [
         {
-          element: <ProtectedRoute requireAdmin />,
+          element: <AdminLayout />, // <-- NUEVO AdminLayout limpio
           children: [
             { path: 'admin', element: <AdminDashboard /> },
-            { path: 'admin/usuarios', element: <ManageUsers /> },
-            { path: 'admin/pedidos', element: <ManageOrders /> },
-            { path: 'admin/cotizaciones', element: <ManageQuotes /> },
-            { path: 'admin/escritores', element: <ManageWriters /> },
-            { path: 'admin/visitas', element: <ManageVisits /> },
+            { path: 'admin/dashboard', element: <AdminDashboard /> },
+            { path: 'admin/panel', element: <AdminPanel /> },
+            { path: 'admin/mensajes', element: <AdminMessages /> },
+            { path: 'admin/proyectos-urgentes', element: <UrgentProjects /> },
           ],
         },
       ],

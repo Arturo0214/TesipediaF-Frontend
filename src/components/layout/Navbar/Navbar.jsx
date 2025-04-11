@@ -1,7 +1,7 @@
 import { Navbar, Nav, Container, Button, Dropdown, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../features/auth/authSlice';
+import { logout } from '../../../features/auth/authSlice';
 import { FaUser } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

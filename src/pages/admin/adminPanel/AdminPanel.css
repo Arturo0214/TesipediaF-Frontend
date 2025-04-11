@@ -1,0 +1,167 @@
+.admin-panel-wrapper {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* Navbar Styles */
+.tesipedia-admin-navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+}
+
+.tesipedia-admin-brand {
+    padding: 0;
+}
+
+.tesipedia-admin-logo {
+    height: 40px;
+    width: auto;
+}
+
+.tesipedia-admin-nav {
+    gap: 0.5rem;
+}
+
+.tesipedia-admin-link {
+    color: #6c757d;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.tesipedia-admin-link:hover,
+.tesipedia-admin-link.active {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+    border-radius: 0.25rem;
+}
+
+.tesipedia-admin-notification {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.tesipedia-admin-user-dropdown {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+}
+
+.tesipedia-admin-dropdown {
+    min-width: 200px;
+}
+
+.tesipedia-admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.tesipedia-admin-dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.tesipedia-admin-divider {
+    margin: 0.5rem 0;
+}
+
+/* Main Content Styles */
+.admin-panel-container {
+    padding: 20px;
+}
+
+.admin-panel-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.admin-sidebar {
+    background-color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.admin-sidebar .nav-link {
+    color: #6c757d;
+    transition: all 0.3s ease;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.admin-content {
+    background-color: white;
+    border-radius: 0.5rem;
+    min-height: 500px;
+}
+
+/* Estilos para las tablas dentro del contenido */
+.admin-content table {
+    margin-bottom: 0;
+}
+
+.admin-content .table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+/* Estilos para los botones de acción */
+.admin-content .btn-sm {
+    margin-right: 5px;
+}
+
+/* Estilos para los badges */
+.admin-content .badge {
+    font-weight: 500;
+    padding: 5px 10px;
+}
+
+/* Asegurar que el contenido de las pestañas se muestre correctamente */
+.tab-content {
+    width: 100%;
+}
+
+.tab-pane {
+    width: 100%;
+}
+
+/* Asegurar que las pestañas sean interactivas */
+.nav-pills .nav-link {
+    cursor: pointer;
+}
+
+/* Asegurar que el contenedor de pestañas sea interactivo */
+.tab-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .admin-panel-container {
+        padding: 10px;
+    }
+
+    .admin-panel-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .admin-sidebar {
+        margin-bottom: 1rem;
+    }
+}

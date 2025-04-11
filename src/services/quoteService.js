@@ -48,6 +48,12 @@ const updateQuote = async (quoteId, updatedData) => {
     return response.data;
 };
 
+// 🔄 Actualizar cotización pública (sin login)
+const updatePublicQuote = async (publicId, updatedData) => {
+    const response = await axiosWithAuth.put(`${BASE_URL}/quotes/public/${publicId}`, updatedData);
+    return response.data;
+};
+
 // ❌ Eliminar cotización (admin)
 const deleteQuote = async (quoteId) => {
     const response = await axiosWithAuth.delete(`${BASE_URL}/quotes/${quoteId}`);
@@ -68,6 +74,7 @@ const quoteService = {
     getAllQuotes,
     getQuoteById,
     updateQuote,
+    updatePublicQuote,
     deleteQuote,
     searchQuotes,
 };

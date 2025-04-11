@@ -1,18 +1,25 @@
 html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .quote-container-tesipedia {
     min-height: 100vh;
     background-color: #f8f9fa;
     margin-bottom: 30px;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    position: relative;
 }
 
 .quote-wrapper-tesipedia {
     width: 100%;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 0 1rem;
+    overflow-x: hidden;
 }
 
 .quote-card-tesipedia {
@@ -472,15 +479,18 @@ textarea.form-control {
 }
 
 .payment-method-item-tesipedia {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 1.5rem;
+    position: relative;
+    padding: 0.75rem;
     display: flex;
     align-items: flex-start;
-    gap: 1.5rem;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
     border: 1px solid rgba(79, 70, 229, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: auto;
 }
 
 .payment-method-item-tesipedia:hover {
@@ -504,23 +514,24 @@ textarea.form-control {
     flex-shrink: 0;
 }
 
-.payment-content-tesipedia {
-    flex: 1;
+.payment-method-content-tesipedia {
+    width: 100%;
+    padding: 0.5rem 0;
 }
 
-.payment-content-tesipedia h5 {
+.payment-method-item-tesipedia h5 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #2d3748;
-    display: flex;
-    align-items: center;
+    margin-bottom: 0.2rem;
 }
 
-.payment-content-tesipedia p {
-    margin: 0.25rem 0;
-    font-size: 0.95rem;
+.payment-method-item-tesipedia p {
+    margin: 0;
+    font-size: 0.8rem;
     color: #64748b;
+    margin-bottom: 0.3rem;
 }
 
 .bank-info-tesipedia {
@@ -580,78 +591,55 @@ textarea.form-control {
     color: #22C55E;
 }
 
-@media (max-width: 768px) {
-    .payment-method-item-tesipedia {
-        padding: 1rem;
-        gap: 1rem;
-    }
-
-    .payment-icon-tesipedia {
-        width: 40px;
-        height: 40px;
-    }
-
-    .payment-content-tesipedia h5 {
-        font-size: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .badge-tesipedia.bg-success {
-        margin-left: 0;
-        margin-top: 0.25rem;
-    }
-
-    .bank-info-tesipedia {
-        padding: 0.75rem;
-    }
-}
-
 .payment-options-card-tesipedia {
     background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    margin-top: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-top: 1.5rem;
     border: 1px solid rgba(0, 0, 0, 0.08);
     overflow: hidden;
 }
 
 .payment-summary-section-tesipedia {
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 .section-title-tesipedia {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
+    gap: 0.4rem;
     color: #2d3436;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
     font-weight: 600;
+    font-size: 1rem;
 }
 
 .section-icon-tesipedia {
     color: #3498db;
-    font-size: 1.25rem;
+    font-size: 1rem;
 }
 
 .price-breakdown-tesipedia {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .price-item-tesipedia {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 0.6rem;
     background: #f8f9fa;
-    border-radius: 12px;
+    border-radius: 8px;
     transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
 }
 
 .price-item-tesipedia:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .price-item-tesipedia.base {
@@ -670,19 +658,19 @@ textarea.form-control {
 }
 
 .item-info-tesipedia h5 {
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
     color: #2c3e50;
 }
 
 .item-info-tesipedia p {
     margin: 0;
     color: #7f8c8d;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .price-tesipedia {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #2c3e50;
 }
@@ -692,10 +680,10 @@ textarea.form-control {
 }
 
 .total-section-tesipedia {
-    margin-top: 1.5rem;
-    padding: 1.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
     background: linear-gradient(135deg, #4158D0 0%, #C850C0 100%);
-    border-radius: 12px;
+    border-radius: 8px;
     color: white;
 }
 
@@ -703,22 +691,23 @@ textarea.form-control {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .total-header-tesipedia h4 {
     margin: 0;
     font-weight: 600;
+    font-size: 1.1rem;
 }
 
 .savings-badge-tesipedia {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     background: rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
 }
 
 .star-icon-tesipedia {
@@ -733,202 +722,419 @@ textarea.form-control {
 }
 
 .original-price-tesipedia {
-    font-size: 1rem;
+    font-size: 0.9rem;
     text-decoration: line-through;
     opacity: 0.8;
 }
 
 .final-price-tesipedia {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 700;
 }
 
 .payment-methods-section-tesipedia {
-    padding: 1rem;
+    padding: 0.5rem;
     background: #ffffff;
-    border-radius: 12px;
+    border-radius: 8px;
     height: 100%;
 }
 
 .payment-methods-list-tesipedia {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.payment-method-item-tesipedia {
-    position: relative;
-    padding: 1.5rem;
-    background: #ffffff;
-    border-radius: 16px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
-
-.payment-method-item-tesipedia:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-    border-color: rgba(52, 152, 219, 0.3);
-}
-
-.payment-method-item-tesipedia:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3498db, #2980b9);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.payment-method-item-tesipedia:hover:before {
-    opacity: 1;
-}
-
-.payment-method-item-tesipedia h5 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
+    gap: 0.6rem;
     margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.payment-method-item-tesipedia p {
-    color: #64748b;
-    font-size: 1rem;
-    margin-bottom: 1.25rem;
-    line-height: 1.5;
 }
 
 .card-logos-tesipedia {
     display: flex;
     align-items: center;
-    gap: 2rem;
     justify-content: center;
-    padding: 1rem 0;
+    gap: 0.75rem;
+    padding: 0.2rem 0;
 }
 
 .card-logo-tesipedia {
-    height: 35px;
+    height: 20px;
     width: auto;
     transition: all 0.3s ease;
     filter: grayscale(20%);
 }
 
-.payment-method-item-tesipedia:hover .card-logo-tesipedia {
-    filter: grayscale(0%);
+.card-logo-tesipedia:hover {
+    filter: grayscale(0);
     transform: scale(1.05);
 }
 
 .discount-badge-tesipedia {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.5rem;
+    right: 0.5rem;
     background: linear-gradient(135deg, #00b894, #00cec9);
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 25px;
-    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
     animation: pulseGlow 2s infinite;
 }
 
 .savings-info-tesipedia {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
+    gap: 0.4rem;
     background: rgba(0, 184, 148, 0.1);
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    margin-top: 1rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 6px;
+    margin-top: 0.3rem;
 }
 
 .savings-icon-tesipedia {
     color: #00b894;
-    font-size: 1.25rem;
+    font-size: 0.9rem;
 }
 
 .savings-info-tesipedia span {
     color: #00b894;
     font-weight: 500;
-    font-size: 1rem;
-}
-
-@keyframes pulseGlow {
-    0% {
-        box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
-    }
-
-    50% {
-        box-shadow: 0 4px 20px rgba(0, 184, 148, 0.5);
-    }
-
-    100% {
-        box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
-    }
-}
-
-/* Estilos específicos para cada método de pago */
-.payment-method-item-tesipedia.card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-}
-
-.payment-method-item-tesipedia.transfer {
-    background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
-}
-
-.payment-method-item-tesipedia.cash {
-    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    font-size: 0.8rem;
 }
 
 .proceed-payment-button-tesipedia {
     width: 100%;
-    padding: 1.25rem;
-    background: linear-gradient(135deg, #3498db, #2980b9);
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #00B4DB, #0083B0);
     color: white;
     border: none;
-    border-radius: 14px;
+    border-radius: 12px;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin: 1rem 0;
+    box-shadow: 0 4px 15px rgba(0, 180, 219, 0.2);
+}
+
+.proceed-button-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    transition: all 0.3s ease;
-    margin: 1.5rem 0;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.proceed-button-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 100%;
+    }
+
+    100% {
+        left: 100%;
+    }
 }
 
 .proceed-payment-button-tesipedia:hover {
     transform: translateY(-2px);
-    background: linear-gradient(135deg, #2980b9, #3498db);
-    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 180, 219, 0.3);
+    background: linear-gradient(135deg, #0083B0, #00B4DB);
+}
+
+.proceed-payment-button-tesipedia:active {
+    transform: translateY(0);
+}
+
+/* Animaciones adicionales */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.contact-btn-content-tesipedia {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.contact-btn-text-tesipedia {
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.contact-btn-subtext-tesipedia {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+/* Media queries */
+@media (max-width: 768px) {
+    .contact-buttons-tesipedia {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .contact-btn-tesipedia {
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Botones de contacto mejorados */
+.contact-btn-tesipedia {
+    flex: 1;
+    max-width: 180px;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.contact-btn-chat-tesipedia {
+    background: linear-gradient(135deg, #4158D0, #C850C0);
+    color: white;
+}
+
+.contact-btn-whatsapp-tesipedia {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+}
+
+.contact-btn-icon-wrapper-tesipedia {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.contact-btn-icon-tesipedia {
+    font-size: 1.2rem;
+    z-index: 1;
+}
+
+.contact-btn-ripple {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 2s infinite;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+.contact-btn-tesipedia:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.contact-btn-tesipedia:active {
+    transform: translateY(-1px);
+}
+
+/* Badge de MSI */
+.msi-badge-tesipedia {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0 12px 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    animation: pulseGlow 2s infinite;
 }
 
 .security-badge-tesipedia {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     color: #64748b;
-    font-size: 0.95rem;
-    padding: 1rem;
+    font-size: 0.9rem;
+    padding: 0.75rem;
     background: rgba(52, 152, 219, 0.05);
-    border-radius: 12px;
-    margin-top: 1rem;
+    border-radius: 8px;
+    margin-top: 0.75rem;
 }
 
 .shield-icon-tesipedia {
     color: #00b894;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Contact Advisor Section */
+.contact-advisor-section-tesipedia {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 12px;
+    border: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.contact-advisor-section-tesipedia h5 {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.contact-advisor-section-tesipedia p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.contact-buttons-tesipedia {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.contact-btn-tesipedia {
+    flex: 1;
+    max-width: 180px;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.contact-btn-chat-tesipedia {
+    background: linear-gradient(135deg, #4158D0, #C850C0);
+    color: white;
+}
+
+.contact-btn-whatsapp-tesipedia {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+}
+
+.contact-btn-icon-tesipedia {
+    font-size: 1.2rem;
+    z-index: 1;
+}
+
+.contact-btn-ripple {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 2s infinite;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+.contact-btn-tesipedia:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.contact-btn-tesipedia:active {
+    transform: translateY(-1px);
+}
+
+.contact-btn-content-tesipedia {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.contact-btn-text-tesipedia {
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.contact-btn-subtext-tesipedia {
+    font-size: 0.75rem;
+    opacity: 0.9;
 }
 
 @media (max-width: 768px) {
@@ -938,12 +1144,12 @@ textarea.form-control {
 
     .payment-summary-section-tesipedia,
     .payment-methods-section-tesipedia {
-        padding: 1rem;
+        padding: 0.5rem;
     }
 
     .total-header-tesipedia {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.5rem;
         text-align: center;
     }
 
@@ -952,12 +1158,666 @@ textarea.form-control {
     }
 
     .payment-method-item-tesipedia {
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .discount-badge-tesipedia {
         position: static;
         display: inline-block;
         margin-bottom: 0.5rem;
+    }
+
+    .contact-buttons-tesipedia {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .contact-btn-tesipedia {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Ajustando tamaño específico de los métodos de pago */
+.payment-methods-section-tesipedia h4 {
+    margin-bottom: 0.5rem;
+}
+
+/* Compact spacing for total section */
+.total-section-tesipedia {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+}
+
+/* Reducir altura para crear mejor equilibrio */
+.price-item-tesipedia {
+    padding: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.savings-badge-tesipedia {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Ajustando la sección de contacto */
+.contact-advisor-section-tesipedia {
+    margin-top: 1rem;
+    padding: 0.75rem;
+}
+
+.payment-method-item-tesipedia.cash {
+    margin-bottom: 0;
+}
+
+.proceed-payment-button-tesipedia {
+    margin: 0;
+}
+
+.security-badge-tesipedia {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+}
+
+.payment-method-item-tesipedia.card {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Responsive Design - Mobile First Approach */
+@media screen and (max-width: 576px) {
+    .quote-wrapper-tesipedia {
+        padding: 0.5rem;
+    }
+
+    .quote-card-tesipedia {
+        margin: 0.5rem;
+        padding: 0.5rem !important;
+    }
+
+    .form-section-tesipedia {
+        padding: 0.5rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-header-tesipedia {
+        font-size: 0.85rem;
+    }
+
+    .form-label-sm-tesipedia {
+        font-size: 0.8rem;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 0.85rem !important;
+        padding: 0.3rem 0.4rem !important;
+    }
+
+    /* Ajustes para la sección de precios */
+    .price-item-tesipedia {
+        padding: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .item-info-tesipedia h5 {
+        font-size: 0.9rem;
+    }
+
+    .item-info-tesipedia p {
+        font-size: 0.75rem;
+    }
+
+    .price-tesipedia {
+        font-size: 0.9rem;
+    }
+
+    /* Ajustes para la sección de pago */
+    .payment-options-card-tesipedia {
+        margin: 0.5rem;
+    }
+
+    .payment-method-item-tesipedia {
+        padding: 0.5rem;
+    }
+
+    .payment-method-content-tesipedia h5 {
+        font-size: 0.85rem;
+    }
+
+    .payment-method-content-tesipedia p {
+        font-size: 0.75rem;
+    }
+
+    .total-section-tesipedia {
+        padding: 0.5rem;
+    }
+
+    .final-price-tesipedia {
+        font-size: 1.2rem;
+    }
+
+    .contact-buttons-tesipedia {
+        flex-direction: column;
+    }
+
+    .contact-btn-tesipedia {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media screen and (min-width: 577px) and (max-width: 768px) {
+    .quote-wrapper-tesipedia {
+        padding: 0.75rem;
+    }
+
+    .form-section-tesipedia {
+        padding: 0.75rem !important;
+    }
+
+    .payment-options-card-tesipedia {
+        margin: 0.75rem;
+    }
+
+    .contact-buttons-tesipedia {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .contact-btn-tesipedia {
+        flex: 0 0 calc(50% - 0.5rem);
+        max-width: calc(50% - 0.5rem);
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 992px) {
+    .quote-wrapper-tesipedia {
+        padding: 1rem;
+    }
+
+    .form-section-tesipedia {
+        padding: 1rem !important;
+    }
+}
+
+/* Ajustes específicos para la sección de resumen de precios en móvil */
+@media screen and (max-width: 768px) {
+    .price-breakdown-tesipedia {
+        gap: 0.5rem;
+    }
+
+    .total-header-tesipedia {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .savings-badge-tesipedia {
+        align-self: flex-start;
+    }
+
+    .total-amount-tesipedia {
+        width: 100%;
+        align-items: flex-end;
+    }
+
+    /* Ajustes para los métodos de pago */
+    .payment-methods-list-tesipedia {
+        gap: 0.5rem;
+    }
+
+    .card-logos-tesipedia {
+        gap: 0.5rem;
+    }
+
+    .card-logo-tesipedia {
+        height: 16px;
+    }
+
+    /* Ajustes para el botón de proceder al pago */
+    .proceed-payment-button-tesipedia {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+
+    .security-badge-tesipedia {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+}
+
+/* Ajustes para la navegación y encabezado en móvil */
+@media screen and (max-width: 576px) {
+    .quote-title-tesipedia {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .quote-title-tesipedia:after {
+        width: 40px;
+    }
+
+    /* Ajustes para el formulario en móvil */
+    .form-group {
+        margin-bottom: 0.3rem !important;
+    }
+
+    textarea.form-control {
+        min-height: 40px !important;
+    }
+
+    /* Ajustes para los botones en móvil */
+    .custom-button-tesipedia {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+        height: 34px;
+    }
+}
+
+/* Ajustes para tablets en modo retrato */
+@media screen and (min-width: 768px) and (max-width: 992px) {
+    .quote-wrapper-tesipedia {
+        max-width: 95%;
+    }
+
+    .payment-options-card-tesipedia {
+        margin-top: 1rem;
+    }
+
+    .payment-method-item-tesipedia {
+        flex-direction: row;
+    }
+}
+
+/* Ajustes para la orientación landscape en móviles */
+@media screen and (max-height: 576px) and (orientation: landscape) {
+    .quote-container-tesipedia {
+        padding: 0.5rem;
+    }
+
+    .form-section-tesipedia {
+        margin-bottom: 0.4rem;
+    }
+
+    .quote-card-tesipedia {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Ajustes para asegurar que los inputs sean fáciles de tocar en móvil */
+@media screen and (max-width: 576px) {
+
+    .form-control,
+    .form-select,
+    .custom-button-tesipedia {
+        min-height: 38px;
+        /* Altura mínima para ser touch-friendly */
+    }
+
+    /* Aumentar el tamaño de los elementos interactivos */
+    .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+
+    .form-check-label {
+        padding-left: 0.5rem;
+    }
+}
+
+/* Ajustes para el espaciado vertical en dispositivos pequeños */
+@media screen and (max-width: 360px) {
+    .quote-container-tesipedia {
+        padding: 0.3rem;
+    }
+
+    .form-section-tesipedia {
+        padding: 0.4rem !important;
+    }
+
+    .section-header-tesipedia {
+        font-size: 0.8rem;
+        padding-bottom: 0.2rem;
+    }
+
+    .form-label-sm-tesipedia {
+        font-size: 0.75rem;
+    }
+}
+
+/* iPhone 12/13/14 Pro Max, iPhone XR/11, y dispositivos similares (390-430px) */
+@media screen and (min-width: 390px) and (max-width: 430px) {
+    .quote-wrapper-tesipedia {
+        padding: 0.5rem;
+        max-width: 100%;
+    }
+
+    .quote-card-tesipedia {
+        margin: 0;
+        border-radius: 8px;
+    }
+
+    .form-section-tesipedia {
+        padding: 0.6rem !important;
+    }
+
+    /* Ajustes para el formulario */
+    .form-control,
+    .form-select {
+        font-size: 16px !important;
+        /* Previene zoom en iOS */
+        padding: 0.5rem !important;
+        height: 42px;
+    }
+
+    textarea.form-control {
+        height: auto;
+        min-height: 80px !important;
+    }
+
+    /* Ajustes para la sección de precios */
+    .price-breakdown-tesipedia {
+        padding: 0.5rem;
+    }
+
+    .price-item-tesipedia {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .total-section-tesipedia {
+        padding: 0.75rem;
+    }
+
+    .final-price-tesipedia {
+        font-size: 1.4rem;
+    }
+
+    /* Ajustes para los botones */
+    .custom-button-tesipedia {
+        height: 44px;
+        font-size: 1rem;
+    }
+
+    /* Ajustes para la sección de métodos de pago */
+    .payment-options-card-tesipedia {
+        margin: 1rem 0;
+        border-radius: 8px;
+    }
+
+    .payment-method-item-tesipedia {
+        padding: 0.75rem;
+    }
+
+    .card-logos-tesipedia {
+        gap: 1rem;
+    }
+
+    .card-logo-tesipedia {
+        height: 20px;
+    }
+}
+
+/* iPhone 12/13/14 Pro Max en landscape y dispositivos similares */
+@media screen and (min-height: 390px) and (max-height: 430px) and (orientation: landscape) {
+    .quote-container-tesipedia {
+        padding: 0.5rem;
+    }
+
+    .quote-wrapper-tesipedia {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-section-tesipedia {
+        margin-bottom: 0.5rem;
+    }
+
+    .row {
+        margin: 0 -0.25rem;
+    }
+
+    .col,
+    [class*="col-"] {
+        padding: 0 0.25rem;
+    }
+}
+
+/* Dispositivos más altos (altura 700px-932px) */
+@media screen and (min-height: 700px) and (max-height: 932px) and (max-width: 430px) {
+    .quote-container-tesipedia {
+        min-height: calc(100vh - 60px);
+    }
+
+    .quote-wrapper-tesipedia {
+        height: 100%;
+    }
+
+    .form-section-tesipedia {
+        margin-bottom: 0.75rem;
+    }
+
+    /* Ajustar espaciado vertical */
+    .section-header-tesipedia {
+        margin-bottom: 0.75rem;
+    }
+
+    .form-group {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Mejorar la legibilidad */
+    .form-label-sm-tesipedia {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Ajustar tamaños de botones y elementos interactivos */
+    .custom-button-tesipedia,
+    .proceed-payment-button-tesipedia {
+        height: 48px;
+        font-size: 1rem;
+    }
+
+    .contact-btn-tesipedia {
+        padding: 0.8rem 1rem;
+    }
+
+    /* Mejorar visualización de precios */
+    .price-item-tesipedia {
+        padding: 0.8rem;
+    }
+
+    .total-section-tesipedia {
+        padding: 1rem;
+    }
+
+    .final-price-tesipedia {
+        font-size: 1.5rem;
+    }
+}
+
+/* Ajustes específicos para dispositivos con notch o dynamic island */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .quote-container-tesipedia {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+}
+
+/* Optimizaciones para dispositivos con pantallas más densas */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
+    .card-logo-tesipedia,
+    .store-logo-tesipedia {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Reglas base para prevenir zoom */
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Meta viewport se maneja en el HTML, asegúrate de tenerlo así:
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> */
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ajustes para inputs en móvil para prevenir zoom */
+@media screen and (max-width: 576px) {
+
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important;
+        /* Previene zoom en iOS */
+        max-height: none !important;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 16px !important;
+        /* Previene zoom en iOS */
+        padding: 0.5rem !important;
+        height: auto !important;
+        min-height: 42px;
+    }
+
+    .custom-input-md-tesipedia,
+    .custom-select-md-tesipedia {
+        font-size: 16px !important;
+        height: auto !important;
+        min-height: 42px;
+    }
+
+    .form-label-sm-tesipedia {
+        font-size: 14px !important;
+    }
+
+    .section-header-tesipedia {
+        font-size: 15px !important;
+    }
+}
+
+/* Ajustes específicos para iPhone */
+@media screen and (max-width: 430px) {
+    .quote-wrapper-tesipedia {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    .form-section-tesipedia {
+        transform: none !important;
+        /* Eliminar transformaciones que puedan causar problemas */
+    }
+
+    .form-section-tesipedia:hover {
+        transform: none !important;
+    }
+
+    /* Ajustar tamaños de texto para mejor legibilidad */
+    .quote-title-tesipedia {
+        font-size: 1.2rem !important;
+    }
+
+    .item-info-tesipedia h5 {
+        font-size: 0.9rem !important;
+    }
+
+    .item-info-tesipedia p {
+        font-size: 0.8rem !important;
+    }
+}
+
+/* Prevenir zoom en campos de formulario en Safari iOS */
+@supports (-webkit-touch-callout: none) {
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Ajustes específicos para móviles */
+@media screen and (max-width: 576px) {
+    .quote-container-tesipedia {
+        padding: 0.5rem;
+        overflow-x: hidden;
+        width: 100vw;
+        max-width: 100vw;
+    }
+
+    .quote-wrapper-tesipedia {
+        padding: 0;
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    .quote-card-tesipedia {
+        margin: 0;
+        border-radius: 8px;
+        width: 100%;
+    }
+
+    .payment-options-card-tesipedia {
+        margin: 1rem 0;
+        width: 100%;
+    }
+
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .col,
+    [class*="col-"] {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Prevenir zoom en inputs en iOS */
+@supports (-webkit-touch-callout: none) {
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Ajustes para el contenedor principal en dispositivos móviles */
+@media screen and (max-width: 430px) {
+    .container-fluid {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    .quote-wrapper-tesipedia {
+        padding: 0;
+    }
+
+    .card {
+        border-radius: 8px;
     }
 }

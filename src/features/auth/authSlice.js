@@ -1,14 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/authService';
+import axiosWithAuth from '../../utils/axioswithAuth';
 
 // Estado inicial
 const initialState = {
   user: null,
   isAuthenticated: false,
+  isAdmin: false,
   isLoading: false,
   isError: false,
   isSuccess: false,
   message: ''
+};
+
+// Helper function to check if user is admin
+const checkIsAdmin = (user) => {
+  return user?.role === 'admin';
 };
 
 // Thunks
@@ -29,7 +36,7 @@ export const login = createAsyncThunk(
   async (userData, thunkAPI) => {
     try {
       const response = await authService.login(userData);
-      return response.user;
+      return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -53,11 +60,15 @@ export const forgotPassword = createAsyncThunk(
 
 export const resetPassword = createAsyncThunk(
   'auth/resetPassword',
-  async ({ token, password }, thunkAPI) => {
+  async ({ token, password }, { rejectWithValue }) => {
     try {
-      return await authService.resetPassword(token, password);
+      const response = await axiosWithAuth.post('/auth/reset-password',
+        { token, password },
+        { withCredentials: true }
+      );
+      return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(error.response?.data || { message: 'Error al restablecer la contraseña' });
     }
   }
 );
@@ -85,6 +96,9 @@ const authSlice = createSlice({
       state.isSuccess = false;
       state.message = '';
     },
+    checkAdminStatus: (state) => {
+      state.isAdmin = checkIsAdmin(state.user);
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -97,6 +111,7 @@ const authSlice = createSlice({
         state.isSuccess = true;
         state.isAuthenticated = true;
         state.user = action.payload;
+        state.isAdmin = checkIsAdmin(action.payload);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -104,6 +119,7 @@ const authSlice = createSlice({
         state.message = action.payload;
         state.user = null;
         state.isAuthenticated = false;
+        state.isAdmin = false;
       })
 
       // Register
@@ -115,6 +131,7 @@ const authSlice = createSlice({
         state.isSuccess = true;
         state.isAuthenticated = true;
         state.user = action.payload;
+        state.isAdmin = checkIsAdmin(action.payload);
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
@@ -122,12 +139,14 @@ const authSlice = createSlice({
         state.message = action.payload;
         state.user = null;
         state.isAuthenticated = false;
+        state.isAdmin = false;
       })
 
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
+        state.isAdmin = false;
       })
 
       // Forgot Password
@@ -149,15 +168,15 @@ const authSlice = createSlice({
       .addCase(resetPassword.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(resetPassword.fulfilled, (state) => {
+      .addCase(resetPassword.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.message = 'Contraseña restablecida exitosamente';
+        state.message = action.payload.message;
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
-        state.message = action.payload;
+        state.message = action.payload?.message || 'Error al restablecer la contraseña';
       })
 
       // Get Profile
@@ -168,15 +187,17 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload;
+        state.isAdmin = checkIsAdmin(action.payload);
       })
       .addCase(getProfile.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.isAdmin = false;
       });
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, checkAdminStatus } = authSlice.actions;
 export default authSlice.reducer;
 

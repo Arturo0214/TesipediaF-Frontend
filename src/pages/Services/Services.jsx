@@ -30,7 +30,7 @@ function Services() {
   const FeatureDetails = ({ inModal }) => {
     if (!selectedFeature) {
       return (
-        <div className="feature-placeholder">
+        <div className="tesi-feature-placeholder">
           <p>Selecciona una característica para ver más detalles</p>
         </div>
       );
@@ -40,20 +40,20 @@ function Services() {
       <>
         {inModal && (
           <FaTimes
-            className="modal-close-btn"
+            className="tesi-modal-close-btn"
             onClick={() => setShowModal(false)}
           />
         )}
-        <div className="feature-detail-header">
-          <span className="feature-detail-number" style={{
+        <div className="tesi-feature-detail-header">
+          <span className="tesi-feature-detail-number" style={{
             color: selectedFeature.color
           }}>
             {selectedFeature.serviceNumber}
           </span>
           <h3 style={{ color: selectedFeature.color }}>{selectedFeature.title}</h3>
         </div>
-        <p className="feature-description">{selectedFeature.description}</p>
-        <div className="feature-benefits">
+        <p className="tesi-feature-description">{selectedFeature.description}</p>
+        <div className="tesi-feature-benefits">
           <h4>Beneficios:</h4>
           <ul>
             {selectedFeature.benefits.map((benefit, idx) => (
@@ -239,98 +239,95 @@ function Services() {
   ];
 
   return (
-    <div className="services-page">
-      <Container>
-        <div className="services-header">
-          <h2 className="services-title">
-            <span className="services-title-decoration">
-              Servicios
-            </span>
-          </h2>
-          <div className="services-subtitle">Soluciones académicas profesionales</div>
-        </div>
+    <Container fluid className='tesi-services-page'>
+      <div className="tesi-services-header">
+        <h2 className="tesi-services-title">
+          <span className="tesi-services-title-decoration">
+            Servicios
+          </span>
+        </h2>
+        <div className="tesi-services-subtitle">Soluciones académicas profesionales</div>
+      </div>
 
-        <Row className="justify-content-center gx-3">
-          <Col lg={6} xl={6}>
-            <div className="services-list">
-              {services.map((service, index) => (
-                <div className="service-card" key={index}>
-                  <div className="service-number" style={{
-                    color: service.color,
-                    textShadow: `2px 2px 4px ${service.color}40`
-                  }}>
-                    {index + 1}
-                  </div>
-                  <span className="service-hint">
-                    <FaArrowRight /> Selecciona el rubro para ver más
-                  </span>
-                  <div className="service-content">
-                    <div className="service-header">
-                      <div className="service-icon" style={{
-                        color: service.color,
-                        borderColor: service.color,
-                        background: 'white'
-                      }}>
-                        {service.icon}
-                      </div>
-                      <div className="service-title-group">
-                        <h2 style={{ color: service.color }}>{service.title}</h2>
-                        <p>{service.description}</p>
-                      </div>
-                    </div>
-                    <ListGroup variant="flush" className="service-features">
-                      {service.features.map((feature, idx) => (
-                        <ListGroup.Item
-                          key={idx}
-                          onClick={() => handleFeatureClick(feature, service.color, index + 1)}
-                          className={selectedFeature?.title === feature.title ? 'active' : ''}
-                        >
-                          <FaCheckCircle style={{ color: service.color }} />
-                          <span>{feature.title}</span>
-                          <div className="feature-arrow-container">
-                            <FaArrowRight className="feature-arrow" style={{
-                              background: `linear-gradient(90deg, transparent, ${service.color}40 50%, ${service.color})`,
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent',
-                              backgroundClip: 'text'
-                            }} />
-                          </div>
-                        </ListGroup.Item>
-                      ))}
-                    </ListGroup>
-                  </div>
+      <Row className="justify-content-center gx-3">
+        <Col lg={6} xl={6}>
+          <div className="tesi-services-list">
+            {services.map((service, index) => (
+              <div className="tesi-service-card" key={index}>
+                <div className="tesi-service-number" style={{
+                  color: service.color,
+                  textShadow: `2px 2px 4px ${service.color}40`
+                }}>
+                  {index + 1}
                 </div>
-              ))}
-            </div>
-          </Col>
-          <Col lg={5} xl={4} className="d-none d-lg-block">
-            <div className="feature-detail-panel">
-              <FeatureDetails />
-            </div>
-          </Col>
-        </Row>
+                <span className="tesi-service-hint">
+                  <FaArrowRight /> Selecciona el rubro para ver más
+                </span>
+                <div className="tesi-service-content">
+                  <div className="tesi-service-header">
+                    <div className="tesi-service-icon" style={{
+                      color: service.color,
+                      borderColor: service.color,
+                      background: 'white'
+                    }}>
+                      {service.icon}
+                    </div>
+                    <div className="tesi-service-title-group">
+                      <h2 style={{ color: service.color }}>{service.title}</h2>
+                      <p>{service.description}</p>
+                    </div>
+                  </div>
+                  <ListGroup variant="flush" className="tesi-service-features">
+                    {service.features.map((feature, idx) => (
+                      <ListGroup.Item
+                        key={idx}
+                        onClick={() => handleFeatureClick(feature, service.color, index + 1)}
+                        className={selectedFeature?.title === feature.title ? 'active' : ''}
+                      >
+                        <FaCheckCircle style={{ color: service.color }} />
+                        <span>{feature.title}</span>
+                        <div className="tesi-feature-arrow-container">
+                          <FaArrowRight className="tesi-feature-arrow" style={{
+                            background: `linear-gradient(90deg, transparent, ${service.color}40 50%, ${service.color})`,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text'
+                          }} />
+                        </div>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Col>
+        <Col lg={5} xl={4} className="d-none d-lg-block">
+          <div className="tesi-feature-detail-panel">
+            <FeatureDetails />
+          </div>
+        </Col>
+      </Row>
 
-        <Modal
-          show={showModal}
-          onHide={() => setShowModal(false)}
-          className="feature-detail-modal"
-          centered
-        >
-          <Modal.Body>
-            <FeatureDetails inModal={true} />
-          </Modal.Body>
-        </Modal>
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        className="tesi-feature-detail-modal"
+        centered
+      >
+        <Modal.Body>
+          <FeatureDetails inModal={true} />
+        </Modal.Body>
+      </Modal>
 
-        <div className="services-cta-wrapper">
-          <div className="services-cta-shine-effect"></div>
-          <h3 className="services-cta-title">¿Listo para alcanzar la excelencia académica?</h3>
-          <p className="services-cta-description">Obtén una cotización personalizada para tu proyecto en menos de 5 minutos</p>
-          <Link to="/cotizar" className="services-cta-button">
-            Cotiza tu proyecto ahora <FaArrowRight className="services-cta-icon" />
-          </Link>
-        </div>
-      </Container>
-    </div>
+      <div className="tesi-services-cta-wrapper">
+        <h3 className="tesi-services-cta-title">¿Listo para alcanzar la excelencia académica?</h3>
+        <p className="tesi-services-cta-description">Obtén una cotización personalizada para tu proyecto en menos de 5 minutos</p>
+        <Link to="/cotizar" className="tesi-services-cta-button">
+          Cotiza tu proyecto ahora <FaArrowRight className="tesi-services-cta-icon" />
+        </Link>
+      </div>
+    </Container>
   );
 }
 

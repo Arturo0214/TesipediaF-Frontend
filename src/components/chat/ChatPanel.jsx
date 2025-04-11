@@ -31,11 +31,15 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
 
         const initializeChat = async () => {
             try {
+                console.log('Inicializando chat con:', { isOpen, orderId, userId, isPublic, publicId });
+
                 let socketUserId = userId;
 
                 if (isPublic) {
                     if (!publicId) {
+                        console.log('Generando publicId...');
                         const generatedId = await dispatch(generatePublicId()).unwrap();
+                        console.log('PublicId generado:', generatedId);
                         socketUserId = generatedId;
                     } else {
                         socketUserId = publicId;
@@ -43,25 +47,32 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
                 }
 
                 if (isPublic) {
+                    console.log('Obteniendo mensajes públicos para:', socketUserId);
                     await dispatch(getMessagesByOrder({ orderId: null, publicId: socketUserId })).unwrap();
                 } else if (orderId) {
+                    console.log('Obteniendo mensajes para orden:', orderId);
                     await dispatch(getMessagesByOrder(orderId)).unwrap();
                 }
 
+                console.log('Conectando socket con userId:', socketUserId);
                 const socket = connectSocket(socketUserId, isPublic);
 
                 onSocketEvent('connect', () => {
+                    console.log('Socket conectado, actualizando estado...');
                     dispatch(setConnectionStatus(true));
                     if (orderId) {
+                        console.log('Uniéndose a la sala de chat:', orderId);
                         emitSocketEvent('joinOrderChat', orderId);
                     }
                 });
 
                 onSocketEvent('disconnect', () => {
+                    console.log('Socket desconectado, actualizando estado...');
                     dispatch(setConnectionStatus(false));
                 });
 
                 onSocketEvent('sendMessage', (message) => {
+                    console.log('Nuevo mensaje recibido:', message);
                     dispatch(addMessage(message));
                 });
 
@@ -73,6 +84,7 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
         initializeChat();
 
         return () => {
+            console.log('Limpiando chat...');
             dispatch(clearMessages());
             disconnectSocket();
         };
@@ -96,6 +108,12 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
                 publicId: isPublic ? publicId : null,
                 name: isPublic ? 'Usuario Anónimo' : userName,
             };
+
+            // Si el usuario está autenticado, no necesitamos enviar el nombre
+            // ya que el backend lo obtendrá del token
+            if (!isPublic) {
+                delete messageData.name;
+            }
 
             await dispatch(sendMessage(messageData)).unwrap();
             setNewMessage('');

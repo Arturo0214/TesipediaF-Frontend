@@ -54,10 +54,8 @@ const ContactModal = () => {
                     </div>
                     <div className="contact-content">
                         <h4>Correo Electrónico</h4>
-                        <p>Envíanos tus dudas por email</p>
-                        <a href="mailto:info@tesipedia.com" className="contact-button secondary">
-                            Enviar correo
-                        </a>
+                        <p>Envíanos tus dudas al correo:</p>
+                        <p className="email-address">tesipediaoficial@gmail.com</p>
                     </div>
                 </div>
             </div>

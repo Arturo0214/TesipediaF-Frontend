@@ -1,0 +1,230 @@
+/* Estilos generales del Navbar */
+.navbar {
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+}
+
+.navbar.scrolled {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo */
+.brand-container {
+    display: flex;
+    align-items: center;
+    padding: 0.15rem 0;
+    position: relative;
+    height: 100%;
+}
+
+.brand-logo {
+    height: 65px;
+    width: auto;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 0 0 rgba(79, 70, 229, 0));
+    margin-top: -2px;
+}
+
+.brand-container:hover .brand-logo {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.5));
+}
+
+.brand-container::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    background: radial-gradient(circle at center, rgba(79, 70, 229, 0.15), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    border-radius: 50%;
+}
+
+.brand-container:hover::after {
+    opacity: 1;
+}
+
+/* Botón de cotizar */
+.btn-cotizar {
+    background-color: #4F46E5;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-cotizar:hover {
+    background-color: #4338CA;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+}
+
+/* Dropdown de usuario */
+#user-dropdown {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+#user-dropdown:hover {
+    background-color: #f8f9fa;
+}
+
+/* Notificaciones */
+#notifications-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+#notifications-dropdown:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(25%, -25%);
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50px;
+}
+
+.notifications-menu {
+    width: 320px;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.notification-item {
+    display: flex;
+    padding: 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    color: white;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.notification-text {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.notification-time {
+    font-size: 0.8rem;
+    color: #adb5bd;
+}
+
+/* Enlaces de navegación */
+.nav-link {
+    position: relative;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #4F46E5;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #4F46E5;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Dropdown de usuario */
+.dropdown-menu {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: none;
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #4F46E5;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .navbar-collapse {
+        padding: 1rem 0;
+    }
+
+    .nav-link {
+        padding: 0.75rem 1rem;
+    }
+
+    .btn-cotizar {
+        margin: 0.5rem 0;
+        width: 100%;
+    }
+
+    #user-dropdown,
+    #notifications-dropdown {
+        width: 100%;
+        justify-content: center;
+        margin: 0.5rem 0;
+    }
+}

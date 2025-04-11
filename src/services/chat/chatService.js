@@ -1,7 +1,5 @@
 import axiosWithAuth from '../../utils/axioswithAuth';
 
-const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 // 🔑 Generar Public ID
 export const generatePublicIdService = async () => {
     const { data } = await axiosWithAuth.post('/chat/public-id');
@@ -96,7 +94,7 @@ export const deleteMessageService = async (id) => {
 
 // ✅ Marcar un solo mensaje como leído
 export const markSingleMessageAsReadService = async (messageId) => {
-    const { data } = await axiosWithAuth.post(`/chat/messages/${messageId}/read`);
+    const { data } = await axiosWithAuth.post(`/chat/${messageId}/read`);
     return data;
 };
 
@@ -121,5 +119,17 @@ export const getPublicConversationsService = async () => {
 // 📈 Registrar una visita
 export const trackVisitService = async (visitData) => {
     const { data } = await axiosWithAuth.post('/chat/track-visit', visitData);
+    return data;
+};
+
+// Obtener mensajes directos entre usuarios
+export const getDirectMessagesService = async (userId) => {
+    const { data } = await axiosWithAuth.get(`/chat/direct/${userId}`);
+    return data;
+};
+
+// Actualizar el estado de una conversación
+export const updateConversationStatusService = async ({ conversationId, status }) => {
+    const { data } = await axiosWithAuth.put(`/chat/conversations/${conversationId}/status`, { status });
     return data;
 };

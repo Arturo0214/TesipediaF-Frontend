@@ -1,7 +1,7 @@
 import { Container, Table, Spinner, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getVisits, clearVisits, clearError } from '../../features/visits/visitsSlice';
+import { getVisits, clearVisits, clearError } from '../../../features/visits/visitsSlice';
 import { Bar } from 'react-chartjs-2';
 
 function ManageVisits() {

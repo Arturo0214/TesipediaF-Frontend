@@ -1,0 +1,109 @@
+.admin-root-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.admin-content-wrapper {
+    flex: 1;
+    padding-top: 70px;
+    /* Espacio para el navbar fijo */
+}
+
+.admin-layout {
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Navbar Styles */
+.tesipedia-admin-navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    background-color: white;
+}
+
+.tesipedia-admin-brand {
+    padding: 0;
+}
+
+.tesipedia-admin-logo {
+    height: 40px;
+    width: auto;
+}
+
+.tesipedia-admin-nav {
+    gap: 0.5rem;
+}
+
+.tesipedia-admin-link {
+    color: #6c757d;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.tesipedia-admin-link:hover,
+.tesipedia-admin-link.active {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+    border-radius: 0.25rem;
+}
+
+.tesipedia-admin-notification {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.tesipedia-admin-user-dropdown {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+}
+
+.tesipedia-admin-dropdown {
+    min-width: 200px;
+}
+
+.tesipedia-admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.tesipedia-admin-dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.tesipedia-admin-divider {
+    margin: 0.5rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .tesipedia-admin-navbar {
+        padding: 0.5rem;
+    }
+
+    .tesipedia-admin-logo {
+        height: 30px;
+    }
+
+    .admin-layout {
+        padding: 10px;
+    }
+}
+
+@media (min-width: 768px) {
+    .admin-content-wrapper {
+        padding-top: 64px;
+    }
+}

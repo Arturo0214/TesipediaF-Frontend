@@ -1,0 +1,245 @@
+.quote-publicpayment-modal .modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom, #ffffff, #fcfcfc);
+    overflow: hidden;
+    max-height: 85vh;
+    margin: 0.5rem;
+}
+
+.quote-publicpayment-modal .modal-header {
+    border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+}
+
+.quote-publicpayment-modal .modal-title {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quote-publicpayment-modal .modal-body {
+    padding: 1rem;
+}
+
+.quote-publicpayment-modal .modal-footer {
+    border-top: 1px solid rgba(52, 152, 219, 0.1);
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.payment-options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.payment-intro-text {
+    color: #64748b;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.payment-option-item {
+    width: 100%;
+    color: white !important;
+}
+
+.payment-option-button {
+    width: 100%;
+    padding: 0.75rem 1rem !important;
+    border: none !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+    text-align: left !important;
+    min-height: 56px;
+    color: white !important;
+}
+
+.payment-option-button * {
+    color: white !important;
+}
+
+.payment-option-button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transition: all 0.6s ease;
+}
+
+.payment-option-button:hover:before {
+    left: 100%;
+}
+
+.login-button {
+    background: linear-gradient(135deg, #4158D0, #C850C0) !important;
+    box-shadow: 0 4px 15px rgba(65, 88, 208, 0.2) !important;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(65, 88, 208, 0.3) !important;
+}
+
+.register-button {
+    background: linear-gradient(135deg, #00B4DB, #0083B0) !important;
+    box-shadow: 0 4px 15px rgba(0, 180, 219, 0.2) !important;
+}
+
+.register-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 180, 219, 0.3) !important;
+}
+
+.guest-button {
+    background: linear-gradient(135deg, #2c3e50, #3498db) !important;
+    box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2) !important;
+}
+
+.guest-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3) !important;
+}
+
+.option-icon {
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+}
+
+.option-content {
+    flex-grow: 1;
+    color: white !important;
+}
+
+.option-content h5 {
+    margin: 0;
+    color: white !important;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.option-content p {
+    margin: 0;
+    color: white !important;
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+.modal-footer-info {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.modal-footer-info small {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    .quote-publicpayment-modal .modal-content {
+        margin: 0.5rem;
+        max-height: calc(100vh - 2rem);
+    }
+
+    .quote-publicpayment-modal .modal-header {
+        padding: 0.75rem;
+    }
+
+    .quote-publicpayment-modal .modal-body {
+        padding: 0.75rem;
+    }
+
+    .payment-option-button,
+    .payment-option-button *,
+    .option-content,
+    .option-content h5,
+    .option-content p {
+        color: white !important;
+    }
+
+    .payment-option-button {
+        padding: 0.75rem !important;
+        min-height: 52px;
+    }
+
+    .option-icon {
+        width: 28px;
+        height: 28px;
+        padding: 0.4rem;
+        font-size: 1rem;
+    }
+
+    .option-content h5 {
+        font-size: 0.9rem;
+    }
+
+    .option-content p {
+        font-size: 0.75rem;
+    }
+}
+
+/* Ajustes para dispositivos de alta densidad de píxeles */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+    .quote-publicpayment-modal .modal-content {
+        border-radius: 12px;
+    }
+}
+
+/* Ajustes para modo oscuro del sistema */
+@media (prefers-color-scheme: dark) {
+    .quote-publicpayment-modal .modal-content {
+        background: linear-gradient(to bottom, #1a1a1a, #242424);
+    }
+
+    .quote-publicpayment-modal .modal-header,
+    .quote-publicpayment-modal .modal-footer {
+        background: linear-gradient(135deg, #1a1a1a, #242424);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .quote-publicpayment-modal .modal-title {
+        color: #ffffff;
+    }
+
+    .payment-intro-text,
+    .modal-footer-info small {
+        color: #a0aec0;
+    }
+}

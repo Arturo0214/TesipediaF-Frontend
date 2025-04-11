@@ -86,6 +86,13 @@
     line-height: 1.2;
 }
 
+.email-address {
+    font-weight: 600;
+    color: #F59E0B;
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+}
+
 .contact-button {
     display: inline-flex;
     align-items: center;

@@ -7,13 +7,25 @@ const initialState = {
   loading: false,
   success: false,
   error: null,
+  formData: null,
+  stats: null
+};
+
+// Helper function to check for admin permissions
+const checkAdminPermission = (thunkAPI) => {
+  const { auth } = thunkAPI.getState();
+  if (!auth.isAdmin) {
+    return 'Permission denied: Admin access required';
+  }
+  return null;
 };
 
 // Thunks
 
-export const createQuote = createAsyncThunk('quotes/create', async (quoteData, thunkAPI) => {
+export const createQuote = createAsyncThunk('quotes/create', async ({ formDataToSend, formData }, thunkAPI) => {
   try {
-    return await quoteService.createQuote(quoteData);
+    const response = await quoteService.createQuote(formDataToSend);
+    return { ...response, formData };
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error creating quote');
   }
@@ -45,6 +57,12 @@ export const getMyQuotes = createAsyncThunk('quotes/getMyQuotes', async (_, thun
 
 export const getAllQuotes = createAsyncThunk('quotes/getAll', async (_, thunkAPI) => {
   try {
+    // Check admin permissions
+    const permissionError = checkAdminPermission(thunkAPI);
+    if (permissionError) {
+      return thunkAPI.rejectWithValue(permissionError);
+    }
+
     return await quoteService.getAllQuotes();
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error fetching all quotes');
@@ -61,14 +79,36 @@ export const getQuoteById = createAsyncThunk('quotes/getById', async (quoteId, t
 
 export const updateQuote = createAsyncThunk('quotes/update', async ({ quoteId, updatedData }, thunkAPI) => {
   try {
+    // Admin permission required to update any quote
+    if (updatedData.adminAction) {
+      const permissionError = checkAdminPermission(thunkAPI);
+      if (permissionError) {
+        return thunkAPI.rejectWithValue(permissionError);
+      }
+    }
+
     return await quoteService.updateQuote(quoteId, updatedData);
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error updating quote');
   }
 });
 
+export const updatePublicQuote = createAsyncThunk('quotes/updatePublic', async ({ publicId, updatedData }, thunkAPI) => {
+  try {
+    return await quoteService.updatePublicQuote(publicId, updatedData);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error updating public quote');
+  }
+});
+
 export const deleteQuote = createAsyncThunk('quotes/delete', async (quoteId, thunkAPI) => {
   try {
+    // Check admin permissions
+    const permissionError = checkAdminPermission(thunkAPI);
+    if (permissionError) {
+      return thunkAPI.rejectWithValue(permissionError);
+    }
+
     return await quoteService.deleteQuote(quoteId);
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error deleting quote');
@@ -77,9 +117,30 @@ export const deleteQuote = createAsyncThunk('quotes/delete', async (quoteId, thu
 
 export const searchQuotes = createAsyncThunk('quotes/search', async (query, thunkAPI) => {
   try {
+    // Check admin permissions
+    const permissionError = checkAdminPermission(thunkAPI);
+    if (permissionError) {
+      return thunkAPI.rejectWithValue(permissionError);
+    }
+
     return await quoteService.searchQuotes(query);
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error searching quotes');
+  }
+});
+
+// Admin-specific thunks
+export const getQuoteStats = createAsyncThunk('quotes/stats', async (_, thunkAPI) => {
+  try {
+    // Check admin permissions
+    const permissionError = checkAdminPermission(thunkAPI);
+    if (permissionError) {
+      return thunkAPI.rejectWithValue(permissionError);
+    }
+
+    return await quoteService.getQuoteStats();
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error fetching quote statistics');
   }
 });
 
@@ -94,7 +155,16 @@ const quoteSlice = createSlice({
       state.success = false;
       state.error = null;
       state.quote = null;
+      state.formData = null;
     },
+    loadQuoteFromStorage: (state, action) => {
+      if (action.payload) {
+        state.quote = action.payload;
+        state.success = true;
+        state.loading = false;
+        state.error = null;
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -104,7 +174,10 @@ const quoteSlice = createSlice({
       .addCase(createQuote.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.quote = action.payload;
+        if (action.payload.quote) {
+          state.quote = action.payload.quote;
+          state.formData = action.meta.arg.formData;
+        }
       })
       .addCase(createQuote.rejected, (state, action) => {
         state.loading = false;
@@ -134,7 +207,16 @@ const quoteSlice = createSlice({
 
       .addCase(updateQuote.fulfilled, (state, action) => {
         state.success = true;
-        state.quote = action.payload;
+        if (action.payload) {
+          state.quote = action.payload;
+        }
+      })
+
+      .addCase(updatePublicQuote.fulfilled, (state, action) => {
+        state.success = true;
+        if (action.payload) {
+          state.quote = action.payload;
+        }
       })
 
       .addCase(deleteQuote.fulfilled, (state, action) => {
@@ -144,6 +226,19 @@ const quoteSlice = createSlice({
 
       .addCase(searchQuotes.fulfilled, (state, action) => {
         state.quotes = action.payload;
+      })
+
+      // Admin stats case
+      .addCase(getQuoteStats.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getQuoteStats.fulfilled, (state, action) => {
+        state.loading = false;
+        state.stats = action.payload;
+      })
+      .addCase(getQuoteStats.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       // common rejections
@@ -157,7 +252,6 @@ const quoteSlice = createSlice({
   },
 });
 
-export const { resetQuoteState } = quoteSlice.actions;
+export const { resetQuoteState, loadQuoteFromStorage } = quoteSlice.actions;
 
 export default quoteSlice.reducer;
-

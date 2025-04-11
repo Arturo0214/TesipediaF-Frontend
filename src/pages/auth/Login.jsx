@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Container, Row, Col, Card, Form, Button, Alert, Spinner,
 } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, reset } from '../../features/auth/authSlice';
@@ -10,8 +10,12 @@ import { login, reset } from '../../features/auth/authSlice';
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { user, isLoading, isError, isAuthenticated, message } = useSelector(
+  // Get the redirect location (use state if exists, otherwise default paths)
+  const fromLocation = location.state?.from;
+
+  const { user, isLoading, isError, isAuthenticated, isAdmin, message } = useSelector(
     (state) => state.auth
   );
 
@@ -24,9 +28,20 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Redirect based on user role and previous location
+      if (isAdmin) {
+        // Admin users go to admin dashboard or previous admin page
+        if (fromLocation && fromLocation.startsWith('/admin')) {
+          navigate(fromLocation);
+        } else {
+          navigate('/admin/panel');
+        }
+      } else {
+        // Regular users go to previous location or dashboard
+        navigate(fromLocation || '/dashboard');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isAdmin, navigate, fromLocation]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,6 +50,7 @@ const Login = () => {
       // El redireccionamiento ocurre en el useEffect
     } catch (error) {
       // Error ya está manejado por el slice
+      console.error('Login error:', error);
     }
   };
 
