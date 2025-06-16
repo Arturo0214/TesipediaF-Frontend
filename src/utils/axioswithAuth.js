@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosWithAuth = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
