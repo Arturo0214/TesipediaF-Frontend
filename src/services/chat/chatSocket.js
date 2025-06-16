@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 import { getToken } from '../authService';
 
-const VITE_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:8000';
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 
 let socket = null;
 
