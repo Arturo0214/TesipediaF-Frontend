@@ -250,7 +250,7 @@ const chatSlice = createSlice({
       })
       .addCase(generatePublicId.fulfilled, (state, action) => {
         state.loading = false;
-        state.publicId = action.payload.publicId;
+        state.publicId = action.payload;
         console.log('PublicId registrado en slice:', state.publicId);
       })
       .addCase(generatePublicId.rejected, (state, action) => {

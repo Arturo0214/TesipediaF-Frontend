@@ -7,6 +7,11 @@ let socket = null;
 
 // 🔌 Conectar socket
 export const connectSocket = (userId, isPublic = false) => {
+  if (!userId) {
+    console.error('No se puede conectar el socket: userId es undefined');
+    return null;
+  }
+
   if (socket) {
     console.log('Desconectando socket existente antes de crear uno nuevo');
     socket.disconnect();
@@ -24,19 +29,22 @@ export const connectSocket = (userId, isPublic = false) => {
     timeout: 10000,
     autoConnect: true,
     forceNew: true,
-    // Agregar query parameters para identificar mejor la conexión
     query: {
       userId,
       isPublic: isPublic ? 'true' : 'false'
     }
   };
 
-  socket = io(VITE_BASE_URL, socketOptions);
+  try {
+    socket = io(VITE_BASE_URL, socketOptions);
+  } catch (error) {
+    console.error('Error al crear la conexión del socket:', error);
+    return null;
+  }
 
   socket.on('connect', () => {
     console.log('Socket conectado exitosamente con ID:', socket.id);
     if (isPublic) {
-      // Para usuarios públicos, unirse a una sala específica
       socket.emit('joinPublicChat', userId);
     }
   });

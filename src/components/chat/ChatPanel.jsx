@@ -40,19 +40,30 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
                     if (!currentPublicId) {
                         console.log('Generando publicId...');
                         const response = await dispatch(generatePublicId()).unwrap();
-                        currentPublicId = response.publicId;
+                        currentPublicId = response;
                         console.log('PublicId generado:', currentPublicId);
                     }
+
+                    // Ensure we have a valid publicId before proceeding
+                    if (!currentPublicId) {
+                        console.error('No se pudo generar un publicId válido');
+                        return;
+                    }
+
                     socketUserId = currentPublicId;
 
                     // Obtener mensajes solo después de tener un publicId válido
-                    if (currentPublicId) {
-                        console.log('Obteniendo mensajes públicos para:', currentPublicId);
-                        await dispatch(getMessagesByOrder({ orderId: null, publicId: currentPublicId })).unwrap();
-                    }
+                    console.log('Obteniendo mensajes públicos para:', currentPublicId);
+                    await dispatch(getMessagesByOrder({ orderId: null, publicId: currentPublicId })).unwrap();
                 } else if (orderId) {
                     console.log('Obteniendo mensajes para orden:', orderId);
                     await dispatch(getMessagesByOrder(orderId)).unwrap();
+                }
+
+                // Ensure we have a valid socketUserId before connecting
+                if (!socketUserId) {
+                    console.error('No se pudo obtener un userId válido para la conexión del socket');
+                    return;
                 }
 
                 // Obtener el token si el usuario está autenticado
