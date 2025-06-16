@@ -38,12 +38,12 @@ const initialState = {
 // ✅ Thunks
 export const generatePublicId = createAsyncThunk('chat/generatePublicId', async (_, thunkAPI) => {
   try {
-    const result = await generatePublicIdService();
-    console.log('🔑 PublicId generado:', result);
-    return result;
+    const response = await generatePublicIdService();
+    console.log('PublicId generado en thunk:', response);
+    return response;
   } catch (error) {
-    console.error('❌ generatePublicId error:', error);
-    return thunkAPI.rejectWithValue(error?.response?.data?.message || error.message);
+    console.error('Error generando publicId:', error);
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error generating public ID');
   }
 });
 
@@ -251,11 +251,12 @@ const chatSlice = createSlice({
       .addCase(generatePublicId.fulfilled, (state, action) => {
         state.loading = false;
         state.publicId = action.payload.publicId;
-        console.log('✅ PublicId registrado en slice:', action.payload.publicId);
+        console.log('PublicId registrado en slice:', state.publicId);
       })
       .addCase(generatePublicId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        console.error('Error en generatePublicId:', action.payload);
       })
       // sendMessage
       .addCase(sendMessage.pending, (state) => {
