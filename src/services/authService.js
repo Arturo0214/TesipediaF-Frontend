@@ -14,7 +14,7 @@ export const getToken = () => {
     const token = tokenCookie?.split('=')[1];
     console.log('Token extraído:', token ? 'Token encontrado' : 'Token no encontrado');
 
-    return token;
+    return token || null; // Asegurar que se devuelva null si no se encuentra el token
 };
 
 // Registrar un nuevo usuario
