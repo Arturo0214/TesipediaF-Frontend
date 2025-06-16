@@ -1,5 +1,5 @@
 // API URLs
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+export const API_URL = process.env.REACT_APP_API_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 export const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || API_URL;
 
 // Other constants
