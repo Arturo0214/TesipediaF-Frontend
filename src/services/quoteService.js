@@ -1,6 +1,6 @@
 import axiosWithAuth from '../utils/axioswithAuth'; // axios configurado con withCredentials: true
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 
 // 📝 Crear cotización pública (sin login)
 const createQuote = async (quoteData) => {
