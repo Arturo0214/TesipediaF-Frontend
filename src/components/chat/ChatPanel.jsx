@@ -34,33 +34,40 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
                 console.log('Inicializando chat con:', { isOpen, orderId, userId, isPublic, publicId });
 
                 let socketUserId = userId;
+                let currentPublicId = publicId;
 
                 if (isPublic) {
-                    if (!publicId) {
+                    if (!currentPublicId) {
                         console.log('Generando publicId...');
-                        const generatedId = await dispatch(generatePublicId()).unwrap();
-                        console.log('PublicId generado:', generatedId);
-                        socketUserId = generatedId;
-                    } else {
-                        socketUserId = publicId;
+                        const response = await dispatch(generatePublicId()).unwrap();
+                        currentPublicId = response.publicId;
+                        console.log('PublicId generado:', currentPublicId);
                     }
-                }
+                    socketUserId = currentPublicId;
 
-                if (isPublic) {
-                    console.log('Obteniendo mensajes públicos para:', socketUserId);
-                    await dispatch(getMessagesByOrder({ orderId: null, publicId: socketUserId })).unwrap();
+                    // Obtener mensajes solo después de tener un publicId válido
+                    if (currentPublicId) {
+                        console.log('Obteniendo mensajes públicos para:', currentPublicId);
+                        await dispatch(getMessagesByOrder({ orderId: null, publicId: currentPublicId })).unwrap();
+                    }
                 } else if (orderId) {
                     console.log('Obteniendo mensajes para orden:', orderId);
                     await dispatch(getMessagesByOrder(orderId)).unwrap();
                 }
 
-                console.log('Conectando socket con userId:', socketUserId);
-                const socket = connectSocket(socketUserId, isPublic);
+                // Obtener el token si el usuario está autenticado
+                const token = !isPublic ? localStorage.getItem('token') : null;
+                console.log('Conectando socket con userId:', socketUserId, 'y token:', token ? 'presente' : 'no presente');
+
+                const socket = connectSocket(socketUserId, isPublic, token);
 
                 onSocketEvent('connect', () => {
                     console.log('Socket conectado, actualizando estado...');
                     dispatch(setConnectionStatus(true));
-                    if (orderId) {
+                    if (isPublic && currentPublicId) {
+                        console.log('Uniéndose a la sala pública:', currentPublicId);
+                        emitSocketEvent('joinPublicChat', currentPublicId);
+                    } else if (orderId) {
                         console.log('Uniéndose a la sala de chat:', orderId);
                         emitSocketEvent('joinOrderChat', orderId);
                     }
@@ -71,9 +78,10 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
                     dispatch(setConnectionStatus(false));
                 });
 
-                onSocketEvent('sendMessage', (message) => {
+                onSocketEvent('message', (message) => {
                     console.log('Nuevo mensaje recibido:', message);
                     dispatch(addMessage(message));
+                    scrollToBottom();
                 });
 
             } catch (error) {
@@ -100,26 +108,86 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
         if (!newMessage.trim() && !attachment) return;
 
         try {
-            const messageData = {
-                text: newMessage,
-                receiver: isPublic ? null : userId,
-                orderId: isPublic ? null : orderId,
-                attachment,
-                publicId: isPublic ? publicId : null,
-                name: isPublic ? 'Usuario Anónimo' : userName,
-            };
+            const messageData = new FormData();
 
-            // Si el usuario está autenticado, no necesitamos enviar el nombre
-            // ya que el backend lo obtendrá del token
-            if (!isPublic) {
-                delete messageData.name;
+            // Datos básicos del mensaje
+            messageData.append('text', newMessage);
+            messageData.append('isPublic', isPublic);
+
+            // Definir el conversationId explícitamente para mensajes públicos
+            let conversationId = null;
+
+            if (isPublic) {
+                messageData.append('publicId', publicId);
+                messageData.append('name', userName || 'Usuario Anónimo');
+                // Para mensajes públicos, el conversationId es el publicId
+                conversationId = publicId;
+                messageData.append('conversationId', conversationId);
+                console.log('📝 Configurando conversationId para mensaje público:', conversationId);
+            } else {
+                messageData.append('receiver', userId);
+                if (orderId) {
+                    messageData.append('orderId', orderId);
+                }
+                // Para mensajes directos, el servidor generará el conversationId
             }
 
-            await dispatch(sendMessage(messageData)).unwrap();
+            // Adjuntar archivo si existe
+            if (attachment) {
+                messageData.append('attachment', attachment);
+            }
+
+            console.log('Enviando mensaje:', {
+                text: newMessage,
+                isPublic,
+                publicId,
+                conversationId,
+                attachment: attachment?.name
+            });
+
+            // Enviar mensaje a través de HTTP (para persistencia)
+            const response = await dispatch(sendMessage(messageData)).unwrap();
+            console.log('Mensaje enviado exitosamente:', response);
+
+            // Usar el conversationId del mensaje enviado
+            const responseConversationId = response.conversationId || conversationId;
+            console.log('📝 conversationId del mensaje enviado:', responseConversationId);
+
+            // También emitir el mensaje a través del socket para comunicación en tiempo real
+            if (isConnected) {
+                console.log('📤 Emitiendo mensaje a través del socket');
+
+                // Crear un objeto con los datos del mensaje para el socket
+                const socketMessageData = {
+                    text: newMessage,
+                    isPublic: isPublic,
+                    _id: response._id, // Usar el ID generado por el servidor
+                    createdAt: response.createdAt,
+                    sender: isPublic ? publicId : userId,
+                    conversationId: responseConversationId // Usar el conversationId del response
+                };
+
+                // Agregar datos específicos según el tipo de chat
+                if (isPublic) {
+                    socketMessageData.publicId = publicId;
+                    socketMessageData.name = userName || 'Usuario Anónimo';
+                    emitSocketEvent('sendPublicMessage', socketMessageData);
+                } else {
+                    socketMessageData.receiver = userId;
+                    if (orderId) {
+                        socketMessageData.orderId = orderId;
+                    }
+                    emitSocketEvent('sendMessage', socketMessageData);
+                }
+            } else {
+                console.warn('⚠️ Socket no conectado, mensaje enviado solo por HTTP');
+            }
+
             setNewMessage('');
             setAttachment(null);
+            scrollToBottom();
         } catch (error) {
-            console.error('Error enviando mensaje:', error);
+            console.error('Error al enviar mensaje:', error);
         }
     };
 

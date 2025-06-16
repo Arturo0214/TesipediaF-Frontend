@@ -8,6 +8,7 @@ import Router from './Router';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/styles/main.scss';
+import './App.css';
 import './chartSetup';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

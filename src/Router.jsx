@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
-import AdminLayout from './components/layout/AdminLayout'; // <-- Nuevo AdminLayout
+import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 import Home from './pages/Home/Home';
@@ -27,10 +27,7 @@ import Messages from './pages/dashboard/Messages';
 import Payments from './pages/dashboard/Payments';
 
 // Admin Pages
-import AdminDashboard from './pages/admin/adminDashboard/AdminDashboard';
 import AdminPanel from './pages/admin/adminPanel/AdminPanel';
-import AdminMessages from './pages/admin/adminMessages/AdminMessages';
-import UrgentProjects from './pages/admin/urgentProjects/UrgentProjects';
 
 const router = createBrowserRouter(
   [
@@ -71,13 +68,20 @@ const router = createBrowserRouter(
       element: <ProtectedRoute requireAdmin />, // Protegido para Admin
       children: [
         {
-          element: <AdminLayout />, // <-- NUEVO AdminLayout limpio
+          element: <AdminLayout />,
           children: [
-            { path: 'admin', element: <AdminDashboard /> },
-            { path: 'admin/dashboard', element: <AdminDashboard /> },
-            { path: 'admin/panel', element: <AdminPanel /> },
-            { path: 'admin/mensajes', element: <AdminMessages /> },
-            { path: 'admin/proyectos-urgentes', element: <UrgentProjects /> },
+            { path: 'admin', element: <AdminPanel /> },
+            { path: 'admin/cotizaciones', element: <AdminPanel /> },
+            { path: 'admin/proyectos', element: <AdminPanel /> },
+            { path: 'admin/pagos', element: <AdminPanel /> },
+            { path: 'admin/pedidos', element: <AdminPanel /> },
+            { path: 'admin/urgentes', element: <AdminPanel /> },
+            { path: 'admin/mensajes', element: <AdminPanel /> },
+            { path: 'admin/usuarios', element: <AdminPanel /> },
+            { path: 'admin/escritores', element: <AdminPanel /> },
+            { path: 'admin/servicios', element: <AdminPanel /> },
+            { path: 'admin/visitas', element: <AdminPanel /> },
+            { path: 'admin/*', element: <AdminPanel /> }, // Captura todas las rutas admin/* y las redirige a AdminPanel
           ],
         },
       ],

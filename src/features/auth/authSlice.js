@@ -15,7 +15,18 @@ const initialState = {
 
 // Helper function to check if user is admin
 const checkIsAdmin = (user) => {
-  return user?.role === 'admin';
+  if (!user) return false;
+
+  // Verificar si el usuario tiene el rol de administrador
+  const isAdminRole = user.role === 'admin';
+
+  // Verificar si el usuario tiene permisos de administrador
+  const hasAdminPermissions = user.permissions?.includes('admin') ||
+    user.isAdmin === true ||
+    user.admin === true;
+
+  // El usuario es administrador si tiene el rol o los permisos
+  return isAdminRole || hasAdminPermissions;
 };
 
 // Thunks

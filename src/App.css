@@ -1,0 +1,198 @@
+/* Ajuste de z-index para toda la aplicación */
+
+/* 
+   Establecer un orden de apilamiento claro para toda la aplicación:
+   - Contenido principal: z-index base (1-50)
+   - Componentes de administración: z-index medio-alto (2000-5000)
+   - Elementos flotantes/overlay: z-index alto (1000-2000)
+   - Modales y diálogos: z-index muy alto (6000-9000)
+*/
+
+/* ----- Panel de administración global ----- */
+.admin-panel-main {
+    position: relative !important;
+    z-index: 3000 !important;
+}
+
+.admin-panel-content {
+    position: relative !important;
+    z-index: 3100 !important;
+}
+
+.admin-panel-sidebar {
+    position: relative !important;
+    z-index: 3200 !important;
+}
+
+/* ----- Componentes específicos de administración ----- */
+
+/* Gestión de Usuarios */
+.manage-users-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+.table-responsive {
+    position: relative !important;
+    z-index: 4100 !important;
+}
+
+.action-buttons {
+    position: relative !important;
+    z-index: 4200 !important;
+    pointer-events: auto !important;
+}
+
+.action-button {
+    position: relative !important;
+    z-index: 4300 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Gestión de Cotizaciones */
+.manage-quotes-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Gestión de Proyectos */
+.manage-projects-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Gestión de Pagos */
+.manage-payments-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Gestión de Pedidos */
+.manage-orders-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Gestión de Mensajes */
+.admin-messages-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Proyectos Urgentes */
+.urgent-projects-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Dashboard */
+.admin-dashboard-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Escritores */
+.manage-writers-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* Servicios */
+.manage-services-container {
+    position: relative !important;
+    z-index: 4000 !important;
+}
+
+/* ----- Estilos generales para elementos interactivos ----- */
+
+/* Tablas */
+.admin-table {
+    position: relative !important;
+    z-index: 4100 !important;
+}
+
+/* Formularios */
+.admin-form {
+    position: relative !important;
+    z-index: 4200 !important;
+}
+
+/* Botones */
+.admin-btn,
+.admin-panel-content button,
+.admin-panel-content .btn {
+    position: relative !important;
+    z-index: 4300 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Modales */
+.modal {
+    z-index: 9000 !important;
+}
+
+.modal-backdrop {
+    z-index: 8000 !important;
+}
+
+.modal-content {
+    z-index: 9100 !important;
+}
+
+/* ----- Elementos externos ----- */
+
+/* Botones fijos y chat - reducir su prioridad cuando estamos en admin */
+body.admin-page .fixed-buttons,
+body.admin-page .chat-panel {
+    z-index: 900 !important;
+    pointer-events: auto;
+}
+
+/* Asegurarse que los elementos en otras páginas no interfieran */
+.how-it-works-step .step-assistant,
+.how-it-works-step .step-assistant::after {
+    z-index: 1500 !important;
+}
+
+/* Estilos de interacción adicionales */
+body.admin-page * {
+    pointer-events: auto;
+}
+
+/* Solución adicional para botones específicos */
+.admin-panel-content td button,
+.admin-panel-content td .btn {
+    position: relative !important;
+    z-index: 5000 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Clases especiales para interactividad forzada */
+.force-interactive {
+    position: relative !important;
+    z-index: 10000 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Solución agresiva - aplicar a todo el panel de administración */
+.admin-page #root {
+    position: relative !important;
+    z-index: 10000 !important;
+}
+
+/* Ocultar elementos potencialmente problemáticos en páginas de administración */
+body.admin-page .how-it-works-step .step-assistant,
+body.admin-page .how-it-works-step .step-assistant::after {
+    display: none !important;
+}
+
+/* Eliminar cualquier capa transparente que pueda estar bloqueando */
+body.admin-page::before,
+body.admin-page::after {
+    display: none !important;
+    content: none !important;
+}

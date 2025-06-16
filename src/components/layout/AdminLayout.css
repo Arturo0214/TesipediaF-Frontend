@@ -1,21 +1,36 @@
+/* Contenedor principal */
 .admin-root-layout {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     background-color: #f8f9fa;
+    width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
+/* Wrapper del contenido (sidebar + contenido) */
 .admin-content-wrapper {
     flex: 1;
-    padding-top: 70px;
-    /* Espacio para el navbar fijo */
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 100vh;
+    overflow: visible !important;
+    position: relative;
+    z-index: 1;
 }
 
+/* Contenedor del contenido principal del panel */
 .admin-layout {
-    padding: 20px;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    overflow-x: visible !important;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
 }
 
 /* Navbar Styles */
@@ -23,6 +38,9 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 0.5rem 1rem;
     background-color: white;
+    position: relative;
+    z-index: 10000;
+    /* Lower than the dropdown */
 }
 
 .tesipedia-admin-brand {
@@ -64,10 +82,22 @@
     display: flex;
     align-items: center;
     color: #6c757d;
+    position: relative;
+    z-index: 10001;
 }
 
 .tesipedia-admin-dropdown {
     min-width: 200px;
+    position: absolute !important;
+    z-index: 10002 !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    background-color: white !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+    overflow: visible !important;
 }
 
 .tesipedia-admin-dropdown-item {
@@ -76,6 +106,8 @@
     padding: 0.5rem 1rem;
     color: #6c757d;
     transition: all 0.3s ease;
+    position: relative !important;
+    z-index: 10003 !important;
 }
 
 .tesipedia-admin-dropdown-item:hover {
@@ -87,23 +119,9 @@
     margin: 0.5rem 0;
 }
 
-/* Responsive Adjustments */
+/* Responsive */
 @media (max-width: 768px) {
-    .tesipedia-admin-navbar {
-        padding: 0.5rem;
-    }
-
-    .tesipedia-admin-logo {
-        height: 30px;
-    }
-
     .admin-layout {
-        padding: 10px;
-    }
-}
-
-@media (min-width: 768px) {
-    .admin-content-wrapper {
-        padding-top: 64px;
+        padding: 1rem;
     }
 }

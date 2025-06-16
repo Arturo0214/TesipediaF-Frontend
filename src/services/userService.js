@@ -3,7 +3,7 @@ import axiosWithAuth from '../utils/axioswithAuth';
 // Obtener todos los usuarios (admin)
 export const getUsers = async () => {
     try {
-        const response = await axiosWithAuth.get('/users');
+        const response = await axiosWithAuth.get('/admin/users');
         return response.data;
     } catch (error) {
         console.error('Error fetching users:', error);
@@ -14,7 +14,7 @@ export const getUsers = async () => {
 // Obtener usuario por ID (admin)
 export const getUserById = async (id) => {
     try {
-        const response = await axiosWithAuth.get(`/users/${id}`);
+        const response = await axiosWithAuth.get(`/admin/users/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching user with ID ${id}:`, error);
@@ -25,7 +25,7 @@ export const getUserById = async (id) => {
 // Actualizar usuario (admin)
 export const updateUser = async (id, userData) => {
     try {
-        const response = await axiosWithAuth.put(`/users/${id}`, userData);
+        const response = await axiosWithAuth.put(`/admin/users/${id}`, userData);
         return response.data;
     } catch (error) {
         console.error(`Error updating user with ID ${id}:`, error);
@@ -36,7 +36,7 @@ export const updateUser = async (id, userData) => {
 // Eliminar usuario (admin)
 export const deleteUser = async (id) => {
     try {
-        const response = await axiosWithAuth.delete(`/users/${id}`);
+        const response = await axiosWithAuth.delete(`/admin/users/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error deleting user with ID ${id}:`, error);
@@ -47,7 +47,7 @@ export const deleteUser = async (id) => {
 // Actualizar rol de usuario (admin)
 export const updateUserRole = async (id, role) => {
     try {
-        const response = await axiosWithAuth.put(`/users/${id}/role`, { role });
+        const response = await axiosWithAuth.put(`/admin/users/${id}/role`, { role });
         return response.data;
     } catch (error) {
         console.error(`Error updating role for user with ID ${id}:`, error);
@@ -58,7 +58,7 @@ export const updateUserRole = async (id, role) => {
 // Actualizar estado de usuario (admin)
 export const updateUserStatus = async (id, isActive) => {
     try {
-        const response = await axiosWithAuth.put(`/users/${id}/status`, { isActive });
+        const response = await axiosWithAuth.put(`/admin/users/${id}/status`, { isActive });
         return response.data;
     } catch (error) {
         console.error(`Error updating status for user with ID ${id}:`, error);
@@ -66,7 +66,7 @@ export const updateUserStatus = async (id, isActive) => {
     }
 };
 
-// Obtener perfil del usuario autenticado
+// Obtener perfil del usuario actual
 export const getUserProfile = async () => {
     try {
         const response = await axiosWithAuth.get('/users/profile');
@@ -77,7 +77,7 @@ export const getUserProfile = async () => {
     }
 };
 
-// Actualizar perfil del usuario autenticado
+// Actualizar perfil del usuario actual
 export const updateUserProfile = async (userData) => {
     try {
         const response = await axiosWithAuth.put('/users/profile', userData);

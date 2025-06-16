@@ -42,8 +42,14 @@ const logout = async () => {
 
 // Obtener perfil del usuario (autenticado vía cookie)
 const getProfile = async () => {
-    const response = await axiosWithAuth.get('/auth/profile', { withCredentials: true });
-    return response.data;
+    try {
+        const response = await axiosWithAuth.get('/auth/profile', { withCredentials: true });
+        console.log('Perfil de usuario obtenido:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener el perfil:', error);
+        throw error;
+    }
 };
 
 // Restablecer contraseña

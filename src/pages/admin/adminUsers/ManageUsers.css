@@ -1,0 +1,497 @@
+/* Styles specifically to ensure dropdown visibility */
+body.admin-page .mu-action-dropdown {
+    position: absolute;
+    z-index: 9999 !important;
+    /* Maximum z-index */
+    pointer-events: auto !important;
+    /* Ensure clicks work */
+}
+
+body.admin-page .mu-action-dropdown>* {
+    position: relative;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+/* Estilos para la página de gestión de usuarios */
+.mu-manage-users-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    z-index: 1;
+    background-color: #fff;
+    overflow-x: hidden;
+}
+
+.mu-manage-users-title {
+    margin-bottom: 1rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.25rem;
+    width: 100%;
+    text-align: left;
+}
+
+/* Filtros de búsqueda */
+.mu-filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1rem;
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+}
+
+.mu-filter-item {
+    flex: 1;
+    min-width: 150px;
+    max-width: 250px;
+}
+
+.mu-filter-label {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+    color: #495057;
+    font-weight: 500;
+}
+
+/* Estilos para la tabla */
+.mu-table-responsive {
+    width: 100%;
+    margin: 0;
+    overflow-x: auto;
+    position: relative;
+    z-index: 1;
+    background-color: white;
+}
+
+.mu-manage-users-table {
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    width: 100%;
+    table-layout: fixed;
+    position: relative;
+    z-index: 1;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.mu-manage-users-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    color: #495057;
+    font-weight: 600;
+    padding: 0.5rem 0.3rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.mu-manage-users-table tbody td {
+    padding: 0.5rem 0.3rem;
+    vertical-align: middle;
+    font-size: 0.75rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    position: relative;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: left;
+}
+
+.mu-manage-users-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Columnas específicas */
+.mu-col-id {
+    width: 14%;
+    font-family: monospace;
+    font-size: 0.7rem;
+}
+
+.mu-col-name {
+    width: 13%;
+}
+
+.mu-col-email {
+    width: 16%;
+}
+
+.mu-col-role {
+    width: 8%;
+}
+
+.mu-col-status {
+    width: 8%;
+}
+
+.mu-col-date {
+    width: 11%;
+}
+
+.mu-col-actions {
+    width: 15%;
+    position: relative;
+    z-index: 2;
+}
+
+/* Estilos para los botones de acción */
+.mu-action-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    z-index: 2;
+    gap: 2px;
+}
+
+.mu-action-button {
+    font-size: 0.65rem;
+    font-weight: 500;
+    border-radius: 4px;
+    text-align: center;
+    padding: 3px 0;
+    margin: 0;
+    box-shadow: none;
+    flex: 1;
+    min-width: 0;
+    height: 22px;
+    line-height: 1;
+    border: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 2;
+}
+
+.mu-edit-button {
+    background-color: #ffc107;
+    /* Amarillo */
+    color: #212529;
+    font-weight: 500;
+}
+
+.mu-edit-button:hover {
+    background-color: #e0a800;
+    color: #212529;
+}
+
+.mu-delete-button {
+    background-color: #dc3545;
+    /* Rojo */
+    color: white;
+    font-weight: 500;
+}
+
+.mu-delete-button:hover {
+    background-color: #c82333;
+    color: white;
+}
+
+/* Estilos para los dropdowns de acción */
+.mu-action-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    width: 250px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    z-index: 20000;
+    padding: 0;
+    overflow: hidden;
+    transform-origin: top right;
+    animation: fadeIn 0.2s ease-out;
+    border: 1px solid #dee2e6;
+    isolation: isolate;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.mu-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.mu-dropdown-header h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.mu-close-dropdown {
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #6c757d;
+    padding: 0;
+    margin: -0.5rem -0.25rem -0.5rem 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+}
+
+.mu-dropdown-body {
+    padding: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.mu-dropdown-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.mu-edit-dropdown {
+    left: auto;
+    right: 0;
+}
+
+.mu-delete-dropdown {
+    left: auto;
+    right: 0;
+    width: 220px;
+}
+
+.mu-delete-dropdown .mu-dropdown-body {
+    padding: 0.75rem;
+    color: #721c24;
+}
+
+.mu-user-status {
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.mu-status-active {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.mu-status-inactive {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.mu-join-date {
+    white-space: nowrap;
+    font-size: 0.75rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .mu-filter-item {
+        min-width: 120px;
+    }
+
+    .mu-action-dropdown {
+        width: 200px;
+        right: 0;
+        left: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .mu-manage-users-table {
+        font-size: 0.75rem;
+    }
+
+    .mu-col-id {
+        width: 25%;
+    }
+
+    .mu-col-name,
+    .mu-col-email {
+        width: 30%;
+    }
+
+    .mu-col-date,
+    .mu-col-role,
+    .mu-col-status {
+        display: none;
+    }
+
+    .mu-col-actions {
+        width: 15%;
+    }
+
+    .mu-action-buttons {
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .mu-action-button {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+        height: 22px;
+    }
+
+    .mu-action-dropdown {
+        width: 180px;
+        right: 0;
+        left: auto;
+    }
+}
+
+/* CORREGIDO: estilos para dropdowns visibles, alineados y sin solapamientos */
+body.admin-page .mu-col-actions {
+    position: relative;
+    overflow: visible;
+    z-index: 1;
+}
+
+.mu-action-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 4px;
+    position: relative;
+    z-index: 2;
+}
+
+.mu-action-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 260px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    padding: 0;
+    animation: fadeIn 0.2s ease-out;
+    border: 1px solid #dee2e6;
+}
+
+.mu-edit-dropdown,
+.mu-delete-dropdown {
+    right: 0;
+    left: auto;
+    z-index: 9999 !important;
+    visibility: visible !important;
+    position: absolute !important;
+    top: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.mu-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    z-index: 9999 !important;
+}
+
+.mu-dropdown-body {
+    padding: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #fff;
+    z-index: 9999 !important;
+}
+
+.mu-dropdown-footer {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    z-index: 9999 !important;
+}
+
+.mu-close-dropdown {
+    font-size: 1.25rem;
+    background: transparent;
+    border: none;
+    color: #6c757d;
+}
+
+/* FadeIn animación mejorada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* RESPONSIVE ajustes */
+@media (max-width: 768px) {
+    .mu-action-dropdown {
+        width: 200px;
+        left: auto;
+        right: 0;
+    }
+
+    .mu-action-buttons {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Añadir z-index específico para tabla de usuarios */
+.mu-manage-users-table {
+    position: relative;
+    z-index: 1;
+}
+
+.mu-manage-users-table tbody tr {
+    position: relative;
+    z-index: 1;
+}
+
+.mu-manage-users-table tbody tr:hover {
+    z-index: 2;
+}
+
+/* Asegurar que los dropdown estén por encima de todo */
+.mu-col-actions {
+    position: relative;
+    z-index: 100 !important;
+    overflow: visible !important;
+}
+
+/* Prevenir que los dropdowns se oculten detrás de otros elementos */
+.mu-action-dropdown {
+    z-index: 9999 !important;
+    position: absolute !important;
+    pointer-events: auto !important;
+}

@@ -86,26 +86,29 @@ axiosWithAuth.interceptors.response.use(
         case 401:
           console.error('Authentication error - Token expirado o inválido');
           if (window.location.pathname !== '/login') {
+            document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             window.location.href = '/login';
           }
           break;
 
         case 403:
           console.error('Authorization error - Permisos insuficientes');
+          if (window.location.pathname.startsWith('/admin')) {
+            window.location.href = '/dashboard';
+          }
           break;
 
         case 404:
           console.error('Resource not found:', error.config.url);
           break;
 
-        case 500:
-          console.error('Server error:', error.response.data);
-          break;
+        default:
+          console.error('Error en la petición:', error.message);
       }
-    }
-
-    else if (error.request) {
-      console.error('Network error - No se recibió respuesta del servidor');
+    } else if (error.request) {
+      console.error('No se recibió respuesta del servidor:', error.request);
+    } else {
+      console.error('Error al configurar la petición:', error.message);
     }
 
     return Promise.reject(error);

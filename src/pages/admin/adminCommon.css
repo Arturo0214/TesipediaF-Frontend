@@ -1,0 +1,196 @@
+/* Estilos comunes para todos los componentes de administración */
+
+/* Contenedores principales para cada sección */
+.manage-users-container,
+.manage-quotes-container,
+.manage-projects-container,
+.manage-payments-container,
+.manage-orders-container,
+.admin-messages-container,
+.urgent-projects-container,
+.admin-dashboard-container,
+.manage-writers-container,
+.manage-services-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0.5rem;
+    max-width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* Títulos para cada sección */
+.admin-section-title {
+    margin-bottom: 1rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.25rem;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Tablas responsivas */
+.table-responsive {
+    width: 100%;
+    margin: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Estilos para las tablas */
+.admin-table {
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    width: 100%;
+    table-layout: fixed;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-table th {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    color: #495057;
+    font-weight: 600;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-table td {
+    padding: 0.5rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Columna de acciones */
+.admin-table .col-actions {
+    position: relative;
+    z-index: 2;
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-start;
+    position: relative;
+    z-index: 2;
+}
+
+.action-button,
+.admin-btn,
+.admin-panel-content button,
+.admin-panel-content .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+}
+
+/* Alertas */
+.admin-alert {
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Formularios */
+.admin-form {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-form-group {
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-form-control {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Modales */
+.admin-modal {
+    z-index: 1050;
+}
+
+.admin-modal-backdrop {
+    z-index: 1040;
+}
+
+.admin-modal-content {
+    position: relative;
+    z-index: 1051;
+}
+
+/* Estados de carga */
+.admin-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Asegurar que todos los elementos dentro del panel de administración tengan z-index adecuados */
+.admin-panel-content * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Asegurar que los modales y popovers estén por encima de todo */
+.modal,
+.popover {
+    z-index: 1050;
+}
+
+.modal-backdrop {
+    z-index: 1040;
+}
+
+/* Asegurar que los dropdowns estén por encima de otros elementos */
+.dropdown-menu {
+    z-index: 1030;
+}
+
+/* Asegurar que los tooltips estén por encima de otros elementos */
+.tooltip {
+    z-index: 1020;
+}
+
+/* Asegurar que los elementos interactivos sean clickeables */
+button,
+a,
+input,
+select,
+textarea {
+    position: relative;
+    z-index: 2;
+}
+
+/* Asegurar que los elementos con hover sean interactivos */
+[class*="hover"]:hover,
+[class*="active"]:active {
+    position: relative;
+    z-index: 3;
+}

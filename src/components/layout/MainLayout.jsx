@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import NavbarRedactor from './NavbarRedactor';
-import NavbarAdmin from './NavbarAdmin/NavbarAdmin';
 import NavbarCliente from './NavbarClient/NavbarCliente';
 import Navbar from "./Navbar/Navbar";
 import { Footer } from "./Footer";
@@ -24,7 +23,6 @@ function MainLayout() {
                 <Navbar />
             ) : (
                 <>
-                    {user?.role === 'admin' && <NavbarAdmin />}
                     {user?.role === 'redactor' && <NavbarRedactor />}
                     {user?.role === 'cliente' && <NavbarCliente />}
                 </>
