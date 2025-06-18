@@ -1,139 +1,81 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Container, Table, Button, Badge, Spinner, Alert, Row, Col, Card, Form } from 'react-bootstrap';
-import { FaEye, FaCheck, FaTimes, FaSearch, FaFilter, FaExclamationCircle } from 'react-icons/fa';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Container, Row, Col, Card, Button, Badge, Spinner, Alert, Form, Pagination } from 'react-bootstrap';
+import { FaEye, FaCheck, FaTimes, FaSearch, FaFilter, FaExclamationCircle, FaCalendarAlt, FaUser, FaEnvelope, FaPhone, FaFileAlt, FaTasks, FaDollarSign, FaTrash } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
+import { getAllQuotes, updateQuote, deleteQuote } from '../../../features/quotes/quoteSlice';
 import { toast } from 'react-hot-toast';
-
-// Simulación de datos para cotizaciones (en un caso real, esto vendría de una API)
-const mockQuotes = [
-  {
-    id: '12345',
-    client: 'Juan Pérez',
-    service: 'Tesis de Grado',
-    amount: 1500,
-    status: 'pending',
-    date: '2024-04-10',
-    email: 'juan.perez@example.com',
-    phone: '+1234567890',
-    details: 'Necesito una tesis sobre economía digital para mi licenciatura.'
-  },
-  {
-    id: '12346',
-    client: 'María López',
-    service: 'Trabajo de Investigación',
-    amount: 800,
-    status: 'approved',
-    date: '2024-04-09',
-    email: 'maria.lopez@example.com',
-    phone: '+1234567891',
-    details: 'Investigación sobre impacto ambiental de la industria textil.'
-  },
-  {
-    id: '12347',
-    client: 'Carlos Rodríguez',
-    service: 'Ensayo Académico',
-    amount: 300,
-    status: 'rejected',
-    date: '2024-04-08',
-    email: 'carlos.rodriguez@example.com',
-    phone: '+1234567892',
-    details: 'Ensayo sobre la evolución de la inteligencia artificial.'
-  },
-  {
-    id: '12348',
-    client: 'Ana Martínez',
-    service: 'Tesis Doctoral',
-    amount: 2500,
-    status: 'pending',
-    date: '2024-04-07',
-    email: 'ana.martinez@example.com',
-    phone: '+1234567893',
-    details: 'Tesis sobre neurociencia cognitiva y aprendizaje.'
-  }
-];
+import './ManageQuotes.css';
 
 const ManageQuotes = () => {
   const dispatch = useDispatch();
-  const { user, isAuthenticated, isAdmin } = useSelector((state) => state.auth);
+  const { quotes, loading, error } = useSelector((state) => state.quotes);
+  const { isAuthenticated, isAdmin } = useSelector((state) => state.auth);
 
   // Estado para la interfaz
-  const [quotes, setQuotes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [showQuoteDetails, setShowQuoteDetails] = useState(false);
+  const [priceOrder, setPriceOrder] = useState('none'); // 'none', 'asc', 'desc'
+  const [orderRecentFirst, setOrderRecentFirst] = useState(true); // true = más recientes primero
+  const [currentPage, setCurrentPage] = useState(1);
+  const quotesPerPage = 9;
 
   // Verificar si el usuario actual tiene permisos de administrador
   useEffect(() => {
     if (!isAuthenticated) {
-      setError("Necesitas iniciar sesión para acceder a esta página.");
+      toast.error("Necesitas iniciar sesión para acceder a esta página.");
     } else if (!isAdmin) {
-      setError("No tienes permisos para acceder a esta página. Se requieren permisos de administrador.");
-    } else {
-      setError(null);
+      toast.error("No tienes permisos para acceder a esta página. Se requieren permisos de administrador.");
     }
   }, [isAuthenticated, isAdmin]);
 
   // Cargar cotizaciones al montar el componente
-  const loadQuotes = useCallback(async () => {
-    if (!isAuthenticated || !isAdmin) return;
-
-    try {
-      setLoading(true);
-      // En un caso real, aquí se haría una llamada a la API
-      // await dispatch(getQuotes()).unwrap();
-
-      // Simulación de carga de datos
-      setTimeout(() => {
-        setQuotes(mockQuotes);
-        setLoading(false);
-      }, 1000);
-    } catch (err) {
-      console.error("Error fetching quotes:", err);
-      setError(`Error al cargar cotizaciones: ${err.message || err || 'Error desconocido'}`);
-      toast.error(`Error al cargar cotizaciones: ${err.message || 'Error desconocido'}`);
-      setLoading(false);
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      dispatch(getAllQuotes());
     }
-  }, [isAuthenticated, isAdmin]);
+  }, [dispatch, isAuthenticated, isAdmin]);
 
   useEffect(() => {
-    loadQuotes();
-  }, [loadQuotes]);
-
-  // Retry button for loading quotes
-  const handleRetryLoadQuotes = () => {
-    loadQuotes();
-  };
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   // Filtrar cotizaciones según el filtro seleccionado
   const filteredQuotes = useMemo(() => {
     if (!quotes || !Array.isArray(quotes)) return [];
-
     let filtered = [...quotes];
-
     // Filtrar por búsqueda
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(quote =>
-        (quote.client || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (quote.service || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (quote.id || '').toLowerCase().includes(searchQuery.toLowerCase())
+        (quote.name || '').toLowerCase().includes(query) ||
+        (quote.taskTitle || '').toLowerCase().includes(query) ||
+        (quote._id || '').toLowerCase().includes(query)
       );
     }
-
     // Filtrar por estado
     if (filter !== 'all') {
-      filtered = filtered.filter(quote => quote.status === filter);
+      filtered = filtered.filter(quote => String(quote.status) === String(filter));
     }
-
-    // Ordenar por fecha (más recientes primero)
-    return filtered.sort((a, b) => {
-      if (!a.date) return 1;
-      if (!b.date) return -1;
-      return new Date(b.date) - new Date(a.date);
-    });
-  }, [quotes, searchQuery, filter]);
+    // Ordenar por precio si corresponde
+    if (priceOrder === 'asc') {
+      filtered.sort((a, b) => (Number(a.estimatedPrice) || 0) - (Number(b.estimatedPrice) || 0));
+    } else if (priceOrder === 'desc') {
+      filtered.sort((a, b) => (Number(b.estimatedPrice) || 0) - (Number(a.estimatedPrice) || 0));
+    } else {
+      // Ordenar por fecha
+      filtered.sort((a, b) => {
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        const diff = new Date(b.createdAt) - new Date(a.createdAt);
+        return orderRecentFirst ? diff : -diff;
+      });
+    }
+    return filtered;
+  }, [quotes, searchQuery, filter, priceOrder, orderRecentFirst]);
 
   // Calcular estadísticas
   const stats = useMemo(() => {
@@ -144,9 +86,9 @@ const ManageQuotes = () => {
       rejectedQuotes: 0
     };
 
-    const pendingQuotes = quotes.filter(quote => quote.status === 'pending').length;
-    const approvedQuotes = quotes.filter(quote => quote.status === 'approved').length;
-    const rejectedQuotes = quotes.filter(quote => quote.status === 'rejected').length;
+    const pendingQuotes = quotes.filter(quote => String(quote.status).trim().toLowerCase() === 'pending').length;
+    const approvedQuotes = quotes.filter(quote => String(quote.status).trim().toLowerCase() === 'approved').length;
+    const rejectedQuotes = quotes.filter(quote => String(quote.status).trim().toLowerCase() === 'rejected').length;
 
     return {
       totalQuotes: quotes.length,
@@ -156,6 +98,10 @@ const ManageQuotes = () => {
     };
   }, [quotes]);
 
+  // Paginación
+  const totalPages = Math.ceil(filteredQuotes.length / quotesPerPage);
+  const paginatedQuotes = filteredQuotes.slice((currentPage - 1) * quotesPerPage, currentPage * quotesPerPage);
+
   // Manejar selección de cotización
   const handleQuoteSelect = (quote) => {
     setSelectedQuote(quote);
@@ -163,167 +109,256 @@ const ManageQuotes = () => {
   };
 
   // Manejar aprobación de cotización
-  const handleApproveQuote = (quoteId) => {
-    // En un caso real, aquí se haría una llamada a la API
-    // await dispatch(approveQuote(quoteId)).unwrap();
-
-    // Simulación de aprobación
-    setQuotes(prevQuotes =>
-      prevQuotes.map(quote =>
-        quote.id === quoteId ? { ...quote, status: 'approved' } : quote
-      )
-    );
-
-    toast.success('Cotización aprobada correctamente');
+  const handleApproveQuote = async (quoteId) => {
+    try {
+      await dispatch(updateQuote({
+        quoteId,
+        updatedData: { status: 'approved' },
+        adminAction: true
+      })).unwrap();
+      toast.success('Cotización aprobada correctamente');
+    } catch (error) {
+      toast.error(error || 'Error al aprobar la cotización');
+    }
   };
 
   // Manejar rechazo de cotización
-  const handleRejectQuote = (quoteId) => {
-    // En un caso real, aquí se haría una llamada a la API
-    // await dispatch(rejectQuote(quoteId)).unwrap();
-
-    // Simulación de rechazo
-    setQuotes(prevQuotes =>
-      prevQuotes.map(quote =>
-        quote.id === quoteId ? { ...quote, status: 'rejected' } : quote
-      )
-    );
-
-    toast.success('Cotización rechazada correctamente');
+  const handleRejectQuote = async (quoteId) => {
+    try {
+      await dispatch(updateQuote({
+        quoteId,
+        updatedData: { status: 'rejected' },
+        adminAction: true
+      })).unwrap();
+      toast.success('Cotización rechazada correctamente');
+    } catch (error) {
+      toast.error(error || 'Error al rechazar la cotización');
+    }
   };
 
-  // Renderizar estadísticas
-  const renderStatsSection = () => (
-    <Row className="mb-4">
-      <Col md={3}>
-        <Card className="text-center p-3">
-          <h5>Total Cotizaciones</h5>
-          <h3>{stats.totalQuotes}</h3>
-        </Card>
-      </Col>
-      <Col md={3}>
-        <Card className="text-center p-3 bg-warning bg-opacity-10">
-          <h5>Pendientes</h5>
-          <h3>{stats.pendingQuotes}</h3>
-        </Card>
-      </Col>
-      <Col md={3}>
-        <Card className="text-center p-3 bg-success bg-opacity-10">
-          <h5>Aprobadas</h5>
-          <h3>{stats.approvedQuotes}</h3>
-        </Card>
-      </Col>
-      <Col md={3}>
-        <Card className="text-center p-3 bg-danger bg-opacity-10">
-          <h5>Rechazadas</h5>
-          <h3>{stats.rejectedQuotes}</h3>
-        </Card>
-      </Col>
-    </Row>
-  );
+  // Manejar eliminación de cotización
+  const handleDeleteQuote = async (quoteId) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta cotización?')) {
+      try {
+        await dispatch(deleteQuote(quoteId)).unwrap();
+        toast.success('Cotización eliminada correctamente');
+      } catch (error) {
+        toast.error(error || 'Error al eliminar la cotización');
+      }
+    }
+  };
+
+  // Formatear fecha
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Lógica de paginación tipo Visits
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    let items = [];
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
+            {i}
+          </Pagination.Item>
+        );
+      }
+    } else {
+      // Siempre mostrar 1, 2, 3, ..., última
+      for (let i = 1; i <= 3; i++) {
+        items.push(
+          <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
+            {i}
+          </Pagination.Item>
+        );
+      }
+      if (currentPage > 4 && currentPage < totalPages - 2) {
+        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          items.push(
+            <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
+              {i}
+            </Pagination.Item>
+          );
+        }
+        items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
+      } else if (currentPage >= totalPages - 2) {
+        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
+        for (let i = totalPages - 3; i < totalPages; i++) {
+          if (i > 3) {
+            items.push(
+              <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
+                {i}
+              </Pagination.Item>
+            );
+          }
+        }
+      } else if (currentPage > 3) {
+        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
+      }
+      items.push(
+        <Pagination.Item key={totalPages} active={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)}>
+          {totalPages}
+        </Pagination.Item>
+      );
+    }
+    return (
+      <div className="d-flex justify-content-center mt-3">
+        <Pagination>{items}</Pagination>
+      </div>
+    );
+  };
 
   // Renderizar filtros y búsqueda
   const renderFiltersSection = () => (
-    <Row className="mb-4">
-      <Col md={6}>
-        <Form.Group>
-          <Form.Label>Buscar</Form.Label>
-          <div className="d-flex">
-            <Form.Control
-              type="text"
-              placeholder="Buscar por cliente, servicio o ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button variant="outline-secondary" className="ms-2">
-              <FaSearch />
-            </Button>
-          </div>
-        </Form.Group>
-      </Col>
-      <Col md={6}>
-        <Form.Group>
-          <Form.Label>Filtrar por estado</Form.Label>
-          <Form.Select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="all">Todos</option>
-            <option value="pending">Pendientes</option>
-            <option value="approved">Aprobadas</option>
-            <option value="rejected">Rechazadas</option>
-          </Form.Select>
-        </Form.Group>
-      </Col>
-    </Row>
+    <>
+      {/* Primera fila: solo búsqueda */}
+      <Row className="mb-2">
+        <Col md={12}>
+          <Form.Group>
+            <Form.Label>Buscar</Form.Label>
+            <div className="d-flex">
+              <Form.Control
+                type="text"
+                placeholder="Buscar por cliente, servicio o ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button variant="outline-secondary" className="ms-2">
+                <FaSearch />
+              </Button>
+            </div>
+          </Form.Group>
+        </Col>
+      </Row>
+      {/* Segunda fila: estado, precio, fecha */}
+      <Row className="mb-4 align-items-end">
+        <Col md={4} sm={12} className="mb-2 mb-md-0">
+          <Form.Group>
+            <Form.Label>Estado</Form.Label>
+            <Form.Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="all">Todos</option>
+              <option value="pending">Pendientes</option>
+              <option value="approved">Aprobadas</option>
+              <option value="rejected">Rechazadas</option>
+              <option value="paid">Pagadas</option>
+              <option value="cancelled">Canceladas</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
+        <Col md={4} sm={12} className="mb-2 mb-md-0">
+          <Form.Group>
+            <Form.Label>Ordenar por precio</Form.Label>
+            <Form.Select
+              value={priceOrder}
+              onChange={(e) => setPriceOrder(e.target.value)}
+            >
+              <option value="none">Sin orden</option>
+              <option value="asc">Más bajo a más alto</option>
+              <option value="desc">Más alto a más bajo</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
+        <Col md={4} sm={12} className="d-flex flex-column flex-md-row align-items-center gap-2">
+          <Form.Label className="mb-0 me-2">Ordenar por fecha</Form.Label>
+          <Form.Check
+            type="switch"
+            id="order-switch"
+            label={orderRecentFirst ? 'Más recientes' : 'Más antiguos'}
+            checked={orderRecentFirst}
+            onChange={() => setOrderRecentFirst(!orderRecentFirst)}
+            disabled={priceOrder !== 'none'}
+          />
+        </Col>
+      </Row>
+    </>
   );
 
-  // Renderizar tabla de cotizaciones
-  const renderQuotesTable = () => (
-    <Table responsive striped hover>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Cliente</th>
-          <th>Servicio</th>
-          <th>Monto</th>
-          <th>Estado</th>
-          <th>Fecha</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filteredQuotes.length > 0 ? (
-          filteredQuotes.map((quote) => (
-            <tr key={quote.id}>
-              <td>#{quote.id}</td>
-              <td>{quote.client}</td>
-              <td>{quote.service}</td>
-              <td>${quote.amount}</td>
-              <td>
-                {quote.status === 'pending' && <Badge bg="warning">Pendiente</Badge>}
-                {quote.status === 'approved' && <Badge bg="success">Aprobada</Badge>}
-                {quote.status === 'rejected' && <Badge bg="danger">Rechazada</Badge>}
-              </td>
-              <td>{quote.date}</td>
-              <td>
+  // Renderizar tarjetas de cotizaciones
+  const renderQuoteCards = () => (
+    <>
+      <Row className="g-4">
+        {paginatedQuotes.map((quote) => (
+          <Col key={quote._id} md={6} lg={4}>
+            <Card className="h-100 quote-card position-relative">
+              <Card.Header className="d-flex justify-content-between align-items-center">
+                <Badge bg={
+                  quote.status === 'pending' ? 'warning' :
+                    quote.status === 'approved' ? 'success' : 'danger'
+                }>
+                  {quote.status === 'pending' ? 'Pendiente' :
+                    quote.status === 'approved' ? 'Aprobada' : 'Rechazada'}
+                </Badge>
+                <small className="text-muted">#{quote._id.slice(-6)}</small>
+              </Card.Header>
+              <Card.Body>
+                <Card.Title className="mb-3">{quote.taskTitle}</Card.Title>
+                <div className="quote-info">
+                  <p><FaUser className="me-2" /> {quote.name}</p>
+                  <p><FaEnvelope className="me-2" /> {quote.email}</p>
+                  <p><FaPhone className="me-2" /> {quote.phone}</p>
+                  <p><FaFileAlt className="me-2" /> {quote.taskType}</p>
+                  <p><FaCalendarAlt className="me-2" /> {formatDate(quote.createdAt)}</p>
+                </div>
+                <div className="quote-price mt-3">
+                  <h4>${quote.estimatedPrice?.toLocaleString() || '0'}</h4>
+                </div>
+                {/* Botón de eliminar en la esquina inferior derecha */}
+                <button
+                  className="delete-quote-btn"
+                  title="Eliminar cotización"
+                  onClick={() => handleDeleteQuote(quote._id)}
+                >
+                  <FaTrash />
+                </button>
+              </Card.Body>
+              <Card.Footer className="d-flex justify-content-between">
                 <Button
                   variant="info"
                   size="sm"
-                  className="me-2"
                   onClick={() => handleQuoteSelect(quote)}
                 >
-                  <FaEye />
+                  <FaEye className="me-1" /> Ver
                 </Button>
                 {quote.status === 'pending' && (
-                  <>
+                  <div>
                     <Button
                       variant="success"
                       size="sm"
                       className="me-2"
-                      onClick={() => handleApproveQuote(quote.id)}
+                      onClick={() => handleApproveQuote(quote._id)}
                     >
-                      <FaCheck />
+                      <FaCheck className="me-1" /> Aprobar
                     </Button>
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => handleRejectQuote(quote.id)}
+                      onClick={() => handleRejectQuote(quote._id)}
                     >
-                      <FaTimes />
+                      <FaTimes className="me-1" /> Rechazar
                     </Button>
-                  </>
+                  </div>
                 )}
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="7" className="text-center">No se encontraron cotizaciones</td>
-          </tr>
-        )}
-      </tbody>
-    </Table>
+              </Card.Footer>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+      {renderPagination()}
+    </>
   );
 
   // Renderizar detalles de la cotización
@@ -333,19 +368,25 @@ const ManageQuotes = () => {
     return (
       <div className="quote-details-modal">
         <div className="quote-details-content">
-          <h3>Detalles de la Cotización #{selectedQuote.id}</h3>
+          <h3>Detalles de la Cotización #{selectedQuote._id.slice(-6)}</h3>
           <div className="quote-details-info">
-            <p><strong>Cliente:</strong> {selectedQuote.client}</p>
-            <p><strong>Servicio:</strong> {selectedQuote.service}</p>
-            <p><strong>Monto:</strong> ${selectedQuote.amount}</p>
+            <p><strong>Cliente:</strong> {selectedQuote.name}</p>
+            <p><strong>Email:</strong> {selectedQuote.email}</p>
+            <p><strong>Teléfono:</strong> {selectedQuote.phone}</p>
+            <p><strong>Tipo de Tesis:</strong> {selectedQuote.taskType}</p>
+            <p><strong>Nivel Académico:</strong> {selectedQuote.educationLevel}</p>
+            <p><strong>Tema:</strong> {selectedQuote.taskTitle}</p>
+            <p><strong>Área de Estudio:</strong> {selectedQuote.studyArea}</p>
+            <p><strong>Carrera:</strong> {selectedQuote.career}</p>
+            <p><strong>Páginas:</strong> {selectedQuote.pages}</p>
+            <p><strong>Fecha de Entrega:</strong> {formatDate(selectedQuote.dueDate)}</p>
+            <p><strong>Descripción:</strong> {selectedQuote.requirements?.text}</p>
+            <p><strong>Precio Estimado:</strong> ${selectedQuote.estimatedPrice?.toLocaleString() || '0'}</p>
             <p><strong>Estado:</strong> {
               selectedQuote.status === 'pending' ? 'Pendiente' :
                 selectedQuote.status === 'approved' ? 'Aprobada' : 'Rechazada'
             }</p>
-            <p><strong>Fecha:</strong> {selectedQuote.date}</p>
-            <p><strong>Email:</strong> {selectedQuote.email}</p>
-            <p><strong>Teléfono:</strong> {selectedQuote.phone}</p>
-            <p><strong>Detalles:</strong> {selectedQuote.details}</p>
+            <p><strong>Fecha de Creación:</strong> {formatDate(selectedQuote.createdAt)}</p>
           </div>
           <div className="quote-details-actions">
             <Button variant="secondary" onClick={() => setShowQuoteDetails(false)}>
@@ -357,7 +398,7 @@ const ManageQuotes = () => {
                   variant="success"
                   className="ms-2"
                   onClick={() => {
-                    handleApproveQuote(selectedQuote.id);
+                    handleApproveQuote(selectedQuote._id);
                     setShowQuoteDetails(false);
                   }}
                 >
@@ -367,7 +408,7 @@ const ManageQuotes = () => {
                   variant="danger"
                   className="ms-2"
                   onClick={() => {
-                    handleRejectQuote(selectedQuote.id);
+                    handleRejectQuote(selectedQuote._id);
                     setShowQuoteDetails(false);
                   }}
                 >
@@ -375,6 +416,16 @@ const ManageQuotes = () => {
                 </Button>
               </>
             )}
+            <Button
+              variant="outline-danger"
+              className="ms-2"
+              onClick={() => {
+                handleDeleteQuote(selectedQuote._id);
+                setShowQuoteDetails(false);
+              }}
+            >
+              Eliminar
+            </Button>
           </div>
         </div>
       </div>
@@ -392,12 +443,6 @@ const ManageQuotes = () => {
           Error
         </Alert.Heading>
         <p>{error}</p>
-        <hr />
-        <div className="d-flex justify-content-end">
-          <Button variant="outline-danger" onClick={handleRetryLoadQuotes}>
-            Reintentar
-          </Button>
-        </div>
       </Alert>
     );
   };
@@ -415,8 +460,47 @@ const ManageQuotes = () => {
   };
 
   return (
-    <Container fluid className="py-4 manage-quotes-container">
-      <h2 className="mb-4 admin-section-title">Gestión de Cotizaciones</h2>
+    <div className="manage-quotes-container">
+      <h3 className="main-title mb-3">Gestión de Cotizaciones</h3>
+      {/* Estadísticas en fila horizontal compacta */}
+      <div className="stats-horizontal-section">
+        <div className="stats-block total">
+          <div className="stats-block-content">
+            <span className="stats-block-title">Total</span>
+            <span className="stats-block-number">{quotes.length}</span>
+          </div>
+        </div>
+        <div className="stats-block pending">
+          <div className="stats-block-content">
+            <span className="stats-block-title">Pendientes</span>
+            <span className="stats-block-number">{quotes.filter(q => String(q.status).trim().toLowerCase() === 'pending').length}</span>
+          </div>
+        </div>
+        <div className="stats-block approved">
+          <div className="stats-block-content">
+            <span className="stats-block-title">Aprobadas</span>
+            <span className="stats-block-number">{quotes.filter(q => String(q.status).trim().toLowerCase() === 'approved').length}</span>
+          </div>
+        </div>
+        <div className="stats-block rejected">
+          <div className="stats-block-content">
+            <span className="stats-block-title">Rechazadas</span>
+            <span className="stats-block-number">{quotes.filter(q => String(q.status).trim().toLowerCase() === 'rejected').length}</span>
+          </div>
+        </div>
+        <div className="stats-block paid">
+          <div className="stats-block-content">
+            <span className="stats-block-title">Pagadas</span>
+            <span className="stats-block-number">{quotes.filter(q => String(q.status).trim().toLowerCase() === 'paid').length}</span>
+          </div>
+        </div>
+        <div className="stats-block cancelled">
+          <div className="stats-block-content">
+            <span className="stats-block-title">Canceladas</span>
+            <span className="stats-block-number">{quotes.filter(q => String(q.status).trim().toLowerCase() === 'cancelled').length}</span>
+          </div>
+        </div>
+      </div>
 
       {renderError()}
 
@@ -424,15 +508,13 @@ const ManageQuotes = () => {
         renderLoading()
       ) : (
         <>
-          {renderStatsSection()}
           {renderFiltersSection()}
-          {renderQuotesTable()}
+          {renderQuoteCards()}
         </>
       )}
 
-      {/* Renderizar el modal solo cuando showQuoteDetails es true */}
       {showQuoteDetails && selectedQuote && renderQuoteDetails()}
-    </Container>
+    </div>
   );
 };
 

@@ -255,7 +255,10 @@
     }
 
     .action-buttons {
-        margin-top: 0.3rem;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        gap: 10px;
     }
 }
 
@@ -360,10 +363,11 @@
 /* Renombramos la clase para hacerla más genérica */
 .action-buttons {
     display: flex;
-    gap: 0.5rem;
-    margin-top: 0.35rem;
     justify-content: center;
-    width: 100%;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
 }
 
 .btn-link {
@@ -417,8 +421,10 @@
 /* Responsive */
 @media (max-width: 768px) {
     .action-buttons {
-        flex-direction: column;
-        width: 100%;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        gap: 10px;
     }
 
     .btn-link {

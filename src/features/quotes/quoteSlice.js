@@ -144,6 +144,24 @@ export const getQuoteStats = createAsyncThunk('quotes/stats', async (_, thunkAPI
   }
 });
 
+// Helper para obtener el texto y color del estado
+export const getQuoteStatusLabel = (status) => {
+  switch ((status || '').toLowerCase()) {
+    case 'pending':
+      return { text: 'Pendiente', color: 'warning' };
+    case 'approved':
+      return { text: 'Aprobada', color: 'success' };
+    case 'rejected':
+      return { text: 'Rechazada', color: 'danger' };
+    case 'paid':
+      return { text: 'Pagada', color: 'primary' };
+    case 'cancelled':
+      return { text: 'Cancelada', color: 'secondary' };
+    default:
+      return { text: 'Desconocido', color: 'secondary' };
+  }
+};
+
 // Slice
 
 const quoteSlice = createSlice({
