@@ -120,6 +120,16 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
+        // Verificar que el token esté disponible antes de establecer isAuthenticated
+        const token = authService.getToken();
+        if (!token) {
+          state.isError = true;
+          state.message = 'No se pudo obtener el token de autenticación';
+          state.user = null;
+          state.isAuthenticated = false;
+          state.isAdmin = false;
+          return;
+        }
         state.isAuthenticated = true;
         state.user = action.payload;
         state.isAdmin = checkIsAdmin(action.payload);
@@ -155,9 +165,28 @@ const authSlice = createSlice({
 
       // Logout
       .addCase(logout.fulfilled, (state) => {
-        state.user = null;
-        state.isAuthenticated = false;
-        state.isAdmin = false;
+        // Limpiar todo el estado
+        Object.assign(state, {
+          user: null,
+          isAuthenticated: false,
+          isAdmin: false,
+          isLoading: false,
+          isError: false,
+          isSuccess: true,
+          message: 'Sesión cerrada exitosamente'
+        });
+      })
+      .addCase(logout.rejected, (state) => {
+        // Limpiar todo el estado incluso si hay error
+        Object.assign(state, {
+          user: null,
+          isAuthenticated: false,
+          isAdmin: false,
+          isLoading: false,
+          isError: false,
+          isSuccess: true,
+          message: 'Sesión cerrada localmente'
+        });
       })
 
       // Forgot Password

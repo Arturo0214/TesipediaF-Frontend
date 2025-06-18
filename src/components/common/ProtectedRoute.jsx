@@ -8,40 +8,36 @@ const ProtectedRoute = ({ requireAdmin }) => {
     const location = useLocation();
     const { user, isAuthenticated, isAdmin, isLoading } = useSelector(state => state.auth);
 
-    // On component mount, check if there's a token and fetch user profile if needed
     useEffect(() => {
-        if (!isAuthenticated && !isLoading) {
-            // Use the existing token to try getting the profile
-            dispatch(getProfile());
-        }
+        const checkAuth = async () => {
+            if (!isAuthenticated && !isLoading) {
+                try {
+                    await dispatch(getProfile()).unwrap();
+                } catch (error) {
+                    console.error('Error al obtener el perfil:', error);
+                }
+            }
+        };
+        checkAuth();
+    }, [dispatch, isAuthenticated, isLoading]);
 
-        // Make sure we check admin status if user is authenticated
-        if (isAuthenticated && user) {
-            dispatch(checkAdminStatus());
-        }
-    }, [dispatch, isAuthenticated, isLoading, user]);
-
-    // Show a loading state while checking authentication
+    // Mostrar loading mientras se verifica la autenticación
     if (isLoading) {
         return <div className="text-center py-5">Verificando autenticación...</div>;
     }
 
-    // Redirect to login if not authenticated
+    // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {
-        // Save the location they were trying to access for redirecting after login
-        return <Navigate to="/login" state={{ from: location.pathname }} />;
+        return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
-    // For admin routes, check admin status
-    if (requireAdmin) {
-        // Use both the user role check and the isAdmin flag for robustness
-        if (!isAdmin || user?.role !== 'admin') {
-            console.error('Access denied: Admin privileges required');
-            return <Navigate to="/dashboard" />;
-        }
+    // Si requiere admin y no es admin, redirigir al dashboard
+    if (requireAdmin && !isAdmin) {
+        console.error('Acceso denegado: Se requieren privilegios de administrador');
+        return <Navigate to="/dashboard" state={{ from: location.pathname }} replace />;
     }
 
-    // User has permission to access the route
+    // Si todo está bien, mostrar el contenido
     return <Outlet />;
 };
 

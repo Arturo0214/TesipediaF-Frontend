@@ -1,6 +1,6 @@
 import React, { useState, Suspense, useEffect } from 'react';
 import { Container, Row, Col, Nav, Alert, Button } from 'react-bootstrap';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
     FaFileAlt,
     FaProjectDiagram,
@@ -93,12 +93,6 @@ const AdminPanel = () => {
     const [activeTab, setActiveTab] = useState(getInitialTab());
     const [componentError, setComponentError] = useState(null);
 
-    // Actualizar pestaña al cambiar la URL
-    useEffect(() => {
-        setActiveTab(getInitialTab());
-        setComponentError(null); // Resetear errores al cambiar de pestaña
-    }, [location.pathname]);
-
     const navItems = [
         { key: 'dashboard', icon: FaChartBar, label: 'Dashboard', section: 'principal', path: '/admin' },
         { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones' },
@@ -115,14 +109,24 @@ const AdminPanel = () => {
 
     const handleTabSelect = (key) => {
         setActiveTab(key);
-        setComponentError(null); // Resetear errores al cambiar de pestaña
+        setComponentError(null);
 
         // Navegar a la ruta correspondiente
         const selectedItem = navItems.find(item => item.key === key);
         if (selectedItem) {
-            navigate(selectedItem.path);
+            navigate(selectedItem.path, { replace: true });
         }
     };
+
+    // Actualizar pestaña al cambiar la URL
+    useEffect(() => {
+        const path = location.pathname;
+        const newTab = getInitialTab();
+        if (newTab !== activeTab) {
+            setActiveTab(newTab);
+            setComponentError(null);
+        }
+    }, [location.pathname]);
 
     const handleLogout = async () => {
         try {
@@ -174,7 +178,9 @@ const AdminPanel = () => {
                         active={activeTab === key}
                         onClick={() => handleTabSelect(key)}
                         className="admin-panel-nav-link"
-                        href={path}
+                        as={Link}
+                        to={path}
+                        replace
                     >
                         <Icon />
                         <span>{label}</span>
