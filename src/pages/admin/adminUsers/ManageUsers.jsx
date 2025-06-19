@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Table, Button, Spinner, Alert, Form, Row, Col } from 'react-bootstrap';
+import { Container, Table, Button, Spinner, Alert, Form, Row, Col, Tabs, Tab } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUsers,
@@ -10,6 +10,7 @@ import {
   clearSuccess
 } from '../../../features/auth/userSlice';
 import './ManageUsers.css';
+import { toast } from 'react-hot-toast';
 
 function ManageUsers() {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ function ManageUsers() {
 
   // Usuarios filtrados
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState('todos');
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -49,6 +51,11 @@ function ManageUsers() {
   useEffect(() => {
     if (users.length > 0) {
       let result = [...users];
+
+      // Filtrar por pestaña activa
+      if (activeTab === 'redactores') {
+        result = result.filter(user => user.role === 'redactor');
+      }
 
       // Filtrar por nombre
       if (filters.name) {
@@ -73,7 +80,7 @@ function ManageUsers() {
     } else {
       setFilteredUsers([]);
     }
-  }, [filters, users]);
+  }, [filters, users, activeTab]);
 
   const handleEditClick = (user) => {
     if (showEditDropdown === user._id) {
@@ -106,10 +113,17 @@ function ManageUsers() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (selectedUser?._id) {
-      await dispatch(updateUserRole({ id: selectedUser._id, role: formData.role }));
-      await dispatch(updateUserStatus({ id: selectedUser._id, isActive: formData.isActive }));
-      setShowEditDropdown(null);
-      dispatch(fetchUsers());
+      try {
+        await dispatch(updateUserRole({ id: selectedUser._id, role: formData.role })).unwrap();
+        await dispatch(updateUserStatus({ id: selectedUser._id, isActive: formData.isActive })).unwrap();
+        toast.success('Usuario actualizado correctamente');
+        setShowEditDropdown(null);
+        setTimeout(() => {
+          dispatch(fetchUsers());
+        }, 300);
+      } catch (err) {
+        toast.error(err?.message || err?.toString() || 'Error al actualizar el usuario');
+      }
     }
   };
 
@@ -182,6 +196,17 @@ function ManageUsers() {
           {error}
         </Alert>
       )}
+
+      {/* Tabs para alternar entre Todos y Redactores */}
+      <Tabs
+        id="users-tabs"
+        activeKey={activeTab}
+        onSelect={(k) => setActiveTab(k)}
+        className="mb-3"
+      >
+        <Tab eventKey="todos" title="Todos" />
+        <Tab eventKey="redactores" title="Redactores" />
+      </Tabs>
 
       {/* Filtros de búsqueda */}
       <div className="mu-filters-container">
@@ -322,6 +347,7 @@ function ManageUsers() {
                                 value={formData.role}
                                 onChange={handleInputChange}
                                 size="sm"
+                                disabled={selectedUser && selectedUser._id === (JSON.parse(localStorage.getItem('user'))?._id)}
                               >
                                 <option value="admin">Administrador</option>
                                 <option value="redactor">Redactor</option>
@@ -335,6 +361,7 @@ function ManageUsers() {
                                 label="Usuario Activo"
                                 checked={formData.isActive}
                                 onChange={handleInputChange}
+                                disabled={loading}
                               />
                             </Form.Group>
                           </div>
@@ -342,8 +369,8 @@ function ManageUsers() {
                             <Button variant="secondary" size="sm" onClick={() => setShowEditDropdown(null)}>
                               Cancelar
                             </Button>
-                            <Button variant="primary" type="submit" size="sm">
-                              Guardar
+                            <Button variant="primary" type="submit" size="sm" disabled={loading}>
+                              {loading ? <Spinner animation="border" size="sm" /> : 'Guardar'}
                             </Button>
                           </div>
                         </Form>

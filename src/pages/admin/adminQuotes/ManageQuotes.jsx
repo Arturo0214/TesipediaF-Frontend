@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Spinner, Alert, Form, Pagination } from 'react-bootstrap';
 import { FaEye, FaCheck, FaTimes, FaSearch, FaFilter, FaExclamationCircle, FaCalendarAlt, FaUser, FaEnvelope, FaPhone, FaFileAlt, FaTasks, FaDollarSign, FaTrash } from 'react-icons/fa';
+import { ImSpinner2 } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllQuotes, updateQuote, deleteQuote } from '../../../features/quotes/quoteSlice';
+import { getAllQuotes, updateQuote, deleteQuote, resetQuoteState } from '../../../features/quotes/quoteSlice';
 import { toast } from 'react-hot-toast';
 import './ManageQuotes.css';
 
@@ -20,6 +21,8 @@ const ManageQuotes = () => {
   const [orderRecentFirst, setOrderRecentFirst] = useState(true); // true = más recientes primero
   const [currentPage, setCurrentPage] = useState(1);
   const quotesPerPage = 9;
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
+  const [statusSuccessId, setStatusSuccessId] = useState(null);
 
   // Verificar si el usuario actual tiene permisos de administrador
   useEffect(() => {
@@ -40,6 +43,7 @@ const ManageQuotes = () => {
   useEffect(() => {
     if (error) {
       toast.error(error);
+      dispatch(resetQuoteState());
     }
   }, [error]);
 
@@ -134,6 +138,40 @@ const ManageQuotes = () => {
     } catch (error) {
       toast.error(error || 'Error al rechazar la cotización');
     }
+  };
+
+  // Manejar actualización de estado de cotización
+  const handleUpdateQuoteStatus = async (quoteId, newStatus) => {
+    const quote = quotes.find(q => String(q._id) === String(quoteId));
+    if (newStatus === 'paid') {
+      if (!quote.priceDetails || !quote.priceDetails.basePrice || !quote.priceDetails.finalPrice) {
+        toast.error('No se puede marcar como pagada: falta información de precio.');
+        dispatch(resetQuoteState());
+        return;
+      }
+      if (new Date(quote.dueDate) < new Date()) {
+        toast.error('No se puede marcar como pagada: la fecha de entrega debe ser futura.');
+        dispatch(resetQuoteState());
+        return;
+      }
+    }
+    setUpdatingStatusId(String(quoteId));
+    try {
+      await dispatch(updateQuote({
+        quoteId,
+        updatedData: { status: newStatus },
+        adminAction: true
+      })).unwrap();
+      toast.success(`Estado actualizado a ${newStatus}`);
+      setStatusSuccessId(String(quoteId));
+      setTimeout(() => setStatusSuccessId(null), 1500);
+      // Refresca la lista de cotizaciones tras actualizar
+      await dispatch(getAllQuotes());
+    } catch (error) {
+      toast.error(error || 'Error al actualizar el estado');
+      dispatch(resetQuoteState());
+    }
+    setUpdatingStatusId(null);
   };
 
   // Manejar eliminación de cotización
@@ -295,13 +333,42 @@ const ManageQuotes = () => {
           <Col key={quote._id} md={6} lg={4}>
             <Card className="h-100 quote-card position-relative">
               <Card.Header className="d-flex justify-content-between align-items-center">
-                <Badge bg={
-                  quote.status === 'pending' ? 'warning' :
-                    quote.status === 'approved' ? 'success' : 'danger'
-                }>
-                  {quote.status === 'pending' ? 'Pendiente' :
-                    quote.status === 'approved' ? 'Aprobada' : 'Rechazada'}
-                </Badge>
+                <div className="dropdown">
+                  <Badge
+                    bg={
+                      quote.status === 'pending' ? 'warning' :
+                        quote.status === 'approved' ? 'success' :
+                          quote.status === 'rejected' ? 'danger' :
+                            quote.status === 'paid' ? 'info' :
+                              quote.status === 'cancelled' ? 'secondary' : 'primary'
+                    }
+                    className="status-badge"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const dropdown = e.target.nextElementSibling;
+                      dropdown.classList.toggle('show');
+                    }}
+                    style={{ minWidth: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {String(updatingStatusId) === String(quote._id) ? (
+                      <ImSpinner2 className="spin" style={{ fontSize: 18 }} />
+                    ) : String(statusSuccessId) === String(quote._id) ? (
+                      <FaCheck style={{ color: 'white', fontSize: 18 }} />
+                    ) : (
+                      quote.status === 'pending' ? 'Pendiente' :
+                        quote.status === 'approved' ? 'Aprobada' :
+                          quote.status === 'rejected' ? 'Rechazada' :
+                            quote.status === 'paid' ? 'Pagada' :
+                              quote.status === 'cancelled' ? 'Cancelada' : quote.status
+                    )}
+                  </Badge>
+                  <div className="dropdown-menu">
+                    <button className="dropdown-item" onClick={() => handleApproveQuote(quote._id)}>Aprobar</button>
+                    <button className="dropdown-item" onClick={() => handleRejectQuote(quote._id)}>Rechazar</button>
+                    <button className="dropdown-item" onClick={() => handleUpdateQuoteStatus(quote._id, 'paid')}>Marcar como Pagada</button>
+                    <button className="dropdown-item" onClick={() => handleUpdateQuoteStatus(quote._id, 'cancelled')}>Cancelar</button>
+                  </div>
+                </div>
                 <small className="text-muted">#{quote._id.slice(-6)}</small>
               </Card.Header>
               <Card.Body>
@@ -333,25 +400,6 @@ const ManageQuotes = () => {
                 >
                   <FaEye className="me-1" /> Ver
                 </Button>
-                {quote.status === 'pending' && (
-                  <div>
-                    <Button
-                      variant="success"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleApproveQuote(quote._id)}
-                    >
-                      <FaCheck className="me-1" /> Aprobar
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleRejectQuote(quote._id)}
-                    >
-                      <FaTimes className="me-1" /> Rechazar
-                    </Button>
-                  </div>
-                )}
               </Card.Footer>
             </Card>
           </Col>

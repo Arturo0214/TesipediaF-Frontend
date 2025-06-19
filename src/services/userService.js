@@ -47,7 +47,7 @@ export const deleteUser = async (id) => {
 // Actualizar rol de usuario (admin)
 export const updateUserRole = async (id, role) => {
     try {
-        const response = await axiosWithAuth.put(`/admin/users/${id}/role`, { role });
+        const response = await axiosWithAuth.put(`/users/${id}/role`, { role });
         return response.data;
     } catch (error) {
         console.error(`Error updating role for user with ID ${id}:`, error);
@@ -58,7 +58,7 @@ export const updateUserRole = async (id, role) => {
 // Actualizar estado de usuario (admin)
 export const updateUserStatus = async (id, isActive) => {
     try {
-        const response = await axiosWithAuth.put(`/admin/users/${id}/status`, { isActive });
+        const response = await axiosWithAuth.put(`/users/${id}/status`, { isActive });
         return response.data;
     } catch (error) {
         console.error(`Error updating status for user with ID ${id}:`, error);
