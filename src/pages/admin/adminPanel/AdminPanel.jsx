@@ -111,6 +111,19 @@ const AdminPanel = () => {
         setComponentError(null);
         setIsSidebarOpen(false);
 
+        // Force scroll reset
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+
+        // Reset all possible scroll containers
+        const scrollContainers = document.querySelectorAll('.tesipedia-admin-content, .table-responsive, .mu-table-responsive');
+        scrollContainers.forEach(container => {
+            if (container) {
+                container.scrollTop = 0;
+            }
+        });
+
         // Navegar a la ruta correspondiente
         const selectedItem = navItems.find(item => item.key === key);
         if (selectedItem) {
@@ -118,13 +131,26 @@ const AdminPanel = () => {
         }
     };
 
-    // Actualizar pestaña al cambiar la URL
+    // También agregar el scroll to top cuando cambia la URL
     useEffect(() => {
         const path = location.pathname;
         const newTab = getInitialTab();
         if (newTab !== activeTab) {
             setActiveTab(newTab);
             setComponentError(null);
+
+            // Force scroll reset
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+
+            // Reset all possible scroll containers
+            const scrollContainers = document.querySelectorAll('.tesipedia-admin-content, .table-responsive, .mu-table-responsive');
+            scrollContainers.forEach(container => {
+                if (container) {
+                    container.scrollTop = 0;
+                }
+            });
         }
     }, [location.pathname]);
 
@@ -201,7 +227,7 @@ const AdminPanel = () => {
         return (
             <Suspense fallback={<div className="tesipedia-admin-loading">Cargando...</div>}>
                 <ErrorBoundary>
-                    <div className="tesipedia-admin-component">
+                    <div className="tesipedia-admin-component" key={activeTab}>
                         <Component />
                     </div>
                 </ErrorBoundary>
@@ -279,7 +305,7 @@ const AdminPanel = () => {
                     </nav>
                 </aside>
 
-                <main className="tesipedia-admin-content">
+                <main className="tesipedia-admin-content" key={`main-${activeTab}`}>
                     {componentError ? (
                         <Alert variant="danger" className="tesipedia-admin-error">
                             <Alert.Heading>Error al cargar el componente</Alert.Heading>

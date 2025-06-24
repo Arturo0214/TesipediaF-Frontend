@@ -7,6 +7,7 @@
     width: 100%;
     position: relative;
     z-index: 1;
+    overflow: hidden;
 }
 
 /* Wrapper del contenido (sidebar + contenido) */
@@ -15,8 +16,8 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    min-height: 100vh;
-    overflow: visible !important;
+    height: calc(100vh - 60px);
+    overflow: hidden;
     position: relative;
     z-index: 1;
 }
@@ -25,12 +26,13 @@
 .admin-layout {
     flex: 1;
     padding: 1.5rem;
-    overflow-y: auto;
-    overflow-x: visible !important;
+    overflow: hidden;
     background-color: #ffffff;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Navbar Styles */

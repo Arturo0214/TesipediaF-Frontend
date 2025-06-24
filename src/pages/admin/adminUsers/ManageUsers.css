@@ -24,7 +24,9 @@ body.admin-page .mu-action-dropdown>* {
     position: relative;
     z-index: 1;
     background-color: #fff;
-    overflow-x: hidden;
+    overflow: hidden;
+    height: 100vh;
+    min-height: 600px;
 }
 
 .mu-manage-users-title {
@@ -34,6 +36,30 @@ body.admin-page .mu-action-dropdown>* {
     font-size: 1.25rem;
     width: 100%;
     text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fff;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.mu-tabs-sticky {
+    position: sticky;
+    top: 2.5rem;
+    z-index: 19;
+    background: #fff;
+    padding-bottom: 0.5rem;
+    width: 100%;
+}
+
+.mu-filters-sticky {
+    position: sticky;
+    top: 5.2rem;
+    z-index: 18;
+    background: #fff;
+    padding-bottom: 0.5rem;
+    width: 100%;
 }
 
 /* Filtros de búsqueda */
@@ -65,10 +91,13 @@ body.admin-page .mu-action-dropdown>* {
 .mu-table-responsive {
     width: 100%;
     margin: 0;
+    overflow-y: auto;
     overflow-x: auto;
     position: relative;
     z-index: 1;
     background-color: white;
+    height: calc(100vh - 12rem);
+    flex: 1;
 }
 
 .mu-manage-users-table {
@@ -83,14 +112,19 @@ body.admin-page .mu-action-dropdown>* {
 }
 
 .mu-manage-users-table thead th {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 21;
+    background: #f8f9fa;
+    border-bottom: 1.5px solid #dee2e6;
     color: #495057;
-    font-weight: 600;
-    padding: 0.5rem 0.3rem;
-    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.7rem 0.3rem;
+    font-size: 0.85rem;
     white-space: nowrap;
-    text-align: left;
+    text-align: center;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
 }
 
 .mu-manage-users-table tbody td {
@@ -104,65 +138,99 @@ body.admin-page .mu-action-dropdown>* {
     text-align: left;
 }
 
+.mu-manage-users-table tbody tr {
+    background-color: #fff;
+    transition: background 0.2s;
+}
+
+.mu-manage-users-table tbody tr:nth-child(even) {
+    background-color: #f6f8fa;
+}
+
 .mu-manage-users-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: #e9ecef;
 }
 
 /* Columnas específicas */
 .mu-col-id {
-    width: 14%;
-    font-family: monospace;
-    font-size: 0.7rem;
+    width: 18%;
+    min-width: 160px;
+    max-width: 220px;
+    font-family: 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: #2563eb;
+    background: none;
+    letter-spacing: 0.5px;
+    word-break: break-all;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0.5rem 0.2rem;
 }
 
 .mu-col-name {
     width: 13%;
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
 .mu-col-email {
     width: 16%;
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
 .mu-col-role {
     width: 8%;
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
 .mu-col-status {
     width: 8%;
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
 .mu-col-date {
     width: 11%;
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
 .mu-col-actions {
     width: 15%;
     position: relative;
     z-index: 2;
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
 /* Estilos para los botones de acción */
 .mu-action-buttons {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     max-width: 100%;
     position: relative;
     z-index: 2;
-    gap: 2px;
+    gap: 6px;
 }
 
 .mu-action-button {
-    font-size: 0.65rem;
-    font-weight: 500;
-    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
     text-align: center;
-    padding: 3px 0;
+    padding: 0;
     margin: 0;
-    box-shadow: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     flex: 1;
-    min-width: 0;
-    height: 22px;
+    min-width: 40px;
+    height: 32px;
     line-height: 1;
     border: none;
     white-space: nowrap;
@@ -170,29 +238,106 @@ body.admin-page .mu-action-dropdown>* {
     text-overflow: ellipsis;
     position: relative;
     z-index: 2;
+    transition: all 0.2s ease-in-out;
+}
+
+.mu-action-button svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
 }
 
 .mu-edit-button {
-    background-color: #ffc107;
-    /* Amarillo */
+    background: linear-gradient(135deg, #ffc107, #ffb300);
     color: #212529;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .mu-edit-button:hover {
-    background-color: #e0a800;
+    background: linear-gradient(135deg, #e0a800, #d39e00);
     color: #212529;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
 }
 
 .mu-delete-button {
-    background-color: #dc3545;
-    /* Rojo */
+    background: linear-gradient(135deg, #dc3545, #c82333);
     color: white;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .mu-delete-button:hover {
-    background-color: #c82333;
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Estilos para badges de roles */
+.mu-role-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.mu-role-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mu-role-admin {
+    background: linear-gradient(135deg, #6f42c1, #5a32a3);
+    color: white;
+}
+
+.mu-role-redactor {
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    color: white;
+}
+
+.mu-role-cliente {
+    background: linear-gradient(135deg, #20c997, #17a2b8);
+    color: white;
+}
+
+/* Estilos para el estado del usuario */
+.mu-user-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.mu-user-status:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mu-status-active {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.mu-status-inactive {
+    background: linear-gradient(135deg, #6c757d, #495057);
     color: white;
 }
 
@@ -233,14 +378,27 @@ body.admin-page .mu-action-dropdown>* {
 }
 
 .mu-close-dropdown {
-    font-size: 1.5rem;
-    line-height: 1;
+    padding: 4px 8px;
     color: #6c757d;
-    padding: 0;
-    margin: -0.5rem -0.25rem -0.5rem 0;
-    background: transparent;
-    border: 0;
-    outline: none;
+    text-decoration: none;
+    border: none;
+    background: none;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease-in-out;
+}
+
+.mu-close-dropdown:hover {
+    color: #dc3545;
+    background: none;
+    text-decoration: none;
+}
+
+.mu-close-dropdown svg {
+    width: 14px;
+    height: 14px;
 }
 
 .mu-dropdown-body {
@@ -272,26 +430,6 @@ body.admin-page .mu-action-dropdown>* {
 .mu-delete-dropdown .mu-dropdown-body {
     padding: 0.75rem;
     color: #721c24;
-}
-
-.mu-user-status {
-    display: inline-block;
-    padding: 0.2rem 0.4rem;
-    border-radius: 3px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.mu-status-active {
-    background-color: #d1e7dd;
-    color: #0f5132;
-}
-
-.mu-status-inactive {
-    background-color: #f8d7da;
-    color: #842029;
 }
 
 .mu-join-date {
@@ -329,40 +467,118 @@ body.admin-page .mu-action-dropdown>* {
         font-size: 0.75rem;
     }
 
-    .mu-col-id {
-        width: 25%;
-    }
-
-    .mu-col-name,
-    .mu-col-email {
-        width: 30%;
-    }
-
-    .mu-col-date,
+    .mu-manage-users-table thead th,
+    .mu-col-actions,
     .mu-col-role,
-    .mu-col-status {
-        display: none;
+    .mu-col-status,
+    .mu-col-date,
+    .mu-col-id {
+        text-align: center !important;
     }
 
-    .mu-col-actions {
-        width: 15%;
+    .mu-action-button {
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .mu-action-button svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .mu-action-dropdown {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 400px;
+        z-index: 10000;
     }
 
     .mu-action-buttons {
         flex-direction: column;
+        gap: 4px;
+    }
+
+    .mu-action-button {
+        width: 100%;
+        height: 32px;
+        font-size: 0.75rem;
+        padding: 8px 12px;
+    }
+
+    .mu-action-button svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .mu-role-badge,
+    .mu-user-status {
+        font-size: 0.65rem;
+        padding: 3px 6px;
+    }
+
+    .mu-col-actions {
+        width: 20%;
+        min-width: 80px;
+    }
+
+    .mu-col-role,
+    .mu-col-status {
+        width: 12%;
+    }
+
+    .mu-table-responsive {
+        overflow-x: auto;
+    }
+
+    .mu-col-id {
+        min-width: 140px;
+        font-size: 0.8rem;
+    }
+
+    .mu-manage-users-container {
+        min-height: 400px;
+        height: 100dvh;
+    }
+
+    .mu-table-scroll {
+        max-height: calc(100dvh - 260px);
+    }
+
+    .mu-manage-users-title,
+    .mu-tabs-sticky,
+    .mu-filters-sticky {
+        top: 0 !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .mu-action-buttons {
+        flex-direction: row;
         gap: 3px;
     }
 
     .mu-action-button {
-        font-size: 0.65rem;
-        padding: 2px 4px;
-        height: 22px;
+        min-width: 35px;
+        height: 28px;
+        padding: 4px 6px;
     }
 
-    .mu-action-dropdown {
-        width: 180px;
-        right: 0;
-        left: auto;
+    .mu-action-button svg {
+        width: 10px;
+        height: 10px;
+    }
+
+    .mu-col-actions {
+        width: 25%;
+        min-width: 70px;
+    }
+
+    .mu-col-role,
+    .mu-col-status {
+        width: 15%;
     }
 }
 
@@ -433,13 +649,6 @@ body.admin-page .mu-col-actions {
     z-index: 9999 !important;
 }
 
-.mu-close-dropdown {
-    font-size: 1.25rem;
-    background: transparent;
-    border: none;
-    color: #6c757d;
-}
-
 /* FadeIn animación mejorada */
 @keyframes fadeIn {
     from {
@@ -494,4 +703,16 @@ body.admin-page .mu-col-actions {
     z-index: 9999 !important;
     position: absolute !important;
     pointer-events: auto !important;
+}
+
+/* Contenedor con scroll solo para la tabla */
+.mu-table-scroll {
+    width: 100%;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 300px;
+    max-height: calc(100vh - 210px);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    background: #fff;
 }

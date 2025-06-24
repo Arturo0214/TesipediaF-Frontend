@@ -11,6 +11,7 @@ import {
 } from '../../../features/auth/userSlice';
 import './ManageUsers.css';
 import { toast } from 'react-hot-toast';
+import { FaEdit, FaTrash, FaUserTimes } from 'react-icons/fa';
 
 function ManageUsers() {
   const dispatch = useDispatch();
@@ -198,59 +199,64 @@ function ManageUsers() {
       )}
 
       {/* Tabs para alternar entre Todos y Redactores */}
-      <Tabs
-        id="users-tabs"
-        activeKey={activeTab}
-        onSelect={(k) => setActiveTab(k)}
-        className="mb-3"
-      >
-        <Tab eventKey="todos" title="Todos" />
-        <Tab eventKey="redactores" title="Redactores" />
-      </Tabs>
+      <div className="mu-tabs-sticky">
+        <Tabs
+          id="users-tabs"
+          activeKey={activeTab}
+          onSelect={(k) => setActiveTab(k)}
+          className="mb-3"
+        >
+          <Tab eventKey="todos" title="Todos" />
+          <Tab eventKey="redactores" title="Redactores" />
+        </Tabs>
+      </div>
 
       {/* Filtros de búsqueda */}
-      <div className="mu-filters-container">
-        <div className="mu-filter-item">
-          <label className="mu-filter-label">Buscar por nombre</label>
-          <Form.Control
-            type="text"
-            name="name"
-            value={filters.name}
-            onChange={handleFilterChange}
-            placeholder="Buscar..."
-            size="sm"
-          />
-        </div>
-        <div className="mu-filter-item">
-          <label className="mu-filter-label">Filtrar por rol</label>
-          <Form.Select
-            name="role"
-            value={filters.role}
-            onChange={handleFilterChange}
-            size="sm"
-          >
-            <option value="">Todos</option>
-            <option value="admin">Administrador</option>
-            <option value="redactor">Redactor</option>
-            <option value="cliente">Cliente</option>
-          </Form.Select>
-        </div>
-        <div className="mu-filter-item">
-          <label className="mu-filter-label">Estado</label>
-          <Form.Select
-            name="status"
-            value={filters.status}
-            onChange={handleFilterChange}
-            size="sm"
-          >
-            <option value="">Todos</option>
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
-          </Form.Select>
+      <div className="mu-filters-sticky">
+        <div className="mu-filters-container">
+          <div className="mu-filter-item">
+            <label className="mu-filter-label">Buscar por nombre</label>
+            <Form.Control
+              type="text"
+              name="name"
+              value={filters.name}
+              onChange={handleFilterChange}
+              placeholder="Buscar..."
+              size="sm"
+            />
+          </div>
+          <div className="mu-filter-item">
+            <label className="mu-filter-label">Filtrar por rol</label>
+            <Form.Select
+              name="role"
+              value={filters.role}
+              onChange={handleFilterChange}
+              size="sm"
+            >
+              <option value="">Todos</option>
+              <option value="admin">Administrador</option>
+              <option value="redactor">Redactor</option>
+              <option value="cliente">Cliente</option>
+            </Form.Select>
+          </div>
+          <div className="mu-filter-item">
+            <label className="mu-filter-label">Estado</label>
+            <Form.Select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              size="sm"
+            >
+              <option value="">Todos</option>
+              <option value="active">Activo</option>
+              <option value="inactive">Inactivo</option>
+            </Form.Select>
+          </div>
         </div>
       </div>
 
-      <div className="mu-table-responsive">
+      {/* Tabla con scroll vertical */}
+      <div className="mu-table-scroll mu-table-responsive">
         <Table className="mu-manage-users-table admin-table">
           <thead>
             <tr>
@@ -269,7 +275,13 @@ function ManageUsers() {
                 <td className="mu-col-id">{user._id || 'N/A'}</td>
                 <td className="mu-col-name">{user.name || 'N/A'}</td>
                 <td className="mu-col-email">{user.email || 'N/A'}</td>
-                <td className="mu-col-role">{user.role || 'N/A'}</td>
+                <td className="mu-col-role">
+                  <span className={`mu-role-badge mu-role-${user.role || 'cliente'}`}>
+                    {user.role === 'admin' ? 'Admin' :
+                      user.role === 'redactor' ? 'Redactor' :
+                        user.role === 'cliente' ? 'Cliente' : 'Cliente'}
+                  </span>
+                </td>
                 <td className="mu-col-status">
                   <span className={`mu-user-status ${user.isActive ? 'mu-status-active' : 'mu-status-inactive'}`}>
                     {user.isActive ? 'Activo' : 'Inactivo'}
@@ -286,8 +298,9 @@ function ManageUsers() {
                         e.stopPropagation();
                         handleEditClick(user);
                       }}
+                      title="Editar usuario"
                     >
-                      Editar
+                      <FaEdit />
                     </Button>
                     <Button
                       className="mu-action-button mu-delete-button"
@@ -295,8 +308,9 @@ function ManageUsers() {
                         e.stopPropagation();
                         handleDeleteClick(user);
                       }}
+                      title="Eliminar usuario"
                     >
-                      Eliminar
+                      <FaTrash />
                     </Button>
 
                     {/* Edit Dropdown */}
@@ -315,7 +329,7 @@ function ManageUsers() {
                               setShowEditDropdown(null);
                             }}
                           >
-                            &times;
+                            <FaUserTimes />
                           </Button>
                         </div>
                         <Form onSubmit={handleEditSubmit}>
@@ -393,7 +407,7 @@ function ManageUsers() {
                               setShowDeleteConfirm(null);
                             }}
                           >
-                            &times;
+                            <FaUserTimes />
                           </Button>
                         </div>
                         <div className="mu-dropdown-body">
