@@ -34,7 +34,7 @@ const PaymentSuccess = () => {
         }
 
         try {
-            console.log("🔍 Verificando estado del pago con token:", trackingToken);
+            console.log("🔍 Verificando estado del pago...");
 
             // Intentar primero con el servicio directo
             try {

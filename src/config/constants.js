@@ -1,6 +1,6 @@
 // API URLs
-export const API_URL = process.env.REACT_APP_API_URL || 'https://tesipedia-backend-service-production.up.railway.app';
-export const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || API_URL;
+export const API_URL = import.meta.env.VITE_API_URL || 'https://tesipedia-backend-service-production.up.railway.app';
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || API_URL;
 
 // Other constants
 export const DEFAULT_AVATAR = 'https://via.placeholder.com/150';

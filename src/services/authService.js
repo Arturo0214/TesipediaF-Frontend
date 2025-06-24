@@ -2,19 +2,8 @@ import axiosWithAuth from '../utils/axioswithAuth';
 
 // Obtener token de las cookies
 export const getToken = () => {
-    const cookies = document.cookie;
-    console.log('Cookies disponibles:', cookies);
-
-    const tokenCookie = cookies
-        .split('; ')
-        .find(row => row.startsWith('jwt='));
-
-    console.log('Token cookie encontrada:', tokenCookie);
-
-    const token = tokenCookie?.split('=')[1];
-    console.log('Token extraído:', token ? 'Token encontrado' : 'Token no encontrado');
-
-    return token || null; // Asegurar que se devuelva null si no se encuentra el token
+    const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
 };
 
 // Función auxiliar para configurar cookies según el entorno

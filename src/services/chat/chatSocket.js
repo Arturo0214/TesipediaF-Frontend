@@ -17,7 +17,7 @@ export const connectSocket = (userId, isPublic = false) => {
     socket.disconnect();
   }
 
-  console.log('Conectando socket con:', { userId, isPublic, token: isPublic ? 'N/A' : getToken() ? 'Token presente' : 'Token ausente' });
+  console.log('Conectando socket con userId:', userId, 'isPublic:', isPublic);
 
   const socketOptions = {
     auth: isPublic

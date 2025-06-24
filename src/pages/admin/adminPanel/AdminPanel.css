@@ -69,13 +69,43 @@
 }
 
 .tesipedia-admin-nav-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.5px;
     color: #6c757d;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    padding: 0.25rem 0.5rem;
-    margin-bottom: 0.25rem;
-    letter-spacing: 0.5px;
+}
+
+.notification-title-with-icon .notification-toggle,
+.tesipedia-admin-nav-section-title .notification-toggle {
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    margin-left: 0.5rem;
+}
+
+.tesipedia-admin-nav-section-title .notification-icon-wrapper {
+    width: 22px;
+    height: 22px;
+}
+
+.tesipedia-admin-nav-section-title .notification-icon {
+    font-size: 1.1rem;
+}
+
+.tesipedia-admin-nav-section-title .notification-badge {
+    font-size: 0.65rem;
+    min-width: 13px;
+    height: 13px;
+    right: -6px;
+    top: -6px;
 }
 
 .tesipedia-admin-nav-link {
@@ -706,4 +736,131 @@
     .admin-panel-nav-section {
         border-bottom-color: #444;
     }
+}
+
+/* Botón hamburguesa para mobile */
+.tesipedia-admin-sidebar-toggle {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .tesipedia-admin-sidebar-toggle {
+        display: block;
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 2001;
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #23272f;
+        cursor: pointer;
+        padding: 0.3rem 0.5rem;
+        border-radius: 0.4rem;
+        box-shadow: 0 2px 8px 0 rgba(60, 60, 60, 0.08);
+    }
+}
+
+/* Overlay oscuro para mobile */
+.tesipedia-admin-sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .tesipedia-admin-sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(44, 62, 80, 0.35);
+        z-index: 2000;
+        transition: background 0.2s;
+    }
+}
+
+/* Sidebar animación para mobile */
+@media (max-width: 992px) {
+    .tesipedia-admin-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 240px;
+        z-index: 2100;
+        transform: translateX(-100%);
+        transition: transform 0.2s;
+        box-shadow: 2px 0 8px 0 rgba(60, 60, 60, 0.08);
+    }
+
+    .tesipedia-admin-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .tesipedia-admin-container {
+        grid-template-columns: 1fr;
+        padding-left: 0;
+    }
+}
+
+/* Alinear título PRINCIPAL y el icono de notificaciones */
+.notification-title-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+/* Ajustar tamaño del icono y badge en el sidebar */
+.notification-title-with-icon .notification-toggle {
+    padding: 0.15rem;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+.notification-title-with-icon .notification-icon-wrapper {
+    width: 22px;
+    height: 22px;
+}
+
+.notification-title-with-icon .notification-icon {
+    font-size: 1.1rem;
+}
+
+.notification-title-with-icon .notification-badge {
+    font-size: 0.65rem;
+    min-width: 13px;
+    height: 13px;
+    right: -6px;
+    top: -6px;
+}
+
+.sidebar-item-alert .tesipedia-admin-nav-link {
+    border: 2px solid #e53935 !important;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 0 2px #e5393533;
+    position: relative;
+    background: #fff6f6;
+}
+
+.sidebar-badge-alert {
+    position: absolute;
+    top: 6px;
+    right: 18px;
+    background: #e53935;
+    color: #fff;
+    font-size: 0.75rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    z-index: 3;
+    box-shadow: 0 0 0 2px #fff;
+    pointer-events: none;
+    animation: notification-pulse 1.2s infinite;
 }

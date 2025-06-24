@@ -14,12 +14,17 @@ import {
     FaUsersCog,
     FaChartBar,
     FaBell,
-    FaSignOutAlt
+    FaSignOutAlt,
+    FaBars
 } from 'react-icons/fa';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
+import { addNotification, updateNotification, removeNotification, fetchNotifications } from '../../../features/notifications/notificationSlice';
+import { connectSocket, onSocketEvent } from '../../../services/socket/socketService';
 import './AdminPanel.css';
 import '../adminCommon.css';
+import '../../../components/admin/NotificationDropdown.css';
+import authService from '../../../services/authService';
 
 // Import components
 import ManageQuotes from '../adminQuotes/ManageQuotes.jsx';
@@ -30,6 +35,7 @@ import ManageUsers from '../adminUsers/ManageUsers.jsx';
 import ManageServices from '../adminServices/ManageServices.jsx';
 import AdminDashboard from '../adminDashboard/AdminDashboard.jsx';
 import AdminMessages from '../adminMessages/AdminMessages.jsx';
+import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 // Error boundary component
 class ErrorBoundary extends React.Component {
@@ -70,6 +76,7 @@ const AdminPanel = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const authUser = useSelector(state => state.auth.user);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Determinar pestaña inicial basada en la URL
@@ -121,6 +128,32 @@ const AdminPanel = () => {
         }
     }, [location.pathname]);
 
+    // Conexión global al socket de notificaciones
+    useEffect(() => {
+        if (!authUser?._id) return;
+        const token = authService.getToken(); // Lee la cookie jwt
+        if (!token) {
+            console.error('[Socket] No se encontró el token JWT en las cookies');
+            return;
+        }
+        console.log('[Socket] Conectando socket para usuario:', authUser._id);
+        dispatch(fetchNotifications());
+        const socket = connectSocket(authUser._id, false, token);
+        onSocketEvent('notification:new', (notification) => {
+            console.log('[Socket] Recibida notificación nueva:', notification);
+            dispatch(addNotification(notification));
+        });
+        onSocketEvent('notification:update', (notification) => {
+            console.log('[Socket] Notificación actualizada:', notification);
+            dispatch(updateNotification(notification));
+        });
+        onSocketEvent('notification:delete', (notificationId) => {
+            console.log('[Socket] Notificación eliminada:', notificationId);
+            dispatch(removeNotification(notificationId));
+        });
+        // eslint-disable-next-line
+    }, [authUser?._id]);
+
     const handleLogout = async () => {
         try {
             await dispatch(logout()).unwrap();
@@ -140,6 +173,27 @@ const AdminPanel = () => {
         servicios: ManageServices,
         mensajes: AdminMessages
     };
+
+    const notifications = useSelector(state => state.notifications.notifications || []);
+
+    // Mapeo de tipos de notificación a keys de secciones
+    const notificationTypeToSection = {
+        cotizacion: 'cotizaciones',
+        proyecto: 'proyectos',
+        pago: 'pagos',
+        mensaje: 'mensajes',
+        visita: 'visitas',
+        // Puedes agregar más si tienes más secciones
+    };
+
+    // Calcular notificaciones no leídas por sección
+    const unreadBySection = {};
+    notifications.forEach(n => {
+        if (!n.isRead && notificationTypeToSection[n.type]) {
+            const section = notificationTypeToSection[n.type];
+            unreadBySection[section] = (unreadBySection[section] || 0) + 1;
+        }
+    });
 
     const renderTabContent = () => {
         const Component = components[activeTab] || components.dashboard;
@@ -161,27 +215,52 @@ const AdminPanel = () => {
 
         return (
             <div className="tesipedia-admin-nav-section">
-                <div className="tesipedia-admin-nav-section-title">{title}</div>
-                {sectionItems.map(({ key, icon: Icon, label, path }) => (
-                    <Nav.Link
-                        key={key}
-                        active={activeTab === key}
-                        onClick={() => handleTabSelect(key)}
-                        className="tesipedia-admin-nav-link"
-                        as={Link}
-                        to={path}
-                        replace
-                    >
-                        <Icon />
-                        <span>{label}</span>
-                    </Nav.Link>
-                ))}
+                <div className="tesipedia-admin-nav-section-title notification-title-with-icon">
+                    {title}
+                    {section === 'principal' && <NotificationDropdown />}
+                </div>
+                {sectionItems.map(({ key, icon: Icon, label, path }) => {
+                    const unread = unreadBySection[key] || 0;
+                    const isActive = activeTab === key;
+                    return (
+                        <div
+                            key={key}
+                            className={`sidebar-nav-item-wrapper${unread > 0 && !isActive ? ' sidebar-item-alert' : ''}`}
+                            style={{ position: 'relative' }}
+                        >
+                            <Nav.Link
+                                active={isActive}
+                                onClick={() => handleTabSelect(key)}
+                                className="tesipedia-admin-nav-link"
+                                as={Link}
+                                to={path}
+                                replace
+                            >
+                                <Icon />
+                                <span>{label}</span>
+                                {unread > 0 && !isActive && (
+                                    <span className="sidebar-badge-alert">{unread}</span>
+                                )}
+                            </Nav.Link>
+                        </div>
+                    );
+                })}
             </div>
         );
     };
 
     return (
         <div className="tesipedia-admin-panel">
+            {/* Botón hamburguesa solo en mobile */}
+            <button
+                className="tesipedia-admin-sidebar-toggle"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                aria-label="Abrir menú"
+            >
+                <FaBars />
+            </button>
+            {/* Overlay oscuro cuando el sidebar está abierto en mobile */}
+            {isSidebarOpen && <div className="tesipedia-admin-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
             <h1 className="tesipedia-admin-title">Panel de Administración</h1>
             <div className="tesipedia-admin-container">
                 <aside className={`tesipedia-admin-sidebar ${isSidebarOpen ? 'active' : ''}`}>

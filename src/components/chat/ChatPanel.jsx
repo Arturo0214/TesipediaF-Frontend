@@ -68,7 +68,7 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
 
                 // Obtener el token si el usuario está autenticado
                 const token = !isPublic ? localStorage.getItem('token') : null;
-                console.log('Conectando socket con userId:', socketUserId, 'y token:', token ? 'presente' : 'no presente');
+                console.log('Conectando socket con userId:', socketUserId);
 
                 const socket = connectSocket(socketUserId, isPublic, token);
 

@@ -343,11 +343,6 @@ const chatSlice = createSlice({
         state.conversations = state.conversations.filter(
           conv => conv.conversationId !== action.payload.conversationId
         );
-        // Si la conversación actual es la que se eliminó, limpiar los mensajes
-        if (action.payload.conversationId === state.currentConversationId) {
-          state.messages = [];
-          state.currentConversationId = null;
-        }
         console.log('🗑️ Conversación eliminada del estado:', action.payload.conversationId);
       })
       .addCase(deleteConversation.rejected, (state, action) => {

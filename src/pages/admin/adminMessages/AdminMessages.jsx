@@ -1015,7 +1015,7 @@ const AdminMessages = () => {
                 return;
             }
 
-            console.log('Inicializando socket con token...');
+            console.log('Inicializando socket...');
             const newSocket = connectSocket(user._id, false, token);
             setSocket(newSocket);
 
@@ -1113,11 +1113,18 @@ const AdminMessages = () => {
         initializeSocket();
 
         return () => {
-            console.log('Limpiando chat...');
-            dispatch(clearMessages());
+            console.log('Desconectando socket...');
             disconnectSocket();
         };
-    }, [dispatch, isAuthenticated, isAdmin, user?._id, selectedChat]);
+    }, [dispatch, isAuthenticated, isAdmin, user?._id]);
+
+    // Efecto separado para limpiar mensajes solo cuando el componente se desmonte
+    useEffect(() => {
+        return () => {
+            console.log('Componente AdminMessages desmontado, limpiando mensajes...');
+            dispatch(clearMessages());
+        };
+    }, [dispatch]);
 
     // Manejar eliminación de conversación
     const handleDeleteConversation = async (id) => {

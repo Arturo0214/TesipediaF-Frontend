@@ -119,6 +119,27 @@ const notificationSlice = createSlice({
       state.notifications = [];
       state.unreadCount = 0;
       state.error = null;
+    },
+    addNotification: (state, action) => {
+      // Insertar la nueva notificación al inicio del array
+      state.notifications.unshift(action.payload);
+      // Si la notificación no está leída, incrementar el contador
+      if (!action.payload.isRead) {
+        state.unreadCount += 1;
+      }
+    },
+    updateNotification: (state, action) => {
+      const idx = state.notifications.findIndex(n => n._id === action.payload._id);
+      if (idx !== -1) {
+        state.notifications[idx] = { ...state.notifications[idx], ...action.payload };
+        // Recalcular el contador de no leídas
+        state.unreadCount = state.notifications.filter(n => !n.isRead).length;
+      }
+    },
+    removeNotification: (state, action) => {
+      state.notifications = state.notifications.filter(n => n._id !== action.payload);
+      // Recalcular el contador de no leídas
+      state.unreadCount = state.notifications.filter(n => !n.isRead).length;
     }
   },
   extraReducers: (builder) => {
@@ -162,7 +183,7 @@ const notificationSlice = createSlice({
 });
 
 // 🧹 Actions
-export const { clearNotifications } = notificationSlice.actions;
+export const { clearNotifications, addNotification, updateNotification, removeNotification } = notificationSlice.actions;
 
 // 📦 Reducer
 export default notificationSlice.reducer;

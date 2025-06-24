@@ -36,7 +36,6 @@ function ResetPassword() {
 
   const validateToken = async () => {
     try {
-      console.log('Validando token:', token);
       const response = await axiosWithAuth.get(`/auth/reset-password/${token}`, {
         withCredentials: true
       });
