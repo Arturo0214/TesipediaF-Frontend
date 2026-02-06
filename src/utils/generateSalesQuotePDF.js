@@ -443,7 +443,10 @@ export const generateSalesQuotePDF = async (quoteData) => {
     });
 
     // Beneficios adicionales
-    quoteData.beneficiosAdicionales.filter(b => b.trim()).forEach((item, index) => {
+    quoteData.beneficiosAdicionales.filter(b => {
+        if (typeof b === 'object') return b.descripcion && b.descripcion.trim();
+        return b.trim();
+    }).forEach((item, index) => {
         if ((serviciosActualizados.length + index) % 2 === 0) {
             doc.setFillColor(...lightGray);
         } else {
@@ -454,9 +457,12 @@ export const generateSalesQuotePDF = async (quoteData) => {
         doc.setLineWidth(0.1);
         doc.line(tableX, yPos + rowHeight, tableX + tableWidth, yPos + rowHeight);
 
+        // Extraer descripción y costo del beneficio
+        let desc = typeof item === 'object' ? item.descripcion : item;
+        const costoBeneficio = typeof item === 'object' ? (parseFloat(item.costo) || 0) : 0;
+
         // Detectar si el item empieza con un número
-        const numberMatch = item.match(/^(\d+)\s+(.+)$/);
-        let desc = item;
+        const numberMatch = desc.match(/^(\d+)\s+(.+)$/);
         let includedValue = '✓';
         let includedColor = accentOrange;
 
@@ -478,16 +484,24 @@ export const generateSalesQuotePDF = async (quoteData) => {
         doc.setFont('helvetica', 'bold');
         doc.text(includedValue, tableX + tableWidth * 0.72, yPos + 4);
 
-        // Precio $0.00
+        // Mostrar el costo del beneficio (si es > 0) o $0.00
         doc.setTextColor(...darkGray);
         doc.setFont('helvetica', 'normal');
-        doc.text('$0.00', tableX + tableWidth - 5, yPos + 4, { align: 'right' });
+        if (costoBeneficio > 0) {
+            doc.setTextColor(...accentOrange);
+            doc.setFont('helvetica', 'bold');
+        }
+        doc.text(`$${formatPrice(costoBeneficio)}`, tableX + tableWidth - 5, yPos + 4, { align: 'right' });
 
         yPos += rowHeight;
     });
 
     // Fila de Tiempo de Entrega
-    const totalItems = serviciosActualizados.length + quoteData.beneficiosAdicionales.filter(b => b.trim()).length;
+    const beneficiosFiltrados = quoteData.beneficiosAdicionales.filter(b => {
+        if (typeof b === 'object') return b.descripcion && b.descripcion.trim();
+        return b.trim();
+    });
+    const totalItems = serviciosActualizados.length + beneficiosFiltrados.length;
     if (totalItems % 2 === 0) {
         doc.setFillColor(...lightGray);
     } else {
@@ -524,83 +538,87 @@ export const generateSalesQuotePDF = async (quoteData) => {
     const totalsWidth = contentWidth * 0.6;
     const spacing = contentWidth * 0.05;
 
-    // --- CTA Descuento (Izquierda) ---
-    doc.setFillColor(255, 248, 240);
-    doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
-    doc.setDrawColor(...accentOrange);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'S');
+    // --- CTA Descuento (Izquierda) - Solo mostrar si hay descuento ---
+    const descuentoPorcentaje = parseFloat(quoteData.descuentoEfectivo) || 0;
 
-    // Texto CTA
-    let ctaY = yPos + 6; // Inicio ajustado para altura 24
-    const ctaCenterX = margin + ctaWidth / 2;
+    if (descuentoPorcentaje > 0) {
+        doc.setFillColor(255, 248, 240);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
+        doc.setDrawColor(...accentOrange);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'S');
 
-    // Línea 1: "¡Recibe un 10% de" con estilos mixtos
-    // Partes: "¡Recibe un " (8pt Naranja), "10%" (12pt Rojo), " de" (8pt Naranja)
-    doc.setFont('helvetica', 'bold');
+        // Texto CTA
+        let ctaY = yPos + 6; // Inicio ajustado para altura 24
+        const ctaCenterX = margin + ctaWidth / 2;
 
-    // Medir anchos para centrar
-    doc.setFontSize(8);
-    const text1_1 = '¡Recibe un ';
-    const w1_1 = doc.getTextWidth(text1_1);
+        // Línea 1: "¡Recibe un 10% de" con estilos mixtos
+        // Partes: "¡Recibe un " (8pt Naranja), "10%" (12pt Rojo), " de" (8pt Naranja)
+        doc.setFont('helvetica', 'bold');
 
-    doc.setFontSize(12); // Grande para el porcentaje
-    const text1_2 = '10% '; // Espacio después incluido aquí o en el siguiente
-    const w1_2 = doc.getTextWidth(text1_2);
+        // Medir anchos para centrar
+        doc.setFontSize(8);
+        const text1_1 = '¡Recibe un ';
+        const w1_1 = doc.getTextWidth(text1_1);
 
-    doc.setFontSize(8);
-    const text1_3 = 'de';
-    const w1_3 = doc.getTextWidth(text1_3);
+        doc.setFontSize(12); // Grande para el porcentaje
+        const text1_2 = `${descuentoPorcentaje}% `; // Usar el porcentaje real
+        const w1_2 = doc.getTextWidth(text1_2);
 
-    const totalW_Line1 = w1_1 + w1_2 + w1_3;
-    let currentX_Line1 = ctaCenterX - (totalW_Line1 / 2);
+        doc.setFontSize(8);
+        const text1_3 = 'de';
+        const w1_3 = doc.getTextWidth(text1_3);
 
-    // Dibujar Línea 1
-    // Parte 1
-    doc.setFontSize(8);
-    doc.setTextColor(...accentOrange);
-    doc.text(text1_1, currentX_Line1, ctaY);
-    currentX_Line1 += w1_1;
+        const totalW_Line1 = w1_1 + w1_2 + w1_3;
+        let currentX_Line1 = ctaCenterX - (totalW_Line1 / 2);
 
-    // Parte 2 ("10%") - Rojo y Grande
-    doc.setFontSize(12);
-    doc.setTextColor(220, 53, 69); // Rojo
-    doc.text(text1_2, currentX_Line1, ctaY); // Alineado a la baseline, jsPDF lo maneja bien usualmente
-    currentX_Line1 += w1_2;
+        // Dibujar Línea 1
+        // Parte 1
+        doc.setFontSize(8);
+        doc.setTextColor(...accentOrange);
+        doc.text(text1_1, currentX_Line1, ctaY);
+        currentX_Line1 += w1_1;
 
-    // Parte 3 (" de")
-    doc.setFontSize(8);
-    doc.setTextColor(...accentOrange);
-    doc.text(text1_3, currentX_Line1, ctaY);
+        // Parte 2 ("10%") - Rojo y Grande
+        doc.setFontSize(12);
+        doc.setTextColor(220, 53, 69); // Rojo
+        doc.text(text1_2, currentX_Line1, ctaY); // Alineado a la baseline, jsPDF lo maneja bien usualmente
+        currentX_Line1 += w1_2;
 
-    ctaY += 4.5;
-    doc.setFontSize(12);
-    doc.setTextColor(220, 53, 69); // Rojo
-    doc.text('DESCUENTO', ctaCenterX, ctaY, { align: 'center' });
+        // Parte 3 (" de")
+        doc.setFontSize(8);
+        doc.setTextColor(...accentOrange);
+        doc.text(text1_3, currentX_Line1, ctaY);
 
-    ctaY += 4.5;
-    // "pagando en EFECTIVO!"
-    doc.setFontSize(8);
-    const textPart1 = 'pagando en ';
-    const textPart2 = 'EFECTIVO!';
-    const width1 = doc.getTextWidth(textPart1);
-    const width2 = doc.getTextWidth(textPart2);
-    const totalW = width1 + width2;
+        ctaY += 4.5;
+        doc.setFontSize(12);
+        doc.setTextColor(220, 53, 69); // Rojo
+        doc.text('DESCUENTO', ctaCenterX, ctaY, { align: 'center' });
 
-    let currentX = ctaCenterX - (totalW / 2);
+        ctaY += 4.5;
+        // "pagando en EFECTIVO!"
+        doc.setFontSize(8);
+        const textPart1 = 'pagando en ';
+        const textPart2 = 'EFECTIVO!';
+        const width1 = doc.getTextWidth(textPart1);
+        const width2 = doc.getTextWidth(textPart2);
+        const totalW = width1 + width2;
 
-    doc.setTextColor(...accentOrange);
-    doc.text(textPart1, currentX, ctaY);
+        let currentX = ctaCenterX - (totalW / 2);
 
-    currentX += width1;
-    doc.setTextColor(40, 167, 69);
-    doc.text(textPart2, currentX, ctaY);
+        doc.setTextColor(...accentOrange);
+        doc.text(textPart1, currentX, ctaY);
 
-    ctaY += 4;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7); // Nota más pequeña
-    doc.setTextColor(...darkGray);
-    doc.text('(Retiro sin tarjeta)', ctaCenterX, ctaY, { align: 'center' });
+        currentX += width1;
+        doc.setTextColor(40, 167, 69);
+        doc.text(textPart2, currentX, ctaY);
+
+        ctaY += 4;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7); // Nota más pequeña
+        doc.setTextColor(...darkGray);
+        doc.text('(Retiro sin tarjeta)', ctaCenterX, ctaY, { align: 'center' });
+    }
 
     // --- Tabla de Totales (Derecha) ---
     const totalsX = margin + ctaWidth + spacing;
@@ -618,7 +636,13 @@ export const generateSalesQuotePDF = async (quoteData) => {
     // const valueX = totalsX + totalsWidth - 5; // Variable ya no usada, usaré alineacionDerecha directa
 
     // Valores
-    const subtotalMostrado = precioBase + recargoMonto;
+    const costoBeneficios = quoteData.beneficiosAdicionales.reduce((total, b) => {
+        if (typeof b === 'object') {
+            return total + (parseFloat(b.costo) || 0);
+        }
+        return total;
+    }, 0);
+    const subtotalMostrado = precioBase + recargoMonto + costoBeneficios;
     const alineacionDerecha = tableX + tableWidth - 5;
 
     // Subtotal
@@ -638,13 +662,25 @@ export const generateSalesQuotePDF = async (quoteData) => {
         totalsY += 5;
     }
 
-    // Descuento
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...successGreen);
-    doc.text(`Descuento pagando en efectivo (${quoteData.descuentoEfectivo}%):`, totalsX + 5, totalsY);
-    doc.text(`-$${formatPrice(descuento)}`, alineacionDerecha, totalsY, { align: 'right' });
+    // Beneficios adicionales
+    if (costoBeneficios > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(230, 140, 50); // Naranja
+        doc.text('Beneficios adicionales:', totalsX + 5, totalsY);
+        doc.text(`+$${formatPrice(costoBeneficios)}`, alineacionDerecha, totalsY, { align: 'right' });
+        totalsY += 5;
+    }
 
-    totalsY += 8; // Espacio antes del total final
+    // Descuento - Solo mostrar si es mayor a 0
+    if (descuentoPorcentaje > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...successGreen);
+        doc.text(`Descuento pagando en efectivo (${quoteData.descuentoEfectivo}%):`, totalsX + 5, totalsY);
+        doc.text(`-$${formatPrice(descuento)}`, alineacionDerecha, totalsY, { align: 'right' });
+        totalsY += 5;
+    }
+
+    totalsY += (descuentoPorcentaje > 0 ? 3 : 8); // Espacio antes del total final
 
     // GRAN TOTAL Box (Altura reducida)
     const grandTotalHeight = 8; // Reducido de 10

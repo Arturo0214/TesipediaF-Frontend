@@ -16,7 +16,7 @@ const SalesQuote = () => {
         clientName: '',
         tipoTrabajo: '',
         customTipoTrabajo: '',
-        tipoServicio: 'completo',
+        tipoServicio: 'modalidad1', // modalidad1 (100%), modalidad2 (75%), correccion (50%)
         nivelAcademico: '',
         tituloTrabajo: '',
         area: '',
@@ -37,7 +37,7 @@ const SalesQuote = () => {
             '1 Correcciones de fondo y estilo del asesor y sinodales.',
             '1 Asesoría 1:1 en cuanto se entregue versión preliminar.'
         ],
-        beneficiosAdicionales: [],
+        beneficiosAdicionales: [], // Array de objetos: { descripcion: string, costo: number }
         ajustesIlimitados: 'Ajustes ilimitados conforme a observaciones del asesor.',
         acompañamientoContinuo: 'Acompañamiento continuo hasta versión final aprobable.',
         asesoria: 'Asesoría 1:1 al realizar la entrega de la versión preliminar.',
@@ -100,18 +100,32 @@ const SalesQuote = () => {
         const tipoTrabajo = formData.tipoTrabajo === 'Otro' ? formData.customTipoTrabajo : formData.tipoTrabajo;
         if (!tipoTrabajo) return '';
         const tipoTrabajoLower = tipoTrabajo.toLowerCase();
-        let descripcion = formData.tipoServicio === 'correccion' ? `Corrección de ${tipoTrabajoLower}` : `Elaboración de ${tipoTrabajoLower}`;
+        // Determinar el nombre profesional del servicio
+        let nombreServicio = '';
+        let preposicion = 'de';
+        if (formData.tipoServicio === 'correccion') {
+            nombreServicio = 'Servicio de Corrección y Revisión';
+        } else if (formData.tipoServicio === 'modalidad2') {
+            nombreServicio = 'Servicio de Acompañamiento Académico';
+            preposicion = 'para';
+        } else {
+            nombreServicio = 'Servicio Integral de Elaboración';
+        }
+
+        let descripcion = `${nombreServicio} ${preposicion} ${tipoTrabajoLower}`;
         if (formData.tituloTrabajo && formData.tituloTrabajo.trim()) descripcion += ` titulada "${formData.tituloTrabajo}"`;
         if (formData.extensionEstimada && parseFloat(formData.extensionEstimada) > 0) descripcion += ` de ${formData.extensionEstimada} páginas (aproximadamente)`;
         if (formData.area) descripcion += ` del ${formData.area}`;
         if (formData.carrera && formData.carrera.trim()) descripcion += ` para la carrera de ${formData.carrera}`;
         descripcion += '.';
 
-        // Agregar descripción detallada del servicio
+        // Agregar descripción detallada del servicio según modalidad
         if (formData.tipoServicio === 'correccion') {
             descripcion += ' Incluye revisión de fondo y forma, atención a observaciones del asesor y ajustes necesarios para aprobación final.';
+        } else if (formData.tipoServicio === 'modalidad2') {
+            descripcion += ' El servicio incluye acompañamiento académico continuo, revisión de avances, retroalimentación especializada y apoyo en el desarrollo del trabajo conforme a lineamientos institucionales.';
         } else {
-            // Para todos los tipos de trabajo en modo completo
+            // Modalidad 1 - Servicio Integral
             descripcion += ' El servicio contempla la elaboración integral conforme a los lineamientos institucionales aplicables, con acompañamiento académico durante todo el proceso hasta contar con una versión lista para entrega y revisión final.';
         }
         return descripcion;
@@ -136,14 +150,18 @@ const SalesQuote = () => {
         setFormData(prev => ({ ...prev, serviciosIncluidos: newServicios }));
     };
 
-    const handleBeneficioChange = (index, value) => {
+    const handleBeneficioChange = (index, field, value) => {
         const newBeneficios = [...formData.beneficiosAdicionales];
-        newBeneficios[index] = value;
+        if (typeof newBeneficios[index] === 'string') {
+            // Migrar de string a objeto si es necesario
+            newBeneficios[index] = { descripcion: newBeneficios[index], costo: 0 };
+        }
+        newBeneficios[index] = { ...newBeneficios[index], [field]: value };
         setFormData(prev => ({ ...prev, beneficiosAdicionales: newBeneficios }));
     };
 
     const addBeneficio = () => {
-        setFormData(prev => ({ ...prev, beneficiosAdicionales: [...prev.beneficiosAdicionales, ''] }));
+        setFormData(prev => ({ ...prev, beneficiosAdicionales: [...prev.beneficiosAdicionales, { descripcion: '', costo: 0 }] }));
     };
 
     const removeBeneficio = (index) => {
@@ -186,11 +204,18 @@ const SalesQuote = () => {
         const precioBase = parseFloat(formData.precioRegular) || 0;
         const recargo = obtenerRecargoUrgencia();
         const recargoMonto = precioBase * (recargo.porcentaje / 100);
-        const precioConRecargo = precioBase + recargoMonto;
-        const descuentoPorcentaje = parseFloat(formData.descuentoEfectivo) || 10;
+        // Sumar costos de beneficios adicionales
+        const costoBeneficios = formData.beneficiosAdicionales.reduce((total, beneficio) => {
+            const costo = typeof beneficio === 'object' ? (parseFloat(beneficio.costo) || 0) : 0;
+            return total + costo;
+        }, 0);
+        const precioConRecargo = precioBase + recargoMonto + costoBeneficios;
+        // Permitir descuento de 0% - usar isNaN en lugar de || para evitar que 0 sea tratado como falsy
+        const descuentoValue = parseFloat(formData.descuentoEfectivo);
+        const descuentoPorcentaje = isNaN(descuentoValue) ? 10 : descuentoValue;
         const descuentoMonto = precioConRecargo * (descuentoPorcentaje / 100);
         const precioConDescuento = precioConRecargo - descuentoMonto;
-        return { precioBase, recargoMonto, recargoPorcentaje: recargo.porcentaje, recargoTexto: recargo.texto, precioConRecargo, descuentoMonto, precioConDescuento };
+        return { precioBase, recargoMonto, recargoPorcentaje: recargo.porcentaje, recargoTexto: recargo.texto, costoBeneficios, precioConRecargo, descuentoMonto, precioConDescuento };
     };
 
     const formatPrice = (price) => {
@@ -253,7 +278,12 @@ const SalesQuote = () => {
                 precioConDescuento: prices.precioConDescuento,
                 esquemaPago: formData.esquemaPago,
                 serviciosIncluidos: formData.serviciosIncluidos.filter(s => s.trim() !== ''),
-                beneficiosAdicionales: formData.beneficiosAdicionales.filter(b => b.trim() !== ''),
+                beneficiosAdicionales: formData.beneficiosAdicionales.filter(b => {
+                    if (typeof b === 'object') {
+                        return b.descripcion && b.descripcion.trim() !== '';
+                    }
+                    return b.trim() !== '';
+                }),
                 ajustesIlimitados: formData.ajustesIlimitados,
                 acompañamientoContinuo: formData.acompañamientoContinuo,
                 asesoria: formData.asesoria,
@@ -318,21 +348,25 @@ const SalesQuote = () => {
                                                 <Col xs={4}>
                                                     <Form.Control size="sm" type="number" placeholder="Págs *" value={formData.extensionEstimada} onChange={(e) => handleInputChange('extensionEstimada', e.target.value)} min="1" />
                                                 </Col>
-                                                {(formData.tipoTrabajo === 'Tesis' || formData.tipoTrabajo === 'Tesina') && (
-                                                    <Col xs={6}>
-                                                        <Form.Select size="sm" value={formData.tipoServicio} onChange={(e) => {
-                                                            const valor = e.target.value;
-                                                            if (valor === 'correccion') {
-                                                                setFormData(prev => ({ ...prev, tipoServicio: valor, serviciosIncluidos: ['1 Escáner antiplagio.', '1 Escáner anti-IA.'], beneficiosAdicionales: [] }));
-                                                            } else {
-                                                                setFormData(prev => ({ ...prev, tipoServicio: valor, serviciosIncluidos: ['1 Escáner antiplagio.', '1 Escáner anti-IA.', '1 Correcciones de fondo y estilo del asesor y sinodales.', '1 Asesoría 1:1 en cuanto se entregue versión preliminar.'], beneficiosAdicionales: [] }));
-                                                            }
-                                                        }}>
-                                                            <option value="completo">Completo</option>
-                                                            <option value="correccion">Corrección</option>
-                                                        </Form.Select>
-                                                    </Col>
-                                                )}
+                                                {/* Selector de Tipo de Servicio - 3 Modalidades */}
+                                                <Col xs={6}>
+                                                    <div className="micro-label">Tipo de Servicio</div>
+                                                    <Form.Select size="sm" value={formData.tipoServicio} onChange={(e) => {
+                                                        const valor = e.target.value;
+                                                        if (valor === 'correccion') {
+                                                            setFormData(prev => ({ ...prev, tipoServicio: valor, serviciosIncluidos: ['1 Escáner antiplagio.', '1 Escáner anti-IA.'], beneficiosAdicionales: [] }));
+                                                        } else if (valor === 'modalidad2') {
+                                                            setFormData(prev => ({ ...prev, tipoServicio: valor, serviciosIncluidos: ['1 Escáner antiplagio.', '1 Escáner anti-IA.', '1 Acompañamiento continuo.'], beneficiosAdicionales: [] }));
+                                                        } else {
+                                                            // modalidad1
+                                                            setFormData(prev => ({ ...prev, tipoServicio: valor, serviciosIncluidos: ['1 Escáner antiplagio.', '1 Escáner anti-IA.', '1 Correcciones de fondo y estilo del asesor y sinodales.', '1 Asesoría 1:1 en cuanto se entregue versión preliminar.'], beneficiosAdicionales: [] }));
+                                                        }
+                                                    }}>
+                                                        <option value="modalidad1">Modalidad 1 - Hacemos todo (100%)</option>
+                                                        <option value="modalidad2">Modalidad 2 - Acompañamiento (75%)</option>
+                                                        <option value="correccion">Solo Corrección (50%)</option>
+                                                    </Form.Select>
+                                                </Col>
                                                 {formData.tipoTrabajo === 'Otro' && (
                                                     <Col xs={6}>
                                                         <Form.Control size="sm" type="text" placeholder="Especificar..." value={formData.customTipoTrabajo} onChange={(e) => handleInputChange('customTipoTrabajo', e.target.value)} />
@@ -414,26 +448,44 @@ const SalesQuote = () => {
                                                     <div>
                                                         <div className="micro-label">Beneficios</div>
                                                         <div className="services-list" style={{ maxHeight: '100px', overflowY: 'auto' }}>
-                                                            {formData.beneficiosAdicionales.map((beneficio, index) => (
-                                                                <div key={index} className="d-flex mb-1 gap-1">
-                                                                    <Form.Control
-                                                                        type="text"
-                                                                        size="sm"
-                                                                        value={beneficio}
-                                                                        onChange={(e) => handleBeneficioChange(index, e.target.value)}
-                                                                        className="flex-grow-1"
-                                                                    />
-                                                                    <Button
-                                                                        variant="outline-danger"
-                                                                        size="sm"
-                                                                        className="btn-micro"
-                                                                        onClick={() => removeBeneficio(index)}
-                                                                        tabIndex="-1"
-                                                                    >
-                                                                        &times;
-                                                                    </Button>
-                                                                </div>
-                                                            ))}
+                                                            {formData.beneficiosAdicionales.map((beneficio, index) => {
+                                                                const desc = typeof beneficio === 'object' ? beneficio.descripcion : beneficio;
+                                                                const costo = typeof beneficio === 'object' ? beneficio.costo : 0;
+                                                                return (
+                                                                    <div key={index} className="d-flex mb-1 gap-1">
+                                                                        <Form.Control
+                                                                            type="text"
+                                                                            size="sm"
+                                                                            placeholder="Descripción"
+                                                                            value={desc}
+                                                                            onChange={(e) => handleBeneficioChange(index, 'descripcion', e.target.value)}
+                                                                            className="flex-grow-1"
+                                                                            style={{ minWidth: '0' }}
+                                                                        />
+                                                                        <div className="input-group input-group-sm" style={{ width: '90px', flexShrink: 0 }}>
+                                                                            <span className="input-group-text" style={{ padding: '0 0.25rem', fontSize: '0.7rem' }}>$</span>
+                                                                            <Form.Control
+                                                                                type="number"
+                                                                                size="sm"
+                                                                                placeholder="0"
+                                                                                value={costo}
+                                                                                onChange={(e) => handleBeneficioChange(index, 'costo', e.target.value)}
+                                                                                style={{ fontSize: '0.7rem', padding: '0.25rem' }}
+                                                                                min="0"
+                                                                            />
+                                                                        </div>
+                                                                        <Button
+                                                                            variant="outline-danger"
+                                                                            size="sm"
+                                                                            className="btn-micro"
+                                                                            onClick={() => removeBeneficio(index)}
+                                                                            tabIndex="-1"
+                                                                        >
+                                                                            &times;
+                                                                        </Button>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
                                                         <a href="#" className="micro-btn mt-1 d-inline-block" onClick={(e) => { e.preventDefault(); addBeneficio(); }}>
                                                             + Beneficio
@@ -495,6 +547,12 @@ const SalesQuote = () => {
                                                     <div className="d-flex justify-content-between mb-1 text-warning" style={{ fontSize: '0.75rem' }}>
                                                         <span>Urgencia (+{prices.recargoPorcentaje}%):</span>
                                                         <strong>+${formatPrice(prices.recargoMonto)}</strong>
+                                                    </div>
+                                                )}
+                                                {prices.costoBeneficios > 0 && (
+                                                    <div className="d-flex justify-content-between mb-1 text-info" style={{ fontSize: '0.75rem' }}>
+                                                        <span>Beneficios adicionales:</span>
+                                                        <strong>+${formatPrice(prices.costoBeneficios)}</strong>
                                                     </div>
                                                 )}
                                                 <div className="d-flex justify-content-between mb-1 text-success" style={{ fontSize: '0.75rem' }}>
