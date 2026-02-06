@@ -3,7 +3,8 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 import authReducer from '../features/auth/authSlice';
-import paymentReducer from '../features/payments/guestPaymentSlice';
+import paymentReducer from '../features/payments/paymentSlice';
+import guestPaymentReducer from '../features/payments/guestPaymentSlice';
 import quoteReducer from '../features/quotes/quoteSlice';
 import visitReducer from '../features/visits/visitsSlice';
 import chatReducer from '../features/chat/chatSlice';
@@ -21,6 +22,7 @@ const chatPersistConfig = {
 const rootReducer = combineReducers({
     auth: authReducer,
     payments: paymentReducer,
+    guestPayments: guestPaymentReducer,
     quotes: quoteReducer,
     visits: visitReducer,
     notifications: notificationsReducer,

@@ -97,16 +97,7 @@ function MainNavbar() {
                                 <Nav.Link as={NavLink} to="/" onClick={closeNavbar}>Inicio</Nav.Link>
                             </motion.div>
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/servicios" onClick={closeNavbar}>Servicios</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/como-funciona" onClick={closeNavbar}>¿Cómo Funciona?</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/precios" onClick={closeNavbar}>Precios</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/cotizar" className="nav-link-cotizar" style={{ color: '#4F46E5' }} onClick={closeNavbar}>Cotizar</Nav.Link>
+                                <Nav.Link as={NavLink} to="/cotizaciones" style={{ color: '#4F46E5', fontWeight: '600' }} onClick={closeNavbar}>Cotizaciones</Nav.Link>
                             </motion.div>
                             <NavDropdown title="Más" id="nav-dropdown" className="nav-dropdown">
                                 <motion.div variants={dropdownVariants}>
@@ -114,16 +105,10 @@ function MainNavbar() {
                                     <NavDropdown.Item as={NavLink} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas Frecuentes</NavDropdown.Item>
                                     <NavDropdown.Divider />
                                     <NavDropdown.Item as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</NavDropdown.Item>
-                                    <NavDropdown.Item as={NavLink} to="/blog" onClick={closeNavbar}>Blog</NavDropdown.Item>
                                 </motion.div>
                             </NavDropdown>
                         </Nav>
                         <Nav className="align-items-center">
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button as={Link} to="/cotizar" className="btn-cotizar me-2" onClick={closeNavbar}>
-                                    Cotizar Tesis
-                                </Button>
-                            </motion.div>
                             <AnimatePresence>
                                 {isAuthenticated ? (
                                     <motion.div

@@ -1,113 +1,119 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as paymentService from '../../services/paymentService';
-import quoteService from '../../services/quoteService';
+import paymentService from '../../services/paymentService';
 
-const initialState = {
-    payments: [],
-    payment: null,
-    isLoading: false,
-    isError: false,
-    isSuccess: false,
-    message: '',
-    sessionUrl: null,
-    order: null
-};
+// Thunks
+export const checkPaymentStatus = createAsyncThunk(
+    'payment/checkStatus',
+    async ({ orderId }, { rejectWithValue }) => {
+        try {
+            const response = await paymentService.checkPaymentStatus(orderId);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || 'Error al verificar el estado del pago');
+        }
+    }
+);
 
-// Create order from quote and then create payment session
 export const createPaymentSession = createAsyncThunk(
-    'payments/createSession',
-    async ({ publicId }, thunkAPI) => {
+    'payment/createSession',
+    async ({ publicId }, { rejectWithValue }) => {
         try {
             console.log('Starting payment session creation for quote:', publicId);
 
-            // First try to link the quote to the user
+            // 1. Link quote to user
+            console.log('Linking quote to user...');
             try {
-                console.log('Linking quote to user...');
-                await quoteService.linkQuoteToUser(publicId);
-                console.log('Quote linked successfully');
+                await paymentService.linkQuoteToUser(publicId);
+                console.log('Quote linked to user successfully');
             } catch (error) {
-                // If the error is that the quote is already linked, continue with the flow
-                // Otherwise, rethrow the error
-                if (error.response?.status !== 400 || !error.response?.data?.message?.includes('ya está vinculada')) {
+                if (error.response?.status === 400 && error.response?.data?.message?.includes('already linked')) {
+                    console.log('Quote was already linked to user, continuing...');
+                } else {
                     throw error;
                 }
-                console.log('Quote was already linked to user, continuing...');
             }
 
-            // Get the quote details to properly format the data
+            // 2. Get quote details
             console.log('Getting quote details...');
-            const quoteResponse = await quoteService.getQuoteByPublicId(publicId);
-            const quote = quoteResponse;
+            const quoteResponse = await paymentService.getQuoteDetails(publicId);
+            const quote = quoteResponse.data;
 
-            // Format the data according to the Order model schema
-            const orderData = {
-                requirements: {
-                    text: quote.requirements?.text || '',
-                    file: quote.requirements?.file?.path || ''
-                },
-                price: Number(quote.priceDetails?.finalPrice || quote.estimatedPrice || 0)
-            };
-
-            // Then create the order from the quote with formatted data
+            // 3. Create or get existing order
             console.log('Creating order from quote...');
-            const orderResponse = await paymentService.createOrderFromQuote(publicId, orderData);
-            console.log('Order created:', orderResponse);
-
-            // Get the order ID, whether it's a new order or an existing one
-            const orderId = orderResponse.order._id;
+            const orderResponse = await paymentService.createOrderFromQuote(publicId);
+            console.log('Order created:', orderResponse.data);
+            const orderId = orderResponse.data.order._id;
             console.log('Using order ID:', orderId);
 
-            // Finally create the payment session with the order ID
+            // 4. Create Stripe session
             console.log('Creating Stripe session...');
             const sessionResponse = await paymentService.createStripeSession(orderId);
             console.log('Session created:', sessionResponse);
 
             return {
-                order: orderResponse.order,
-                sessionUrl: sessionResponse.url
+                sessionUrl: sessionResponse.data.url,
+                orderId: orderId
             };
         } catch (error) {
-            console.error('Full error object:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
-            console.error('Payment session creation error:', errorMessage);
-            return thunkAPI.rejectWithValue(errorMessage);
+            console.error('Error in createPaymentSession:', error.response?.data || error.message);
+            return rejectWithValue(error.response?.data || 'Error al crear la sesión de pago');
         }
     }
 );
+
+const initialState = {
+    paymentStatus: null,
+    sessionUrl: null,
+    loading: false,
+    error: null,
+    orderId: null
+};
 
 const paymentSlice = createSlice({
     name: 'payment',
     initialState,
     reducers: {
-        reset: (state) => {
-            state.isLoading = false;
-            state.isError = false;
-            state.isSuccess = false;
-            state.message = '';
+        clearPaymentState: (state) => {
+            state.paymentStatus = null;
             state.sessionUrl = null;
-            state.order = null;
+            state.loading = false;
+            state.error = null;
+            state.orderId = null;
         }
     },
     extraReducers: (builder) => {
+        // Check Payment Status
         builder
+            .addCase(checkPaymentStatus.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(checkPaymentStatus.fulfilled, (state, action) => {
+                state.loading = false;
+                state.paymentStatus = action.payload.status;
+                state.error = null;
+            })
+            .addCase(checkPaymentStatus.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Error al verificar el estado del pago';
+            })
+            // Create Payment Session
             .addCase(createPaymentSession.pending, (state) => {
-                state.isLoading = true;
-                state.isError = false;
-                state.message = '';
+                state.loading = true;
+                state.error = null;
             })
             .addCase(createPaymentSession.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.isSuccess = true;
+                state.loading = false;
                 state.sessionUrl = action.payload.sessionUrl;
-                state.order = action.payload.order;
+                state.orderId = action.payload.orderId;
+                state.error = null;
             })
             .addCase(createPaymentSession.rejected, (state, action) => {
-                state.isLoading = false;
-                state.isError = true;
-                state.message = action.payload;
+                state.loading = false;
+                state.error = action.payload || 'Error al crear la sesión de pago';
             });
     }
 });
 
-export const { reset } = paymentSlice.actions;
+export const { clearPaymentState } = paymentSlice.actions;
 export default paymentSlice.reducer;

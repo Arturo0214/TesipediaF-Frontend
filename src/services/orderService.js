@@ -1,11 +1,31 @@
-import axios from 'axios';
+import axiosWithAuth from '../utils/axioswithAuth';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 
-// Obtener orden por ID
+// Crear orden a partir de una cotización
+export const createOrderFromQuote = async (publicId) => {
+    try {
+        const response = await axiosWithAuth.post(`/orders/from-quote/${publicId}`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Error al crear la orden desde la cotización' };
+    }
+};
+
+// Obtener órdenes del usuario
+export const getMyOrders = async () => {
+    try {
+        const response = await axiosWithAuth.get('/orders/my-orders');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Error al obtener las órdenes' };
+    }
+};
+
+// Obtener una orden específica
 export const getOrderById = async (orderId) => {
     try {
-        const response = await axios.get(`${API_URL}/orders/${orderId}`);
+        const response = await axiosWithAuth.get(`/orders/${orderId}`);
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: 'Error al obtener la orden' };
@@ -15,7 +35,7 @@ export const getOrderById = async (orderId) => {
 // Obtener todas las órdenes (admin)
 export const getAllOrders = async (page = 1, keyword = '') => {
     try {
-        const response = await axios.get(`${API_URL}/orders`, {
+        const response = await axiosWithAuth.get('/orders', {
             params: {
                 page,
                 keyword
@@ -30,7 +50,7 @@ export const getAllOrders = async (page = 1, keyword = '') => {
 // Actualizar estado de la orden
 export const updateOrderStatus = async (orderId, status) => {
     try {
-        const response = await axios.put(`${API_URL}/orders/${orderId}/status`, { status });
+        const response = await axiosWithAuth.put(`/orders/${orderId}/status`, { status });
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: 'Error al actualizar el estado de la orden' };
@@ -40,7 +60,7 @@ export const updateOrderStatus = async (orderId, status) => {
 // Cancelar orden
 export const cancelOrder = async (orderId) => {
     try {
-        const response = await axios.post(`${API_URL}/orders/${orderId}/cancel`);
+        const response = await axiosWithAuth.post(`/orders/${orderId}/cancel`);
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: 'Error al cancelar la orden' };
@@ -50,7 +70,7 @@ export const cancelOrder = async (orderId) => {
 // Obtener analytics de órdenes
 export const getOrderAnalytics = async () => {
     try {
-        const response = await axios.get(`${API_URL}/orders/analytics`);
+        const response = await axiosWithAuth.get('/orders/analytics');
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: 'Error al obtener analytics de órdenes' };

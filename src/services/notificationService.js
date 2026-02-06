@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosWithAuth from '../utils/axioswithAuth';
 
 // Configuración base para las peticiones
 const notificationAPI = axios.create({
@@ -23,6 +24,49 @@ notificationAPI.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+let lastFetchTime = 0;
+const MINIMUM_INTERVAL = 5000; // 5 segundos entre solicitudes
+
+const getNotifications = async () => {
+    const now = Date.now();
+
+    // Si no ha pasado el tiempo mínimo desde la última solicitud, no hacer nada
+    if (now - lastFetchTime < MINIMUM_INTERVAL) {
+        return null;
+    }
+
+    try {
+        lastFetchTime = now;
+        const response = await axiosWithAuth.get(`${API_URL}/api/notifications`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener notificaciones:', error);
+        throw error;
+    }
+};
+
+const markAsRead = async (notificationId) => {
+    try {
+        const response = await axiosWithAuth.put(`${API_URL}/api/notifications/${notificationId}/read`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al marcar notificación como leída:', error);
+        throw error;
+    }
+};
+
+const markAllAsRead = async () => {
+    try {
+        const response = await axiosWithAuth.put(`${API_URL}/api/notifications/read-all`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al marcar todas las notificaciones como leídas:', error);
+        throw error;
+    }
+};
 
 /**
  * Servicio para gestionar las notificaciones
@@ -104,6 +148,10 @@ const notificationService = {
             throw error.response?.data || { message: 'Error al crear la notificación' };
         }
     },
+
+    getNotifications,
+    markAsRead,
+    markAllAsRead
 };
 
 export default notificationService;

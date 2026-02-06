@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import QuoteCheckMiddleware from './components/common/QuoteCheckMiddleware';
 
 import Home from './pages/Home/Home';
 import Login from './pages/auth/Login';
@@ -18,6 +19,7 @@ import AboutUs from './pages/AboutUs/AboutUs';
 import FAQ from './pages/FAQ/FAQ';
 import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel/PaymentCancel';
+import SalesQuote from './pages/SalesQuote/SalesQuote';
 
 import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/dashboard/Profile';
@@ -25,6 +27,7 @@ import MyQuotes from './pages/dashboard/MyQuotes';
 import MyOrders from './pages/dashboard/MyOrders';
 import Messages from './pages/dashboard/Messages';
 import Payments from './pages/dashboard/Payments';
+import MyProject from './pages/dashboard/MyProject';
 
 // Admin Pages
 import AdminPanel from './pages/admin/adminPanel/AdminPanel';
@@ -50,16 +53,25 @@ const router = createBrowserRouter(
         { path: 'preguntas-frecuentes', element: <FAQ /> },
         { path: 'payment/success', element: <PaymentSuccess /> },
         { path: 'payment/cancel', element: <PaymentCancel /> },
+        { path: 'cotizaciones', element: <SalesQuote /> },
 
         {
           element: <ProtectedRoute />,
           children: [
-            { path: 'dashboard', element: <Dashboard /> },
+            // Rutas que requieren verificación de cotización
+            {
+              element: <QuoteCheckMiddleware />,
+              children: [
+                { path: 'dashboard', element: <Dashboard /> },
+              ],
+            },
+            // Rutas que solo requieren autenticación
             { path: 'perfil', element: <Profile /> },
             { path: 'mis-cotizaciones', element: <MyQuotes /> },
             { path: 'mis-pedidos', element: <MyOrders /> },
             { path: 'mensajes', element: <Messages /> },
             { path: 'pagos', element: <Payments /> },
+            { path: 'mi-proyecto', element: <MyProject /> },
           ],
         },
       ],

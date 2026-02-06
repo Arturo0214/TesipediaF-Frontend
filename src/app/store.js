@@ -5,6 +5,8 @@ import authReducer from '../features/auth/authSlice';
 import chatReducer from '../features/chat/chatSlice';
 import visitsReducer from '../features/visits/visitsSlice';
 import quoteReducer from '../features/quotes/quoteSlice';
+import projectReducer from '../features/projects/projectSlice';
+import paymentReducer from '../features/payments/paymentSlice';
 
 // Configuración de persistencia para auth
 const authPersistConfig = {
@@ -20,16 +22,26 @@ const quotePersistConfig = {
     whitelist: ['quote', 'formData']
 };
 
+// Configuración de persistencia para payments
+const paymentPersistConfig = {
+    key: 'payment',
+    storage,
+    whitelist: ['sessionUrl']
+};
+
 // Reducers con persistencia
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedQuoteReducer = persistReducer(quotePersistConfig, quoteReducer);
+const persistedPaymentReducer = persistReducer(paymentPersistConfig, paymentReducer);
 
 export const store = configureStore({
     reducer: {
         auth: persistedAuthReducer,
         chat: chatReducer,
         visits: visitsReducer,
-        quotes: persistedQuoteReducer
+        quotes: persistedQuoteReducer,
+        projects: projectReducer,
+        payment: persistedPaymentReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

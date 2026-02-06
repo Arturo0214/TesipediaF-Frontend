@@ -6,52 +6,78 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, reset } from '../../features/auth/authSlice';
+import { linkQuoteToUser } from '../../features/quotes/quoteSlice';
+import Swal from 'sweetalert2';
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get the redirect location (use state if exists, otherwise default paths)
-  const fromLocation = location.state?.from;
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
 
-  const { user, isLoading, isError, isAuthenticated, isAdmin, message } = useSelector(
+  const { email, password } = formData;
+
+  const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.auth
   );
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
   useEffect(() => {
-    dispatch(reset()); // 🔄 Limpiar estado al cargar
-  }, [dispatch]);
+    if (isError) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message
+      });
+    }
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Redirect based on user role and previous location
-      if (isAdmin) {
-        // Admin users go to admin dashboard or previous admin page
-        if (fromLocation && fromLocation.startsWith('/admin')) {
-          navigate(fromLocation);
-        } else {
-          navigate('/admin/panel');
-        }
+    // Si el login es exitoso
+    if (isSuccess && user) {
+      // Verificar si hay un publicId en la URL
+      const urlParams = new URLSearchParams(location.search);
+      const publicId = urlParams.get('public_id');
+
+      if (publicId) {
+        // Intentar vincular la cotización al usuario
+        dispatch(linkQuoteToUser(publicId))
+          .unwrap()
+          .then(() => {
+            // Redirigir a /cotizar con el mismo publicId
+            navigate(`/cotizar?public_id=${publicId}`);
+          })
+          .catch((error) => {
+            console.error('Error al vincular cotización:', error);
+            // Si hay error, igual redirigimos a /cotizar
+            navigate('/cotizar');
+          });
       } else {
-        // Regular users go to previous location or dashboard
-        navigate(fromLocation || '/dashboard');
+        // Si no hay publicId, redirigir a la ruta original
+        const { from } = location.state || { from: { pathname: '/dashboard' } };
+        navigate(from.pathname);
       }
+      dispatch(reset());
     }
-  }, [isAuthenticated, isAdmin, navigate, fromLocation]);
+  }, [user, isError, isSuccess, message, navigate, dispatch, location]);
 
-  const handleSubmit = async (e) => {
+  const onChange = (e) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await dispatch(login({ email, password })).unwrap();
-      // El redireccionamiento ocurre en el useEffect
-    } catch (error) {
-      // Error ya está manejado por el slice
-      console.error('Login error:', error);
-    }
+
+    const userData = {
+      email,
+      password,
+    };
+
+    dispatch(login(userData));
   };
 
   return (
@@ -75,7 +101,7 @@ const Login = () => {
                 </div>
               )}
 
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={onSubmit}>
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <FaEnvelope className="me-2" />
@@ -84,8 +110,9 @@ const Login = () => {
                   <Form.Control
                     type="email"
                     placeholder="tu@email.com"
+                    name="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={onChange}
                     required
                   />
                 </Form.Group>
@@ -98,8 +125,9 @@ const Login = () => {
                   <Form.Control
                     type="password"
                     placeholder="••••••••"
+                    name="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={onChange}
                     required
                   />
                 </Form.Group>

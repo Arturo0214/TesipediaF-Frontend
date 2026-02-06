@@ -1,0 +1,332 @@
+.sales-quote-container {
+    min-height: calc(100vh - 60px);
+    /* Ajuste para navbar */
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 1rem 0.5rem;
+    /* Padding superior reducido a 1rem */
+    display: flex;
+    align-items: flex-start;
+    /* Alinear al inicio (arriba), no al centro */
+    padding-top: 2rem !important;
+    /* Forzar posición superior */
+}
+
+.sales-quote-container .row {
+    height: 100%;
+}
+
+.sales-quote-card {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.1);
+    border: none;
+    height: calc(100vh - 1rem);
+    display: flex;
+    flex-direction: column;
+}
+
+.sales-quote-card .card-body {
+    flex: 1;
+    overflow: hidden;
+    padding: 0.65rem !important;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Custom Scrollbar */
+.sales-quote-card .card-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sales-quote-card .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sales-quote-card .card-body::-webkit-scrollbar-thumb {
+    background: #bdc3c7;
+    border-radius: 2px;
+}
+
+/* Header Ultra Compacto */
+.sales-quote-card .text-center {
+    margin-bottom: 0.4rem !important;
+}
+
+.sales-quote-card .text-center h5 {
+    font-size: 1rem;
+    margin-bottom: 0 !important;
+    font-weight: 700;
+}
+
+/* Form Section - Máxima compactación */
+.form-section {
+    background: #f8fafb;
+    border-radius: 6px;
+    padding: 0.45rem;
+    border: 1px solid #e2e8f0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #3498db;
+    font-size: 0.8rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-title svg {
+    font-size: 0.85rem;
+}
+
+.micro-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    line-height: 1;
+}
+
+/* Form Controls - Ultra compactos */
+.form-control,
+.form-select {
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    transition: border-color 0.15s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.08);
+}
+
+.form-control.form-control-sm,
+.form-select.form-select-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    height: calc(1.4em + 0.5rem + 2px);
+    line-height: 1.4;
+}
+
+.form-control::placeholder {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.form-control[type="textarea"] {
+    resize: none;
+}
+
+/* Input Group */
+.input-group-text {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.input-group-sm>.form-control,
+.input-group-sm>.input-group-text {
+    height: calc(1.4em + 0.5rem + 2px);
+}
+
+/* Price Summary - Ultra Compacto */
+.price-summary {
+    background: linear-gradient(135deg, #ebf5fb 0%, #d6eaf8 100%);
+    border: 1px solid #85c1e9;
+    border-radius: 6px;
+    padding: 0.45rem;
+}
+
+.price-summary .border-top {
+    border-top: 1px solid #85c1e9 !important;
+    padding-top: 0.35rem !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Generate PDF Button */
+.generate-pdf-btn {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border: none;
+    border-radius: 7px;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 12px rgba(52, 152, 219, 0.25);
+}
+
+.generate-pdf-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(52, 152, 219, 0.35);
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+}
+
+.generate-pdf-btn:active {
+    transform: translateY(0);
+}
+
+.generate-pdf-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Micro Buttons */
+.btn-micro {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.micro-btn {
+    font-size: 0.65rem;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.micro-btn:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.btn-link {
+    font-size: 0.65rem;
+    padding: 0.15rem 0;
+}
+
+.btn-outline-danger {
+    border-radius: 4px;
+    padding: 0.15rem 0.35rem;
+    font-size: 0.85rem;
+}
+
+.btn-outline-secondary {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.75rem;
+}
+
+/* Espaciado ultra reducido */
+.g-1 {
+    --bs-gutter-y: 0.25rem;
+    --bs-gutter-x: 0.25rem;
+}
+
+.g-2 {
+    --bs-gutter-y: 0.35rem;
+    --bs-gutter-x: 0.5rem;
+}
+
+.g-3 {
+    --bs-gutter-y: 0.45rem;
+    --bs-gutter-x: 0.75rem;
+}
+
+/* Márgenes ultra reducidos */
+.mt-2 {
+    margin-top: 0.35rem !important;
+}
+
+.mt-3 {
+    margin-top: 0.5rem !important;
+}
+
+.mb-1 {
+    margin-bottom: 0.2rem !important;
+}
+
+.mb-2 {
+    margin-top: 0.35rem !important;
+}
+
+/* Ajuste de altura para que todo quepa */
+.sales-quote-card form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.sales-quote-card form>.row {
+    flex: 1;
+}
+
+/* Columnas con altura completa */
+.sales-quote-card form>.row>[class*="col-"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sales-quote-container {
+        padding: 0.5rem;
+    }
+
+    .sales-quote-card {
+        height: auto;
+        max-height: none;
+    }
+
+    .sales-quote-card .card-body {
+        overflow-y: auto;
+        padding: 0.5rem !important;
+    }
+
+    .form-section {
+        padding: 0.4rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .generate-pdf-btn {
+        width: 100%;
+    }
+}
+
+@media (min-width: 1400px) {
+    .sales-quote-card .card-body {
+        padding: 0.85rem !important;
+    }
+
+    .form-section {
+        padding: 0.6rem;
+    }
+
+    .form-control.form-control-sm,
+    .form-select.form-select-sm {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+/* Ajuste de d-flex gaps para listas dinámicas */
+.d-flex.mb-1 {
+    margin-bottom: 0.2rem !important;
+    gap: 0.25rem;
+}
+
+/* Text sizes para price summary */
+div[style*="font-size: 0.75rem"] {
+    line-height: 1.3;
+}
+
+div[style*="font-size: 0.9rem"] {
+    line-height: 1.4;
+}
+
+/* Ajuste de fs-5 en price */
+.fs-5 {
+    font-size: 1rem !important;
+}

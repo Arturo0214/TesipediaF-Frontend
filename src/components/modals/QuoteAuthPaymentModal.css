@@ -1,0 +1,245 @@
+/* Estilos para el modal autenticado */
+.quote-auth-modal .modal-dialog {
+    max-width: 900px;
+}
+
+.quote-auth-modal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.quote-auth-modal .modal-header {
+    padding: 1rem 1.5rem 0;
+}
+
+.quote-auth-modal .modal-title-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem;
+    color: white;
+    font-size: 18px;
+}
+
+.quote-auth-modal .modal-title h4 {
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+    font-size: 1.25rem;
+}
+
+.quote-auth-modal .modal-body {
+    padding: 1rem 1.5rem;
+}
+
+.quote-auth-modal .border-end {
+    border-right: 1px solid #eee;
+    padding-right: 1.5rem;
+}
+
+.quote-auth-modal .col-md-5 {
+    padding-left: 1.5rem;
+}
+
+/* Estilos de las secciones */
+.section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.section-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    color: white;
+    font-size: 12px;
+}
+
+.section-title h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Estilos de los detalles */
+.quote-details .detail-row {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.35rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.quote-details .detail-row:hover {
+    background-color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.detail-icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    color: white;
+    font-size: 12px;
+}
+
+.detail-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 0.1rem;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.875rem;
+}
+
+/* Estilos de precios */
+.price-details {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.price-row:last-child {
+    border-bottom: none;
+}
+
+.price-label-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.price-icon {
+    color: #3498db;
+    font-size: 0.875rem;
+}
+
+.price-label {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.price-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.875rem;
+}
+
+.price-value.highlight {
+    color: #e74c3c;
+}
+
+.price-value.discount {
+    color: #27ae60;
+}
+
+.price-row.total {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid #ddd;
+}
+
+.price-row.total .price-label,
+.price-row.total .price-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+/* Estilos del botón de pago */
+.payment-action {
+    text-align: center;
+}
+
+.payment-button {
+    width: 100%;
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.payment-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3) !important;
+    background: linear-gradient(135deg, #2980b9, #3498db) !important;
+}
+
+.payment-security {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+    color: #666;
+    font-size: 0.75rem;
+}
+
+.security-icon {
+    color: #27ae60;
+    font-size: 0.875rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .quote-auth-modal .border-end {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        padding-right: 1rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .quote-auth-modal .col-md-5 {
+        padding-left: 1rem;
+    }
+
+    .quote-auth-modal .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .quote-auth-modal .modal-body {
+        padding: 1rem;
+    }
+}

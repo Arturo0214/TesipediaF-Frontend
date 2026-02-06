@@ -12,16 +12,17 @@ import {
     FaStar,
     FaComments,
     FaWhatsapp,
-    FaExclamationTriangle
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { createQuote, resetQuoteState, updateQuote, updatePublicQuote } from '../../features/quotes/quoteSlice';
-import { parsePhoneNumber } from 'libphonenumber-js';
+import { createQuote, resetQuoteState, updateQuote, updatePublicQuote, getQuoteByPublicId, getMyQuotes, linkQuoteToUser, setActiveQuote } from '../../features/quotes/quoteSlice';
+import { checkPaymentStatus, clearPaymentState, createPaymentSession } from '../../features/payments/paymentSlice';
 import './Quote.css';
 import ChatPanel from '../../components/chat/ChatPanel';
 import QuotePublicPaymentModal from '../../components/modals/QuotePublicPaymentModal';
+import QuoteAuthPaymentModal from '../../components/modals/QuoteAuthPaymentModal';
 import GuestPaymentModal from '../../components/modals/GuestPaymentModal';
 import Swal from 'sweetalert2';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('es-MX').format(price);
@@ -29,7 +30,25 @@ const formatPrice = (price) => {
 
 function Quote() {
     const dispatch = useDispatch();
-    const { loading, success, error, quote } = useSelector((state) => state.quotes);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Extraer publicId y sessionId de los parámetros de URL
+    const searchParams = new URLSearchParams(location.search);
+    const publicId = searchParams.get('publicId');
+    const sessionId = searchParams.get('session_id');
+    const trackingToken = searchParams.get('tracking_token');
+
+    // Selectors de Redux
+    const { loading, success, error, quote, quotes } = useSelector((state) => state.quotes);
+    const { user } = useSelector((state) => state.auth);
+    const {
+        paymentStatus = null,
+        sessionUrl = null,
+        loading: paymentLoading = false,
+        error: paymentError = null,
+        orderId = null
+    } = useSelector((state) => state.payment) || {};
 
     const [formData, setFormData] = useState({
         tipoTesis: '',
@@ -54,6 +73,8 @@ function Quote() {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showGuestModal, setShowGuestModal] = useState(false);
     const [pendingChanges, setPendingChanges] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasInitialized, setHasInitialized] = useState(false);
 
     const tiposTesis = ['Tesis', 'Tesina', 'Artículo', 'Ensayo', 'Proyecto de Investigación', 'Otros'];
     const nivelesAcademicos = ['Licenciatura', 'Maestría', 'Doctorado'];
@@ -120,18 +141,8 @@ function Quote() {
         // Remover cualquier caracter que no sea número
         const cleanPhone = phone.replace(/\D/g, '');
 
-        // Validar que tenga entre 8 y 15 dígitos (estándar internacional)
-        if (cleanPhone.length < 8 || cleanPhone.length > 15) {
-            return false;
-        }
-
-        try {
-            // Validar formato usando libphonenumber-js
-            const phoneNumber = parsePhoneNumber(countryCode + cleanPhone);
-            return phoneNumber.isValid();
-        } catch (error) {
-            return false;
-        }
+        // Solo validar que tenga exactamente 10 dígitos
+        return cleanPhone.length === 10;
     };
 
     const handleFormChange = (field, value) => {
@@ -215,7 +226,7 @@ function Quote() {
                 tema: quote.taskTitle || '',
                 areaEstudio: quote.studyArea || '',
                 carrera: quote.career || '',
-                otraCarrera: '', // Assuming 'otraCarrera' is not saved in the quote object
+                otraCarrera: '',
                 numPaginas: quote.pages || '',
                 fechaEntrega: quote.dueDate ? quote.dueDate.split('T')[0] : '',
                 descripcion: quote.requirements?.text || '', // Adjusted to match potential structure
@@ -230,62 +241,47 @@ function Quote() {
             setEstimatedPrice(quote.estimatedPrice || 0);
             setIsEditing(true); // If a quote exists, we are in editing mode
         }
-        // Do not reset form if quote is null, allowing initial state
+
     }, [quote]); // Re-run whenever the quote object changes
 
-    // Manejo de modales
-    const handleShowPaymentModal = () => {
-        // Ensure quote and its ID exist before showing the modal
-        const currentQuote = quote;
-        if (!currentQuote) {
-            console.error("Error: Intento de mostrar modal de pago sin cotización válida.", quote);
-            alert("No se puede proceder al pago. Falta información de la cotización.");
-            return;
-        }
-        setShowPaymentModal(true);
-    };
-
-    const handleGuestPaymentOption = () => {
-        const currentQuote = quote;
-
-        if (!currentQuote || (!currentQuote.estimatedPrice && !currentQuote.taskTitle)) {
-            console.error("Error: Intento de mostrar modal de invitado sin cotización válida.", quote);
-            alert("No se puede proceder al pago como invitado. Falta información de la cotización.");
-            setShowPaymentModal(false);
-            return;
-        }
-
-        setShowPaymentModal(false);
-        setShowGuestModal(true); // ✅ Aquí ahora sí se abre
-    };
-
-    // Helper function for smooth scrolling to an element by ID
+    // Funciones de utilidad
     const scrollToElement = (elementId) => {
         const element = document.getElementById(elementId);
         if (element) {
-            window.scrollTo({
-                top: element.offsetTop - 10,
-                behavior: 'smooth'
-            });
+            element.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Prevenir múltiples envíos
+        if (isSubmitting) {
+            console.log('⏳ Formulario ya se está enviando, ignorando envío adicional');
+            return;
+        }
+
+        setIsSubmitting(true);
+
         // Determine if we are updating or creating
         const currentQuoteId = isEditing ? quote?._id : null;
         const currentPublicId = isEditing ? quote?.publicId : null;
 
         if (isEditing && !currentQuoteId && !currentPublicId) {
-            alert("Error: No se encontró el ID de la cotización para modificar. Intenta de nuevo.");
+            Swal.fire({
+                title: 'Error',
+                text: 'No se encontró el ID de la cotización para modificar. Intenta de nuevo.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
             console.error("Attempted to update quote but quote ID is missing", quote);
+            setIsSubmitting(false);
             return;
         }
 
         try {
             if (isEditing) {
-                // --- UPDATE LOGIC --- 
+                // --- UPDATE LOGIC (simplificado como tu código original) --- 
                 const updatedData = {
                     taskType: formData.tipoTesis,
                     educationLevel: formData.nivelAcademico,
@@ -294,83 +290,148 @@ function Quote() {
                     career: formData.carrera === 'Otro' ? formData.otraCarrera : formData.carrera,
                     pages: formData.numPaginas,
                     dueDate: formData.fechaEntrega,
-                    requirements: { // Assuming requirements is an object with text
+                    requirements: {
                         text: formData.descripcion,
-                        // Note: Handling file updates might need separate logic if required
                     },
                     name: formData.nombre,
                     email: formData.email,
                     phone: formData.codigoPais + formData.telefono,
-                    // status is likely handled by backend or admin actions, not user update
                 };
 
                 let actionResult;
 
                 // Si tenemos publicId, usamos la ruta pública
                 if (currentPublicId) {
-                    actionResult = await dispatch(updatePublicQuote({ publicId: currentPublicId, updatedData }));
+                    actionResult = await dispatch(updatePublicQuote({
+                        publicId: currentPublicId,
+                        updatedData
+                    })).unwrap();
                 } else {
                     // Si no, usamos la ruta protegida
-                    actionResult = await dispatch(updateQuote({ quoteId: currentQuoteId, updatedData }));
+                    actionResult = await dispatch(updateQuote({
+                        quoteId: currentQuoteId,
+                        updatedData
+                    })).unwrap();
                 }
 
-                if ((updateQuote.fulfilled.match(actionResult) || updatePublicQuote.fulfilled.match(actionResult)) && actionResult.payload?._id) {
-                    const updatedQuoteData = actionResult.payload;
-                    setEstimatedPrice(updatedQuoteData.estimatedPrice || 0); // Update price from response
-                    alert("¡Cotización modificada con éxito!");
-                    setIsEditing(true); // Remain in editing mode
-                    // Optionally scroll or provide other feedback
-                    setTimeout(() => {
-                        scrollToElement('payment-section');
-                    }, 300);
+                if (actionResult && actionResult._id) {
+                    const updatedQuoteData = actionResult;
+                    setEstimatedPrice(updatedQuoteData.estimatedPrice || 0);
+
+                    // Mostrar alerta de éxito
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: 'Cotización actualizada correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
+                    });
+
+                    setIsEditing(true);
+                    setPendingChanges(false);
+
+                    // Scroll al resumen de pago si hay precio estimado
+                    if (updatedQuoteData.estimatedPrice) {
+                        setTimeout(() => {
+                            scrollToElement('payment-section');
+                        }, 300);
+                    }
                 } else {
-                    const errorMessage = actionResult.payload || 'Hubo un problema al modificar la cotización.';
+                    const errorMessage = 'Hubo un problema al modificar la cotización.';
                     console.error('Error al modificar la cotización:', errorMessage, actionResult);
-                    alert(typeof errorMessage === 'string' ? errorMessage : "Hubo un problema al modificar la cotización. Por favor, intenta de nuevo.");
+                    Swal.fire({
+                        title: 'Error',
+                        text: errorMessage,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
                 }
 
             } else {
-                // --- CREATE LOGIC --- (Existing logic)
+                // --- CREATE LOGIC (mantener como está) ---
                 const formDataToSend = new FormData();
-                formDataToSend.append('taskType', formData.tipoTesis);
-                formDataToSend.append('educationLevel', formData.nivelAcademico);
-                formDataToSend.append('taskTitle', formData.tema);
-                formDataToSend.append('studyArea', formData.areaEstudio);
-                formDataToSend.append('career', formData.carrera === 'Otro' ? formData.otraCarrera : formData.carrera);
-                formDataToSend.append('pages', formData.numPaginas);
-                formDataToSend.append('dueDate', formData.fechaEntrega);
-                formDataToSend.append('descripcion', formData.descripcion);
-                formDataToSend.append('name', formData.nombre);
-                formDataToSend.append('email', formData.email);
-                formDataToSend.append('phone', formData.codigoPais + formData.telefono);
 
-                if (formData.archivos && formData.archivos.length > 0) {
-                    formDataToSend.append('file', formData.archivos[0]);
+                // Crear un objeto con los datos antes de agregarlos al FormData
+                const dataToSend = {
+                    taskType: formData.tipoTesis,
+                    studyArea: formData.areaEstudio,
+                    career: formData.carrera === 'Otro' ? formData.otraCarrera : formData.carrera,
+                    educationLevel: formData.nivelAcademico,
+                    taskTitle: formData.tema,
+                    pages: formData.numPaginas,
+                    dueDate: formData.fechaEntrega,
+                    email: formData.email,
+                    name: formData.nombre,
+                    descripcion: formData.descripcion
+                };
+
+                // Agregar cada campo al FormData
+                Object.entries(dataToSend).forEach(([key, value]) => {
+                    formDataToSend.append(key, value);
+                });
+
+                // Agregar teléfono solo si existe
+                if (formData.telefono) {
+                    const phoneNumber = formData.codigoPais + formData.telefono.replace(/\D/g, '');
+                    formDataToSend.append('phone', phoneNumber);
                 }
 
-                const actionResult = await dispatch(createQuote({ formDataToSend, formData }));
+                // Manejar archivos si existen
+                if (formData.archivos && formData.archivos.length > 0) {
+                    Array.from(formData.archivos).forEach((file) => {
+                        formDataToSend.append('file', file);
+                    });
+                }
 
-                if (createQuote.fulfilled.match(actionResult) && actionResult.payload?.quote?.estimatedPrice !== undefined) {
-                    const returnedQuote = actionResult.payload.quote;
-                    setEstimatedPrice(returnedQuote.estimatedPrice);
-                    setIsEditing(true); // Set to editing mode after creation
+                const actionResult = await dispatch(createQuote({
+                    formDataToSend: formDataToSend,
+                    formData: formData
+                })).unwrap();
+
+                // La respuesta del thunk tiene estructura: { quote: { message, quote }, formData }
+                // Entonces necesitamos acceder a actionResult.quote.quote para obtener la cotización real
+                const serverResponse = actionResult.quote;
+                const returnedQuote = serverResponse?.quote || serverResponse;
+
+                if (returnedQuote && returnedQuote.estimatedPrice) {
+                    setEstimatedPrice(returnedQuote.estimatedPrice || 0);
+                    setIsEditing(true);
+
+                    // Mostrar alerta de éxito
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: 'Cotización creada correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
+                    });
+
                     setTimeout(() => {
                         scrollToElement('payment-section');
                     }, 300);
                 } else {
-                    const errorMessage = actionResult.payload?.message || actionResult.payload || 'Hubo un problema al crear la cotización.';
-                    console.error('Error al crear la cotización o falta estimatedPrice:', errorMessage, actionResult);
-                    alert(typeof errorMessage === 'string' ? errorMessage : "Hubo un problema al crear la cotización. Por favor, intenta de nuevo.");
+                    const errorMessage = actionResult?.message || serverResponse?.message || 'Hubo un problema al crear la cotización.';
+                    console.error('Error al crear la cotización:', errorMessage, actionResult);
+                    Swal.fire({
+                        title: 'Error',
+                        text: errorMessage,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
                 }
             }
         } catch (error) {
             console.error(`Error en handleSubmit (${isEditing ? 'update' : 'create'}):`, error);
-            alert("Hubo un error inesperado al procesar la solicitud. Por favor, verifica los datos e intenta de nuevo.");
+            Swal.fire({
+                title: 'Error',
+                text: error.response?.data?.message || error.message || 'Hubo un error inesperado al procesar la solicitud.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
+        } finally {
+            setIsSubmitting(false);
+            // Al final del manejo exitoso, resetear los cambios pendientes y la bandera de notificación
+            setPendingChanges(false);
+            window.pendingChangesNotified = false;
         }
-
-        // Al final del manejo exitoso, resetear los cambios pendientes y la bandera de notificación
-        setPendingChanges(false);
-        window.pendingChangesNotified = false;
     };
 
     useEffect(() => {
@@ -448,15 +509,18 @@ function Quote() {
             setShowPaymentModal(false);
             setShowGuestModal(false);
             setPendingChanges(false);
+            setHasInitialized(false);
             window.pendingChangesNotified = false;
             dispatch(resetQuoteState());
         }
     };
 
+    // Imágenes y recursos
     const visaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/visa-svgrepo-com_lpwqqd.svg';
     const mastercardLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/mc_symbol_zpes4d.svg';
     const amexLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714158/amex-svgrepo-com_m3vtdk.svg';
 
+    // Manejadores de chat
     const handleChatOpen = () => {
         setIsChatOpen(true);
     };
@@ -466,28 +530,249 @@ function Quote() {
     };
 
     const handleProceedToPayment = () => {
-        // First scroll to payment section
         scrollToElement('payment-section');
 
-        // Log data to see what's available
-        console.log("Datos disponibles para pago:", {
-            quote,
-            quoteData: quote?.quote,
-            estimatedPrice,
-            formData
-        });
-
-        // Check for quote data *before* attempting to show modal
         const currentQuote = quote;
-
-        if (!currentQuote) {
+        if (!currentQuote || (!currentQuote._id && !currentQuote.publicId)) {
             console.error("Error: No hay una cotización válida para proceder al pago", quote);
-            alert("Error al cargar los datos de la cotización para el pago. Intenta recargar o crea una nueva cotización.");
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar los datos de la cotización para el pago. Intenta recargar o crea una nueva cotización.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
             return;
         }
 
-        // Always show payment modal if quote is valid
-        handleShowPaymentModal();
+        if (currentQuote.status === 'paid') {
+            Swal.fire({
+                title: 'Cotización ya pagada',
+                text: 'Esta cotización ya ha sido pagada. ¿Deseas crear una nueva cotización?',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Crear nueva cotización',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    handleNewQuote();
+                }
+            });
+            return;
+        }
+
+        // Asegurarse de que solo un modal esté abierto a la vez
+        if (user) {
+            setShowPaymentModal(true);
+            setShowGuestModal(false);
+        } else {
+            setShowGuestModal(true);
+            setShowPaymentModal(false);
+        }
+    };
+
+    const handleAuthPayment = async () => {
+        try {
+            if (!quote || (!quote._id && !quote.publicId)) {
+                throw new Error('No hay una cotización seleccionada');
+            }
+
+            if (!user) {
+                throw new Error('Debes iniciar sesión para continuar');
+            }
+
+            if (!estimatedPrice || estimatedPrice <= 0) {
+                throw new Error('El precio de la cotización no es válido');
+            }
+
+            console.log('Iniciando sesión de pago para la cotización:', quote.publicId || quote._id);
+            const response = await dispatch(createPaymentSession({
+                publicId: quote.publicId || quote._id
+            })).unwrap();
+
+            if (response && response.sessionUrl) {
+                console.log('URL de sesión de pago recibida:', response.sessionUrl);
+                window.location.href = response.sessionUrl;
+            } else {
+                throw new Error('No se recibió la URL de pago');
+            }
+        } catch (error) {
+            console.error('Error al procesar el pago:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'Error al procesar el pago',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
+        }
+    };
+
+    // Modificar el useEffect de limpieza
+    useEffect(() => {
+        // Limpiar estados al montar
+        dispatch(resetQuoteState());
+        dispatch(clearPaymentState());
+
+        // Limpiar estados al desmontar
+        return () => {
+            dispatch(resetQuoteState());
+            dispatch(clearPaymentState());
+        };
+    }, [dispatch]);
+
+    // Efecto para inicializar la cotización y el pago
+    useEffect(() => {
+        if (hasInitialized) return; // Prevenir múltiples inicializaciones
+
+        const initializeQuote = async () => {
+            console.log('🔄 Iniciando inicialización de cotización:', {
+                publicId,
+                sessionId,
+                user,
+                quotes
+            });
+
+            try {
+                // Si hay un publicId, intentar obtener y vincular la cotización
+                if (publicId) {
+                    console.log('🔍 Recuperando cotización por publicId:', publicId);
+                    const quoteResult = await dispatch(getQuoteByPublicId(publicId)).unwrap();
+
+                    if (quoteResult && user) {
+                        try {
+                            console.log('🔗 Intentando vincular cotización:', publicId);
+                            const linkResult = await dispatch(linkQuoteToUser(publicId)).unwrap();
+
+                            if (linkResult?.quote) {
+                                dispatch(setActiveQuote(linkResult.quote));
+                                updateFormWithQuote(linkResult.quote);
+                            }
+                        } catch (error) {
+                            console.error('❌ Error al vincular la cotización:', error);
+                            if (error.message !== 'Esta cotización ya está vinculada a una cuenta') {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'No se pudo vincular la cotización a tu cuenta',
+                                    icon: 'error',
+                                    confirmButtonText: 'Entendido'
+                                });
+                            }
+                            dispatch(setActiveQuote(quoteResult));
+                            updateFormWithQuote(quoteResult);
+                        }
+                    } else if (quoteResult) {
+                        dispatch(setActiveQuote(quoteResult));
+                        updateFormWithQuote(quoteResult);
+                    }
+                } else if (user) {
+                    await dispatch(getMyQuotes());
+                }
+
+                setHasInitialized(true); // Marcar como inicializado
+            } catch (error) {
+                console.error('❌ Error en la inicialización:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: error.message || 'Error al cargar la información',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+                setHasInitialized(true); // Marcar como inicializado incluso si hay error
+            }
+        };
+
+        const updateFormWithQuote = (quoteData) => {
+            if (!quoteData) return;
+
+            setFormData({
+                tipoTesis: quoteData.taskType || '',
+                nivelAcademico: quoteData.educationLevel || '',
+                tema: quoteData.taskTitle || '',
+                areaEstudio: quoteData.studyArea || '',
+                carrera: quoteData.career || '',
+                otraCarrera: '',
+                numPaginas: quoteData.pages || '',
+                fechaEntrega: quoteData.dueDate ? quoteData.dueDate.split('T')[0] : '',
+                descripcion: quoteData.requirements?.text || '',
+                archivos: [],
+                nombre: quoteData.name || (user ? user.name : '') || '',
+                email: quoteData.email || (user ? user.email : '') || '',
+                codigoPais: quoteData.phone ? (quoteData.phone.startsWith('+') ? quoteData.phone.match(/^\+\d{1,3}/)?.[0] : '+52') : '+52',
+                telefono: quoteData.phone ? quoteData.phone.replace(/^\+\d{1,3}/, '').replace(/\D/g, '').slice(0, 10) : ''
+            });
+
+            setEstimatedPrice(quoteData.estimatedPrice || 0);
+            setIsEditing(true);
+        };
+
+        initializeQuote();
+    }, [dispatch, publicId, sessionId, user, hasInitialized]);
+
+    // Efecto separado para manejar las cotizaciones cuando se cargan (solo para usuarios autenticados)
+    useEffect(() => {
+        if (quotes?.length > 0 && user && !quote && !publicId) {
+            console.log('📋 Procesando cotizaciones cargadas:', quotes.length);
+
+            const lastUnpaidQuote = quotes
+                .filter(q => q.status !== 'paid' && q.status !== 'completed')
+                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+
+            if (lastUnpaidQuote) {
+                console.log('📄 Estableciendo última cotización no pagada:', lastUnpaidQuote._id);
+                dispatch(setActiveQuote(lastUnpaidQuote));
+
+                setFormData({
+                    tipoTesis: lastUnpaidQuote.taskType || '',
+                    nivelAcademico: lastUnpaidQuote.educationLevel || '',
+                    tema: lastUnpaidQuote.taskTitle || '',
+                    areaEstudio: lastUnpaidQuote.studyArea || '',
+                    carrera: lastUnpaidQuote.career || '',
+                    otraCarrera: '',
+                    numPaginas: lastUnpaidQuote.pages || '',
+                    fechaEntrega: lastUnpaidQuote.dueDate ? lastUnpaidQuote.dueDate.split('T')[0] : '',
+                    descripcion: lastUnpaidQuote.requirements?.text || '',
+                    archivos: [],
+                    nombre: lastUnpaidQuote.name || (user ? user.name : '') || '',
+                    email: lastUnpaidQuote.email || (user ? user.email : '') || '',
+                    codigoPais: lastUnpaidQuote.phone ? (lastUnpaidQuote.phone.startsWith('+') ? lastUnpaidQuote.phone.match(/^\+\d{1,3}/)?.[0] : '+52') : '+52',
+                    telefono: lastUnpaidQuote.phone ? lastUnpaidQuote.phone.replace(/^\+\d{1,3}/, '').replace(/\D/g, '').slice(0, 10) : ''
+                });
+
+                setEstimatedPrice(lastUnpaidQuote.estimatedPrice || 0);
+                setIsEditing(true);
+            }
+        }
+    }, [quotes, user, quote, publicId, dispatch]);
+
+    // Manejar el cierre del modal de pago
+    const handleClosePaymentModal = () => {
+        setShowPaymentModal(false);
+        setShowGuestModal(false); // Asegurarse de cerrar también el modal de invitado
+    };
+
+    // Manejar el cierre del modal de pago de invitado
+    const handleCloseGuestModal = () => {
+        setShowGuestModal(false);
+    };
+
+    // Modificar el renderizado del mensaje de éxito
+    const renderSuccessMessage = () => {
+        if (!success || !quote) return null;
+
+        return (
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <Alert variant="success" className="py-2 mb-0 flex-grow-1 me-3">
+                    ¡Cotización enviada con éxito!
+                </Alert>
+                <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={handleNewQuote}
+                    className="px-3"
+                >
+                    Nueva Cotización
+                </Button>
+            </div>
+        );
     };
 
     // Agregar este useEffect al inicio del componente
@@ -532,19 +817,7 @@ function Quote() {
                                 </div>
 
                                 {error && <Alert variant="danger" className="py-2 mb-4">{error}</Alert>}
-                                {success && (
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <Alert variant="success" className="py-2 mb-0 flex-grow-1 me-3">¡Cotización enviada con éxito!</Alert>
-                                        <Button
-                                            variant="outline-primary"
-                                            size="sm"
-                                            onClick={handleNewQuote}
-                                            className="px-3"
-                                        >
-                                            Nueva Cotización
-                                        </Button>
-                                    </div>
-                                )}
+                                {renderSuccessMessage()}
 
                                 <Form onSubmit={handleSubmit} className="quote-form-tesipedia">
                                     <Row className="g-2">
@@ -772,7 +1045,7 @@ function Quote() {
                                                                 />
                                                             </div>
                                                             <Form.Control.Feedback type="invalid">
-                                                                Ingrese un número válido de 10 dígitos
+                                                                El número debe tener exactamente 10 dígitos
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                     </Col>
@@ -795,9 +1068,9 @@ function Quote() {
                                                     borderRadius: '5px',
                                                     transition: 'all 0.3s ease'
                                                 }}
-                                                disabled={loading}
+                                                disabled={isSubmitting}
                                             >
-                                                {loading ? (
+                                                {isSubmitting ? (
                                                     <Spinner size="sm" animation="border" />
                                                 ) : (
                                                     <>
@@ -995,25 +1268,61 @@ function Quote() {
                 />
             )}
 
-            {/* Modal de pago público */}
-            <QuotePublicPaymentModal
-                show={showPaymentModal}
-                onHide={() => setShowPaymentModal(false)}
+            {/* Modal de pago según el estado de autenticación */}
+            {/* Modal de pago para usuarios autenticados */}
+            <QuoteAuthPaymentModal
+                show={user && showPaymentModal}
+                onHide={handleClosePaymentModal}
                 quoteData={quote}
-                onGuestPayment={handleGuestPaymentOption}
+                onProceedToPayment={handleAuthPayment}
             />
 
-            {/* Only render GuestPaymentModal if showGuestModal is true AND quote.quote exists */}
-            {showGuestModal && quote && (
-                <GuestPaymentModal
-                    show={showGuestModal}
-                    onHide={() => setShowGuestModal(false)}
-                    quoteData={quote}
-                />
+            {/* Modal de pago para usuarios no autenticados */}
+            <QuotePublicPaymentModal
+                show={!user && showPaymentModal}
+                onHide={handleClosePaymentModal}
+                quoteData={quote}
+                onGuestPayment={() => setShowGuestModal(true)}
+            />
+
+            {/* Modal de pago para invitados */}
+            <GuestPaymentModal
+                show={!user && showGuestModal}
+                onHide={handleCloseGuestModal}
+                quoteData={quote}
+            />
+
+            {/* Mostrar estado del pago */}
+            {(paymentStatus || paymentError) && (
+                <Alert variant={
+                    paymentStatus === 'completed' || paymentStatus === 'paid' ? 'success' :
+                        paymentStatus === 'pending' ? 'info' : 'danger'
+                } className="mb-3">
+                    <h4>Estado del Pago</h4>
+                    <p>
+                        {paymentStatus === 'completed' || paymentStatus === 'paid' ? '¡Pago completado con éxito!' :
+                            paymentStatus === 'pending' ? 'Pago en proceso...' :
+                                `Error en el pago: ${paymentError || 'No se pudo procesar el pago'}`}
+                    </p>
+                    {currentPayment && (
+                        <div>
+                            <p><strong>Última actualización:</strong> {new Date(currentPayment.updatedAt).toLocaleString()}</p>
+                            {currentPayment.orderId && <p><strong>ID de Orden:</strong> {currentPayment.orderId}</p>}
+                        </div>
+                    )}
+                </Alert>
+            )}
+
+            {/* Mostrar spinner durante la carga */}
+            {(loading || paymentLoading) && (
+                <div className="text-center mb-3">
+                    <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                    </Spinner>
+                </div>
             )}
         </Container>
     );
 }
 
 export default Quote;
-
