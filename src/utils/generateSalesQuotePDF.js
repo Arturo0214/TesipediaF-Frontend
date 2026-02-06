@@ -378,8 +378,8 @@ export const generateSalesQuotePDF = async (quoteData) => {
         }
     });
 
-    // Precio en la fila de descripción (Subtotal antes de descuento)
-    const precioParaTabla = quoteData.precioConRecargo || quoteData.precioBase || quoteData.precioRegular || 0;
+    // Precio en la fila de descripción (solo precio base, sin recargo)
+    const precioParaTabla = quoteData.precioBase || quoteData.precioRegular || 0;
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...darkGray);
     doc.text('$' + formatPrice(precioParaTabla), tableX + tableWidth - 5, yPos + 4, { align: 'right' });
@@ -618,6 +618,58 @@ export const generateSalesQuotePDF = async (quoteData) => {
         doc.setFontSize(7); // Nota más pequeña
         doc.setTextColor(...darkGray);
         doc.text('(Retiro sin tarjeta)', ctaCenterX, ctaY, { align: 'center' });
+    } else {
+        // --- Datos Bancarios NU (Morado) ---
+        const nuPurple = [130, 10, 209]; // #820AD1 (Aprox Nu Purple)
+        const lightPurple = [245, 240, 255]; // Fondo muy claro morado
+
+        doc.setFillColor(...lightPurple);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
+        doc.setDrawColor(...nuPurple);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'S');
+
+        let bankY = yPos + 6;
+        const bankCenterX = margin + ctaWidth / 2;
+
+        // Título "Datos Bancarios"
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...nuPurple);
+        doc.text('Datos Bancarios', bankCenterX, bankY, { align: 'center' });
+
+        bankY += 5;
+
+        // Banco: Nu
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Banco: ', margin + 4, bankY);
+        const bancoWidth = doc.getTextWidth('Banco: ');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Nu', margin + 4 + bancoWidth, bankY);
+
+        bankY += 4.5;
+
+        // Beneficiario: Tesipedia
+        doc.setFont('helvetica', 'normal');
+        doc.text('Beneficiario: ', margin + 4, bankY);
+        const beneWidth = doc.getTextWidth('Beneficiario: ');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Tesipedia', margin + 4 + beneWidth, bankY);
+
+        bankY += 4.5;
+
+        // CLABE
+        const clabeText = 'CLABE: ';
+        doc.setFont('helvetica', 'normal');
+        doc.text(clabeText, margin + 4, bankY);
+        const clabeWidth = doc.getTextWidth(clabeText);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10); // Un poco más grande para legibilidad
+        doc.setTextColor(0, 0, 0);
+        doc.text('638180000124480759', margin + 4 + clabeWidth, bankY);
     }
 
     // --- Tabla de Totales (Derecha) ---
@@ -640,9 +692,9 @@ export const generateSalesQuotePDF = async (quoteData) => {
         if (typeof b === 'object') {
             return total + (parseFloat(b.costo) || 0);
         }
-        return total;
     }, 0);
-    const subtotalMostrado = precioBase + recargoMonto + costoBeneficios;
+    // Subtotal = Precio base + Beneficios (SIN recargo, ya que se muestra por separado)
+    const subtotalMostrado = precioBase + costoBeneficios;
     const alineacionDerecha = tableX + tableWidth - 5;
 
     // Subtotal

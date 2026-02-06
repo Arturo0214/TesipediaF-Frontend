@@ -20,6 +20,7 @@ import FAQ from './pages/FAQ/FAQ';
 import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel/PaymentCancel';
 import SalesQuote from './pages/SalesQuote/SalesQuote';
+import SalesQuoteCard from './pages/SalesQuote/SalesQuoteCard';
 
 import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/dashboard/Profile';
@@ -54,7 +55,7 @@ const router = createBrowserRouter(
         { path: 'payment/success', element: <PaymentSuccess /> },
         { path: 'payment/cancel', element: <PaymentCancel /> },
         { path: 'cotizaciones', element: <SalesQuote /> },
-
+        { path: 'cotizacionestarjeta', element: <SalesQuoteCard /> },
         {
           element: <ProtectedRoute />,
           children: [
