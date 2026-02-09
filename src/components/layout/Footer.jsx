@@ -37,12 +37,8 @@ export function Footer() {
                             <li className="mb-2">
                                 <Link to="/servicios" className="text-light text-decoration-none">Servicios</Link>
                             </li>
-                            <li className="mb-2">
-                                <Link to="/como-funciona" className="text-light text-decoration-none">¿Cómo Funciona?</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/blog" className="text-light text-decoration-none">Blog</Link>
-                            </li>
+                            <li className="mb-2 text-light">¿Cómo Funciona?</li>
+
                             <li className="mb-2">
                                 <Link to="/politica-de-privacidad" className="text-light text-decoration-none">Política de Privacidad</Link>
                             </li>
@@ -62,11 +58,13 @@ export function Footer() {
                         <ul className="list-unstyled">
                             <li className="mb-2">
                                 <strong>Email:</strong><br />
-                                info@tesipedia.com
+                                tesipediaoficial@gmail.com
                             </li>
                             <li className="mb-2">
                                 <strong>WhatsApp:</strong><br />
-                                +52 (123) 456-7890
+                                <a href="https://wa.me/525541004180" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none">
+                                    +52 55 4100 4180
+                                </a>
                             </li>
                             <li className="mb-2">
                                 <strong>Horario:</strong><br />

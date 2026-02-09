@@ -99,14 +99,15 @@ function MainNavbar() {
                             {/* <motion.div variants={linkVariants} whileHover="hover">
                                 <Nav.Link as={NavLink} to="/cotizaciones" style={{ color: '#4F46E5', fontWeight: '600' }} onClick={closeNavbar}>Cotizaciones</Nav.Link>
                             </motion.div> */}
-                            <NavDropdown title="Más" id="nav-dropdown" className="nav-dropdown">
-                                <motion.div variants={dropdownVariants}>
-                                    <NavDropdown.Item as={NavLink} to="/sobre-nosotros" onClick={closeNavbar}>Sobre Nosotros</NavDropdown.Item>
-                                    <NavDropdown.Item as={NavLink} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas Frecuentes</NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</NavDropdown.Item>
-                                </motion.div>
-                            </NavDropdown>
+                            <motion.div variants={linkVariants} whileHover="hover">
+                                <Nav.Link as={NavLink} to="/sobre-nosotros" onClick={closeNavbar}>Sobre Nosotros</Nav.Link>
+                            </motion.div>
+                            <motion.div variants={linkVariants} whileHover="hover">
+                                <Nav.Link as={NavLink} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas Frecuentes</Nav.Link>
+                            </motion.div>
+                            <motion.div variants={linkVariants} whileHover="hover">
+                                <Nav.Link as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</Nav.Link>
+                            </motion.div>
                         </Nav>
                         <Nav className="align-items-center">
                             <AnimatePresence>
