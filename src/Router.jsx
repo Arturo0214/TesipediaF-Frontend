@@ -21,6 +21,7 @@ import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel/PaymentCancel';
 import SalesQuote from './pages/SalesQuote/SalesQuote';
 import SalesQuoteCard from './pages/SalesQuote/SalesQuoteCard';
+import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy';
 
 import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/dashboard/Profile';
@@ -51,6 +52,7 @@ const router = createBrowserRouter(
         { path: 'auth/reset-password/:token', element: <ResetPassword /> },
         { path: 'precios', element: <Prices /> },
         { path: 'sobre-nosotros', element: <AboutUs /> },
+        { path: 'politica-de-privacidad', element: <PrivacyPolicy /> },
         { path: 'preguntas-frecuentes', element: <FAQ /> },
         { path: 'payment/success', element: <PaymentSuccess /> },
         { path: 'payment/cancel', element: <PaymentCancel /> },

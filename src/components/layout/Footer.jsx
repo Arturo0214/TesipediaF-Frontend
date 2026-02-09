@@ -43,23 +43,18 @@ export function Footer() {
                             <li className="mb-2">
                                 <Link to="/blog" className="text-light text-decoration-none">Blog</Link>
                             </li>
+                            <li className="mb-2">
+                                <Link to="/politica-de-privacidad" className="text-light text-decoration-none">Política de Privacidad</Link>
+                            </li>
                         </ul>
                     </Col>
                     <Col md={3}>
                         <h5 className="mb-3">Servicios</h5>
                         <ul className="list-unstyled">
-                            <li className="mb-2">
-                                <Link to="/servicios/tesis" className="text-light text-decoration-none">Desarrollo de Tesis</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/servicios/asesoria" className="text-light text-decoration-none">Asesoría Personalizada</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/servicios/revision" className="text-light text-decoration-none">Revisión y Corrección</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/servicios/metodologia" className="text-light text-decoration-none">Metodología</Link>
-                            </li>
+                            <li className="mb-2 text-light">Desarrollo de Tesis</li>
+                            <li className="mb-2 text-light">Asesoría Personalizada</li>
+                            <li className="mb-2 text-light">Revisión y Corrección</li>
+                            <li className="mb-2 text-light">Metodología</li>
                         </ul>
                     </Col>
                     <Col md={3}>
