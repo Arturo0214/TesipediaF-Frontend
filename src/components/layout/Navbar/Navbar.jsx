@@ -96,9 +96,9 @@ function MainNavbar() {
                             <motion.div variants={linkVariants} whileHover="hover">
                                 <Nav.Link as={NavLink} to="/" onClick={closeNavbar}>Inicio</Nav.Link>
                             </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
+                            {/* <motion.div variants={linkVariants} whileHover="hover">
                                 <Nav.Link as={NavLink} to="/cotizaciones" style={{ color: '#4F46E5', fontWeight: '600' }} onClick={closeNavbar}>Cotizaciones</Nav.Link>
-                            </motion.div>
+                            </motion.div> */}
                             <NavDropdown title="Más" id="nav-dropdown" className="nav-dropdown">
                                 <motion.div variants={dropdownVariants}>
                                     <NavDropdown.Item as={NavLink} to="/sobre-nosotros" onClick={closeNavbar}>Sobre Nosotros</NavDropdown.Item>
