@@ -146,10 +146,19 @@ const SalesQuote = () => {
     };
 
     const generarTextoEsquemaPago = () => {
+        const prices = calculatePrices();
+        const total = prices.precioConDescuento;
+        const fmt = (v) => '$' + new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
         if (formData.esquemaTipo === '33-33-34') {
-            return `33% al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}), 33% al entregar avance (${formatDateForDisplay(formData.fechaAvance)}) y 34% al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
+            const pago1 = Math.round(total * 0.33 * 100) / 100;
+            const pago2 = Math.round(total * 0.33 * 100) / 100;
+            const pago3 = Math.round((total - pago1 - pago2) * 100) / 100;
+            return `33% (${fmt(pago1)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}), 33% (${fmt(pago2)}) al entregar avance (${formatDateForDisplay(formData.fechaAvance)}) y 34% (${fmt(pago3)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
         }
-        return `50% al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}) y 50% al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
+        const mitad = Math.round(total * 0.50 * 100) / 100;
+        const mitad2 = Math.round((total - mitad) * 100) / 100;
+        return `50% (${fmt(mitad)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}) y 50% (${fmt(mitad2)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
     };
 
     const handleInputChange = (field, value) => {

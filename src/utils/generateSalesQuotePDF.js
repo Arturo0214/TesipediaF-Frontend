@@ -911,7 +911,7 @@ export const generateSalesQuotePDF = async (quoteData) => {
     // Col 2: Firma (Centrada entre PayPal y Mercado Pago)
 
     const columnGap = 10;
-    const colWidth = (contentWidth - columnGap) / 2;
+    const colWidth = contentWidth * 0.65; // Más ancho para esquema de pago con montos
     const col1X = margin;
 
     // Calcular centro entre PayPal (index 3) y Mercado Pago (index 4)
