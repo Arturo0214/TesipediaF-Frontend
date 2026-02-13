@@ -538,10 +538,11 @@ export const generateSalesQuotePDF = async (quoteData) => {
     const totalsWidth = contentWidth * 0.6;
     const spacing = contentWidth * 0.05;
 
-    // --- CTA Descuento (Izquierda) - Solo mostrar si hay descuento ---
+    // --- CTA Descuento (Izquierda) o Datos Bancarios ---
     const descuentoPorcentaje = parseFloat(quoteData.descuentoEfectivo) || 0;
+    const esEfectivo = quoteData.metodoPago === 'efectivo';
 
-    if (descuentoPorcentaje > 0) {
+    if (esEfectivo && descuentoPorcentaje > 0) {
         doc.setFillColor(255, 248, 240);
         doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
         doc.setDrawColor(...accentOrange);
@@ -618,10 +619,10 @@ export const generateSalesQuotePDF = async (quoteData) => {
         doc.setFontSize(7); // Nota más pequeña
         doc.setTextColor(...darkGray);
         doc.text('(Retiro sin tarjeta)', ctaCenterX, ctaY, { align: 'center' });
-    } else {
+    } else if (quoteData.metodoPago === 'tarjeta-nu') {
         // --- Datos Bancarios NU (Morado) ---
-        const nuPurple = [130, 10, 209]; // #820AD1 (Aprox Nu Purple)
-        const lightPurple = [245, 240, 255]; // Fondo muy claro morado
+        const nuPurple = [130, 10, 209]; // #820AD1
+        const lightPurple = [245, 240, 255];
 
         doc.setFillColor(...lightPurple);
         doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
@@ -632,44 +633,83 @@ export const generateSalesQuotePDF = async (quoteData) => {
         let bankY = yPos + 6;
         const bankCenterX = margin + ctaWidth / 2;
 
-        // Título "Datos Bancarios"
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(...nuPurple);
-        doc.text('Datos Bancarios', bankCenterX, bankY, { align: 'center' });
+        doc.text('Datos Bancarios Nu', bankCenterX, bankY, { align: 'center' });
 
         bankY += 5;
 
-        // Banco: Nu
         doc.setFontSize(9);
         doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'normal');
         doc.text('Banco: ', margin + 4, bankY);
-        const bancoWidth = doc.getTextWidth('Banco: ');
+        const nuBancoW = doc.getTextWidth('Banco: ');
         doc.setFont('helvetica', 'bold');
-        doc.text('Nu', margin + 4 + bancoWidth, bankY);
+        doc.text('Nu', margin + 4 + nuBancoW, bankY);
 
         bankY += 4.5;
 
-        // Beneficiario: Tesipedia
         doc.setFont('helvetica', 'normal');
         doc.text('Beneficiario: ', margin + 4, bankY);
-        const beneWidth = doc.getTextWidth('Beneficiario: ');
+        const nuBeneW = doc.getTextWidth('Beneficiario: ');
         doc.setFont('helvetica', 'bold');
-        doc.text('Tesipedia', margin + 4 + beneWidth, bankY);
+        doc.text('Tesipedia', margin + 4 + nuBeneW, bankY);
 
         bankY += 4.5;
 
-        // CLABE
-        const clabeText = 'CLABE: ';
         doc.setFont('helvetica', 'normal');
-        doc.text(clabeText, margin + 4, bankY);
-        const clabeWidth = doc.getTextWidth(clabeText);
+        doc.text('CLABE: ', margin + 4, bankY);
+        const nuClabeW = doc.getTextWidth('CLABE: ');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('638180000124480759', margin + 4 + nuClabeW, bankY);
+
+    } else if (quoteData.metodoPago === 'tarjeta-bbva') {
+        // --- Datos Bancarios BBVA (Azul) ---
+        const bbvaBlue = [12, 77, 162]; // #0C4DA2
+        const lightBlue = [235, 243, 255];
+
+        doc.setFillColor(...lightBlue);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
+        doc.setDrawColor(...bbvaBlue);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'S');
+
+        let bankY = yPos + 6;
+        const bankCenterX = margin + ctaWidth / 2;
 
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10); // Un poco más grande para legibilidad
+        doc.setFontSize(10);
+        doc.setTextColor(...bbvaBlue);
+        doc.text('Datos Bancarios BBVA', bankCenterX, bankY, { align: 'center' });
+
+        bankY += 5;
+
+        doc.setFontSize(9);
         doc.setTextColor(0, 0, 0);
-        doc.text('638180000124480759', margin + 4 + clabeWidth, bankY);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Banco: ', margin + 4, bankY);
+        const bbvaBancoW = doc.getTextWidth('Banco: ');
+        doc.setFont('helvetica', 'bold');
+        doc.text('BBVA', margin + 4 + bbvaBancoW, bankY);
+
+        bankY += 4.5;
+
+        doc.setFont('helvetica', 'normal');
+        doc.text('Beneficiario: ', margin + 4, bankY);
+        const bbvaBeneW = doc.getTextWidth('Beneficiario: ');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Arturo Suárez', margin + 4 + bbvaBeneW, bankY);
+
+        bankY += 4.5;
+
+        doc.setFont('helvetica', 'normal');
+        doc.text('CLABE: ', margin + 4, bankY);
+        const bbvaClabeW = doc.getTextWidth('CLABE: ');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('012180015479916039', margin + 4 + bbvaClabeW, bankY);
     }
 
     // --- Tabla de Totales (Derecha) ---
@@ -727,7 +767,10 @@ export const generateSalesQuotePDF = async (quoteData) => {
     if (descuentoPorcentaje > 0) {
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...successGreen);
-        doc.text(`Descuento pagando en efectivo (${quoteData.descuentoEfectivo}%):`, totalsX + 5, totalsY);
+        const descuentoLabel = esEfectivo
+            ? `Descuento pagando en efectivo (${quoteData.descuentoEfectivo}%):`
+            : `Descuento (${quoteData.descuentoEfectivo}%):`;
+        doc.text(descuentoLabel, totalsX + 5, totalsY);
         doc.text(`-$${formatPrice(descuento)}`, alineacionDerecha, totalsY, { align: 'right' });
         totalsY += 5;
     }

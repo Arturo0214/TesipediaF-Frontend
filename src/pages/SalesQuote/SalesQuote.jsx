@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Form, Button, Spinner, Collapse } from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
-import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaCreditCard, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { generateSalesQuotePDF } from '../../utils/generateSalesQuotePDF';
 import { calculateSalesQuotePrice } from '../../features/quotes/quoteSlice';
@@ -10,8 +10,10 @@ import './SalesQuote.css';
 const SalesQuote = () => {
     const dispatch = useDispatch();
     const [isGenerating, setIsGenerating] = useState(false);
+    const priceRequestId = useRef(0);
     const [isDiscountEditable, setIsDiscountEditable] = useState(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
+    const [metodoPago, setMetodoPago] = useState('efectivo'); // 'efectivo' o 'tarjeta'
     const [formData, setFormData] = useState({
         clientName: '',
         tipoTrabajo: '',
@@ -30,7 +32,13 @@ const SalesQuote = () => {
         })(),
         precioRegular: '',
         descuentoEfectivo: 10,
-        esquemaPago: '50% al iniciar el proyecto y 50% al finalizar, previo a la entrega de la versión final del documento.',
+        esquemaTipo: '50-50', // '50-50' o '33-33-34'
+        fechaPago1: new Date().toISOString().split('T')[0],
+        fechaAvance: (() => {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() + 14);
+            return fecha.toISOString().split('T')[0];
+        })(),
         serviciosIncluidos: [
             '1 Escáner antiplagio.',
             '1 Escáner anti-IA.',
@@ -131,6 +139,19 @@ const SalesQuote = () => {
         return descripcion;
     };
 
+    const formatDateForDisplay = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T12:00:00');
+        return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
+    };
+
+    const generarTextoEsquemaPago = () => {
+        if (formData.esquemaTipo === '33-33-34') {
+            return `33% al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}), 33% al entregar avance (${formatDateForDisplay(formData.fechaAvance)}) y 34% al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
+        }
+        return `50% al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}) y 50% al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
+    };
+
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
@@ -176,28 +197,33 @@ const SalesQuote = () => {
         }
     }, [formData.tipoTrabajo, formData.customTipoTrabajo, formData.tipoServicio, formData.tituloTrabajo, formData.extensionEstimada, formData.area, formData.carrera]);
 
-    const calculatePriceFromBackend = async () => {
-        if (!formData.nivelAcademico || !formData.area || !formData.extensionEstimada || parseFloat(formData.extensionEstimada) <= 0) return;
-        try {
-            const tipoTrabajoFinal = formData.tipoTrabajo === 'Otro' ? formData.customTipoTrabajo : formData.tipoTrabajo;
-            // console.log('Calculando precio para:', { tipo: tipoTrabajoFinal, area: formData.area, nivel: formData.nivelAcademico });
-            const result = await dispatch(calculateSalesQuotePrice({
-                educationLevel: formData.nivelAcademico,
-                studyArea: formData.area,
-                pages: formData.extensionEstimada,
-                serviceType: formData.tipoServicio,
-                taskType: tipoTrabajoFinal
-            })).unwrap();
-            if (result.success && result.pricing) {
-                setFormData(prev => ({ ...prev, precioRegular: result.pricing.totalPrice.toString() }));
-            }
-        } catch (error) {
-            console.error('Error al calcular precio:', error);
-        }
-    };
-
     useEffect(() => {
-        calculatePriceFromBackend();
+        if (!formData.nivelAcademico || !formData.area || !formData.extensionEstimada || parseFloat(formData.extensionEstimada) <= 0) return;
+
+        // Incrementar ID para invalidar llamadas anteriores
+        priceRequestId.current += 1;
+        const currentRequestId = priceRequestId.current;
+
+        const timer = setTimeout(async () => {
+            try {
+                const tipoTrabajoFinal = formData.tipoTrabajo === 'Otro' ? formData.customTipoTrabajo : formData.tipoTrabajo;
+                const result = await dispatch(calculateSalesQuotePrice({
+                    educationLevel: formData.nivelAcademico,
+                    studyArea: formData.area,
+                    pages: formData.extensionEstimada,
+                    serviceType: formData.tipoServicio,
+                    taskType: tipoTrabajoFinal
+                })).unwrap();
+                // Solo actualizar si esta es la petición más reciente
+                if (currentRequestId === priceRequestId.current && result.success && result.pricing) {
+                    setFormData(prev => ({ ...prev, precioRegular: result.pricing.totalPrice.toString() }));
+                }
+            } catch (error) {
+                console.error('Error al calcular precio:', error);
+            }
+        }, 400);
+
+        return () => clearTimeout(timer);
     }, [formData.nivelAcademico, formData.area, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo]);
 
     const calculatePrices = () => {
@@ -276,7 +302,7 @@ const SalesQuote = () => {
                 descuentoEfectivo: formData.descuentoEfectivo,
                 descuentoMonto: prices.descuentoMonto,
                 precioConDescuento: prices.precioConDescuento,
-                esquemaPago: formData.esquemaPago,
+                esquemaPago: generarTextoEsquemaPago(),
                 serviciosIncluidos: formData.serviciosIncluidos.filter(s => s.trim() !== ''),
                 beneficiosAdicionales: formData.beneficiosAdicionales.filter(b => {
                     if (typeof b === 'object') {
@@ -287,7 +313,8 @@ const SalesQuote = () => {
                 ajustesIlimitados: formData.ajustesIlimitados,
                 acompañamientoContinuo: formData.acompañamientoContinuo,
                 asesoria: formData.asesoria,
-                notaAcompañamiento: formData.notaAcompañamiento
+                notaAcompañamiento: formData.notaAcompañamiento,
+                metodoPago: metodoPago
             };
             await generateSalesQuotePDF(quoteData);
             Swal.fire({ title: '¡PDF Generado!', text: 'La cotización ha sido descargada exitosamente.', icon: 'success', timer: 3000, timerProgressBar: true });
@@ -311,6 +338,42 @@ const SalesQuote = () => {
                                 <h5 className="mb-1 fw-bold text-primary">
                                     <FaFilePdf className="me-2" />Generador de Cotizaciones
                                 </h5>
+                                {/* Toggle Método de Pago */}
+                                <div className="payment-method-toggle mt-2">
+                                    <button
+                                        type="button"
+                                        className={`pmt-btn ${metodoPago === 'efectivo' ? 'pmt-btn-active pmt-btn-efectivo' : ''}`}
+                                        onClick={() => {
+                                            setMetodoPago('efectivo');
+                                            setFormData(prev => ({ ...prev, descuentoEfectivo: 10 }));
+                                            setIsDiscountEditable(false);
+                                        }}
+                                    >
+                                        <FaMoneyBillWave className="me-1" /> Efectivo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`pmt-btn ${metodoPago === 'tarjeta-nu' ? 'pmt-btn-active pmt-btn-tarjeta' : ''}`}
+                                        onClick={() => {
+                                            setMetodoPago('tarjeta-nu');
+                                            setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
+                                            setIsDiscountEditable(false);
+                                        }}
+                                    >
+                                        <FaCreditCard className="me-1" /> Tarjeta NU
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`pmt-btn ${metodoPago === 'tarjeta-bbva' ? 'pmt-btn-active pmt-btn-bbva' : ''}`}
+                                        onClick={() => {
+                                            setMetodoPago('tarjeta-bbva');
+                                            setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
+                                            setIsDiscountEditable(false);
+                                        }}
+                                    >
+                                        <FaCreditCard className="me-1" /> Tarjeta BBVA
+                                    </button>
+                                </div>
                             </div>
 
                             <Form>
@@ -322,31 +385,37 @@ const SalesQuote = () => {
                                             <div className="section-title"><FaUser className="me-1" /> Cliente y Proyecto</div>
                                             <Row className="g-2">
                                                 <Col xs={12}>
-                                                    <Form.Control size="sm" type="text" placeholder="Cliente *" value={formData.clientName} onChange={(e) => handleInputChange('clientName', e.target.value)} />
+                                                    <div className="micro-label">Cliente *</div>
+                                                    <Form.Control size="sm" type="text" placeholder="Nombre del cliente" value={formData.clientName} onChange={(e) => handleInputChange('clientName', e.target.value)} />
                                                 </Col>
                                                 <Col xs={6}>
+                                                    <div className="micro-label">Tipo de Trabajo *</div>
                                                     <Form.Select size="sm" value={formData.tipoTrabajo} onChange={(e) => handleInputChange('tipoTrabajo', e.target.value)}>
-                                                        <option value="">Tipo *</option>
+                                                        <option value="">Seleccionar...</option>
                                                         {tiposTrabajo.map((tipo) => (<option key={tipo} value={tipo}>{tipo}</option>))}
                                                     </Form.Select>
                                                 </Col>
                                                 <Col xs={6}>
+                                                    <div className="micro-label">Nivel Académico *</div>
                                                     <Form.Select size="sm" value={formData.nivelAcademico} onChange={(e) => handleInputChange('nivelAcademico', e.target.value)}>
-                                                        <option value="">Nivel *</option>
+                                                        <option value="">Seleccionar...</option>
                                                         {nivelesAcademicos.map((nivel) => (<option key={nivel} value={nivel}>{nivel}</option>))}
                                                     </Form.Select>
                                                 </Col>
                                                 <Col xs={12}>
+                                                    <div className="micro-label">Área de Estudio</div>
                                                     <Form.Select size="sm" value={formData.area} onChange={(e) => handleInputChange('area', e.target.value)}>
-                                                        <option value="">Área</option>
+                                                        <option value="">Seleccionar...</option>
                                                         {areas.map((area) => (<option key={area} value={area}>{area}</option>))}
                                                     </Form.Select>
                                                 </Col>
                                                 <Col xs={8}>
-                                                    <Form.Control size="sm" type="text" placeholder="Carrera *" value={formData.carrera} onChange={(e) => handleInputChange('carrera', e.target.value)} />
+                                                    <div className="micro-label">Carrera *</div>
+                                                    <Form.Control size="sm" type="text" placeholder="Nombre de la carrera" value={formData.carrera} onChange={(e) => handleInputChange('carrera', e.target.value)} />
                                                 </Col>
                                                 <Col xs={4}>
-                                                    <Form.Control size="sm" type="number" placeholder="Págs *" value={formData.extensionEstimada} onChange={(e) => handleInputChange('extensionEstimada', e.target.value)} min="1" />
+                                                    <div className="micro-label">Páginas *</div>
+                                                    <Form.Control size="sm" type="number" placeholder="Cant." value={formData.extensionEstimada} onChange={(e) => handleInputChange('extensionEstimada', e.target.value)} min="1" />
                                                 </Col>
                                                 {/* Selector de Tipo de Servicio - 3 Modalidades */}
                                                 <Col xs={6}>
@@ -373,7 +442,8 @@ const SalesQuote = () => {
                                                     </Col>
                                                 )}
                                                 <Col xs={12}>
-                                                    <Form.Control size="sm" type="text" placeholder="Título del Trabajo" value={formData.tituloTrabajo} onChange={(e) => handleInputChange('tituloTrabajo', e.target.value)} />
+                                                    <div className="micro-label">Título del Trabajo</div>
+                                                    <Form.Control size="sm" type="text" placeholder="Nombre del trabajo" value={formData.tituloTrabajo} onChange={(e) => handleInputChange('tituloTrabajo', e.target.value)} />
                                                 </Col>
                                             </Row>
                                         </div>
@@ -531,7 +601,25 @@ const SalesQuote = () => {
                                                 </Col>
                                                 <Col xs={12}>
                                                     <div className="micro-label">Esquema de Pago</div>
-                                                    <Form.Control size="sm" as="textarea" rows={2} value={formData.esquemaPago} onChange={(e) => handleInputChange('esquemaPago', e.target.value)} style={{ fontSize: '0.75rem' }} />
+                                                    <Form.Select size="sm" value={formData.esquemaTipo} onChange={(e) => handleInputChange('esquemaTipo', e.target.value)}>
+                                                        <option value="50-50">50% inicio / 50% final</option>
+                                                        <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
+                                                    </Form.Select>
+                                                </Col>
+                                                {/* Fechas de pago */}
+                                                <Col xs={formData.esquemaTipo === '33-33-34' ? 4 : 6}>
+                                                    <div className="micro-label">Pago Inicio</div>
+                                                    <Form.Control size="sm" type="date" value={formData.fechaPago1} disabled className="bg-light" />
+                                                </Col>
+                                                {formData.esquemaTipo === '33-33-34' && (
+                                                    <Col xs={4}>
+                                                        <div className="micro-label">Pago Avance</div>
+                                                        <Form.Control size="sm" type="date" value={formData.fechaAvance} onChange={(e) => handleInputChange('fechaAvance', e.target.value)} />
+                                                    </Col>
+                                                )}
+                                                <Col xs={formData.esquemaTipo === '33-33-34' ? 4 : 6}>
+                                                    <div className="micro-label">Pago Final</div>
+                                                    <Form.Control size="sm" type="date" value={formData.fechaEntrega} disabled className="bg-light" />
                                                 </Col>
                                             </Row>
                                         </div>
