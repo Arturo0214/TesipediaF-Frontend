@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaCreditCard, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { generateSalesQuotePDF } from '../../utils/generateSalesQuotePDF';
-import { calculateSalesQuotePrice } from '../../features/quotes/quoteSlice';
+import { calculateSalesQuotePrice, saveGeneratedQuote } from '../../features/quotes/quoteSlice';
 import './SalesQuote.css';
 
 const SalesQuote = () => {
@@ -325,6 +325,19 @@ const SalesQuote = () => {
                 notaAcompañamiento: formData.notaAcompañamiento,
                 metodoPago: metodoPago
             };
+            // 💾 Guardar datos en el backend (sin bloquear la generación del PDF)
+            dispatch(saveGeneratedQuote(quoteData))
+                .unwrap()
+                .then((res) => console.log('Cotización guardada:', res))
+                .catch((err) => {
+                    console.error('Error al guardar cotización:', err);
+                    Swal.fire({
+                        title: 'Advertencia',
+                        text: 'La cotización se generó pero no se pudo guardar en el sistema. Por favor contacte al administrador si el problema persiste.',
+                        icon: 'warning'
+                    });
+                });
+
             await generateSalesQuotePDF(quoteData);
             Swal.fire({ title: '¡PDF Generado!', text: 'La cotización ha sido descargada exitosamente.', icon: 'success', timer: 3000, timerProgressBar: true });
         } catch (error) {

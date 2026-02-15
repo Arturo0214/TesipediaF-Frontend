@@ -13,7 +13,8 @@ const initialState = {
   isSuccess: false,
   isLoading: false,
   message: '',
-  estimatedPrice: 0
+  estimatedPrice: 0,
+  generatedQuotes: []
 };
 
 // Helper function to check for admin permissions
@@ -199,6 +200,59 @@ export const calculateSalesQuotePrice = createAsyncThunk(
       return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error al calcular el precio');
+    }
+  }
+);
+
+export const saveGeneratedQuote = createAsyncThunk(
+  'quotes/saveGeneratedQuote',
+  async (quoteData, thunkAPI) => {
+    try {
+      return await quoteService.saveGeneratedQuote(quoteData);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error al guardar la cotización generada');
+    }
+  }
+);
+
+export const getGeneratedQuotes = createAsyncThunk(
+  'quotes/getGeneratedQuotes',
+  async (_, thunkAPI) => {
+    try {
+      const permissionError = checkAdminPermission(thunkAPI);
+      if (permissionError) {
+        return thunkAPI.rejectWithValue(permissionError);
+      }
+      return await quoteService.getGeneratedQuotes();
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error al obtener cotizaciones generadas');
+    }
+  }
+);
+
+export const updateGeneratedQuote = createAsyncThunk(
+  'quotes/updateGeneratedQuote',
+  async ({ quoteId, updatedData }, thunkAPI) => {
+    try {
+      // Use internal service method
+      return await quoteService.updateGeneratedQuote(quoteId, updatedData);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error al actualizar cotización generada');
+    }
+  }
+);
+export const deleteGeneratedQuote = createAsyncThunk(
+  'quotes/deleteGeneratedQuote',
+  async (quoteId, thunkAPI) => {
+    try {
+      const permissionError = checkAdminPermission(thunkAPI);
+      if (permissionError) {
+        return thunkAPI.rejectWithValue(permissionError);
+      }
+      await quoteService.deleteGeneratedQuote(quoteId);
+      return quoteId;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Error al eliminar cotización generada');
     }
   }
 );
@@ -456,6 +510,47 @@ const quoteSlice = createSlice({
       .addCase(calculateSalesQuotePrice.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(saveGeneratedQuote.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(saveGeneratedQuote.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        // Optionally update state.quotes if we want to show it in a list
+      })
+      .addCase(saveGeneratedQuote.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        // We don't block the UI heavily if save fails, but good to know
+      })
+      .addCase(getGeneratedQuotes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getGeneratedQuotes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.generatedQuotes = action.payload;
+      })
+      .addCase(getGeneratedQuotes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateGeneratedQuote.fulfilled, (state, action) => {
+        // Actualizar la cotización en generatedQuotes
+        if (state.generatedQuotes) {
+          state.generatedQuotes = state.generatedQuotes.map(q =>
+            q._id === action.payload._id ? action.payload : q
+          );
+        }
+      })
+      .addCase(deleteGeneratedQuote.fulfilled, (state, action) => {
+        if (state.generatedQuotes) {
+          state.generatedQuotes = state.generatedQuotes.filter(q => q._id !== action.payload);
+        }
       });
   }
 });

@@ -19,13 +19,12 @@ function MainLayout() {
 
     return (
         <div className="d-flex flex-column min-vh-100">
-            {!isAuthenticated ? (
-                <Navbar />
+            {isAuthenticated && user?.role === 'redactor' ? (
+                <NavbarRedactor />
+            ) : isAuthenticated && user?.role === 'cliente' ? (
+                <NavbarCliente />
             ) : (
-                <>
-                    {user?.role === 'redactor' && <NavbarRedactor />}
-                    {user?.role === 'cliente' && <NavbarCliente />}
-                </>
+                <Navbar />
             )}
 
             <main className="flex-fill main-content">

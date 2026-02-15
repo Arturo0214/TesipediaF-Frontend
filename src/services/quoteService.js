@@ -63,6 +63,24 @@ const getMyQuotes = async () => {
     return response.data;
 };
 
+// 💾 Guardar cotización generada
+const saveGeneratedQuote = async (quoteData) => {
+    const response = await axiosWithAuth.post('/quotes/generated', quoteData);
+    return response.data;
+};
+
+// 📋 Obtener todas las cotizaciones generadas (admin)
+const getGeneratedQuotes = async () => {
+    const response = await axiosWithAuth.get('/quotes/generated/all');
+    return response.data;
+};
+
+// 🔄 Actualizar cotización generada
+const updateGeneratedQuote = async (quoteId, updatedData) => {
+    const response = await axiosWithAuth.put(`/quotes/generated/${quoteId}`, updatedData);
+    return response.data;
+};
+
 // 🔄 Actualizar mi cotización (usuario autenticado)
 const updateMyQuote = async (quoteId, updatedData) => {
     console.log('🔄 Enviando actualización de cotización:', {
@@ -183,6 +201,13 @@ const quoteService = {
     calculateSalesQuotePrice,
     checkPaymentStatus,
     updateMyQuote,
+    saveGeneratedQuote,
+    getGeneratedQuotes,
+    updateGeneratedQuote,
+    deleteGeneratedQuote: async (quoteId) => {
+        const response = await axiosWithAuth.delete(`/quotes/generated/${quoteId}`);
+        return response.data;
+    },
     getQuoteStats: async () => {
         const response = await axiosWithAuth.get('/quotes/stats');
         return response.data;
