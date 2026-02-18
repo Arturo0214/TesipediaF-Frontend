@@ -307,7 +307,12 @@ export const generateSalesQuotePDF = async (quoteData) => {
     doc.setFontSize(8);
     doc.text('15 días', rightX, dataY + (lineSpacing * 2) + 4);
 
-    yPos += dataBoxHeight + 8;
+    // Ajustar espaciado vertical según si es un esquema largo (6 pagos) o normal
+    const esquemasLargos = ['6 pagos'];
+    const esEsquemaLargo = esquemasLargos.some(texto => quoteData.esquemaPago && quoteData.esquemaPago.toLowerCase().includes(texto));
+
+    // Si es esquema largo, reducimos el margen drásticamente (2mm), sino dejamos el normal (8mm)
+    yPos += dataBoxHeight + (esEsquemaLargo ? 2 : 8);
 
     // ============ DESCRIPCIÓN DEL SERVICIO ============
     // Header de la tabla con diseño diagonal

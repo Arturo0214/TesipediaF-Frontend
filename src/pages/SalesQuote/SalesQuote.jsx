@@ -49,7 +49,8 @@ const SalesQuote = () => {
         ajustesIlimitados: 'Ajustes ilimitados conforme a observaciones del asesor.',
         acompañamientoContinuo: 'Acompañamiento continuo hasta versión final aprobable.',
         asesoria: 'Asesoría 1:1 al realizar la entrega de la versión preliminar.',
-        notaAcompañamiento: 'el acompañamiento se da hasta dar por concluida la versión final'
+        notaAcompañamiento: 'el acompañamiento se da hasta dar por concluida la versión final',
+        fechasPagos: []
     });
 
     const areas = [
@@ -155,7 +156,24 @@ const SalesQuote = () => {
             const pago2 = Math.round(total * 0.33 * 100) / 100;
             const pago3 = Math.round((total - pago1 - pago2) * 100) / 100;
             return `33% (${fmt(pago1)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}), 33% (${fmt(pago2)}) al entregar avance (${formatDateForDisplay(formData.fechaAvance)}) y 34% (${fmt(pago3)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
+        } else if (formData.esquemaTipo === '6-quincenales' || formData.esquemaTipo === '6-mensuales') {
+            const numPagos = 6;
+            const montoPago = Math.round((total / numPagos) * 100) / 100;
+            // Ajustar el último pago para que cuadre el centavo
+            const ultimoPago = Math.round((total - (montoPago * (numPagos - 1))) * 100) / 100;
+
+            let texto = `Esquema de ${numPagos} pagos ${formData.esquemaTipo === '6-quincenales' ? 'quincenales' : 'mensuales'}: `;
+
+            const fechas = formData.fechasPagos.length === 6 ? formData.fechasPagos : Array(6).fill(new Date().toISOString().split('T')[0]);
+
+            const pagosTexto = fechas.map((fecha, index) => {
+                const monto = index === 5 ? ultimoPago : montoPago;
+                return `Pago ${index + 1}: ${fmt(monto)} (${formatDateForDisplay(fecha)})`;
+            }).join(', ');
+
+            return texto + pagosTexto + '.';
         }
+
         const mitad = Math.round(total * 0.50 * 100) / 100;
         const mitad2 = Math.round((total - mitad) * 100) / 100;
         return `50% (${fmt(mitad)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}) y 50% (${fmt(mitad2)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
@@ -197,6 +215,38 @@ const SalesQuote = () => {
     const removeBeneficio = (index) => {
         const newBeneficios = formData.beneficiosAdicionales.filter((_, i) => i !== index);
         setFormData(prev => ({ ...prev, beneficiosAdicionales: newBeneficios }));
+    };
+
+    const handleEsquemaChange = (e) => {
+        const tipo = e.target.value;
+        let updates = { esquemaTipo: tipo };
+
+        if (tipo === '6-quincenales' || tipo === '6-mensuales') {
+            const start = new Date(formData.fechaPago1 || new Date());
+            const dates = [];
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(start);
+                // Si es la primera fecha, usamos la fecha de inicio tal cual
+                // Para las siguientes, sumamos 15 días o 1 mes respectivamente
+                if (i > 0) {
+                    if (tipo === '6-quincenales') {
+                        d.setDate(d.getDate() + (i * 15));
+                    } else {
+                        d.setMonth(d.getMonth() + i);
+                    }
+                }
+                dates.push(d.toISOString().split('T')[0]);
+            }
+            updates.fechasPagos = dates;
+        }
+
+        setFormData(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleFechaPagoChange = (index, value) => {
+        const newFechas = [...formData.fechasPagos];
+        newFechas[index] = value;
+        setFormData(prev => ({ ...prev, fechasPagos: newFechas }));
     };
 
     useEffect(() => {
@@ -623,26 +673,48 @@ const SalesQuote = () => {
                                                 </Col>
                                                 <Col xs={12}>
                                                     <div className="micro-label">Esquema de Pago</div>
-                                                    <Form.Select size="sm" value={formData.esquemaTipo} onChange={(e) => handleInputChange('esquemaTipo', e.target.value)}>
+                                                    <Form.Select size="sm" value={formData.esquemaTipo} onChange={handleEsquemaChange}>
                                                         <option value="50-50">50% inicio / 50% final</option>
                                                         <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
+                                                        <option value="6-quincenales">6 Pagos Quincenales</option>
+                                                        <option value="6-mensuales">6 Pagos Mensuales</option>
                                                     </Form.Select>
                                                 </Col>
                                                 {/* Fechas de pago */}
-                                                <Col xs={formData.esquemaTipo === '33-33-34' ? 4 : 6}>
-                                                    <div className="micro-label">Pago Inicio</div>
-                                                    <Form.Control size="sm" type="date" value={formData.fechaPago1} disabled className="bg-light" />
-                                                </Col>
-                                                {formData.esquemaTipo === '33-33-34' && (
-                                                    <Col xs={4}>
-                                                        <div className="micro-label">Pago Avance</div>
-                                                        <Form.Control size="sm" type="date" value={formData.fechaAvance} onChange={(e) => handleInputChange('fechaAvance', e.target.value)} />
-                                                    </Col>
+                                                {(formData.esquemaTipo === '6-quincenales' || formData.esquemaTipo === '6-mensuales') ? (
+                                                    // Renderizar los 6 inputs
+                                                    <>
+                                                        {formData.fechasPagos.map((fecha, index) => (
+                                                            <Col xs={4} key={index}>
+                                                                <div className="micro-label">Pago {index + 1}</div>
+                                                                <Form.Control
+                                                                    size="sm"
+                                                                    type="date"
+                                                                    value={fecha}
+                                                                    onChange={(e) => handleFechaPagoChange(index, e.target.value)}
+                                                                />
+                                                            </Col>
+                                                        ))}
+                                                    </>
+                                                ) : (
+                                                    // Renderizar esquema original
+                                                    <>
+                                                        <Col xs={formData.esquemaTipo === '33-33-34' ? 4 : 6}>
+                                                            <div className="micro-label">Pago Inicio</div>
+                                                            <Form.Control size="sm" type="date" value={formData.fechaPago1} disabled className="bg-light" />
+                                                        </Col>
+                                                        {formData.esquemaTipo === '33-33-34' && (
+                                                            <Col xs={4}>
+                                                                <div className="micro-label">Pago Avance</div>
+                                                                <Form.Control size="sm" type="date" value={formData.fechaAvance} onChange={(e) => handleInputChange('fechaAvance', e.target.value)} />
+                                                            </Col>
+                                                        )}
+                                                        <Col xs={formData.esquemaTipo === '33-33-34' ? 4 : 6}>
+                                                            <div className="micro-label">Pago Final</div>
+                                                            <Form.Control size="sm" type="date" value={formData.fechaEntrega} disabled className="bg-light" />
+                                                        </Col>
+                                                    </>
                                                 )}
-                                                <Col xs={formData.esquemaTipo === '33-33-34' ? 4 : 6}>
-                                                    <div className="micro-label">Pago Final</div>
-                                                    <Form.Control size="sm" type="date" value={formData.fechaEntrega} disabled className="bg-light" />
-                                                </Col>
                                             </Row>
                                         </div>
 
