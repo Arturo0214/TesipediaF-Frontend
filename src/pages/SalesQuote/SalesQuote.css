@@ -380,3 +380,19 @@ div[style*="font-size: 0.9rem"] {
 .pmt-btn-bbva.pmt-btn-active {
     background: linear-gradient(135deg, #0c4da2, #072d6f);
 }
+
+/* Responsive Payment Toggle */
+@media (max-width: 576px) {
+    .payment-method-toggle {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .pmt-btn {
+        width: 100%;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+}

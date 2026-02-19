@@ -12,6 +12,7 @@ const SalesQuote = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const priceRequestId = useRef(0);
     const [isDiscountEditable, setIsDiscountEditable] = useState(false);
+    const [isPriceEditable, setIsPriceEditable] = useState(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
     const [metodoPago, setMetodoPago] = useState('efectivo'); // 'efectivo' o 'tarjeta'
     const [formData, setFormData] = useState({
@@ -257,6 +258,7 @@ const SalesQuote = () => {
     }, [formData.tipoTrabajo, formData.customTipoTrabajo, formData.tipoServicio, formData.tituloTrabajo, formData.extensionEstimada, formData.area, formData.carrera]);
 
     useEffect(() => {
+        if (isPriceEditable) return; // No auto-calcular si el precio está en modo edición manual
         if (!formData.nivelAcademico || !formData.area || !formData.extensionEstimada || parseFloat(formData.extensionEstimada) <= 0) return;
 
         // Incrementar ID para invalidar llamadas anteriores
@@ -283,7 +285,7 @@ const SalesQuote = () => {
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [formData.nivelAcademico, formData.area, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo]);
+    }, [formData.nivelAcademico, formData.area, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo, isPriceEditable]);
 
     const calculatePrices = () => {
         const precioBase = parseFloat(formData.precioRegular) || 0;
@@ -645,10 +647,28 @@ const SalesQuote = () => {
                                             <div className="section-title"><FaMoneyBillWave className="me-1" /> Inversión y Entrega</div>
                                             <Row className="g-2">
                                                 <Col xs={6}>
-                                                    <div className="micro-label">Precio Base (auto)</div>
-                                                    <div className="input-group input-group-sm">
-                                                        <span className="input-group-text">$</span>
-                                                        <Form.Control type="number" value={formData.precioRegular} disabled className="bg-light" />
+                                                    <div className="micro-label">{isPriceEditable ? 'Precio (manual)' : 'Precio Base (auto)'}</div>
+                                                    <div className="d-flex gap-1">
+                                                        <div className="input-group input-group-sm flex-grow-1">
+                                                            <span className="input-group-text">$</span>
+                                                            <Form.Control
+                                                                type="number"
+                                                                value={formData.precioRegular}
+                                                                onChange={(e) => handleInputChange('precioRegular', e.target.value)}
+                                                                disabled={!isPriceEditable}
+                                                                className={!isPriceEditable ? 'bg-light' : ''}
+                                                                min="0"
+                                                            />
+                                                        </div>
+                                                        <Button
+                                                            variant={isPriceEditable ? 'success' : 'outline-secondary'}
+                                                            size="sm"
+                                                            onClick={() => setIsPriceEditable(!isPriceEditable)}
+                                                            style={{ padding: '0 0.4rem' }}
+                                                            title={isPriceEditable ? 'Confirmar precio manual' : 'Editar precio manualmente'}
+                                                        >
+                                                            {isPriceEditable ? '✓' : '✏️'}
+                                                        </Button>
                                                     </div>
                                                 </Col>
                                                 <Col xs={6}>

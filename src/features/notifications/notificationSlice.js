@@ -25,20 +25,11 @@ export const markNotificationAsRead = createAsyncThunk(
       // Usar POST en lugar de PATCH
       const response = await axiosWithAuth.post(`/notifications/${notificationId}/read`, {});
       console.log('Respuesta del servidor al marcar como leída:', response);
-      // Después de marcar como leída, actualizar la lista de notificaciones
-      // No actualizamos aquí para evitar problemas de concurrencia
-      return {
-        _id: notificationId,
-        isRead: true,
-        ...response.data
-      };
+      console.log('Respuesta del servidor al marcar como leída:', response.data);
+      return response.data;
     } catch (error) {
       console.error('Error al marcar notificación como leída:', error);
-      // Intentar actualizar el estado localmente incluso si hay un error
-      return {
-        _id: notificationId,
-        isRead: true
-      };
+      return rejectWithValue(error.response?.data?.message || 'Error al marcar notificación como leída');
     }
   }
 );
@@ -57,8 +48,23 @@ export const markAllNotificationsAsRead = createAsyncThunk(
       return response.data;
     } catch (error) {
       console.error('Error al marcar todas las notificaciones como leídas:', error);
-      // Intentar actualizar el estado localmente incluso si hay un error
-      return { success: true };
+      return rejectWithValue(error.response?.data?.message || 'Error al marcar todas las notificaciones como leídas');
+    }
+  }
+);
+
+// Marcar notificaciones de un tipo como leídas
+export const markNotificationsByType = createAsyncThunk(
+  'notifications/markNotificationsByType',
+  async (type, { rejectWithValue }) => {
+    try {
+      console.log('Marcando notificaciones de tipo:', type);
+      const response = await axiosWithAuth.post('/notifications/mark-type-read', { type });
+      console.log('Resultado marcar por tipo:', response.data);
+      return { type, ...response.data };
+    } catch (error) {
+      console.error('Error al marcar notificaciones por tipo:', error);
+      return rejectWithValue(error.response?.data?.message || `Error al marcar notificaciones de tipo ${type}`);
     }
   }
 );
@@ -68,7 +74,7 @@ export const deleteNotification = createAsyncThunk(
   'notifications/deleteNotification',
   async (id, { rejectWithValue }) => {
     try {
-      await axiosWithAuth.delete(`/notifications/notifications/${id}`);
+      await axiosWithAuth.delete(`/notifications/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al eliminar la notificación');
@@ -81,7 +87,7 @@ export const fetchNotificationStats = createAsyncThunk(
   'notifications/fetchNotificationStats',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosWithAuth.get('/notifications/notifications/stats');
+      const response = await axiosWithAuth.get('/notifications/stats');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al obtener estadísticas de notificaciones');
@@ -94,7 +100,7 @@ export const createNotification = createAsyncThunk(
   'notifications/createNotification',
   async (notificationData, { rejectWithValue }) => {
     try {
-      const response = await axiosWithAuth.post('/notifications/notifications', notificationData);
+      const response = await axiosWithAuth.post('/notifications', notificationData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al crear la notificación');
@@ -131,7 +137,7 @@ const notificationSlice = createSlice({
     updateNotification: (state, action) => {
       const idx = state.notifications.findIndex(n => n._id === action.payload._id);
       if (idx !== -1) {
-        state.notifications[idx] = { ...state.notifications[idx], ...action.payload };
+        state.notifications[idx] = action.payload;
         // Recalcular el contador de no leídas
         state.unreadCount = state.notifications.filter(n => !n.isRead).length;
       }
@@ -163,10 +169,14 @@ const notificationSlice = createSlice({
         // Actualizar el estado localmente
         const index = state.notifications.findIndex(n => n._id === notificationId);
         if (index !== -1) {
-          state.notifications[index].isRead = true;
+          console.log('Actualizando notificación en store:', notificationId);
+          // Reemplazar todo el objeto con la respuesta del servidor para asegurar consistencia
+          state.notifications[index] = action.payload;
           // Recalcular el contador de notificaciones no leídas
           state.unreadCount = state.notifications.filter(notification => !notification.isRead).length;
           console.log('Contador de notificaciones no leídas actualizado:', state.unreadCount);
+        } else {
+          console.warn('Notificación no encontrada en el estado local:', notificationId);
         }
       })
       .addCase(markAllNotificationsAsRead.fulfilled, (state) => {
@@ -177,6 +187,17 @@ const notificationSlice = createSlice({
         });
         // Asegurarse de que el contador se actualice correctamente
         state.unreadCount = 0;
+        console.log('Contador de notificaciones no leídas actualizado:', state.unreadCount);
+      })
+      .addCase(markNotificationsByType.fulfilled, (state, action) => {
+        const { type } = action.payload;
+        console.log('Todas las notificaciones de tipo', type, 'marcadas como leídas');
+        state.notifications.forEach(notification => {
+          if (notification.type === type) {
+            notification.isRead = true;
+          }
+        });
+        state.unreadCount = state.notifications.filter(notification => !notification.isRead).length;
         console.log('Contador de notificaciones no leídas actualizado:', state.unreadCount);
       });
   }

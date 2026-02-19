@@ -10,7 +10,7 @@ import {
     fetchNotifications,
     markNotificationAsRead,
     markAllNotificationsAsRead
-} from '@features/notifications/notificationSlice';
+} from '../../../features/notifications/notificationSlice';
 import './Notifications.css';
 
 const NotificationItem = ({ notification, onMarkAsRead }) => {
@@ -92,8 +92,7 @@ const Notifications = () => {
         try {
             console.log('Marcando notificación como leída:', notificationId);
             await dispatch(markNotificationAsRead(notificationId)).unwrap();
-            console.log('Notificación marcada como leída, actualizando lista');
-            await dispatch(fetchNotifications());
+            console.log('Notificación marcada como leída');
         } catch (error) {
             console.error('Error al marcar notificación como leída:', error);
         }
@@ -103,8 +102,7 @@ const Notifications = () => {
         try {
             console.log('Marcando todas las notificaciones como leídas');
             await dispatch(markAllNotificationsAsRead()).unwrap();
-            console.log('Todas las notificaciones marcadas como leídas, actualizando lista');
-            await dispatch(fetchNotifications());
+            console.log('Todas las notificaciones marcadas como leídas');
         } catch (error) {
             console.error('Error al marcar todas las notificaciones como leídas:', error);
         }
@@ -120,7 +118,7 @@ const Notifications = () => {
                 onMarkAsRead={handleMarkAsRead}
             />
         ));
-    }, [notifications, handleMarkAsRead]);
+    }, [notifications]);
 
     return (
         <Dropdown align="end" className="notifications-dropdown">
@@ -181,3 +179,5 @@ const Notifications = () => {
 };
 
 export default Notifications;
+
+

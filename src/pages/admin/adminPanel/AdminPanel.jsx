@@ -19,7 +19,13 @@ import {
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
-import { addNotification, updateNotification, removeNotification, fetchNotifications } from '../../../features/notifications/notificationSlice';
+import {
+    addNotification,
+    updateNotification,
+    removeNotification,
+    fetchNotifications,
+    markNotificationsByType // Nuevo import
+} from '../../../features/notifications/notificationSlice';
 import { connectSocket, onSocketEvent } from '../../../services/socket/socketService';
 import './AdminPanel.css';
 import '../adminCommon.css';

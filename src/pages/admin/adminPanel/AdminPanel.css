@@ -275,20 +275,6 @@
     .tesipedia-admin-container {
         grid-template-columns: 1fr;
     }
-
-    .tesipedia-admin-sidebar {
-        position: fixed;
-        left: -280px;
-        top: 0;
-        bottom: 0;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        width: 280px;
-    }
-
-    .tesipedia-admin-sidebar.active {
-        left: 0;
-    }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -751,15 +737,20 @@
         position: fixed;
         top: 18px;
         left: 18px;
-        z-index: 2001;
-        background: none;
-        border: none;
-        font-size: 2rem;
+        z-index: 21001;
+        /* Higher than sidebar (21000) */
+        background: white;
+        /* Ensure visibility */
+        border: 1px solid #dee2e6;
+        font-size: 1.5rem;
         color: #23272f;
         cursor: pointer;
-        padding: 0.3rem 0.5rem;
+        padding: 0.4rem;
         border-radius: 0.4rem;
-        box-shadow: 0 2px 8px 0 rgba(60, 60, 60, 0.08);
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 
@@ -776,9 +767,12 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(44, 62, 80, 0.35);
-        z-index: 2000;
+        background: rgba(0, 0, 0, 0.5);
+        /* Darker overlay */
+        z-index: 20999;
+        /* Higher than content (10000) */
         transition: background 0.2s;
+        backdrop-filter: blur(2px);
     }
 }
 
@@ -789,11 +783,15 @@
         left: 0;
         top: 0;
         bottom: 0;
-        width: 240px;
-        z-index: 2100;
+        width: 260px;
+        /* Slightly wider */
+        z-index: 21000;
+        /* Higher than overlay */
         transform: translateX(-100%);
-        transition: transform 0.2s;
-        box-shadow: 2px 0 8px 0 rgba(60, 60, 60, 0.08);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+        background-color: white;
+        /* Ensure background */
     }
 
     .tesipedia-admin-sidebar.active {
