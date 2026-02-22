@@ -13,6 +13,8 @@ const SalesQuote = () => {
     const priceRequestId = useRef(0);
     const [isDiscountEditable, setIsDiscountEditable] = useState(false);
     const [isPriceEditable, setIsPriceEditable] = useState(false);
+    const manualPriceLocked = useRef(false);
+    const manualDiscountLocked = useRef(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
     const [metodoPago, setMetodoPago] = useState('efectivo'); // 'efectivo' o 'tarjeta'
     const [formData, setFormData] = useState({
@@ -258,7 +260,7 @@ const SalesQuote = () => {
     }, [formData.tipoTrabajo, formData.customTipoTrabajo, formData.tipoServicio, formData.tituloTrabajo, formData.extensionEstimada, formData.area, formData.carrera]);
 
     useEffect(() => {
-        if (isPriceEditable) return; // No auto-calcular si el precio está en modo edición manual
+        if (isPriceEditable || manualPriceLocked.current) return; // No auto-calcular si el precio está en modo edición manual o fue confirmado manualmente
         if (!formData.nivelAcademico || !formData.area || !formData.extensionEstimada || parseFloat(formData.extensionEstimada) <= 0) return;
 
         // Incrementar ID para invalidar llamadas anteriores
@@ -419,8 +421,10 @@ const SalesQuote = () => {
                                         className={`pmt-btn ${metodoPago === 'efectivo' ? 'pmt-btn-active pmt-btn-efectivo' : ''}`}
                                         onClick={() => {
                                             setMetodoPago('efectivo');
-                                            setFormData(prev => ({ ...prev, descuentoEfectivo: 10 }));
-                                            setIsDiscountEditable(false);
+                                            if (!manualDiscountLocked.current) {
+                                                setFormData(prev => ({ ...prev, descuentoEfectivo: 10 }));
+                                                setIsDiscountEditable(false);
+                                            }
                                         }}
                                     >
                                         <FaMoneyBillWave className="me-1" /> Efectivo
@@ -430,8 +434,10 @@ const SalesQuote = () => {
                                         className={`pmt-btn ${metodoPago === 'tarjeta-nu' ? 'pmt-btn-active pmt-btn-tarjeta' : ''}`}
                                         onClick={() => {
                                             setMetodoPago('tarjeta-nu');
-                                            setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
-                                            setIsDiscountEditable(false);
+                                            if (!manualDiscountLocked.current) {
+                                                setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
+                                                setIsDiscountEditable(false);
+                                            }
                                         }}
                                     >
                                         <FaCreditCard className="me-1" /> Tarjeta NU
@@ -441,8 +447,10 @@ const SalesQuote = () => {
                                         className={`pmt-btn ${metodoPago === 'tarjeta-bbva' ? 'pmt-btn-active pmt-btn-bbva' : ''}`}
                                         onClick={() => {
                                             setMetodoPago('tarjeta-bbva');
-                                            setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
-                                            setIsDiscountEditable(false);
+                                            if (!manualDiscountLocked.current) {
+                                                setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
+                                                setIsDiscountEditable(false);
+                                            }
                                         }}
                                     >
                                         <FaCreditCard className="me-1" /> Tarjeta BBVA
@@ -661,13 +669,28 @@ const SalesQuote = () => {
                                                             />
                                                         </div>
                                                         <Button
-                                                            variant={isPriceEditable ? 'success' : 'outline-secondary'}
+                                                            variant={isPriceEditable ? 'success' : (manualPriceLocked.current ? 'warning' : 'outline-secondary')}
                                                             size="sm"
-                                                            onClick={() => setIsPriceEditable(!isPriceEditable)}
+                                                            onClick={() => {
+                                                                if (isPriceEditable) {
+                                                                    // Confirmando precio manual: bloquear auto-cálculo
+                                                                    manualPriceLocked.current = true;
+                                                                    setIsPriceEditable(false);
+                                                                } else if (manualPriceLocked.current) {
+                                                                    // Desbloquear: volver a auto-cálculo
+                                                                    manualPriceLocked.current = false;
+                                                                    setIsPriceEditable(false);
+                                                                    // Forzar re-cálculo disparando el useEffect
+                                                                    setFormData(prev => ({ ...prev }));
+                                                                } else {
+                                                                    // Entrar a modo edición
+                                                                    setIsPriceEditable(true);
+                                                                }
+                                                            }}
                                                             style={{ padding: '0 0.4rem' }}
-                                                            title={isPriceEditable ? 'Confirmar precio manual' : 'Editar precio manualmente'}
+                                                            title={isPriceEditable ? 'Confirmar precio manual' : (manualPriceLocked.current ? 'Desbloquear y volver a auto-cálculo' : 'Editar precio manualmente')}
                                                         >
-                                                            {isPriceEditable ? '✓' : '✏️'}
+                                                            {isPriceEditable ? '✓' : (manualPriceLocked.current ? '🔒' : '✏️')}
                                                         </Button>
                                                     </div>
                                                 </Col>
@@ -678,8 +701,21 @@ const SalesQuote = () => {
                                                             <Form.Control type="number" value={formData.descuentoEfectivo} onChange={(e) => handleInputChange('descuentoEfectivo', e.target.value)} min="0" max="100" disabled={!isDiscountEditable} className={!isDiscountEditable ? 'bg-light' : ''} />
                                                             <span className="input-group-text">%</span>
                                                         </div>
-                                                        <Button variant={isDiscountEditable ? "success" : "outline-secondary"} size="sm" onClick={() => setIsDiscountEditable(!isDiscountEditable)} style={{ padding: '0 0.4rem' }}>
-                                                            {isDiscountEditable ? '✓' : '✏️'}
+                                                        <Button variant={isDiscountEditable ? "success" : (manualDiscountLocked.current ? 'warning' : 'outline-secondary')} size="sm" onClick={() => {
+                                                            if (isDiscountEditable) {
+                                                                manualDiscountLocked.current = true;
+                                                                setIsDiscountEditable(false);
+                                                            } else if (manualDiscountLocked.current) {
+                                                                manualDiscountLocked.current = false;
+                                                                setIsDiscountEditable(false);
+                                                                // Restaurar descuento según método de pago
+                                                                const defaultDiscount = metodoPago === 'efectivo' ? 10 : 0;
+                                                                setFormData(prev => ({ ...prev, descuentoEfectivo: defaultDiscount }));
+                                                            } else {
+                                                                setIsDiscountEditable(true);
+                                                            }
+                                                        }} style={{ padding: '0 0.4rem' }}>
+                                                            {isDiscountEditable ? '✓' : (manualDiscountLocked.current ? '🔒' : '✏️')}
                                                         </Button>
                                                     </div>
                                                 </Col>
