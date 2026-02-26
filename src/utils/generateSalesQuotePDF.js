@@ -305,7 +305,7 @@ export const generateSalesQuotePDF = async (quoteData) => {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(220, 53, 69); // Rojo
     doc.setFontSize(8);
-    doc.text('15 días', rightX, dataY + (lineSpacing * 2) + 4);
+    doc.text('24 horas', rightX, dataY + (lineSpacing * 2) + 4);
 
     // Ajustar espaciado vertical según si es un esquema largo (6 pagos) o normal
     const esquemasLargos = ['6 pagos'];
@@ -985,7 +985,7 @@ export const generateSalesQuotePDF = async (quoteData) => {
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(220, 53, 69); // Rojo
-    const notaTexto = 'La presente cotización es personalizada y válida exclusivamente para este proyecto.';
+    const notaTexto = 'La presente cotización tiene una validez de 24 horas y está sujeta a las cargas en los proyectos de los especialistas.';
     doc.text(notaTexto, pageWidth / 2, finalNoteY, { align: 'center' });
 
     // ============ FOOTER CON DISEÑO DIAGONAL ============
