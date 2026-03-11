@@ -379,21 +379,58 @@ const SalesQuote = () => {
                 notaAcompañamiento: formData.notaAcompañamiento,
                 metodoPago: metodoPago
             };
-            // 💾 Guardar datos en el backend (sin bloquear la generación del PDF)
-            dispatch(saveGeneratedQuote(quoteData))
-                .unwrap()
-                .then((res) => console.log('Cotización guardada:', res))
-                .catch((err) => {
-                    console.error('Error al guardar cotización:', err);
-                    Swal.fire({
-                        title: 'Advertencia',
-                        text: 'La cotización se generó pero no se pudo guardar en el sistema. Por favor contacte al administrador si el problema persiste.',
-                        icon: 'warning'
-                    });
-                });
 
-            await generateSalesQuotePDF(quoteData);
-            Swal.fire({ title: '¡PDF Generado!', text: 'La cotización ha sido descargada exitosamente.', icon: 'success', timer: 3000, timerProgressBar: true });
+            // 💾 1. Guardar primero en backend para obtener el ID (necesario para vincular el PDF)
+            let savedQuoteId = null;
+            try {
+                const savedResult = await dispatch(saveGeneratedQuote(quoteData)).unwrap();
+                savedQuoteId = savedResult?.quote?._id || savedResult?._id || null;
+                console.log('✅ Cotización guardada en BD con ID:', savedQuoteId);
+            } catch (saveErr) {
+                console.error('⚠️ Error al guardar cotización en BD:', saveErr);
+                Swal.fire({
+                    title: 'Advertencia',
+                    text: 'La cotización se generará pero no se pudo guardar en el sistema. Por favor contacte al administrador si el problema persiste.',
+                    icon: 'warning',
+                    confirmButtonText: 'Continuar de todas formas'
+                });
+            }
+
+            // 📄 2. Generar PDF (descarga local) y subir a Cloudinary para URL pública
+            const pdfResult = await generateSalesQuotePDF({
+                ...quoteData,
+                savedQuoteId  // Se pasa para que el PDF se vincule al registro en BD
+            });
+
+            const pdfUrl = pdfResult?.pdfUrl || null;
+
+            // ✅ 3. Mostrar resultado con URL pública si está disponible
+            if (pdfUrl) {
+                await Swal.fire({
+                    title: '¡PDF Generado!',
+                    html: `
+                        <p>La cotización ha sido descargada exitosamente.</p>
+                        <hr/>
+                        <p style="font-size:0.85rem;margin-bottom:4px;"><strong>🔗 URL pública para WhatsApp:</strong></p>
+                        <div style="display:flex;gap:6px;align-items:center;justify-content:center">
+                            <input id="pdf-url-input" value="${pdfUrl}" readonly
+                                style="font-size:0.7rem;padding:4px 8px;border:1px solid #ddd;border-radius:4px;width:100%;background:#f8f9fa" />
+                            <button id="copy-pdf-url" onclick="navigator.clipboard.writeText('${pdfUrl}').then(()=>{this.textContent='✅';setTimeout(()=>{this.textContent='📋'},1500)})"
+                                style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;white-space:nowrap">📋</button>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonText: 'Listo'
+                });
+            } else {
+                Swal.fire({
+                    title: '¡PDF Generado!',
+                    text: 'La cotización ha sido descargada exitosamente. (La URL pública no estaba disponible esta vez)',
+                    icon: 'success',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
         } catch (error) {
             console.error('Error al generar PDF:', error);
             Swal.fire({ title: 'Error', text: 'Hubo un error al generar el PDF. Por favor, intente de nuevo.', icon: 'error' });

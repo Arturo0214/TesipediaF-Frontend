@@ -1004,14 +1004,53 @@ export const generateSalesQuotePDF = async (quoteData) => {
     doc.triangle(0, footerY + 5, 0, footerY + 2, pageWidth, footerY - 3, 'F'); // Completar grosor si es necesario
     doc.triangle(0, footerY + 5, 0, footerY, pageWidth, footerY - 3, 'F');
 
-    // ============ GUARDAR PDF ============
+    // ============ GUARDAR PDF Y SUBIR A CLOUDINARY ============
     const clientNameSafe = quoteData.clientName.replace(/[^a-zA-Z0-9]/g, '_');
     const fechaHoy = new Date().toISOString().split('T')[0];
     const fileName = `Cotizacion_Tesipedia_${clientNameSafe}_${fechaHoy}.pdf`;
 
+    // 1. Descargar localmente (comportamiento original)
     doc.save(fileName);
 
-    return fileName;
+    // 2. Subir a Cloudinary via backend para obtener URL pública
+    let pdfUrl = null;
+    try {
+        const pdfArrayBuffer = doc.output('arraybuffer');
+        const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+
+        const formData = new FormData();
+        formData.append('pdf', pdfBlob, fileName);
+
+        // Si viene el ID de la cotización guardada, lo incluimos para que el backend lo vincule
+        if (quoteData.savedQuoteId) {
+            formData.append('quoteId', quoteData.savedQuoteId);
+        }
+
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const uploadHeaders = {};
+        const token = localStorage.getItem('token');
+        if (token) uploadHeaders['Authorization'] = `Bearer ${token}`;
+
+        const uploadResponse = await fetch(`${API_URL}/api/quotes/generated/upload-pdf`, {
+            method: 'POST',
+            body: formData,
+            headers: uploadHeaders,
+        });
+
+        if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            pdfUrl = uploadResult.pdfUrl;
+            console.log('✅ PDF subido a Cloudinary:', pdfUrl);
+        } else {
+            console.warn('⚠️ No se pudo subir el PDF a Cloudinary:', await uploadResponse.text());
+        }
+    } catch (uploadError) {
+        // No bloqueamos la UI si falla la subida — el PDF local ya se descargó
+        console.warn('⚠️ Error al subir PDF a Cloudinary:', uploadError.message);
+    }
+
+    // Devolver tanto el nombre del archivo como la URL pública (null si falló la subida)
+    return { fileName, pdfUrl };
 };
 
 export default generateSalesQuotePDF;
