@@ -403,34 +403,16 @@ const SalesQuote = () => {
             });
 
             const pdfUrl = pdfResult?.pdfUrl || null;
+            if (pdfUrl) console.log('✅ URL pública del PDF (disponible en backend):', pdfUrl);
 
-            // ✅ 3. Mostrar resultado con URL pública si está disponible
-            if (pdfUrl) {
-                await Swal.fire({
-                    title: '¡PDF Generado!',
-                    html: `
-                        <p>La cotización ha sido descargada exitosamente.</p>
-                        <hr/>
-                        <p style="font-size:0.85rem;margin-bottom:4px;"><strong>🔗 URL pública para WhatsApp:</strong></p>
-                        <div style="display:flex;gap:6px;align-items:center;justify-content:center">
-                            <input id="pdf-url-input" value="${pdfUrl}" readonly
-                                style="font-size:0.7rem;padding:4px 8px;border:1px solid #ddd;border-radius:4px;width:100%;background:#f8f9fa" />
-                            <button id="copy-pdf-url" onclick="navigator.clipboard.writeText('${pdfUrl}').then(()=>{this.textContent='✅';setTimeout(()=>{this.textContent='📋'},1500)})"
-                                style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;white-space:nowrap">📋</button>
-                        </div>
-                    `,
-                    icon: 'success',
-                    confirmButtonText: 'Listo'
-                });
-            } else {
-                Swal.fire({
-                    title: '¡PDF Generado!',
-                    text: 'La cotización ha sido descargada exitosamente. (La URL pública no estaba disponible esta vez)',
-                    icon: 'success',
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            }
+            // ✅ 3. Mostrar éxito — la URL pública está en la respuesta del backend
+            Swal.fire({
+                title: '¡PDF Generado!',
+                text: 'La cotización ha sido descargada y guardada exitosamente.',
+                icon: 'success',
+                timer: 3000,
+                timerProgressBar: true
+            });
         } catch (error) {
             console.error('Error al generar PDF:', error);
             Swal.fire({ title: 'Error', text: 'Hubo un error al generar el PDF. Por favor, intente de nuevo.', icon: 'error' });
