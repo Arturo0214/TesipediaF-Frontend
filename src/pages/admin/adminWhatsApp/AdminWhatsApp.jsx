@@ -164,11 +164,19 @@ const AdminWhatsApp = () => {
     return `+${waId}`;
   };
 
+  // Helper de UTC para arreglar fechas de Supabase sin 'Z'
+  const parseUTCDate = (dateStr) => {
+    if (!dateStr) return null;
+    const isUTC = dateStr.endsWith('Z') || dateStr.match(/[+\-]\d{2}(:\d{2})?$/);
+    const safeDateStr = isUTC ? dateStr : `${dateStr}Z`;
+    return new Date(safeDateStr);
+  };
+
   // Formatear fecha
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     try {
-      return format(new Date(dateStr), "d MMM, HH:mm", { locale: es });
+      return format(parseUTCDate(dateStr), "d MMM, HH:mm", { locale: es });
     } catch {
       return dateStr;
     }
@@ -295,7 +303,7 @@ const AdminWhatsApp = () => {
             )}
 
             <div className="wa-message-time">
-               {msg.timestamp ? format(new Date(msg.timestamp), "HH:mm") : ''}
+               {msg.timestamp ? format(parseUTCDate(msg.timestamp), "HH:mm") : ''}
             </div>
           </div>
         </div>
