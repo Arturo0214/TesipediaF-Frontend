@@ -1,4 +1,4 @@
-.vs { padding: 0 0 40px; max-width: 1200px; }
+.vs { padding: 0 0 40px; max-width: 1200px; min-height: 100%; background: #f5f7fa; }
 .vs-loading { text-align: center; padding: 80px 20px; color: #6b7280; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .vs-spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: vs-spin 0.7s linear infinite; }
 @keyframes vs-spin { to { transform: rotate(360deg); } }

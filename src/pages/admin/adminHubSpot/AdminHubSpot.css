@@ -1,4 +1,4 @@
-.hs { padding: 0 0 40px; max-width: 1200px; }
+.hs { padding: 0 0 40px; max-width: 1200px; min-height: 100%; background: #f5f7fa; }
 .hs-loading { text-align: center; padding: 80px 20px; color: #6b7280; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .hs-error { text-align: center; padding: 60px 20px; }
 .hs-error-icon { font-size: 2.5rem; color: #ff7a59; margin-bottom: 12px; }
