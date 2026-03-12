@@ -91,6 +91,7 @@ const router = createBrowserRouter(
             { path: 'admin/pagos', element: <AdminPanel /> },
             { path: 'admin/pedidos', element: <AdminPanel /> },
             { path: 'admin/urgentes', element: <AdminPanel /> },
+            { path: 'admin/whatsapp', element: <AdminPanel /> },
             { path: 'admin/mensajes', element: <AdminPanel /> },
             { path: 'admin/usuarios', element: <AdminPanel /> },
             { path: 'admin/escritores', element: <AdminPanel /> },

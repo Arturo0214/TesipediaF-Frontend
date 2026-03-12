@@ -15,7 +15,8 @@ import {
     FaChartBar,
     FaBell,
     FaSignOutAlt,
-    FaBars
+    FaBars,
+    FaWhatsapp
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -41,6 +42,7 @@ import ManageUsers from '../adminUsers/ManageUsers.jsx';
 import ManageServices from '../adminServices/ManageServices.jsx';
 import AdminDashboard from '../adminDashboard/AdminDashboard.jsx';
 import AdminMessages from '../adminMessages/AdminMessages.jsx';
+import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp.jsx';
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 // Error boundary component
@@ -89,6 +91,7 @@ const AdminPanel = () => {
     const getInitialTab = () => {
         const path = location.pathname;
         if (path.includes('/usuarios')) return 'usuarios';
+        if (path.includes('/whatsapp')) return 'whatsapp';
         if (path.includes('/mensajes')) return 'mensajes';
         if (path.includes('/cotizaciones')) return 'cotizaciones';
         if (path.includes('/proyectos')) return 'proyectos';
@@ -106,6 +109,7 @@ const AdminPanel = () => {
         { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones' },
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
+        { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
         { key: 'servicios', icon: FaCogs, label: 'Servicios', section: 'gestion', path: '/admin/servicios' },
@@ -203,7 +207,8 @@ const AdminPanel = () => {
         visitas: ManageVisits,
         usuarios: ManageUsers,
         servicios: ManageServices,
-        mensajes: AdminMessages
+        mensajes: AdminMessages,
+        whatsapp: AdminWhatsApp
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
