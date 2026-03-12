@@ -1,349 +1,458 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Spinner, Tooltip, Accordion } from 'react-bootstrap';
-import { FaUsers, FaFileAlt, FaMoneyBillWave, FaChartLine, FaComments, FaInfoCircle, FaCalendarAlt } from 'react-icons/fa';
+import React, { useMemo, useEffect } from 'react';
+import { Spinner } from 'react-bootstrap';
+import {
+  FaFileAlt,
+  FaProjectDiagram,
+  FaCommentDots,
+  FaDollarSign,
+  FaClock,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaHourglassHalf,
+  FaArrowRight,
+  FaChartLine,
+  FaUserGraduate,
+  FaTruck,
+  FaExclamationCircle,
+  FaRegCalendarAlt,
+  FaPercent,
+  FaEye,
+} from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
+import { getAllQuotes } from '../../../features/quotes/quoteSlice';
+import { getAllProjects } from '../../../features/projects/projectSlice';
+import { getConversations } from '../../../features/chat/chatSlice';
+import { fetchUsers } from '../../../features/auth/userSlice';
+import { getVisits } from '../../../features/visits/visitsSlice';
+import { fetchNotifications } from '../../../features/notifications/notificationSlice';
 import './AdminDashboard.css';
-import { addNotification } from '../../../features/notifications/notificationSlice';
-import { connectSocket, onSocketEvent } from '../../../services/socket/socketService';
 
 const AdminDashboard = () => {
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [expandedRow, setExpandedRow] = useState(null);
-
-  // Selectores de la store
-  const users = useSelector(state => state.users.users || []);
-  const usersLoading = useSelector(state => state.users.loading);
-  const visits = useSelector(state => state.visits.visits || []);
-  const visitsLoading = useSelector(state => state.visits.loading);
   const quotes = useSelector(state => state.quotes.quotes || []);
   const quotesLoading = useSelector(state => state.quotes.loading);
-  const messages = useSelector(state => state.chat.messages || []);
+  const projects = useSelector(state => state.projects?.projects || []);
+  const projectsLoading = useSelector(state => state.projects?.isLoading);
+  const conversations = useSelector(state => state.chat.conversations || []);
   const messagesLoading = useSelector(state => state.chat.loading);
-  const payments = useSelector(state => state.payments.payments || state.payments.paymentHistory || []);
-  const authUser = useSelector(state => state.auth.user);
-
+  const notifications = useSelector(state => state.notifications.notifications || []);
+  const users = useSelector(state => state.users.users || []);
+  const visits = useSelector(state => state.visits.visits || []);
   const dispatch = useDispatch();
 
-  // Función para obtener datos de la última semana
-  const getLastWeekData = (data) => {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    return data.filter(item => {
-      const itemDate = new Date(item.createdAt || item.date || Date.now());
-      return itemDate >= oneWeekAgo;
+  // Fetch all data on mount
+  useEffect(() => {
+    dispatch(getAllQuotes());
+    dispatch(getAllProjects());
+    dispatch(getConversations());
+    dispatch(fetchUsers());
+    dispatch(getVisits());
+    dispatch(fetchNotifications());
+  }, [dispatch]);
+
+  // ── Computed metrics ──────────────────────────────
+  const metrics = useMemo(() => {
+    const now = new Date();
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
+    // Quote statuses
+    const pendingQuotes = quotes.filter(q => q.status === 'pending');
+    const approvedQuotes = quotes.filter(q => q.status === 'approved');
+    const paidQuotes = quotes.filter(q => q.status === 'paid');
+    const rejectedQuotes = quotes.filter(q => q.status === 'rejected');
+
+    // This month quotes
+    const thisMonthQuotes = quotes.filter(q => new Date(q.createdAt) >= thisMonth);
+    const lastMonthQuotes = quotes.filter(q => {
+      const d = new Date(q.createdAt);
+      return d >= lastMonth && d <= lastMonthEnd;
     });
+
+    // Revenue (from paid quotes with priceDetails or estimatedPrice)
+    const revenueThisMonth = paidQuotes
+      .filter(q => new Date(q.updatedAt || q.createdAt) >= thisMonth)
+      .reduce((sum, q) => sum + (q.priceDetails?.finalPrice || q.estimatedPrice || 0), 0);
+
+    const revenueLastMonth = paidQuotes
+      .filter(q => {
+        const d = new Date(q.updatedAt || q.createdAt);
+        return d >= lastMonth && d <= lastMonthEnd;
+      })
+      .reduce((sum, q) => sum + (q.priceDetails?.finalPrice || q.estimatedPrice || 0), 0);
+
+    // Project statuses
+    const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'review');
+    const completedProjects = projects.filter(p => p.status === 'completed');
+
+    // Unread conversations
+    const unreadConvos = conversations.filter(c => c.unreadCount > 0 || c.hasUnread);
+
+    // Conversion rate
+    const totalFinished = paidQuotes.length + rejectedQuotes.length;
+    const conversionRate = totalFinished > 0 ? Math.round((paidQuotes.length / totalFinished) * 100) : 0;
+
+    // Visits this week
+    const weekVisits = visits.filter(v => new Date(v.createdAt || v.date) >= sevenDaysAgo);
+
+    // New users this month
+    const newUsersMonth = users.filter(u => new Date(u.createdAt) >= thisMonth);
+
+    return {
+      pendingQuotes,
+      approvedQuotes,
+      paidQuotes,
+      rejectedQuotes,
+      thisMonthQuotes,
+      lastMonthQuotes,
+      revenueThisMonth,
+      revenueLastMonth,
+      activeProjects,
+      completedProjects,
+      unreadConvos,
+      conversionRate,
+      weekVisits,
+      newUsersMonth,
+    };
+  }, [quotes, projects, conversations, visits, users]);
+
+  // ── Recent activity (from notifications) ──────────
+  const recentActivity = useMemo(() => {
+    return [...notifications]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 8);
+  }, [notifications]);
+
+  // ── Pending actions ───────────────────────────────
+  const pendingActions = useMemo(() => {
+    const actions = [];
+
+    // Pending quotes (need review)
+    metrics.pendingQuotes.slice(0, 5).forEach(q => {
+      actions.push({
+        id: q._id,
+        type: 'cotizacion',
+        icon: <FaFileAlt />,
+        color: '#4a6cf7',
+        title: q.taskTitle || q.taskType || 'Cotización',
+        subtitle: q.name || q.email || '',
+        detail: q.educationLevel || '',
+        date: q.createdAt,
+        badge: 'Pendiente',
+        badgeColor: '#f59e0b',
+      });
+    });
+
+    // Active projects needing attention (in review)
+    projects.filter(p => p.status === 'review').slice(0, 3).forEach(p => {
+      actions.push({
+        id: p._id,
+        type: 'proyecto',
+        icon: <FaProjectDiagram />,
+        color: '#6c5ce7',
+        title: p.taskTitle || 'Proyecto',
+        subtitle: `Progreso: ${p.progress || 0}%`,
+        detail: p.status === 'review' ? 'En revisión' : '',
+        date: p.updatedAt || p.createdAt,
+        badge: 'Revisión',
+        badgeColor: '#8b5cf6',
+      });
+    });
+
+    // Approved quotes waiting for payment
+    metrics.approvedQuotes.slice(0, 3).forEach(q => {
+      actions.push({
+        id: q._id,
+        type: 'pago',
+        icon: <FaDollarSign />,
+        color: '#e17055',
+        title: q.taskTitle || 'Cotización aprobada',
+        subtitle: `$${q.priceDetails?.finalPrice || q.estimatedPrice || 0} MXN`,
+        detail: 'Esperando pago',
+        date: q.updatedAt || q.createdAt,
+        badge: 'Por pagar',
+        badgeColor: '#ef4444',
+      });
+    });
+
+    return actions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
+  }, [metrics, projects]);
+
+  // ── Format helpers ────────────────────────────────
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 60) return 'Ahora';
+    if (diff < 3600) return `${Math.floor(diff / 60)}min`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+    return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
   };
 
-  // Cálculos
-  const activeUsers = users.filter(u => u.isActive).length;
-  const visitsCount = visits.length;
-  const quotesCount = quotes.length;
-  const messagesCount = messages.length;
-  const paymentsCount = payments.length;
-
-  // Datos de la última semana
-  const lastWeekUsers = getLastWeekData(users);
-  const lastWeekVisits = getLastWeekData(visits);
-  const lastWeekQuotes = getLastWeekData(quotes);
-  const lastWeekMessages = getLastWeekData(messages);
-  const lastWeekPayments = getLastWeekData(payments);
-
-  // Cards principales con colores únicos
-  const cards = [
-    {
-      id: 'users',
-      title: 'Usuarios activos',
-      value: usersLoading ? <Spinner size="sm" /> : activeUsers,
-      icon: <FaUsers />,
-      iconClass: 'icon-users',
-      color: '#4CAF50',
-      legend: 'Usuarios con acceso a la plataforma',
-      lastWeekData: lastWeekUsers,
-      lastWeekCount: lastWeekUsers.length,
-    },
-    {
-      id: 'visits',
-      title: 'Visitas',
-      value: visitsLoading ? <Spinner size="sm" /> : visitsCount,
-      icon: <FaChartLine />,
-      iconClass: 'icon-visits',
-      color: '#2196F3',
-      legend: 'Visitas registradas en la plataforma',
-      lastWeekData: lastWeekVisits,
-      lastWeekCount: lastWeekVisits.length,
-    },
-    {
-      id: 'quotes',
-      title: 'Cotizaciones',
-      value: quotesLoading ? <Spinner size="sm" /> : quotesCount,
-      icon: <FaFileAlt />,
-      iconClass: 'icon-quotes',
-      color: '#FF9800',
-      legend: 'Solicitudes de cotización recibidas',
-      lastWeekData: lastWeekQuotes,
-      lastWeekCount: lastWeekQuotes.length,
-    },
-    {
-      id: 'messages',
-      title: 'Mensajes',
-      value: messagesLoading ? <Spinner size="sm" /> : messagesCount,
-      icon: <FaComments />,
-      iconClass: 'icon-messages',
-      color: '#9C27B0',
-      legend: 'Mensajes internos y de clientes',
-      lastWeekData: lastWeekMessages,
-      lastWeekCount: lastWeekMessages.length,
-    },
-    {
-      id: 'payments',
-      title: 'Pagos',
-      value: <Spinner size="sm" />,
-      icon: <FaMoneyBillWave />,
-      iconClass: 'icon-payments',
-      color: '#F44336',
-      legend: 'Pagos procesados en la plataforma',
-      lastWeekData: lastWeekPayments,
-      lastWeekCount: lastWeekPayments.length,
-    }
-  ];
-
-  const handleCardClick = (cardId) => {
-    setSelectedCard(selectedCard === cardId ? null : cardId);
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(amount);
   };
 
-  const renderAccordionList = (items, getTitle, getDetails, color) => (
-    <Accordion className="dashboard-detail-accordion" activeKey={expandedRow} alwaysOpen>
-      {items.map((item, idx) => (
-        <Accordion.Item eventKey={String(idx)} key={idx} style={{ '--accordion-color': color }}>
-          <Accordion.Header
-            onClick={() => setExpandedRow(expandedRow === String(idx) ? null : String(idx))}
-          >
-            {getTitle(item)}
-          </Accordion.Header>
-          <Accordion.Body>
-            {getDetails(item)}
-          </Accordion.Body>
-        </Accordion.Item>
-      ))}
-    </Accordion>
-  );
-
-  const renderDetailData = (card) => {
-    if (!card) return null;
-    // Usuarios
-    if (card.id === 'users') {
-      const usersToShow = card.lastWeekData.length > 0 ? card.lastWeekData.slice(0, 10) : users.slice(0, 10);
-      return (
-        <section className="dashboard-detail-section-users" style={{ borderTop: `4px solid ${card.color}` }}>
-          <h2 className="dashboard-detail-title">Usuarios activos y nuevos</h2>
-          <div className="dashboard-detail-metrics">
-            <div><strong>Total activos:</strong> {card.value}</div>
-            <div><strong>Nuevos esta semana:</strong> {card.lastWeekCount}</div>
-          </div>
-          <h4 className="dashboard-detail-subtitle">{card.lastWeekData.length > 0 ? 'Nuevos usuarios de la semana' : 'Primeros usuarios'}</h4>
-          {renderAccordionList(
-            usersToShow,
-            (user) => (
-              <>
-                {user.name || user.email} <span className={user.isActive ? 'active' : 'inactive'}>{user.isActive ? 'Activo' : 'Inactivo'}</span>
-              </>
-            ),
-            (user) => (
-              <>
-                <div><b>Email:</b> {user.email}</div>
-                <div><b>Rol:</b> {user.role}</div>
-                <div><b>Estado:</b> {user.isActive ? 'Activo' : 'Inactivo'}</div>
-                <div><b>Fecha de registro:</b> {user.createdAt ? new Date(user.createdAt).toLocaleString() : '-'}</div>
-              </>
-            ),
-            card.color
-          )}
-        </section>
-      );
-    }
-    // Visitas
-    if (card.id === 'visits') {
-      const visitsToShow = card.lastWeekData.length > 0 ? card.lastWeekData.slice(0, 10) : visits.slice(0, 10);
-      return (
-        <section className="dashboard-detail-section-visits" style={{ borderTop: `4px solid ${card.color}` }}>
-          <h2 className="dashboard-detail-title">Visitas recientes</h2>
-          <div className="dashboard-detail-metrics">
-            <div><strong>Total visitas:</strong> {card.value}</div>
-            <div><strong>Esta semana:</strong> {card.lastWeekCount}</div>
-          </div>
-          <h4 className="dashboard-detail-subtitle">{card.lastWeekData.length > 0 ? 'Visitas de la semana' : 'Primeras visitas'}</h4>
-          {renderAccordionList(
-            visitsToShow,
-            (visit) => (
-              <>
-                {visit.ip || visit.location || 'Visita'} <span>{new Date(visit.createdAt || visit.date).toLocaleString()}</span>
-              </>
-            ),
-            (visit) => (
-              <>
-                <div><b>IP:</b> {visit.ip}</div>
-                <div><b>Ubicación:</b> {visit.location || '-'}</div>
-                <div><b>Fecha:</b> {visit.createdAt ? new Date(visit.createdAt).toLocaleString() : '-'}</div>
-              </>
-            ),
-            card.color
-          )}
-        </section>
-      );
-    }
-    // Cotizaciones
-    if (card.id === 'quotes') {
-      const quotesToShow = card.lastWeekData.length > 0 ? card.lastWeekData.slice(0, 10) : quotes.slice(0, 10);
-      return (
-        <section className="dashboard-detail-section-quotes" style={{ borderTop: `4px solid ${card.color}` }}>
-          <h2 className="dashboard-detail-title">Cotizaciones</h2>
-          <div className="dashboard-detail-metrics">
-            <div><strong>Total cotizaciones:</strong> {card.value}</div>
-            <div><strong>Esta semana:</strong> {card.lastWeekCount}</div>
-          </div>
-          <h4 className="dashboard-detail-subtitle">{card.lastWeekData.length > 0 ? 'Cotizaciones de la semana' : 'Primeras cotizaciones'}</h4>
-          {renderAccordionList(
-            quotesToShow,
-            (quote) => (
-              <>
-                {quote.title || quote.description || 'Cotización'} <span>{quote.status}</span>
-              </>
-            ),
-            (quote) => (
-              <>
-                <div><b>Descripción:</b> {quote.description}</div>
-                <div><b>Estado:</b> {quote.status}</div>
-                <div><b>Fecha:</b> {quote.createdAt ? new Date(quote.createdAt).toLocaleString() : '-'}</div>
-              </>
-            ),
-            card.color
-          )}
-        </section>
-      );
-    }
-    // Mensajes
-    if (card.id === 'messages') {
-      const messagesToShow = card.lastWeekData.length > 0 ? card.lastWeekData.slice(0, 10) : messages.slice(0, 10);
-      return (
-        <section className="dashboard-detail-section-messages" style={{ borderTop: `4px solid ${card.color}` }}>
-          <h2 className="dashboard-detail-title">Mensajes</h2>
-          <div className="dashboard-detail-metrics">
-            <div><strong>Total mensajes:</strong> {card.value}</div>
-            <div><strong>Esta semana:</strong> {card.lastWeekCount}</div>
-          </div>
-          <h4 className="dashboard-detail-subtitle">{card.lastWeekData.length > 0 ? 'Mensajes de la semana' : 'Primeros mensajes'}</h4>
-          {renderAccordionList(
-            messagesToShow,
-            (msg) => (
-              <>
-                {msg.content?.substring(0, 60) || 'Mensaje'} <span>{msg.user?.name || msg.user?.email || ''}</span>
-              </>
-            ),
-            (msg) => (
-              <>
-                <div><b>Contenido:</b> {msg.content}</div>
-                <div><b>Usuario:</b> {msg.user?.name || msg.user?.email || '-'}</div>
-                <div><b>Fecha:</b> {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : '-'}</div>
-              </>
-            ),
-            card.color
-          )}
-        </section>
-      );
-    }
-    // Pagos
-    if (card.id === 'payments') {
-      const paymentsToShow = card.lastWeekData.length > 0 ? card.lastWeekData.slice(0, 10) : payments.slice(0, 10);
-      return (
-        <section className="dashboard-detail-section-payments" style={{ borderTop: `4px solid ${card.color}` }}>
-          <h2 className="dashboard-detail-title">Pagos</h2>
-          <div className="dashboard-detail-metrics">
-            <div><strong>Total pagos:</strong> {card.value}</div>
-            <div><strong>Esta semana:</strong> {card.lastWeekCount}</div>
-          </div>
-          <h4 className="dashboard-detail-subtitle">{card.lastWeekData.length > 0 ? 'Pagos de la semana' : 'Primeros pagos'}</h4>
-          {renderAccordionList(
-            paymentsToShow,
-            (pay) => (
-              <>
-                ${pay.amount || pay.total || '0'} <span>{pay.status}</span>
-              </>
-            ),
-            (pay) => (
-              <>
-                <div><b>Monto:</b> ${pay.amount || pay.total || '0'}</div>
-                <div><b>Estado:</b> {pay.status}</div>
-                <div><b>Fecha:</b> {pay.createdAt ? new Date(pay.createdAt).toLocaleString() : '-'}</div>
-              </>
-            ),
-            card.color
-          )}
-        </section>
-      );
-    }
+  const getActivityIcon = (type) => {
+    const map = {
+      cotizacion: { icon: <FaFileAlt />, color: '#4a6cf7', bg: '#eef1ff' },
+      mensaje: { icon: <FaCommentDots />, color: '#00b894', bg: '#e6f9f3' },
+      visita: { icon: <FaEye />, color: '#6c5ce7', bg: '#f0eeff' },
+      pago: { icon: <FaDollarSign />, color: '#e17055', bg: '#fef0ec' },
+      proyecto: { icon: <FaProjectDiagram />, color: '#fdcb6e', bg: '#fef9e7' },
+      entrega: { icon: <FaTruck />, color: '#55a3e5', bg: '#ebf4fd' },
+      alerta: { icon: <FaExclamationCircle />, color: '#d63031', bg: '#fce4e4' },
+      info: { icon: <FaChartLine />, color: '#636e72', bg: '#f0f0f0' },
+    };
+    return map[type] || map.info;
   };
 
-  // Tooltip de ayuda para métricas
-  const renderHelp = (
-    <Tooltip id="dashboard-help-tooltip">
-      <div style={{ fontSize: '0.98rem' }}>
-        <b>¿Qué significa cada métrica?</b><br />
-        <b>Usuarios activos:</b> Usuarios con acceso habilitado.<br />
-        <b>Visitas:</b> Número de visitas registradas.<br />
-        <b>Cotizaciones:</b> Solicitudes de cotización recibidas.<br />
-        <b>Mensajes:</b> Mensajes internos y de clientes.<br />
-        <b>Pagos:</b> Pagos procesados exitosamente.
-      </div>
-    </Tooltip>
-  );
+  // ── Render ────────────────────────────────────────
+  const isLoading = quotesLoading || projectsLoading || messagesLoading;
 
   return (
-    <Container fluid className="admin-dashboard-container py-4" style={{ position: 'relative' }}>
-      <div className="d-flex align-items-center justify-content-between mb-4">
-        <h2 className="dashboard-title mb-0">Admin Dashboard</h2>
+    <div className="adm-dash">
+      {/* ── Header ── */}
+      <div className="adm-dash-header">
+        <div>
+          <h1 className="adm-dash-title">Dashboard</h1>
+          <p className="adm-dash-subtitle">Resumen general de tu negocio</p>
+        </div>
+        <div className="adm-dash-date">
+          <FaRegCalendarAlt />
+          <span>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+        </div>
       </div>
 
-      <Row className="g-3 dashboard-row mb-4 justify-content-center">
-        {cards.map((card) => (
-          <Col key={card.id} xs={12} sm={6} md={4} lg={2} xl={2} className="dashboard-col">
-            <Card
-              className={`dashboard-card shadow-sm ${selectedCard === card.id ? 'selected' : ''}`}
-              style={{ borderColor: card.color }}
-              onClick={() => handleCardClick(card.id)}
-            >
-              <Card.Body className="d-flex flex-column align-items-center justify-content-center h-100 p-0">
-                <div
-                  className={`dashboard-icon ${card.iconClass}`}
-                  style={{ color: card.color }}
-                >
-                  {card.icon}
-                </div>
-                <div className="dashboard-value">{card.value}</div>
-                <div className="dashboard-label">{card.title}</div>
-                <div className="dashboard-card-legend">{card.legend}</div>
-                <div className="dashboard-last-week">
-                  <FaCalendarAlt className="me-1" />
-                  Última semana: {card.lastWeekCount}
-                </div>
-              </Card.Body>
-              <div className="dashboard-card-colorbar" style={{ background: card.color }}></div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      {/* ── KPI Cards ── */}
+      <div className="adm-dash-kpis">
+        <div className="adm-kpi-card">
+          <div className="adm-kpi-icon" style={{ background: '#eef1ff', color: '#4a6cf7' }}>
+            <FaFileAlt />
+          </div>
+          <div className="adm-kpi-body">
+            <span className="adm-kpi-label">Cotizaciones pendientes</span>
+            <span className="adm-kpi-value">
+              {isLoading ? <Spinner size="sm" /> : metrics.pendingQuotes.length}
+            </span>
+            <span className="adm-kpi-trend">
+              {metrics.thisMonthQuotes.length} este mes
+              {metrics.lastMonthQuotes.length > 0 && (
+                <span className={metrics.thisMonthQuotes.length >= metrics.lastMonthQuotes.length ? 'trend-up' : 'trend-down'}>
+                  {metrics.thisMonthQuotes.length >= metrics.lastMonthQuotes.length ? '↑' : '↓'}
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
 
-      {selectedCard && (
-        renderDetailData({
-          ...cards.find(card => card.id === selectedCard),
-          detailColor: cards.find(card => card.id === selectedCard)?.color
-        })
-      )}
+        <div className="adm-kpi-card">
+          <div className="adm-kpi-icon" style={{ background: '#f0eeff', color: '#6c5ce7' }}>
+            <FaProjectDiagram />
+          </div>
+          <div className="adm-kpi-body">
+            <span className="adm-kpi-label">Proyectos activos</span>
+            <span className="adm-kpi-value">
+              {isLoading ? <Spinner size="sm" /> : metrics.activeProjects.length}
+            </span>
+            <span className="adm-kpi-trend">
+              {metrics.completedProjects.length} completados
+            </span>
+          </div>
+        </div>
 
-      <div className="dashboard-help-block mt-4 text-center">
-        <FaInfoCircle className="me-2 text-info" />
-        Haz clic en cualquier tarjeta para ver los datos de la última semana. Las métricas se actualizan en tiempo real.
+        <div className="adm-kpi-card">
+          <div className="adm-kpi-icon" style={{ background: '#e6f9f3', color: '#00b894' }}>
+            <FaCommentDots />
+          </div>
+          <div className="adm-kpi-body">
+            <span className="adm-kpi-label">Mensajes sin leer</span>
+            <span className="adm-kpi-value">
+              {isLoading ? <Spinner size="sm" /> : metrics.unreadConvos.length}
+            </span>
+            <span className="adm-kpi-trend">
+              {conversations.length} conversaciones
+            </span>
+          </div>
+        </div>
+
+        <div className="adm-kpi-card">
+          <div className="adm-kpi-icon" style={{ background: '#fef0ec', color: '#e17055' }}>
+            <FaDollarSign />
+          </div>
+          <div className="adm-kpi-body">
+            <span className="adm-kpi-label">Ingresos del mes</span>
+            <span className="adm-kpi-value">
+              {isLoading ? <Spinner size="sm" /> : formatCurrency(metrics.revenueThisMonth)}
+            </span>
+            <span className="adm-kpi-trend">
+              {metrics.revenueLastMonth > 0
+                ? `${formatCurrency(metrics.revenueLastMonth)} mes anterior`
+                : 'Sin datos del mes anterior'}
+            </span>
+          </div>
+        </div>
       </div>
-    </Container>
+
+      {/* ── Pipeline + Stats Row ── */}
+      <div className="adm-dash-grid">
+        {/* Pipeline */}
+        <div className="adm-dash-card adm-pipeline-card">
+          <h3 className="adm-card-title">Pipeline de cotizaciones</h3>
+          <div className="adm-pipeline">
+            <div className="adm-pipeline-stage">
+              <div className="adm-pipeline-bar" style={{ background: '#f59e0b' }}>
+                <FaHourglassHalf />
+                <span className="adm-pipeline-count">{metrics.pendingQuotes.length}</span>
+              </div>
+              <span className="adm-pipeline-label">Pendientes</span>
+            </div>
+            <FaArrowRight className="adm-pipeline-arrow" />
+            <div className="adm-pipeline-stage">
+              <div className="adm-pipeline-bar" style={{ background: '#4a6cf7' }}>
+                <FaCheckCircle />
+                <span className="adm-pipeline-count">{metrics.approvedQuotes.length}</span>
+              </div>
+              <span className="adm-pipeline-label">Aprobadas</span>
+            </div>
+            <FaArrowRight className="adm-pipeline-arrow" />
+            <div className="adm-pipeline-stage">
+              <div className="adm-pipeline-bar" style={{ background: '#00b894' }}>
+                <FaDollarSign />
+                <span className="adm-pipeline-count">{metrics.paidQuotes.length}</span>
+              </div>
+              <span className="adm-pipeline-label">Pagadas</span>
+            </div>
+            <FaArrowRight className="adm-pipeline-arrow" />
+            <div className="adm-pipeline-stage">
+              <div className="adm-pipeline-bar" style={{ background: '#ef4444' }}>
+                <FaTimesCircle />
+                <span className="adm-pipeline-count">{metrics.rejectedQuotes.length}</span>
+              </div>
+              <span className="adm-pipeline-label">Rechazadas</span>
+            </div>
+          </div>
+          <div className="adm-pipeline-total">
+            Total: {quotes.length} cotizaciones
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="adm-dash-card adm-stats-card">
+          <h3 className="adm-card-title">Métricas clave</h3>
+          <div className="adm-quick-stats">
+            <div className="adm-stat-row">
+              <div className="adm-stat-icon" style={{ background: '#e6f9f3', color: '#00b894' }}>
+                <FaPercent />
+              </div>
+              <div className="adm-stat-info">
+                <span className="adm-stat-name">Tasa de conversión</span>
+                <span className="adm-stat-val">{metrics.conversionRate}%</span>
+              </div>
+            </div>
+            <div className="adm-stat-row">
+              <div className="adm-stat-icon" style={{ background: '#eef1ff', color: '#4a6cf7' }}>
+                <FaEye />
+              </div>
+              <div className="adm-stat-info">
+                <span className="adm-stat-name">Visitas esta semana</span>
+                <span className="adm-stat-val">{metrics.weekVisits.length}</span>
+              </div>
+            </div>
+            <div className="adm-stat-row">
+              <div className="adm-stat-icon" style={{ background: '#f0eeff', color: '#6c5ce7' }}>
+                <FaUserGraduate />
+              </div>
+              <div className="adm-stat-info">
+                <span className="adm-stat-name">Usuarios nuevos (mes)</span>
+                <span className="adm-stat-val">{metrics.newUsersMonth.length}</span>
+              </div>
+            </div>
+            <div className="adm-stat-row">
+              <div className="adm-stat-icon" style={{ background: '#fef9e7', color: '#fdcb6e' }}>
+                <FaClock />
+              </div>
+              <div className="adm-stat-info">
+                <span className="adm-stat-name">Proyectos completados</span>
+                <span className="adm-stat-val">{metrics.completedProjects.length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Pending Actions + Activity ── */}
+      <div className="adm-dash-grid">
+        {/* Pending Actions */}
+        <div className="adm-dash-card adm-actions-card">
+          <h3 className="adm-card-title">
+            Acciones pendientes
+            {pendingActions.length > 0 && (
+              <span className="adm-card-badge">{pendingActions.length}</span>
+            )}
+          </h3>
+          {pendingActions.length === 0 ? (
+            <div className="adm-empty-state">
+              <FaCheckCircle size={28} />
+              <span>Todo al día — no hay acciones pendientes</span>
+            </div>
+          ) : (
+            <div className="adm-actions-list">
+              {pendingActions.map((action) => (
+                <div key={action.id} className="adm-action-item">
+                  <div className="adm-action-icon" style={{ color: action.color }}>
+                    {action.icon}
+                  </div>
+                  <div className="adm-action-body">
+                    <span className="adm-action-title">{action.title}</span>
+                    <span className="adm-action-sub">
+                      {action.subtitle}
+                      {action.detail && <> · {action.detail}</>}
+                    </span>
+                  </div>
+                  <div className="adm-action-meta">
+                    <span className="adm-action-badge" style={{ background: action.badgeColor }}>
+                      {action.badge}
+                    </span>
+                    <span className="adm-action-time">{formatTimeAgo(action.date)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Activity */}
+        <div className="adm-dash-card adm-activity-card">
+          <h3 className="adm-card-title">Actividad reciente</h3>
+          {recentActivity.length === 0 ? (
+            <div className="adm-empty-state">
+              <FaChartLine size={28} />
+              <span>No hay actividad reciente</span>
+            </div>
+          ) : (
+            <div className="adm-activity-list">
+              {recentActivity.map((notif) => {
+                const actConfig = getActivityIcon(notif.type);
+                return (
+                  <div key={notif._id} className="adm-activity-item">
+                    <div className="adm-activity-dot" style={{ background: actConfig.color }} />
+                    <div className="adm-activity-icon-wrap" style={{ background: actConfig.bg, color: actConfig.color }}>
+                      {actConfig.icon}
+                    </div>
+                    <div className="adm-activity-body">
+                      <span className="adm-activity-msg">{notif.message || notif.body}</span>
+                      <span className="adm-activity-time">{formatTimeAgo(notif.createdAt)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
