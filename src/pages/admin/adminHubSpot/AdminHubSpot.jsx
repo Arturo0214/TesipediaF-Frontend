@@ -2,10 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Spinner } from 'react-bootstrap';
 import {
-  FaHubspot, FaDollarSign, FaUsers, FaChartLine,
-  FaSearch, FaEnvelope, FaPhone, FaBuilding,
-  FaSortAmountDown, FaSortAmountUp, FaCalendarAlt,
-  FaArrowUp, FaArrowDown, FaSyncAlt, FaExternalLinkAlt,
+  FaHubspot, FaDollarSign, FaUsers, FaChartLine, FaSearch,
+  FaEnvelope, FaPhone, FaBuilding, FaSyncAlt, FaCalendarAlt,
+  FaArrowUp, FaArrowDown, FaPercentage, FaTrophy, FaTimesCircle,
+  FaUserPlus, FaMoneyBillWave, FaChartBar, FaExchangeAlt,
 } from 'react-icons/fa';
 import { fetchHubspotSummary, fetchHubspotContacts, fetchHubspotDeals } from '../../../features/hubspot/hubspotSlice';
 import './AdminHubSpot.css';
@@ -14,12 +14,8 @@ const AdminHubSpot = () => {
   const dispatch = useDispatch();
   const { summary, contacts: rawContacts, deals: rawDeals, loading, error } = useSelector(state => state.hubspot);
   const { isAuthenticated, isAdmin } = useSelector(state => state.auth);
-
+  const [activeTab, setActiveTab] = useState('overview');
   const [contactSearch, setContactSearch] = useState('');
-  const [contactSort, setContactSort] = useState('date-desc');
-  const [lifecycleFilter, setLifecycleFilter] = useState('all');
-  const [dealSearch, setDealSearch] = useState('');
-  const [activeView, setActiveView] = useState('contacts'); // 'contacts' | 'deals'
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -40,27 +36,12 @@ const AdminHubSpot = () => {
     setRefreshing(false);
   };
 
-  // Metrics from summary
-  const metrics = useMemo(() => {
-    if (!summary) return null;
-    const d = summary.deals || {};
-    const c = summary.contacts || {};
-    return {
-      totalDeals: d.total || 0,
-      totalRevenue: d.totalRevenue || 0,
-      dealsThisMonth: d.dealsThisMonth || 0,
-      revenueThisMonth: d.revenueThisMonth || 0,
-      totalContacts: c.total || 0,
-      contactsThisMonth: c.contactsThisMonth || 0,
-      byStage: d.byStage || {},
-      byLifecycle: c.byLifecycle || {},
-      recentDeals: d.recent || [],
-      recentContacts: c.recent || [],
-      pipelines: summary.pipelines || [],
-    };
-  }, [summary]);
+  const kpis = summary?.kpis || {};
+  const charts = summary?.charts || {};
+  const dealData = summary?.deals || {};
+  const contactData = summary?.contacts || {};
+  const pipelinesData = summary?.pipelines || [];
 
-  // Filtered contacts
   const filteredContacts = useMemo(() => {
     let list = [...(rawContacts || [])];
     if (contactSearch) {
@@ -68,68 +49,42 @@ const AdminHubSpot = () => {
       list = list.filter(c => {
         const p = c.properties || {};
         const name = `${p.firstname || ''} ${p.lastname || ''}`.toLowerCase();
-        return name.includes(s) || (p.email || '').toLowerCase().includes(s) || (p.phone || '').includes(s) || (p.company || '').toLowerCase().includes(s);
+        return name.includes(s) || (p.email || '').toLowerCase().includes(s) || (p.company || '').toLowerCase().includes(s);
       });
     }
-    if (lifecycleFilter !== 'all') {
-      list = list.filter(c => (c.properties?.lifecyclestage || 'unknown') === lifecycleFilter);
-    }
-    switch (contactSort) {
-      case 'date-desc': list.sort((a, b) => new Date(b.properties?.createdate || 0) - new Date(a.properties?.createdate || 0)); break;
-      case 'date-asc': list.sort((a, b) => new Date(a.properties?.createdate || 0) - new Date(b.properties?.createdate || 0)); break;
-      case 'name-asc': list.sort((a, b) => (`${a.properties?.firstname || ''} ${a.properties?.lastname || ''}`).localeCompare(`${b.properties?.firstname || ''} ${b.properties?.lastname || ''}`)); break;
-      default: break;
-    }
-    return list;
-  }, [rawContacts, contactSearch, lifecycleFilter, contactSort]);
+    return list.sort((a, b) => new Date(b.properties?.createdate || 0) - new Date(a.properties?.createdate || 0));
+  }, [rawContacts, contactSearch]);
 
-  // Filtered deals
   const filteredDeals = useMemo(() => {
-    let list = [...(rawDeals || [])];
-    if (dealSearch) {
-      const s = dealSearch.toLowerCase();
-      list = list.filter(d => (d.properties?.dealname || '').toLowerCase().includes(s));
-    }
-    list.sort((a, b) => new Date(b.properties?.createdate || 0) - new Date(a.properties?.createdate || 0));
-    return list;
-  }, [rawDeals, dealSearch]);
+    return [...(rawDeals || [])].sort((a, b) => new Date(b.properties?.createdate || 0) - new Date(a.properties?.createdate || 0));
+  }, [rawDeals]);
 
-  const formatCurrency = (n) => `$${(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0 })}`;
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
+  const fmt = (n) => `$${(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0 })}`;
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
 
-  const lifecycleLabels = {
-    subscriber: 'Suscriptor',
-    lead: 'Lead',
-    marketingqualifiedlead: 'MQL',
-    salesqualifiedlead: 'SQL',
-    opportunity: 'Oportunidad',
-    customer: 'Cliente',
-    evangelist: 'Evangelista',
-    other: 'Otro',
-    unknown: 'Sin clasificar',
-  };
-
-  const lifecycleColors = {
-    subscriber: '#6b7280',
-    lead: '#f59e0b',
-    marketingqualifiedlead: '#8b5cf6',
-    salesqualifiedlead: '#3b82f6',
-    opportunity: '#10b981',
-    customer: '#059669',
-    evangelist: '#ec4899',
-    other: '#9ca3af',
-    unknown: '#d1d5db',
-  };
-
-  // Stage label resolver
   const getStageLabel = (stageId) => {
-    if (!metrics?.pipelines?.length) return stageId;
-    for (const p of metrics.pipelines) {
+    for (const p of pipelinesData) {
       const stage = p.stages?.find(s => s.id === stageId);
       if (stage) return stage.label;
     }
     return stageId;
   };
+
+  const lifecycleLabels = {
+    subscriber: 'Suscriptor', lead: 'Lead', marketingqualifiedlead: 'MQL',
+    salesqualifiedlead: 'SQL', opportunity: 'Oportunidad', customer: 'Cliente',
+    evangelist: 'Evangelista', other: 'Otro', unknown: 'Sin clasificar',
+  };
+
+  const lifecycleColors = {
+    subscriber: '#6b7280', lead: '#f59e0b', marketingqualifiedlead: '#8b5cf6',
+    salesqualifiedlead: '#3b82f6', opportunity: '#10b981', customer: '#059669',
+    evangelist: '#ec4899', other: '#9ca3af', unknown: '#d1d5db',
+  };
+
+  // Bar chart max for scaling
+  const maxWeekly = Math.max(...(charts.weeklyContacts || []).map(w => w.count), 1);
+  const maxMonthlyRev = Math.max(...(charts.monthlyRevenue || []).map(m => m.revenue), 1);
 
   if (loading && !summary) {
     return <div className="hs"><div className="hs-loading"><Spinner animation="border" size="sm" /> Conectando con HubSpot...</div></div>;
@@ -156,7 +111,7 @@ const AdminHubSpot = () => {
           <FaHubspot className="hs-logo" />
           <div>
             <h2 className="hs-title">HubSpot CRM</h2>
-            <span className="hs-subtitle">{metrics?.totalContacts || 0} contactos · {metrics?.totalDeals || 0} deals</span>
+            <span className="hs-subtitle">{kpis.totalContacts || 0} contactos · {kpis.totalDeals || 0} deals</span>
           </div>
         </div>
         <button className={`hs-refresh ${refreshing ? 'hs-spinning' : ''}`} onClick={handleRefresh} disabled={refreshing}>
@@ -164,187 +119,316 @@ const AdminHubSpot = () => {
         </button>
       </div>
 
-      {/* KPI Cards */}
-      {metrics && (
-        <div className="hs-kpis">
-          <div className="hs-kpi hs-kpi-revenue">
-            <div className="hs-kpi-icon"><FaDollarSign /></div>
-            <div className="hs-kpi-data">
-              <span className="hs-kpi-value">{formatCurrency(metrics.totalRevenue)}</span>
-              <span className="hs-kpi-label">Ingreso total</span>
-            </div>
-            <div className="hs-kpi-badge">
-              <FaArrowUp /> {formatCurrency(metrics.revenueThisMonth)} este mes
-            </div>
-          </div>
-          <div className="hs-kpi hs-kpi-deals">
-            <div className="hs-kpi-icon"><FaChartLine /></div>
-            <div className="hs-kpi-data">
-              <span className="hs-kpi-value">{metrics.totalDeals}</span>
-              <span className="hs-kpi-label">Deals totales</span>
-            </div>
-            <div className="hs-kpi-badge">
-              +{metrics.dealsThisMonth} este mes
-            </div>
-          </div>
-          <div className="hs-kpi hs-kpi-contacts">
-            <div className="hs-kpi-icon"><FaUsers /></div>
-            <div className="hs-kpi-data">
-              <span className="hs-kpi-value">{metrics.totalContacts}</span>
-              <span className="hs-kpi-label">Contactos</span>
-            </div>
-            <div className="hs-kpi-badge">
-              +{metrics.contactsThisMonth} este mes
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Pipeline Stages */}
-      {metrics && Object.keys(metrics.byStage).length > 0 && (
-        <div className="hs-pipeline-section">
-          <h3 className="hs-section-title">Pipeline de Deals</h3>
-          <div className="hs-pipeline">
-            {Object.entries(metrics.byStage)
-              .sort(([, a], [, b]) => (b.amount || 0) - (a.amount || 0))
-              .map(([stageId, data]) => (
-                <div key={stageId} className="hs-stage">
-                  <div className="hs-stage-header">
-                    <span className="hs-stage-name">{data.label || stageId}</span>
-                    <span className="hs-stage-count">{data.count}</span>
-                  </div>
-                  <div className="hs-stage-bar">
-                    <div className="hs-stage-fill" style={{
-                      width: `${Math.min(100, (data.amount / (metrics.totalRevenue || 1)) * 100)}%`
-                    }} />
-                  </div>
-                  <span className="hs-stage-amount">{formatCurrency(data.amount)}</span>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {/* Lifecycle Distribution */}
-      {metrics && Object.keys(metrics.byLifecycle).length > 0 && (
-        <div className="hs-lifecycle-section">
-          <h3 className="hs-section-title">Contactos por Etapa</h3>
-          <div className="hs-lifecycle-pills">
-            {Object.entries(metrics.byLifecycle)
-              .sort(([, a], [, b]) => b - a)
-              .map(([key, count]) => (
-                <button key={key}
-                  className={`hs-lc-pill ${lifecycleFilter === key ? 'hs-lc-active' : ''}`}
-                  style={{ '--lc-color': lifecycleColors[key] || '#6b7280' }}
-                  onClick={() => { setLifecycleFilter(lifecycleFilter === key ? 'all' : key); }}>
-                  <span className="hs-lc-dot" style={{ background: lifecycleColors[key] || '#6b7280' }} />
-                  {lifecycleLabels[key] || key}
-                  <span className="hs-lc-count">{count}</span>
-                </button>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tab Switch: Contacts / Deals */}
-      <div className="hs-tabs">
-        <button className={`hs-tab ${activeView === 'contacts' ? 'hs-tab-active' : ''}`}
-          onClick={() => setActiveView('contacts')}>
-          <FaUsers /> Contactos ({filteredContacts.length})
-        </button>
-        <button className={`hs-tab ${activeView === 'deals' ? 'hs-tab-active' : ''}`}
-          onClick={() => setActiveView('deals')}>
-          <FaChartLine /> Deals ({filteredDeals.length})
-        </button>
+      {/* Tabs */}
+      <div className="hs-nav">
+        {['overview', 'contacts', 'deals'].map(tab => (
+          <button key={tab} className={`hs-nav-btn ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
+            {tab === 'overview' && <><FaChartBar /> Resumen</>}
+            {tab === 'contacts' && <><FaUsers /> Contactos ({kpis.totalContacts || 0})</>}
+            {tab === 'deals' && <><FaDollarSign /> Deals ({kpis.totalDeals || 0})</>}
+          </button>
+        ))}
       </div>
 
-      {/* Contacts View */}
-      {activeView === 'contacts' && (
+      {/* ═══════════════ OVERVIEW TAB ═══════════════ */}
+      {activeTab === 'overview' && (
+        <>
+          {/* KPI Row 1: Revenue & Deals */}
+          <div className="hs-kpi-grid">
+            <div className="hs-kpi">
+              <div className="hs-kpi-top">
+                <span className="hs-kpi-icon green"><FaDollarSign /></span>
+                <GrowthBadge value={kpis.revenueGrowth} />
+              </div>
+              <div className="hs-kpi-value">{fmt(kpis.totalRevenue)}</div>
+              <div className="hs-kpi-label">Ingreso total</div>
+              <div className="hs-kpi-sub">{fmt(kpis.revenueThisMonth)} este mes</div>
+            </div>
+
+            <div className="hs-kpi">
+              <div className="hs-kpi-top">
+                <span className="hs-kpi-icon blue"><FaChartLine /></span>
+                <span className="hs-kpi-badge neutral">Promedio: {fmt(kpis.avgDealSize)}</span>
+              </div>
+              <div className="hs-kpi-value">{kpis.totalDeals || 0}</div>
+              <div className="hs-kpi-label">Deals totales</div>
+              <div className="hs-kpi-sub">+{kpis.dealsThisMonth || 0} este mes</div>
+            </div>
+
+            <div className="hs-kpi">
+              <div className="hs-kpi-top">
+                <span className="hs-kpi-icon purple"><FaUsers /></span>
+                <GrowthBadge value={kpis.contactGrowth} />
+              </div>
+              <div className="hs-kpi-value">{kpis.totalContacts || 0}</div>
+              <div className="hs-kpi-label">Contactos</div>
+              <div className="hs-kpi-sub">+{kpis.contactsThisMonth || 0} este mes · {kpis.contactsThisWeek || 0} esta semana</div>
+            </div>
+
+            <div className="hs-kpi">
+              <div className="hs-kpi-top">
+                <span className="hs-kpi-icon orange"><FaExchangeAlt /></span>
+              </div>
+              <div className="hs-kpi-value">{kpis.conversionRate || 0}%</div>
+              <div className="hs-kpi-label">Tasa de conversión</div>
+              <div className="hs-kpi-sub">{kpis.customersCount || 0} clientes de {kpis.totalContacts || 0} leads</div>
+            </div>
+          </div>
+
+          {/* KPI Row 2: Win/Loss */}
+          <div className="hs-kpi-row-small">
+            <div className="hs-kpi-mini won">
+              <FaTrophy />
+              <div>
+                <span className="hs-kpi-mini-val">{kpis.dealsWon || 0}</span>
+                <span className="hs-kpi-mini-label">Deals ganados</span>
+              </div>
+              <span className="hs-kpi-mini-amt">{fmt(kpis.totalRevenue)}</span>
+            </div>
+            <div className="hs-kpi-mini lost">
+              <FaTimesCircle />
+              <div>
+                <span className="hs-kpi-mini-val">{kpis.dealsLost || 0}</span>
+                <span className="hs-kpi-mini-label">Deals perdidos</span>
+              </div>
+            </div>
+            <div className="hs-kpi-mini rate">
+              <FaPercentage />
+              <div>
+                <span className="hs-kpi-mini-val">{kpis.winRate || 0}%</span>
+                <span className="hs-kpi-mini-label">Win rate</span>
+              </div>
+            </div>
+            <div className="hs-kpi-mini new-contacts">
+              <FaUserPlus />
+              <div>
+                <span className="hs-kpi-mini-val">{kpis.contactsThisWeek || 0}</span>
+                <span className="hs-kpi-mini-label">Nuevos esta semana</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Row */}
+          <div className="hs-charts-row">
+            {/* Weekly contacts */}
+            <div className="hs-chart-card">
+              <h4 className="hs-chart-title">Contactos por semana</h4>
+              <div className="hs-bar-chart">
+                {(charts.weeklyContacts || []).map((w, i) => (
+                  <div key={i} className="hs-bar-col">
+                    <span className="hs-bar-val">{w.count}</span>
+                    <div className="hs-bar" style={{ height: `${Math.max(4, (w.count / maxWeekly) * 100)}%` }} />
+                    <span className="hs-bar-label">{w.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Monthly revenue */}
+            <div className="hs-chart-card">
+              <h4 className="hs-chart-title">Ingresos mensuales</h4>
+              <div className="hs-bar-chart">
+                {(charts.monthlyRevenue || []).map((m, i) => (
+                  <div key={i} className="hs-bar-col">
+                    <span className="hs-bar-val">{m.revenue > 0 ? fmt(m.revenue) : '—'}</span>
+                    <div className="hs-bar revenue" style={{ height: `${Math.max(4, (m.revenue / maxMonthlyRev) * 100)}%` }} />
+                    <span className="hs-bar-label">{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Lifecycle funnel */}
+          {Object.keys(contactData.byLifecycle || {}).length > 0 && (
+            <div className="hs-funnel-card">
+              <h4 className="hs-chart-title">Embudo de contactos</h4>
+              <div className="hs-funnel">
+                {Object.entries(contactData.byLifecycle)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([key, count]) => {
+                    const pct = kpis.totalContacts > 0 ? Math.round((count / kpis.totalContacts) * 100) : 0;
+                    return (
+                      <div key={key} className="hs-funnel-row">
+                        <span className="hs-funnel-label" style={{ color: lifecycleColors[key] || '#6b7280' }}>
+                          {lifecycleLabels[key] || key}
+                        </span>
+                        <div className="hs-funnel-bar-bg">
+                          <div className="hs-funnel-bar-fill" style={{ width: `${pct}%`, background: lifecycleColors[key] || '#6b7280' }} />
+                        </div>
+                        <span className="hs-funnel-count">{count} ({pct}%)</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Pipeline stages */}
+          {Object.keys(dealData.byStage || {}).length > 0 && (
+            <div className="hs-funnel-card">
+              <h4 className="hs-chart-title">Pipeline de Deals</h4>
+              <div className="hs-funnel">
+                {Object.entries(dealData.byStage)
+                  .sort(([, a], [, b]) => (b.amount || 0) - (a.amount || 0))
+                  .map(([stageId, data]) => {
+                    const pct = kpis.totalRevenue > 0 ? Math.round((data.amount / kpis.totalRevenue) * 100) : 0;
+                    return (
+                      <div key={stageId} className="hs-funnel-row">
+                        <span className="hs-funnel-label">{data.label || stageId}</span>
+                        <div className="hs-funnel-bar-bg">
+                          <div className="hs-funnel-bar-fill" style={{ width: `${pct}%`, background: '#ff7a59' }} />
+                        </div>
+                        <span className="hs-funnel-count">{data.count} · {fmt(data.amount)}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Recent contacts */}
+          {(contactData.recent || []).length > 0 && (
+            <div className="hs-recent-card">
+              <h4 className="hs-chart-title">Contactos recientes</h4>
+              <div className="hs-recent-list">
+                {contactData.recent.map(c => (
+                  <div key={c.id} className="hs-recent-item">
+                    <div className="hs-avatar" style={{ background: lifecycleColors[c.lifecycle] || '#6b7280' }}>
+                      {(c.name || 'S')[0].toUpperCase()}
+                    </div>
+                    <div className="hs-recent-info">
+                      <span className="hs-recent-name">{c.name}</span>
+                      {c.email && <span className="hs-recent-detail">{c.email}</span>}
+                    </div>
+                    <span className="hs-recent-badge" style={{ color: lifecycleColors[c.lifecycle] || '#6b7280' }}>
+                      {lifecycleLabels[c.lifecycle] || c.lifecycle}
+                    </span>
+                    <span className="hs-recent-date">{fmtDate(c.created)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ═══════════════ CONTACTS TAB ═══════════════ */}
+      {activeTab === 'contacts' && (
         <>
           <div className="hs-toolbar">
             <div className="hs-search">
               <FaSearch className="hs-search-icon" />
-              <input type="text" placeholder="Buscar contacto por nombre, email, empresa..." value={contactSearch}
+              <input type="text" placeholder="Buscar por nombre, email, empresa..." value={contactSearch}
                 onChange={(e) => setContactSearch(e.target.value)} />
             </div>
-            <div className="hs-sort-group">
-              <button className={`hs-sort-btn ${contactSort === 'date-desc' ? 'active' : ''}`}
-                onClick={() => setContactSort(contactSort === 'date-desc' ? 'date-asc' : 'date-desc')}>
-                {contactSort === 'date-asc' ? <FaSortAmountUp /> : <FaSortAmountDown />} Fecha
-              </button>
-              <button className={`hs-sort-btn ${contactSort === 'name-asc' ? 'active' : ''}`}
-                onClick={() => setContactSort('name-asc')}>
-                A-Z
-              </button>
-            </div>
           </div>
-
-          <div className="hs-contacts-grid">
-            {filteredContacts.length === 0 ? (
-              <div className="hs-empty">No se encontraron contactos</div>
-            ) : filteredContacts.map(contact => {
-              const p = contact.properties || {};
-              const name = `${p.firstname || ''} ${p.lastname || ''}`.trim() || 'Sin nombre';
-              const lc = p.lifecyclestage || 'unknown';
-              return (
-                <div key={contact.id} className="hs-contact-card">
-                  <div className="hs-contact-avatar" style={{ background: lifecycleColors[lc] || '#6b7280' }}>
-                    {(p.firstname || 'S')[0].toUpperCase()}{(p.lastname || 'N')[0].toUpperCase()}
-                  </div>
-                  <div className="hs-contact-info">
-                    <div className="hs-contact-name">{name}</div>
-                    {p.email && <div className="hs-contact-row"><FaEnvelope /> {p.email}</div>}
-                    {p.phone && <div className="hs-contact-row"><FaPhone /> {p.phone}</div>}
-                    {p.company && <div className="hs-contact-row"><FaBuilding /> {p.company}</div>}
-                    <div className="hs-contact-bottom">
-                      <span className="hs-lc-badge" style={{ background: `${lifecycleColors[lc] || '#6b7280'}18`, color: lifecycleColors[lc] || '#6b7280' }}>
-                        {lifecycleLabels[lc] || lc}
-                      </span>
-                      {p.hs_lead_status && <span className="hs-lead-status">{p.hs_lead_status}</span>}
-                      <span className="hs-contact-date"><FaCalendarAlt /> {formatDate(p.createdate)}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="hs-table-wrap">
+            <table className="hs-table">
+              <thead>
+                <tr>
+                  <th>Contacto</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Empresa</th>
+                  <th>Etapa</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredContacts.length === 0 ? (
+                  <tr><td colSpan={6} className="hs-empty-row">No se encontraron contactos</td></tr>
+                ) : filteredContacts.map(c => {
+                  const p = c.properties || {};
+                  const name = `${p.firstname || ''} ${p.lastname || ''}`.trim() || 'Sin nombre';
+                  const lc = p.lifecyclestage || 'unknown';
+                  return (
+                    <tr key={c.id}>
+                      <td>
+                        <div className="hs-cell-name">
+                          <div className="hs-avatar-sm" style={{ background: lifecycleColors[lc] || '#6b7280' }}>
+                            {(p.firstname || 'S')[0].toUpperCase()}
+                          </div>
+                          {name}
+                        </div>
+                      </td>
+                      <td>{p.email || '—'}</td>
+                      <td>{p.phone || '—'}</td>
+                      <td>{p.company || '—'}</td>
+                      <td>
+                        <span className="hs-lifecycle-tag" style={{ background: `${lifecycleColors[lc]}18`, color: lifecycleColors[lc] }}>
+                          {lifecycleLabels[lc] || lc}
+                        </span>
+                      </td>
+                      <td className="hs-date-cell">{fmtDate(p.createdate)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </>
       )}
 
-      {/* Deals View */}
-      {activeView === 'deals' && (
+      {/* ═══════════════ DEALS TAB ═══════════════ */}
+      {activeTab === 'deals' && (
         <>
-          <div className="hs-toolbar">
-            <div className="hs-search">
-              <FaSearch className="hs-search-icon" />
-              <input type="text" placeholder="Buscar deal..." value={dealSearch}
-                onChange={(e) => setDealSearch(e.target.value)} />
+          {filteredDeals.length === 0 ? (
+            <div className="hs-empty-state">
+              <FaMoneyBillWave className="hs-empty-icon" />
+              <p>No hay deals registrados en HubSpot</p>
+              <span>Los deals se crearán automáticamente cuando se confirmen pagos</span>
             </div>
-          </div>
-
-          <div className="hs-deals-grid">
-            {filteredDeals.length === 0 ? (
-              <div className="hs-empty">No se encontraron deals</div>
-            ) : filteredDeals.map(deal => {
-              const p = deal.properties || {};
-              return (
-                <div key={deal.id} className="hs-deal-card">
-                  <div className="hs-deal-top">
-                    <span className="hs-deal-name">{p.dealname || 'Sin nombre'}</span>
-                    <span className="hs-deal-amount">{formatCurrency(parseFloat(p.amount) || 0)}</span>
-                  </div>
-                  <div className="hs-deal-meta">
-                    <span className="hs-deal-stage">{getStageLabel(p.dealstage)}</span>
-                    <span className="hs-deal-date"><FaCalendarAlt /> {formatDate(p.createdate)}</span>
-                    {p.closedate && <span className="hs-deal-close">Cierre: {formatDate(p.closedate)}</span>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          ) : (
+            <div className="hs-table-wrap">
+              <table className="hs-table">
+                <thead>
+                  <tr>
+                    <th>Deal</th>
+                    <th>Monto</th>
+                    <th>Etapa</th>
+                    <th>Creado</th>
+                    <th>Cierre</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDeals.map(d => {
+                    const p = d.properties || {};
+                    const stageLabel = getStageLabel(p.dealstage);
+                    const isWon = p.dealstage === 'closedwon';
+                    const isLost = p.dealstage === 'closedlost';
+                    return (
+                      <tr key={d.id}>
+                        <td className="hs-deal-name-cell">{p.dealname || 'Sin nombre'}</td>
+                        <td className="hs-amount-cell">{fmt(parseFloat(p.amount) || 0)}</td>
+                        <td>
+                          <span className={`hs-stage-tag ${isWon ? 'won' : isLost ? 'lost' : ''}`}>
+                            {stageLabel}
+                          </span>
+                        </td>
+                        <td className="hs-date-cell">{fmtDate(p.createdate)}</td>
+                        <td className="hs-date-cell">{fmtDate(p.closedate)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
     </div>
+  );
+};
+
+/* Small helper component */
+const GrowthBadge = ({ value }) => {
+  if (value === undefined || value === null) return null;
+  const positive = value >= 0;
+  return (
+    <span className={`hs-kpi-badge ${positive ? 'up' : 'down'}`}>
+      {positive ? <FaArrowUp /> : <FaArrowDown />} {Math.abs(value)}%
+    </span>
   );
 };
 
