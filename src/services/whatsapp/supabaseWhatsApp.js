@@ -40,19 +40,17 @@ export async function toggleModoHumano(waId, modoHumano) {
  */
 export async function sendWhatsAppMessage(waId, mensaje, file = null) {
   let payload;
-  let headers = {};
 
   if (file) {
     payload = new FormData();
     payload.append('wa_id', waId);
     if (mensaje) payload.append('mensaje', mensaje);
     payload.append('file', file);
-    headers = { 'Content-Type': 'multipart/form-data' };
   } else {
     payload = { wa_id: waId, mensaje };
   }
 
-  const { data } = await axiosWithAuth.post(`${BASE}/send`, payload, { headers });
+  const { data } = await axiosWithAuth.post(`${BASE}/send`, payload);
   return data;
 }
 

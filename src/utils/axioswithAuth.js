@@ -44,7 +44,11 @@ axiosWithAuth.interceptors.request.use((config) => {
     }
 
     if (config.method === 'patch' || config.method === 'post') {
-      config.headers['Content-Type'] = 'application/json';
+      if (!(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json';
+      } else {
+        delete config.headers['Content-Type'];
+      }
     }
 
     if ((config.method === 'patch' || config.method === 'post') && !config.data) {
