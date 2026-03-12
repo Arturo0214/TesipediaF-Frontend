@@ -35,14 +35,24 @@ export async function toggleModoHumano(waId, modoHumano) {
 }
 
 /**
- * Enviar mensaje de WhatsApp y guardar en historial
+ * Enviar mensaje de WhatsApp (y archivo) y guardar en historial
  * Todo pasa por el Backend (seguro)
  */
-export async function sendWhatsAppMessage(waId, mensaje) {
-  const { data } = await axiosWithAuth.post(`${BASE}/send`, {
-    wa_id: waId,
-    mensaje,
-  });
+export async function sendWhatsAppMessage(waId, mensaje, file = null) {
+  let payload;
+  let headers = {};
+
+  if (file) {
+    payload = new FormData();
+    payload.append('wa_id', waId);
+    if (mensaje) payload.append('mensaje', mensaje);
+    payload.append('file', file);
+    headers = { 'Content-Type': 'multipart/form-data' };
+  } else {
+    payload = { wa_id: waId, mensaje };
+  }
+
+  const { data } = await axiosWithAuth.post(`${BASE}/send`, payload, { headers });
   return data;
 }
 

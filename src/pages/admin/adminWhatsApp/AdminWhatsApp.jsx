@@ -13,6 +13,9 @@ import {
   FaPhone,
   FaClock,
   FaTag,
+  FaPaperclip,
+  FaTimes,
+  FaFile,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -37,9 +40,11 @@ const AdminWhatsApp = () => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [togglingHuman, setTogglingHuman] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Cargar leads
   const fetchLeads = useCallback(async (silent = false) => {
@@ -105,13 +110,16 @@ const AdminWhatsApp = () => {
   // Enviar mensaje
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!message.trim() || !selectedLead || sending) return;
+    if ((!message.trim() && !selectedFile) || !selectedLead || sending) return;
     setSending(true);
     try {
       // Enviar por WhatsApp + guardar en historial (todo vía Backend)
-      await sendWhatsAppMessage(selectedLead.wa_id, message.trim());
-      toast.success('Mensaje enviado');
+      await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
+      toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
       setMessage('');
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      
       // 3. Refrescar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
@@ -122,6 +130,18 @@ const AdminWhatsApp = () => {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      // Validar tamaño u otro detalle si se quiere
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const clearFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Filtrar leads
@@ -217,7 +237,23 @@ const AdminWhatsApp = () => {
             <div className="wa-message-sender">
               {isUser ? (selectedLead.nombre || 'Cliente') : isHuman ? 'Tú (Humano)' : 'Sofía (Bot)'}
             </div>
-            <div className="wa-message-text">{content}</div>
+            
+            {/* Si hay archivo/media */}
+            {msg.mediaUrl && (
+              <div className="wa-message-media mt-2 mb-2">
+                {msg.mimetype?.startsWith('image/') || msg.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                  <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
+                    <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" />
+                  </a>
+                ) : (
+                  <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
+                    <FaFile className="me-2" /> {msg.filename || 'Ver documento'}
+                  </a>
+                )}
+              </div>
+            )}
+            
+            {content && <div className="wa-message-text">{content}</div>}
           </div>
         </div>
       );
@@ -385,12 +421,43 @@ const AdminWhatsApp = () => {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Preview de archivo seleccionado */}
+              {selectedFile && (
+                <div className="wa-file-preview">
+                  <div className="wa-file-info">
+                    <FaFile className="me-2 text-primary" />
+                    <span>{selectedFile.name}</span>
+                  </div>
+                  <Button variant="link" className="wa-file-remove p-0 text-danger" onClick={clearFile} disabled={sending}>
+                    <FaTimes />
+                  </Button>
+                </div>
+              )}
+
+              {/* Input genérico para archivos (oculto) */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+                disabled={sending}
+              />
+
               {/* Input de mensaje */}
               <form className="wa-message-input-container" onSubmit={handleSend}>
+                <Button
+                  variant="light"
+                  className="wa-attach-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                  title="Adjuntar archivo o imagen"
+                >
+                  <FaPaperclip />
+                </Button>
                 <input
                   ref={inputRef}
                   type="text"
-                  className="wa-message-input"
+                  className="wa-message-input ms-2"
                   placeholder={selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
@@ -399,8 +466,8 @@ const AdminWhatsApp = () => {
                 <Button
                   type="submit"
                   variant="success"
-                  className="wa-send-btn"
-                  disabled={!message.trim() || sending}
+                  className="wa-send-btn ms-2"
+                  disabled={(!message.trim() && !selectedFile) || sending}
                 >
                   {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
                 </Button>
