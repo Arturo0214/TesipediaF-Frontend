@@ -8,7 +8,7 @@ import {
   FaUserPlus, FaMoneyBillWave, FaChartBar, FaExchangeAlt,
   FaTimes, FaUser, FaTag, FaClock,
 } from 'react-icons/fa';
-import { fetchHubspotSummary } from '../../../features/hubspot/hubspotSlice';
+import { fetchHubspotSummary, fetchHubspotContacts, fetchHubspotDeals } from '../../../features/hubspot/hubspotSlice';
 import './AdminHubSpot.css';
 
 const AdminHubSpot = () => {
@@ -23,12 +23,20 @@ const AdminHubSpot = () => {
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
       dispatch(fetchHubspotSummary());
+      // Fallback: also fetch contacts/deals separately in case backend
+      // hasn't been updated with allContacts/allDeals in summary yet
+      dispatch(fetchHubspotContacts({ limit: 100 }));
+      dispatch(fetchHubspotDeals({ limit: 100 }));
     }
   }, [dispatch, isAuthenticated, isAdmin]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await dispatch(fetchHubspotSummary());
+    await Promise.all([
+      dispatch(fetchHubspotSummary()),
+      dispatch(fetchHubspotContacts({ limit: 100 })),
+      dispatch(fetchHubspotDeals({ limit: 100 })),
+    ]);
     setRefreshing(false);
   };
 
@@ -217,7 +225,7 @@ const AdminHubSpot = () => {
           <FaHubspot className="hs-logo" />
           <div>
             <h2 className="hs-title">HubSpot CRM</h2>
-            <span className="hs-subtitle">{kpis.totalContacts || 0} contactos · {kpis.totalDeals || 0} deals</span>
+            <span className="hs-subtitle">{kpis.totalContacts || rawContacts?.length || 0} contactos · {kpis.totalDeals || rawDeals?.length || 0} deals</span>
           </div>
         </div>
         <button className={`hs-refresh ${refreshing ? 'hs-spinning' : ''}`} onClick={handleRefresh} disabled={refreshing}>
