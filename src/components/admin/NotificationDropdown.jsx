@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Badge, ListGroup, Button } from 'react-bootstrap';
-import { FaBell, FaCheck } from 'react-icons/fa';
+import { FaBell, FaCheck, FaRegBell } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { markNotificationAsRead, markAllNotificationsAsRead } from '../../features/notifications/notificationSlice';
 import './NotificationDropdown.css';
@@ -32,11 +32,24 @@ const NotificationDropdown = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [show]);
 
-    const handleMarkAsRead = async (notificationId) => {
+    const handleMarkAsRead = async (e, notificationId) => {
+        // Prevent the click from bubbling up to the item click handler
+        if (e) e.stopPropagation();
         try {
             await dispatch(markNotificationAsRead(notificationId)).unwrap();
         } catch (error) {
             console.error('Error al marcar notificación como leída:', error);
+        }
+    };
+
+    const handleNotificationClick = async (notification) => {
+        // Mark as read on click if unread
+        if (!notification.isRead) {
+            try {
+                await dispatch(markNotificationAsRead(notification._id)).unwrap();
+            } catch (error) {
+                console.error('Error al marcar notificación como leída:', error);
+            }
         }
     };
 
@@ -49,30 +62,47 @@ const NotificationDropdown = () => {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return '';
         const date = new Date(dateString);
         const now = new Date();
         const diffInSeconds = Math.floor((now - date) / 1000);
-        if (diffInSeconds < 60) return `hace ${diffInSeconds} segundo${diffInSeconds !== 1 ? 's' : ''}`;
+        if (diffInSeconds < 60) return `hace ${diffInSeconds}s`;
         const diffInMinutes = Math.floor(diffInSeconds / 60);
-        if (diffInMinutes < 60) return `hace ${diffInMinutes} minuto${diffInMinutes !== 1 ? 's' : ''}`;
+        if (diffInMinutes < 60) return `hace ${diffInMinutes}min`;
         const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) return `hace ${diffInHours} hora${diffInHours !== 1 ? 's' : ''}`;
+        if (diffInHours < 24) return `hace ${diffInHours}h`;
         const diffInDays = Math.floor(diffInHours / 24);
-        return `hace ${diffInDays} día${diffInDays !== 1 ? 's' : ''}`;
+        if (diffInDays < 7) return `hace ${diffInDays}d`;
+        return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
     };
 
     const recentNotifications = notifications.slice(0, 10);
 
-    // Calcular la posición top del menú para alinearlo con el icono
-    const [menuTop, setMenuTop] = useState(70);
+    // Calcular posición del dropdown relativa al icono
+    const [menuStyle, setMenuStyle] = useState({});
     useEffect(() => {
         if (show && iconRef.current) {
             const rect = iconRef.current.getBoundingClientRect();
-            setMenuTop(rect.top + rect.height + 4); // 4px de separación
+            const viewportWidth = window.innerWidth;
+
+            // Position below the bell icon, aligned to the right
+            let top = rect.bottom + 6;
+            let left = rect.left;
+
+            // Make sure it doesn't go off the right edge
+            if (left + 380 > viewportWidth) {
+                left = viewportWidth - 380 - 12;
+            }
+
+            // Make sure it doesn't go off the left edge
+            if (left < 12) {
+                left = 12;
+            }
+
+            setMenuStyle({ top, left });
         }
     }, [show]);
 
-    // Helper para capitalizar solo la primera letra
     const capitalizeFirst = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
     return (
@@ -88,9 +118,7 @@ const NotificationDropdown = () => {
                 <div className="admin-notification-icon-wrapper">
                     <FaBell className={`admin-notification-icon${show ? ' admin-notification-icon-active' : ''}`} />
                     {unreadCount > 0 && (
-                        <span
-                            className={`admin-notification-badge${unreadCount > 0 ? ' admin-notification-badge-pulse' : ''}`}
-                        >
+                        <span className={`admin-notification-badge${unreadCount > 0 ? ' admin-notification-badge-pulse' : ''}`}>
                             {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                     )}
@@ -100,19 +128,17 @@ const NotificationDropdown = () => {
                 <div
                     className="notification-dropdown-menu notification-dropdown-fixed"
                     ref={menuRef}
-                    style={{ top: menuTop, right: 32 }}
+                    style={menuStyle}
                 >
                     <div className="notification-header">
-                        <h6 className="mb-0">Notificaciones</h6>
+                        <h6>Notificaciones</h6>
                         {unreadCount > 0 && (
-                            <Button
-                                variant="link"
-                                size="sm"
+                            <button
                                 className="mark-all-read-btn"
                                 onClick={handleMarkAllAsRead}
                             >
                                 Marcar todas como leídas
-                            </Button>
+                            </button>
                         )}
                     </div>
 
@@ -124,8 +150,8 @@ const NotificationDropdown = () => {
                                 </div>
                             </div>
                         ) : recentNotifications.length === 0 ? (
-                            <div className="text-center py-3 text-muted">
-                                <FaBell className="mb-2" />
+                            <div className="text-center">
+                                <FaRegBell className="mb-2" />
                                 <p className="mb-0">No hay notificaciones</p>
                             </div>
                         ) : (
@@ -134,30 +160,27 @@ const NotificationDropdown = () => {
                                     <ListGroup.Item
                                         key={notification._id}
                                         className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                                        onClick={() => handleNotificationClick(notification)}
                                     >
                                         <div className="notification-content">
                                             <div className="notification-title">
-                                                {['visitas', 'cotizaciones', 'mensajes', 'pagos'].includes((notification.type || '').toLowerCase())
-                                                    ? capitalizeFirst(notification.title || notification.type || 'Notificación')
-                                                    : (notification.title || notification.type || 'Notificación')}
+                                                {capitalizeFirst(notification.title || notification.type || 'Notificación')}
                                             </div>
                                             <div className="notification-message">
                                                 {notification.message || notification.body}
                                             </div>
                                             <div className="notification-meta">
-                                                <small className="text-muted">
+                                                <small>
                                                     {formatDate(notification.createdAt)}
                                                 </small>
                                                 {!notification.isRead && (
-                                                    <Button
-                                                        variant="link"
-                                                        size="sm"
+                                                    <button
                                                         className="mark-read-btn"
-                                                        onClick={() => handleMarkAsRead(notification._id)}
+                                                        onClick={(e) => handleMarkAsRead(e, notification._id)}
                                                         title="Marcar como leída"
                                                     >
-                                                        <FaCheck size={12} />
-                                                    </Button>
+                                                        <FaCheck size={10} /> Leída
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
@@ -169,9 +192,9 @@ const NotificationDropdown = () => {
 
                     {notifications.length > 10 && (
                         <div className="notification-footer">
-                            <Button variant="link" size="sm" className="view-all-btn">
-                                Ver todas las notificaciones
-                            </Button>
+                            <button className="view-all-btn">
+                                Ver todas ({notifications.length})
+                            </button>
                         </div>
                     )}
                 </div>
@@ -180,4 +203,4 @@ const NotificationDropdown = () => {
     );
 };
 
-export default NotificationDropdown; 
+export default NotificationDropdown;

@@ -116,10 +116,28 @@ const AdminPanel = () => {
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas' }
     ];
 
+    // Mapeo inverso: sección → tipo de notificación
+    const sectionToNotificationType = {
+        cotizaciones: 'cotizacion',
+        proyectos: 'proyecto',
+        pagos: 'pago',
+        mensajes: 'mensaje',
+        visitas: 'visita',
+    };
+
     const handleTabSelect = (key) => {
         setActiveTab(key);
         setComponentError(null);
         setIsSidebarOpen(false);
+
+        // Marcar notificaciones de esta sección como leídas
+        const notificationType = sectionToNotificationType[key];
+        if (notificationType) {
+            const hasUnread = notifications.some(n => !n.isRead && n.type === notificationType);
+            if (hasUnread) {
+                dispatch(markNotificationsByType(notificationType));
+            }
+        }
 
         // Force scroll reset
         window.scrollTo(0, 0);

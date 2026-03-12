@@ -160,9 +160,11 @@ const notificationSlice = createSlice({
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
         console.log('Notificación marcada como leída:', action.payload);
         // Verificar si la respuesta tiene la estructura esperada
-        const notificationId = action.payload._id || action.payload.id;
+        // Try to get ID from response, or fallback to the original arg (the ID we sent)
+        const notificationId = action.payload?._id || action.payload?.id || action.meta?.arg;
         if (!notificationId) {
           console.error('Respuesta del servidor sin ID de notificación:', action.payload);
+          // Fallback: usar el argumento original (el ID que enviamos)
           return;
         }
 
@@ -170,8 +172,13 @@ const notificationSlice = createSlice({
         const index = state.notifications.findIndex(n => n._id === notificationId);
         if (index !== -1) {
           console.log('Actualizando notificación en store:', notificationId);
-          // Reemplazar todo el objeto con la respuesta del servidor para asegurar consistencia
-          state.notifications[index] = action.payload;
+          // Si la respuesta del servidor tiene la estructura completa, usarla
+          // Si no, solo marcar como leída en el estado local
+          if (action.payload._id || action.payload.id) {
+            state.notifications[index] = { ...state.notifications[index], ...action.payload, isRead: true };
+          } else {
+            state.notifications[index].isRead = true;
+          }
           // Recalcular el contador de notificaciones no leídas
           state.unreadCount = state.notifications.filter(notification => !notification.isRead).length;
           console.log('Contador de notificaciones no leídas actualizado:', state.unreadCount);
