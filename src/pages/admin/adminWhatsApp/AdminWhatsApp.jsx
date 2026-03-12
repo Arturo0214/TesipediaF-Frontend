@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Row, Col, Badge, Button, Spinner, Alert, Form } from 'react-bootstrap';
+import { Container, Badge, Button, Spinner, Alert } from 'react-bootstrap';
 import {
   FaWhatsapp,
   FaUser,
@@ -339,9 +339,9 @@ const AdminWhatsApp = () => {
         </Button>
       </div>
 
-      <Row className="wa-body g-0">
+      <div className="wa-body">
         {/* Lista de conversaciones */}
-        <Col md={4} className="wa-conversations-col">
+        <div className="wa-conversations-col">
           <div className="wa-search-box">
             <FaSearch className="wa-search-icon" />
             <input
@@ -403,10 +403,10 @@ const AdminWhatsApp = () => {
               })
             )}
           </div>
-        </Col>
+        </div>
 
         {/* Panel de chat */}
-        <Col md={8} className={`wa-chat-col ${selectedLead ? 'wa-chat-active' : ''}`}>
+        <div className={`wa-chat-col ${selectedLead ? 'wa-chat-active' : ''}`}>
           {!selectedLead ? (
             <div className="wa-no-chat-selected">
               <FaWhatsapp size={64} />
@@ -512,7 +512,7 @@ const AdminWhatsApp = () => {
                 <input
                   ref={inputRef}
                   type="text"
-                  className="wa-message-input ms-2"
+                  className="wa-message-input"
                   placeholder={selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
@@ -521,7 +521,7 @@ const AdminWhatsApp = () => {
                 <Button
                   type="submit"
                   variant="success"
-                  className="wa-send-btn ms-2"
+                  className="wa-send-btn"
                   disabled={(!message.trim() && !selectedFile) || sending}
                 >
                   {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
@@ -529,8 +529,8 @@ const AdminWhatsApp = () => {
               </form>
             </>
           )}
-        </Col>
-      </Row>
+        </div>
+      </div>
     </div>
   );
 };

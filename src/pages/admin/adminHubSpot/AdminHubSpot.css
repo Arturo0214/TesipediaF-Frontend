@@ -110,6 +110,13 @@
 .hs-stage-tag.lost { background: #fee2e2; color: #dc2626; }
 .hs-empty-row { text-align: center; color: #9ca3af; padding: 40px 20px !important; }
 
+/* ── Sofia section ── */
+.hs-sofia-section { background: #f0fdf4; border-radius: 10px; padding: 16px !important; margin-bottom: 20px; border: 1px solid #bbf7d0; }
+.hs-sofia-section h4 { color: #059669 !important; }
+.hs-sofia-card { display: flex; flex-direction: column; gap: 14px; }
+.hs-sofia-status { margin-bottom: 4px; }
+.hs-sofia-badge { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; border: 1.5px solid; }
+
 /* ── Empty state ── */
 .hs-empty-state { text-align: center; padding: 60px 20px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
 .hs-empty-icon { font-size: 2.5rem; color: #d1d5db; margin-bottom: 12px; }

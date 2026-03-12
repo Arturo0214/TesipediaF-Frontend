@@ -64,6 +64,9 @@
   border-right: 1px solid #e0e0e0;
   background: #fff;
   max-height: 100%;
+  width: 340px;
+  min-width: 280px;
+  flex-shrink: 0;
 }
 
 .wa-search-box {
@@ -217,9 +220,11 @@
 
 /* Panel de chat — Columna derecha */
 .wa-chat-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: #e5ddd5;
+  min-width: 0;
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9c3ba' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   max-height: 100%;
 }
@@ -631,25 +636,33 @@
 }
 
 /* ============================================
-   Responsive — Mobile
+   Responsive — Mobile (≤992px = inside admin panel mobile)
    ============================================ */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .wa-panel {
-    height: calc(100vh - 80px);
+    /* Admin content has padding-top:52px + padding:12px on mobile */
+    height: calc(100vh - 64px);
     border-radius: 0;
+    box-shadow: none;
   }
 
   .wa-header {
-    padding: 10px 14px;
+    padding: 8px 12px;
   }
 
   .wa-header-title h2 {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+  }
+
+  .wa-header-icon {
+    font-size: 1.1rem;
   }
 
   /* En mobile: lista ocupa todo, chat se muestra encima */
   .wa-conversations-col {
+    width: 100%;
     max-width: 100%;
+    min-width: 0;
     flex: 1;
   }
 
@@ -680,13 +693,32 @@
 
   /* Chat header mobile */
   .wa-chat-header {
-    padding: 8px 10px;
+    padding: 6px 10px;
     flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .wa-chat-header-info {
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .wa-chat-header-name {
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wa-chat-header-phone {
+    font-size: 0.7rem;
   }
 
   .wa-chat-header-actions {
     flex-direction: row;
     align-items: center;
+    flex-shrink: 0;
   }
 
   .wa-lead-info-pills {
@@ -694,62 +726,156 @@
   }
 
   .wa-human-toggle {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
+    padding: 4px 8px !important;
+    white-space: nowrap;
   }
 
   /* Mensajes */
   .wa-message {
-    max-width: 90%;
+    max-width: 88%;
   }
 
   .wa-messages-container {
-    padding: 10px;
+    padding: 8px;
+    gap: 4px;
   }
 
+  .wa-message-bubble {
+    padding: 6px 10px;
+  }
+
+  .wa-message-text {
+    font-size: 0.84rem;
+  }
+
+  .wa-message-sender {
+    font-size: 0.65rem;
+  }
+
+  .wa-message-time {
+    font-size: 0.6rem;
+  }
+
+  .wa-message-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.6rem;
+  }
+
+  .wa-human-mode-banner {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    border-radius: 6px;
+  }
+
+  /* Input area — must stay visible */
   .wa-message-input-container {
-    padding: 8px 10px;
+    padding: 6px 8px;
     gap: 6px;
   }
 
   .wa-message-input {
     padding: 8px 12px;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
   }
 
   .wa-send-btn,
   .wa-attach-btn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
   }
 
-  .wa-media-img {
-    max-width: 180px;
-    max-height: 180px;
-  }
-}
-
-@media (max-width: 480px) {
-  .wa-panel {
-    height: calc(100vh - 60px);
-  }
-
+  /* Conversation list */
   .wa-conversation-item {
     padding: 10px 12px;
     gap: 10px;
   }
 
   .wa-conv-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
+    width: 38px;
+    height: 38px;
+    font-size: 0.95rem;
+  }
+
+  .wa-conv-name {
+    font-size: 0.85rem;
+  }
+
+  .wa-conv-last-msg {
+    font-size: 0.76rem;
+  }
+
+  .wa-conv-time {
+    font-size: 0.65rem;
+  }
+
+  .wa-search-box {
+    padding: 8px 10px;
+  }
+
+  .wa-search-input {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+
+  /* Media */
+  .wa-media-img {
+    max-width: 180px;
+    max-height: 180px;
+  }
+
+  .wa-media-doc {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    max-width: 180px;
+  }
+
+  /* Bot state data inside messages */
+  .wa-bot-state {
+    padding: 6px;
+    font-size: 0.7rem;
+  }
+
+  .wa-bot-state-title {
+    font-size: 0.72rem;
+  }
+
+  /* File preview */
+  .wa-file-preview {
+    padding: 6px 10px;
+  }
+
+  .wa-file-info {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .wa-panel {
+    height: calc(100vh - 64px);
+  }
+
+  .wa-header {
+    padding: 6px 10px;
+  }
+
+  .wa-header-title h2 {
+    font-size: 0.82rem;
   }
 
   .wa-chat-header-avatar {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
 
-  .wa-chat-header-name {
+  .wa-conv-avatar {
+    width: 34px;
+    height: 34px;
     font-size: 0.85rem;
+  }
+
+  .wa-message {
+    max-width: 92%;
   }
 }

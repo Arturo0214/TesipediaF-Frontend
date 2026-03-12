@@ -9,7 +9,24 @@ import {
   FaTimes, FaUser, FaTag, FaClock,
 } from 'react-icons/fa';
 import { fetchHubspotSummary, fetchHubspotContacts, fetchHubspotDeals } from '../../../features/hubspot/hubspotSlice';
+import axiosWithAuth from '../../../utils/axioswithAuth';
 import './AdminHubSpot.css';
+
+const sofiaEstadoLabels = {
+  bienvenida: 'Bienvenida',
+  recopilando_datos: 'Recopilando datos',
+  esperando_aprobacion: 'Esperando aprobacion',
+  cotizacion_confirmada: 'Cotizacion confirmada',
+  cotizacion_enviada: 'Cotizacion enviada',
+};
+
+const sofiaEstadoColors = {
+  bienvenida: '#3b82f6',
+  recopilando_datos: '#7c3aed',
+  esperando_aprobacion: '#f59e0b',
+  cotizacion_confirmada: '#059669',
+  cotizacion_enviada: '#10b981',
+};
 
 const AdminHubSpot = () => {
   const dispatch = useDispatch();
@@ -19,16 +36,33 @@ const AdminHubSpot = () => {
   const [contactSearch, setContactSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [sofiaLeads, setSofiaLeads] = useState([]);
+
+  const fetchSofiaLeads = () => {
+    axiosWithAuth.get('/api/v1/whatsapp/leads-status')
+      .then(res => setSofiaLeads(res.data || []))
+      .catch(() => {});
+  };
 
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
       dispatch(fetchHubspotSummary());
-      // Fallback: also fetch contacts/deals separately in case backend
-      // hasn't been updated with allContacts/allDeals in summary yet
       dispatch(fetchHubspotContacts({ limit: 100 }));
       dispatch(fetchHubspotDeals({ limit: 100 }));
+      fetchSofiaLeads();
     }
   }, [dispatch, isAuthenticated, isAdmin]);
+
+  // Match HubSpot contact phone with Supabase lead wa_id
+  const findSofiaLead = (hubspotPhone) => {
+    if (!hubspotPhone || sofiaLeads.length === 0) return null;
+    const clean = hubspotPhone.replace(/\D/g, '');
+    if (clean.length < 10) return null;
+    return sofiaLeads.find(lead => {
+      const waClean = (lead.wa_id || '').replace(/\D/g, '');
+      return waClean.length >= 10 && clean.slice(-10) === waClean.slice(-10);
+    });
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -37,6 +71,7 @@ const AdminHubSpot = () => {
       dispatch(fetchHubspotContacts({ limit: 100 })),
       dispatch(fetchHubspotDeals({ limit: 100 })),
     ]);
+    fetchSofiaLeads();
     setRefreshing(false);
   };
 
@@ -186,6 +221,44 @@ const AdminHubSpot = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Sofia WhatsApp Bot Stage */}
+                    {(() => {
+                      const sofiaLead = findSofiaLead(p.phone);
+                      if (!sofiaLead) return null;
+                      const estado = sofiaLead.estado_sofia || 'nuevo';
+                      const estadoColor = sofiaEstadoColors[estado] || '#6b7280';
+                      return (
+                        <div className="hs-drawer-section hs-sofia-section">
+                          <h4>Etapa en Sofia (WhatsApp Bot)</h4>
+                          <div className="hs-sofia-card">
+                            <div className="hs-sofia-status">
+                              <span className="hs-sofia-badge" style={{ background: `${estadoColor}15`, color: estadoColor, borderColor: estadoColor }}>
+                                {sofiaEstadoLabels[estado] || estado}
+                              </span>
+                            </div>
+                            {sofiaLead.nombre && (
+                              <div className="hs-drawer-field">
+                                <FaUser className="hs-drawer-field-icon" />
+                                <div>
+                                  <span className="hs-drawer-field-label">Nombre en WhatsApp</span>
+                                  <span className="hs-drawer-field-value">{sofiaLead.nombre}</span>
+                                </div>
+                              </div>
+                            )}
+                            {sofiaLead.updated_at && (
+                              <div className="hs-drawer-field">
+                                <FaClock className="hs-drawer-field-icon" />
+                                <div>
+                                  <span className="hs-drawer-field-label">Ultima interaccion</span>
+                                  <span className="hs-drawer-field-value">{fmtDateFull(sofiaLead.updated_at)}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <div className="hs-drawer-section">
                       <h4>Fechas</h4>
@@ -438,12 +511,13 @@ const AdminHubSpot = () => {
                   <th>Telefono</th>
                   <th>Empresa</th>
                   <th>Etapa</th>
+                  <th>Sofia</th>
                   <th>Fecha</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredContacts.length === 0 ? (
-                  <tr><td colSpan={6} className="hs-empty-row">No se encontraron contactos</td></tr>
+                  <tr><td colSpan={7} className="hs-empty-row">No se encontraron contactos</td></tr>
                 ) : filteredContacts.map(c => {
                   const p = c.properties || {};
                   const name = `${p.firstname || ''} ${p.lastname || ''}`.trim() || 'Sin nombre';
@@ -465,6 +539,19 @@ const AdminHubSpot = () => {
                         <span className="hs-lifecycle-tag" style={{ background: `${lifecycleColors[lc]}18`, color: lifecycleColors[lc] }}>
                           {lifecycleLabels[lc] || lc}
                         </span>
+                      </td>
+                      <td>
+                        {(() => {
+                          const sl = findSofiaLead(p.phone);
+                          if (!sl) return <span className="hs-date-cell">—</span>;
+                          const est = sl.estado_sofia || 'nuevo';
+                          const col = sofiaEstadoColors[est] || '#6b7280';
+                          return (
+                            <span className="hs-lifecycle-tag" style={{ background: `${col}15`, color: col }}>
+                              {sofiaEstadoLabels[est] || est}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="hs-date-cell">{fmtDate(p.createdate)}</td>
                     </tr>
