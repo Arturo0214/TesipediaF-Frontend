@@ -223,7 +223,30 @@ const AdminWhatsApp = () => {
     return historial.map((msg, idx) => {
       const isUser = msg.role === 'user';
       const isHuman = !isUser && msg.content?.startsWith('[HUMANO]');
-      const content = isHuman ? msg.content.replace('[HUMANO] ', '') : msg.content;
+      const isBot = !isUser && !isHuman;
+      let content = isHuman ? msg.content.replace('[HUMANO] ', '') : msg.content;
+      let stateData = null;
+
+      // Extraer y limpiar [STATE:{...}] si es un mensaje del bot
+      if (isBot && content) {
+        const stateMatch = content.match(/\[STATE:([\s\S]*?)\]/);
+        if (stateMatch) {
+          content = content.replace(stateMatch[0], '').trim();
+          try {
+            // El JSON a veces viene incrustado con secuencias de escape
+            let parsedStr = stateMatch[1];
+            if (typeof parsedStr === 'string' && parsedStr.includes('\\"')) {
+              parsedStr = parsedStr.replace(/\\"/g, '"');
+            }
+            stateData = JSON.parse(parsedStr);
+          } catch(e) { 
+            console.error('Error parseando STATE:', e);
+          }
+        }
+        
+        // Limpiar [CALCULAR_COTIZACION] visualmente
+        content = content.replace(/\[CALCULAR_COTIZACION\]/g, '').trim();
+      }
 
       return (
         <div
@@ -254,6 +277,26 @@ const AdminWhatsApp = () => {
             )}
             
             {content && <div className="wa-message-text">{content}</div>}
+
+            {stateData && (
+              <div className="wa-bot-state">
+                <div className="wa-bot-state-title">
+                  <FaTag className="me-1" /> Estado de la Operación
+                </div>
+                <div className="wa-bot-state-grid">
+                  {Object.entries(stateData).filter(([_, v]) => v).map(([k, v]) => (
+                    <div className="wa-state-item" key={k}>
+                      <span className="wa-state-key">{k}:</span>
+                      <span className="wa-state-value">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="wa-message-time">
+               {msg.timestamp ? format(new Date(msg.timestamp), "HH:mm") : ''}
+            </div>
           </div>
         </div>
       );

@@ -423,6 +423,52 @@
   word-break: break-word;
 }
 
+.wa-bot-state {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #333;
+}
+
+.wa-bot-state-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  color: #054c44;
+}
+
+.wa-bot-state-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+.wa-state-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.wa-state-key {
+  font-weight: 500;
+  color: #555;
+  text-transform: capitalize;
+}
+
+.wa-state-value {
+  color: #111;
+}
+
+.wa-message-time {
+  font-size: 0.65rem;
+  color: #888;
+  text-align: right;
+  margin-top: 4px;
+}
+
 .wa-no-messages {
   flex: 1;
   display: flex;
