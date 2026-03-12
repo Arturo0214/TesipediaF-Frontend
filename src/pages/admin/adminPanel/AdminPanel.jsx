@@ -7,7 +7,6 @@ import {
     FaMoneyBillWave,
     FaChartLine,
     FaUsers,
-    FaCogs,
     FaPencilAlt,
     FaShoppingCart,
     FaClipboardList,
@@ -16,7 +15,9 @@ import {
     FaBell,
     FaSignOutAlt,
     FaBars,
-    FaWhatsapp
+    FaWhatsapp,
+    FaCalculator,
+    FaHubspot
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -39,11 +40,12 @@ import ManageProjects from '../adminProjects/ManageProjects.jsx';
 import ManagePayments from '../adminPayments/ManagePayments.jsx';
 import ManageVisits from '../adminVisits/ManageVisits.jsx';
 import ManageUsers from '../adminUsers/ManageUsers.jsx';
-import ManageServices from '../adminServices/ManageServices.jsx';
 import AdminDashboard from '../adminDashboard/AdminDashboard.jsx';
+import AdminHubSpot from '../adminHubSpot/AdminHubSpot.jsx';
 import AdminMessages from '../adminMessages/AdminMessages.jsx';
 import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp.jsx';
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
+import SalesQuote from '../../SalesQuote/SalesQuote.jsx';
 
 // Error boundary component
 class ErrorBoundary extends React.Component {
@@ -97,7 +99,8 @@ const AdminPanel = () => {
         if (path.includes('/proyectos')) return 'proyectos';
         if (path.includes('/pagos')) return 'pagos';
         if (path.includes('/visitas')) return 'visitas';
-        if (path.includes('/servicios')) return 'servicios';
+        if (path.includes('/hubspot')) return 'hubspot';
+        if (path.includes('/cotizar')) return 'cotizar';
         return 'dashboard';
     };
 
@@ -106,13 +109,14 @@ const AdminPanel = () => {
 
     const navItems = [
         { key: 'dashboard', icon: FaChartBar, label: 'Dashboard', section: 'principal', path: '/admin' },
+        { key: 'cotizar', icon: FaCalculator, label: 'Cotizar', section: 'principal', path: '/admin/cotizar' },
         { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones' },
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
-        { key: 'servicios', icon: FaCogs, label: 'Servicios', section: 'gestion', path: '/admin/servicios' },
+        { key: 'hubspot', icon: FaHubspot, label: 'HubSpot', section: 'estadisticas', path: '/admin/hubspot' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas' }
     ];
 
@@ -234,12 +238,13 @@ const AdminPanel = () => {
 
     const components = {
         dashboard: AdminDashboard,
+        cotizar: SalesQuote,
         cotizaciones: ManageQuotes,
         proyectos: ManageProjects,
         pagos: ManagePayments,
         visitas: ManageVisits,
         usuarios: ManageUsers,
-        servicios: ManageServices,
+        hubspot: AdminHubSpot,
         mensajes: AdminMessages,
         whatsapp: AdminWhatsApp
     };

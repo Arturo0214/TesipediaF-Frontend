@@ -1,6 +1,6 @@
 import axiosWithAuth from '../utils/axioswithAuth';
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = (import.meta.env.VITE_BASE_URL || '').replace(/\/+$/, '');
 
 const hubspotService = {
   getSummary: async () => {

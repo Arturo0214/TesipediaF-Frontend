@@ -1,709 +1,541 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Spinner, Alert, Form, Pagination } from 'react-bootstrap';
-import { FaEye, FaCheck, FaTimes, FaSearch, FaFilter, FaExclamationCircle, FaCalendarAlt, FaUser, FaEnvelope, FaPhone, FaFileAlt, FaTasks, FaDollarSign, FaTrash, FaMoneyBillWave, FaCreditCard, FaFilePdf } from 'react-icons/fa';
+import { Spinner, Pagination } from 'react-bootstrap';
+import {
+  FaSearch, FaCheck, FaTimes, FaTrash, FaFilePdf,
+  FaDollarSign, FaEye, FaBan, FaChevronDown,
+  FaHourglassHalf, FaCheckCircle, FaTimesCircle,
+  FaCreditCard, FaMoneyBillWave, FaSortAmountDown, FaSortAmountUp,
+  FaCalendarAlt, FaFileAlt, FaGraduationCap, FaUser, FaGlobe, FaCalculator,
+} from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
-import { getGeneratedQuotes, updateGeneratedQuote, deleteGeneratedQuote, resetQuoteState } from '../../../features/quotes/quoteSlice';
+import {
+  getAllQuotes, updateQuote, deleteQuote,
+  getGeneratedQuotes, updateGeneratedQuote, deleteGeneratedQuote,
+  resetQuoteState,
+} from '../../../features/quotes/quoteSlice';
 import { toast } from 'react-hot-toast';
 import { generateSalesQuotePDF } from '../../../utils/generateSalesQuotePDF';
 import './ManageQuotes.css';
 
+const statusConfig = {
+  pending:   { label: 'Pendiente',  color: '#f59e0b', bg: '#fef3c7', icon: <FaHourglassHalf /> },
+  approved:  { label: 'Aprobada',   color: '#10b981', bg: '#d1fae5', icon: <FaCheckCircle /> },
+  rejected:  { label: 'Rechazada',  color: '#ef4444', bg: '#fee2e2', icon: <FaTimesCircle /> },
+  paid:      { label: 'Pagada',     color: '#3b82f6', bg: '#dbeafe', icon: <FaDollarSign /> },
+  cancelled: { label: 'Cancelada',  color: '#6b7280', bg: '#f3f4f6', icon: <FaBan /> },
+};
+
+const paymentConfig = {
+  'tarjeta-nu':   { label: 'Nu',      color: '#820ad1', icon: <FaCreditCard />,    border: '#820ad1' },
+  'tarjeta-bbva': { label: 'BBVA',    color: '#0d6efd', icon: <FaCreditCard />,    border: '#0d6efd' },
+  'efectivo':     { label: 'Efectivo', color: '#16a34a', icon: <FaMoneyBillWave />, border: '#16a34a' },
+  'tarjeta':      { label: 'Tarjeta', color: '#374151', icon: <FaCreditCard />,    border: '#374151' },
+};
+
+/* ── Resolve payment method key (same logic for filter + display) ── */
+const resolvePaymentKey = (source, rawMethod, discount) => {
+  if (rawMethod && paymentConfig[rawMethod]) return rawMethod;
+  if (source === 'regular') return 'sin-metodo';
+  // Generated quotes: infer from discount
+  if (discount > 0) return 'efectivo';
+  return 'tarjeta-nu';
+};
+
+/* ── Normalize both quote types into a unified shape ── */
+const normalizeGenerated = (q) => {
+  const _paymentKey = resolvePaymentKey('generated', q.metodoPago, q.descuentoMonto || 0);
+  return {
+    ...q,
+    _source: 'generated',
+    _sourceLabel: 'Cotizador',
+    _createdBy: q.generatedBy?.name || '',
+    _clientName: q.clientName || 'Sin nombre',
+    _title: q.tituloTrabajo || q.tipoTrabajo || 'Sin título',
+    _service: q.tipoServicio || '',
+    _level: q.nivelAcademico || '',
+    _pages: q.extensionEstimada || '',
+    _career: q.carrera || '',
+    _area: q.area || '',
+    _taskType: q.tipoTrabajo || '',
+    _price: q.precioConDescuento || 0,
+    _basePrice: q.precioBase || 0,
+    _discount: q.descuentoMonto || 0,
+    _surcharge: q.recargoMonto || 0,
+    _surchargePercent: q.recargoPorcentaje || 0,
+    _dueDate: q.fechaEntrega || '',
+    _deliveryTime: q.tiempoEntrega || '',
+    _paymentMethod: q.metodoPago || '',
+    _paymentKey,
+    _paymentScheme: q.esquemaPago || '',
+    _description: q.descripcionServicio || '',
+    _email: q.clientEmail || '',
+  };
+};
+
+const normalizeRegular = (q) => {
+  const priceDetails = q.priceDetails || {};
+  const finalPrice = priceDetails.finalPrice || q.estimatedPrice || 0;
+  const basePrice = priceDetails.basePrice || q.estimatedPrice || 0;
+  const cashDiscount = priceDetails.cashDiscount || 0;
+  const urgencyCharge = priceDetails.urgencyCharge || 0;
+  const userName = q.user?.name || q.name || 'Sin nombre';
+  const _paymentKey = resolvePaymentKey('regular', '', cashDiscount);
+  return {
+    ...q,
+    _source: 'regular',
+    _sourceLabel: 'Endpoint',
+    _createdBy: 'Sofia',
+    _clientName: userName,
+    _title: q.taskTitle || q.taskType || 'Sin título',
+    _service: q.taskType || '',
+    _level: q.educationLevel || '',
+    _pages: q.pages ? String(q.pages) : '',
+    _career: q.career || '',
+    _area: q.studyArea || '',
+    _taskType: q.taskType || '',
+    _price: finalPrice,
+    _basePrice: basePrice,
+    _discount: cashDiscount,
+    _surcharge: urgencyCharge,
+    _surchargePercent: 0,
+    _dueDate: q.dueDate ? new Date(q.dueDate).toLocaleDateString('es-MX') : '',
+    _deliveryTime: '',
+    _paymentMethod: '',
+    _paymentKey,
+    _paymentScheme: '',
+    _description: q.requirements || '',
+    _email: q.email || q.user?.email || '',
+  };
+};
+
 const ManageQuotes = () => {
   const dispatch = useDispatch();
-  const { generatedQuotes, loading, error } = useSelector((state) => state.quotes);
+  const { quotes, generatedQuotes, loading, error } = useSelector((state) => state.quotes);
   const { isAuthenticated, isAdmin } = useSelector((state) => state.auth);
 
-  // Estado para la interfaz
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
+  const [filter, setFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all'); // 'all' | 'generated' | 'regular'
+  const [paymentFilter, setPaymentFilter] = useState('all');
+  const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('date-desc');
   const [selectedQuote, setSelectedQuote] = useState(null);
-  const [showQuoteDetails, setShowQuoteDetails] = useState(false);
-  const [priceOrder, setPriceOrder] = useState('none'); // 'none', 'asc', 'desc'
-  const [orderRecentFirst, setOrderRecentFirst] = useState(true); // true = más recientes primero
   const [currentPage, setCurrentPage] = useState(1);
-  const quotesPerPage = 9;
-  const [updatingStatusId, setUpdatingStatusId] = useState(null);
-  const [statusSuccessId, setStatusSuccessId] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const quotesPerPage = 12;
 
-  // Verificar si el usuario actual tiene permisos de administrador
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Necesitas iniciar sesión para acceder a esta página.");
-    } else if (!isAdmin) {
-      toast.error("No tienes permisos para acceder a esta página. Se requieren permisos de administrador.");
-    }
-  }, [isAuthenticated, isAdmin]);
-
-  // Cargar cotizaciones GENERADAS al montar
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
       dispatch(getGeneratedQuotes());
+      dispatch(getAllQuotes());
     }
   }, [dispatch, isAuthenticated, isAdmin]);
 
   useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch(resetQuoteState());
-    }
+    if (error) { toast.error(error); dispatch(resetQuoteState()); }
   }, [error]);
 
-  // Filtrar cotizaciones GENERADAS
-  const filteredQuotes = useMemo(() => {
-    if (!generatedQuotes || !Array.isArray(generatedQuotes)) return [];
-    let filtered = [...generatedQuotes];
-    // Filtrar por búsqueda
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(quote =>
-        (quote.clientName || '').toLowerCase().includes(query) ||
-        (quote.tituloTrabajo || '').toLowerCase().includes(query) ||
-        (quote.tipoTrabajo || '').toLowerCase().includes(query) ||
-        (quote._id || '').toLowerCase().includes(query)
-      );
-    }
-    // Filtrar por estado
-    if (filter !== 'all') {
-      filtered = filtered.filter(quote => String(quote.status) === String(filter));
-    }
-    // Ordenar por precio si corresponde
-    if (priceOrder === 'asc') {
-      filtered.sort((a, b) => (Number(a.precioConDescuento) || 0) - (Number(b.precioConDescuento) || 0));
-    } else if (priceOrder === 'desc') {
-      filtered.sort((a, b) => (Number(b.precioConDescuento) || 0) - (Number(a.precioConDescuento) || 0));
-    } else {
-      // Ordenar por fecha
-      filtered.sort((a, b) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        const diff = new Date(b.createdAt) - new Date(a.createdAt);
-        return orderRecentFirst ? diff : -diff;
-      });
-    }
-    return filtered;
-  }, [generatedQuotes, searchQuery, filter, priceOrder, orderRecentFirst]);
+  useEffect(() => {
+    const handleClick = () => { setOpenDropdown(null); setPaymentDropdownOpen(false); };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
-  // Calcular estadísticas
+  /* ── Merge & normalize both sources ── */
+  const allQuotes = useMemo(() => {
+    const gen = (generatedQuotes || []).map(normalizeGenerated);
+    const reg = (quotes || []).map(normalizeRegular);
+    return [...gen, ...reg];
+  }, [generatedQuotes, quotes]);
+
   const stats = useMemo(() => {
-    if (!generatedQuotes || !Array.isArray(generatedQuotes)) return {
-      totalQuotes: 0,
-      pendingQuotes: 0,
-      approvedQuotes: 0,
-      rejectedQuotes: 0
-    };
-
-    const pendingQuotes = generatedQuotes.filter(quote => String(quote.status).trim().toLowerCase() === 'pending').length;
-    const approvedQuotes = generatedQuotes.filter(quote => String(quote.status).trim().toLowerCase() === 'approved').length;
-    const rejectedQuotes = generatedQuotes.filter(quote => String(quote.status).trim().toLowerCase() === 'rejected').length;
-
-    return {
-      totalQuotes: generatedQuotes.length,
-      pendingQuotes,
-      approvedQuotes,
-      rejectedQuotes
-    };
-  }, [generatedQuotes]);
-
-  // Paginación
-  const totalPages = Math.ceil(filteredQuotes.length / quotesPerPage);
-  const paginatedQuotes = filteredQuotes.slice((currentPage - 1) * quotesPerPage, currentPage * quotesPerPage);
-
-  // Manejar selección de cotización
-  const handleQuoteSelect = (quote) => {
-    setSelectedQuote(quote);
-    setShowQuoteDetails(true);
-  };
-
-  // Manejar aprobación de cotización
-  const handleApproveQuote = async (quoteId) => {
-    try {
-      await dispatch(updateGeneratedQuote({
-        quoteId,
-        updatedData: { status: 'approved' }
-      })).unwrap();
-      toast.success('Cotización aprobada correctamente');
-      dispatch(getGeneratedQuotes());
-    } catch (error) {
-      toast.error(error || 'Error al aprobar la cotización');
-    }
-  };
-
-  // Manejar rechazo de cotización
-  const handleRejectQuote = async (quoteId) => {
-    try {
-      await dispatch(updateGeneratedQuote({
-        quoteId,
-        updatedData: { status: 'rejected' }
-      })).unwrap();
-      toast.success('Cotización rechazada correctamente');
-      dispatch(getGeneratedQuotes());
-    } catch (error) {
-      toast.error(error || 'Error al rechazar la cotización');
-    }
-  };
-
-  // Manejar actualización de estado de cotización (GENERADA)
-  const handleUpdateQuoteStatus = async (quoteId, newStatus) => {
-    setUpdatingStatusId(String(quoteId));
-    try {
-      await dispatch(updateGeneratedQuote({
-        quoteId,
-        updatedData: { status: newStatus }
-      })).unwrap();
-      toast.success(`Estado actualizado a ${newStatus}`);
-      setStatusSuccessId(String(quoteId));
-      setTimeout(() => setStatusSuccessId(null), 1500);
-      // Refresca la lista
-      dispatch(getGeneratedQuotes());
-    } catch (error) {
-      toast.error(error || 'Error al actualizar el estado');
-    }
-    setUpdatingStatusId(null);
-  };
-
-  /* Delete functionality */
-  const handleDeleteQuote = async (quoteId) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta cotización?')) {
-      try {
-        await dispatch(deleteGeneratedQuote(quoteId)).unwrap();
-        toast.success('Cotización eliminada correctamente');
-      } catch (error) {
-        toast.error(error || 'Error al eliminar la cotización');
-      }
-    }
-  };
-
-  // Formatear fecha
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!allQuotes.length) return { total: 0, pending: 0, approved: 0, rejected: 0, paid: 0, cancelled: 0, revenue: 0, genCount: 0, regCount: 0 };
+    const s = { total: allQuotes.length, pending: 0, approved: 0, rejected: 0, paid: 0, cancelled: 0, revenue: 0, genCount: 0, regCount: 0 };
+    allQuotes.forEach(q => {
+      const status = String(q.status).trim().toLowerCase();
+      if (s[status] !== undefined) s[status]++;
+      if (status === 'paid') s.revenue += (q._price || 0);
+      if (q._source === 'generated') s.genCount++;
+      else s.regCount++;
     });
-  };
+    return s;
+  }, [allQuotes]);
 
-  // Lógica de paginación tipo Visits
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-    let items = [];
-    if (totalPages <= 6) {
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(
-          <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
-            {i}
-          </Pagination.Item>
-        );
-      }
-    } else {
-      // Siempre mostrar 1, 2, 3, ..., última
-      for (let i = 1; i <= 3; i++) {
-        items.push(
-          <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
-            {i}
-          </Pagination.Item>
-        );
-      }
-      if (currentPage > 4 && currentPage < totalPages - 2) {
-        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          items.push(
-            <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
-              {i}
-            </Pagination.Item>
-          );
-        }
-        items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
-      } else if (currentPage >= totalPages - 2) {
-        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
-        for (let i = totalPages - 3; i < totalPages; i++) {
-          if (i > 3) {
-            items.push(
-              <Pagination.Item key={i} active={i === currentPage} onClick={() => setCurrentPage(i)}>
-                {i}
-              </Pagination.Item>
-            );
-          }
-        }
-      } else if (currentPage > 3) {
-        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
-      }
-      items.push(
-        <Pagination.Item key={totalPages} active={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)}>
-          {totalPages}
-        </Pagination.Item>
+  const filteredQuotes = useMemo(() => {
+    let list = [...allQuotes];
+    if (sourceFilter !== 'all') list = list.filter(q => q._source === sourceFilter);
+    if (searchQuery) {
+      const s = searchQuery.toLowerCase();
+      list = list.filter(q =>
+        q._clientName.toLowerCase().includes(s) ||
+        q._title.toLowerCase().includes(s) ||
+        q._taskType.toLowerCase().includes(s) ||
+        (q._id || '').toLowerCase().includes(s) ||
+        (q.publicId || '').toLowerCase().includes(s) ||
+        q._email.toLowerCase().includes(s)
       );
     }
-    return (
-      <div className="d-flex justify-content-center mt-3">
-        <Pagination>{items}</Pagination>
-      </div>
-    );
-  };
-
-  // Renderizar filtros y búsqueda
-  const renderFiltersSection = () => (
-    <>
-      {/* Primera fila: solo búsqueda */}
-      <Row className="mb-2">
-        <Col md={12}>
-          <Form.Group>
-            <Form.Label>Buscar</Form.Label>
-            <div className="d-flex">
-              <Form.Control
-                type="text"
-                placeholder="Buscar por cliente, servicio o ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button variant="outline-secondary" className="ms-2">
-                <FaSearch />
-              </Button>
-            </div>
-          </Form.Group>
-        </Col>
-      </Row>
-      {/* Segunda fila: estado, precio, fecha */}
-      <Row className="mb-4 align-items-end">
-        <Col md={4} sm={12} className="mb-2 mb-md-0">
-          <Form.Group>
-            <Form.Label>Estado</Form.Label>
-            <Form.Select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="all">Todos</option>
-              <option value="pending">Pendientes</option>
-              <option value="approved">Aprobadas</option>
-              <option value="rejected">Rechazadas</option>
-              <option value="paid">Pagadas</option>
-              <option value="cancelled">Canceladas</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
-        <Col md={4} sm={12} className="mb-2 mb-md-0">
-          <Form.Group>
-            <Form.Label>Ordenar por precio</Form.Label>
-            <Form.Select
-              value={priceOrder}
-              onChange={(e) => setPriceOrder(e.target.value)}
-            >
-              <option value="none">Sin orden</option>
-              <option value="asc">Más bajo a más alto</option>
-              <option value="desc">Más alto a más bajo</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
-        <Col md={4} sm={12} className="d-flex flex-column flex-md-row align-items-center gap-2">
-          <Form.Label className="mb-0 me-2">Ordenar por fecha</Form.Label>
-          <Form.Check
-            type="switch"
-            id="order-switch"
-            label={orderRecentFirst ? 'Más recientes' : 'Más antiguos'}
-            checked={orderRecentFirst}
-            onChange={() => setOrderRecentFirst(!orderRecentFirst)}
-            disabled={priceOrder !== 'none'}
-          />
-        </Col>
-      </Row>
-    </>
-  );
-
-  // Helper to determine payment style
-  const getPaymentStyle = (quote) => {
-    const metodo = quote.metodoPago;
-
-    if (metodo === 'tarjeta-nu') {
-      return { bg: 'custom-nu', text: 'Tarjeta Nu', style: { backgroundColor: '#820ad1', color: 'white' }, headerStyle: { backgroundColor: '#820ad1', color: 'white' } };
+    if (filter !== 'all') list = list.filter(q => String(q.status) === filter);
+    if (paymentFilter !== 'all') {
+      list = list.filter(q => q._paymentKey === paymentFilter);
     }
-    if (metodo === 'tarjeta-bbva') {
-      return { bg: 'primary', text: 'Tarjeta BBVA', style: {}, headerStyle: { backgroundColor: '#0d6efd', color: 'white' } };
+    switch (sortBy) {
+      case 'date-desc': list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
+      case 'date-asc': list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); break;
+      case 'price-desc': list.sort((a, b) => b._price - a._price); break;
+      case 'price-asc': list.sort((a, b) => a._price - b._price); break;
+      default: break;
     }
-    if (metodo === 'efectivo') {
-      return { bg: 'success', text: 'Efectivo (Desc. 10%)', style: {}, headerStyle: { backgroundColor: '#198754', color: 'white' } };
-    }
+    return list;
+  }, [allQuotes, searchQuery, filter, sourceFilter, paymentFilter, sortBy]);
 
-    // Fallbacks para datos antiguos
-    if (metodo === 'tarjeta') return { bg: 'dark', text: 'Stripe/PayPal', style: {}, headerStyle: { backgroundColor: '#343a40', color: 'white' } };
+  const totalPages = Math.ceil(filteredQuotes.length / quotesPerPage);
+  const pageQuotes = filteredQuotes.slice((currentPage - 1) * quotesPerPage, currentPage * quotesPerPage);
 
-    // Inferencia por descuento si no hay metodo específico
-    if (!quote.descuentoMonto || quote.descuentoMonto === 0) {
-      // Sin descuento -> Probablemente tarjeta antigua o Nu implícito
-      return { bg: 'custom-nu', text: 'Tarjeta Nu', style: { backgroundColor: '#820ad1', color: 'white' }, headerStyle: { backgroundColor: '#820ad1', color: 'white' } };
-    }
-    // Con descuento -> Efectivo
-    return { bg: 'success', text: 'Efectivo (Desc. 10%)', style: {}, headerStyle: { backgroundColor: '#198754', color: 'white' } };
-  };
-
-  const handleDownloadQuote = async (quote) => {
+  const handleStatus = async (quote, newStatus) => {
+    setUpdatingId(quote._id); setOpenDropdown(null);
     try {
-      await generateSalesQuotePDF(quote);
-      toast.success('PDF descargado nuevamente');
-    } catch (error) {
-      console.error(error);
-      toast.error('Error al generar el PDF');
+      if (quote._source === 'generated') {
+        await dispatch(updateGeneratedQuote({ quoteId: quote._id, updatedData: { status: newStatus } })).unwrap();
+        dispatch(getGeneratedQuotes());
+      } else {
+        await dispatch(updateQuote({ quoteId: quote._id, updatedData: { status: newStatus } })).unwrap();
+        dispatch(getAllQuotes());
+      }
+      toast.success(`Estado: ${statusConfig[newStatus]?.label || newStatus}`);
+    } catch (err) { toast.error(err || 'Error'); }
+    setUpdatingId(null);
+  };
+
+  const handleDelete = async (quote) => {
+    if (!window.confirm('¿Eliminar esta cotización?')) return;
+    try {
+      if (quote._source === 'generated') {
+        await dispatch(deleteGeneratedQuote(quote._id)).unwrap();
+      } else {
+        await dispatch(deleteQuote(quote._id)).unwrap();
+      }
+      toast.success('Eliminada');
+    } catch (err) { toast.error(err || 'Error'); }
+  };
+
+  const handleDownload = async (quote) => {
+    if (quote._source === 'generated') {
+      try { await generateSalesQuotePDF(quote); toast.success('PDF generado'); }
+      catch { toast.error('Error al generar PDF'); }
+    } else {
+      toast.error('PDF solo disponible para cotizaciones del cotizador');
     }
   };
 
-  // Renderizar tarjetas de cotizaciones
-  const renderQuoteCards = () => (
-    <>
-      <Row className="g-4">
-        {paginatedQuotes.map((quote) => {
-          const paymentStyle = getPaymentStyle(quote);
-          return (
-            <Col key={quote._id} md={6} lg={4}>
-              <Card className="h-100 quote-card position-relative">
-                <Card.Header className="d-flex justify-content-between align-items-center" style={paymentStyle.headerStyle}>
-                  <div className="d-flex align-items-center gap-2">
-                    {/* Payment Method Badge in Header */}
-                    <Badge
-                      bg={paymentStyle.bg === 'custom-nu' ? null : paymentStyle.bg}
-                      style={paymentStyle.style}
-                      title="Método de Pago Sugerido"
-                      className="payment-badge border border-white"
-                    >
-                      {paymentStyle.text}
-                    </Badge>
-                  </div>
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
+  const formatCurrency = (n) => `$${(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0 })}`;
 
-                  <div className="dropdown">
-                    <Badge
-                      bg={
-                        quote.status === 'pending' ? 'warning' :
-                          quote.status === 'approved' ? 'success' :
-                            quote.status === 'rejected' ? 'danger' :
-                              quote.status === 'paid' ? 'info' :
-                                quote.status === 'cancelled' ? 'secondary' : 'primary'
-                      }
-                      className="status-badge"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const dropdown = e.target.nextElementSibling;
-                        dropdown.classList.toggle('show');
-                      }}
-                      style={{ minWidth: 80, cursor: 'pointer' }}
-                    >
-                      {String(updatingStatusId) === String(quote._id) ? (
-                        <ImSpinner2 className="spin" />
-                      ) : String(statusSuccessId) === String(quote._id) ? (
-                        <FaCheck />
-                      ) : (
-                        quote.status === 'pending' ? 'Pendiente' :
-                          quote.status === 'approved' ? 'Aprobada' :
-                            quote.status === 'rejected' ? 'Rechazada' :
-                              quote.status === 'paid' ? 'Pagada' :
-                                quote.status === 'cancelled' ? 'Cancelada' : quote.status
-                      )}
-                    </Badge>
-                    <div className="dropdown-menu">
-                      <button className="dropdown-item" onClick={() => handleApproveQuote(quote._id)}>Aprobar</button>
-                      <button className="dropdown-item" onClick={() => handleRejectQuote(quote._id)}>Rechazar</button>
-                      <button className="dropdown-item" onClick={() => handleUpdateQuoteStatus(quote._id, 'paid')}>Marcar como Pagada</button>
-                      <button className="dropdown-item" onClick={() => handleUpdateQuoteStatus(quote._id, 'cancelled')}>Cancelar</button>
-                    </div>
-                  </div>
-                </Card.Header>
-                <Card.Body>
-                  <Card.Title className="mb-3 h6 text-primary">{quote.tituloTrabajo || quote.tipoTrabajo}</Card.Title>
-
-                  <div className="quote-details-detailed small">
-                    <div className="row g-1 mb-2">
-                      <div className="col-12"><strong>Cliente:</strong> {quote.clientName}</div>
-                      <div className="col-6"><strong>Trabajo:</strong> {quote.tipoTrabajo}</div>
-                      <div className="col-6"><strong>Servicio:</strong> {quote.tipoServicio}</div>
-                      <div className="col-6"><strong>Área:</strong> {quote.area || '-'}</div>
-                      <div className="col-6"><strong>Carrera:</strong> {quote.carrera}</div>
-                      <div className="col-6"><strong>Páginas:</strong> {quote.extensionEstimada}</div>
-                      <div className="col-6"><strong>Plazo:</strong> {quote.tiempoEntrega}</div>
-                    </div>
-                    <div className="mb-2">
-                      <strong>Fecha Entrega:</strong> {quote.fechaEntrega}
-                    </div>
-                    <div className="mb-2 text-truncate" title={quote.esquemaPago}>
-                      <strong>Esquema:</strong> {quote.esquemaPago ? (quote.esquemaPago.length > 50 ? quote.esquemaPago.substring(0, 50) + '...' : quote.esquemaPago) : 'N/A'}
-                    </div>
-                  </div>
-
-                  <div className="quote-financials mt-2 pt-2 border-top bg-light p-2 rounded">
-                    <div className="d-flex justify-content-between small">
-                      <span>Precio Base:</span>
-                      <span>${quote.precioBase?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    {quote.descuentoMonto > 0 && (
-                      <div className="d-flex justify-content-between small text-success">
-                        <span>Descuento:</span>
-                        <span>-${quote.descuentoMonto?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    )}
-                    {quote.recargoMonto > 0 && (
-                      <div className="d-flex justify-content-between small text-danger">
-                        <span>Recargo ({quote.recargoPorcentaje}%):</span>
-                        <span>+${quote.recargoMonto?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    )}
-                    <div className="d-flex justify-content-between fw-bold mt-1 text-dark border-top border-secondary pt-1">
-                      <span>Total Final:</span>
-                      <span>${quote.precioConDescuento?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  </div>
-                </Card.Body>
-                <Card.Footer className="d-flex justify-content-between gap-2">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="w-100"
-                    onClick={() => handleDownloadQuote(quote)}
-                  >
-                    <FaFilePdf className="me-2" /> PDF
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => handleDeleteQuote(quote._id)}
-                    title="Eliminar"
-                  >
-                    <FaTrash />
-                  </Button>
-                </Card.Footer>
-              </Card>
-            </Col>
-          );
-        })}
-      </Row>
-      {renderPagination()}
-    </>
-  );
-
-  // Renderizar detalles de la cotización
-  const renderQuoteDetails = () => {
-    if (!selectedQuote) return null;
-
-    return (
-      <div className="quote-details-modal">
-        <div className="quote-details-content modal-lg">
-          <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-            <h3 className="m-0">Cotización #{selectedQuote._id.slice(-6)}</h3>
-            <Badge
-              bg={
-                selectedQuote.status === 'pending' ? 'warning' :
-                  selectedQuote.status === 'approved' ? 'success' :
-                    selectedQuote.status === 'rejected' ? 'danger' :
-                      selectedQuote.status === 'paid' ? 'info' :
-                        selectedQuote.status === 'cancelled' ? 'secondary' : 'primary'
-              }
-              className="px-3 py-2"
-            >
-              {selectedQuote.status === 'pending' ? 'Pendiente' :
-                selectedQuote.status === 'approved' ? 'Aprobada' :
-                  selectedQuote.status === 'rejected' ? 'Rechazada' :
-                    selectedQuote.status === 'paid' ? 'Pagada' :
-                      selectedQuote.status === 'cancelled' ? 'Cancelada' : selectedQuote.status}
-            </Badge>
-          </div>
-
-          <div className="row g-4">
-            {/* Columna Izquierda: Información del Proyecto */}
-            <div className="col-md-6 border-end">
-              <h5 className="text-primary mb-3"><FaFileAlt className="me-2" />Detalles del Proyecto</h5>
-              <div className="quote-details-list">
-                <p><strong>Cliente:</strong> {selectedQuote.clientName}</p>
-                <p><strong>Tipo Trabajo:</strong> {selectedQuote.tipoTrabajo}</p>
-                <p><strong>Servicio:</strong> {selectedQuote.tipoServicio}</p>
-                <p><strong>Título/Tema:</strong> {selectedQuote.tituloTrabajo || 'N/A'}</p>
-                <p><strong>Área:</strong> {selectedQuote.area || 'N/A'}</p>
-                <p><strong>Carrera:</strong> {selectedQuote.carrera}</p>
-                <p><strong>Páginas:</strong> {selectedQuote.extensionEstimada}</p>
-                <p><strong>Plazo:</strong> {selectedQuote.tiempoEntrega}</p>
-                <p><strong>Fecha Entrega:</strong> {selectedQuote.fechaEntrega}</p>
-                <p><strong>Descripción:</strong> {selectedQuote.descripcionServicio || 'Sin descripción'}</p>
-              </div>
-            </div>
-
-            {/* Columna Derecha: Financiero y Pagos */}
-            <div className="col-md-6">
-              <h5 className="text-success mb-3"><FaMoneyBillWave className="me-2" />Información Financiera</h5>
-              <div className="bg-light p-3 rounded mb-3">
-                <div className="d-flex justify-content-between mb-1">
-                  <span>Precio Base:</span>
-                  <strong>${selectedQuote.precioBase?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong>
-                </div>
-                {(selectedQuote.descuentoMonto > 0) && (
-                  <div className="d-flex justify-content-between mb-1 text-success">
-                    <span>Descuento:</span>
-                    <strong>-${selectedQuote.descuentoMonto?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong>
-                  </div>
-                )}
-                {(selectedQuote.recargoMonto > 0) && (
-                  <div className="d-flex justify-content-between mb-1 text-danger">
-                    <span>Recargo ({selectedQuote.recargoPorcentaje || 0}%):</span>
-                    <strong>+${selectedQuote.recargoMonto?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong>
-                  </div>
-                )}
-                <div className="d-flex justify-content-between mt-2 pt-2 border-top">
-                  <span className="h5 mb-0">Total Final:</span>
-                  <span className="h5 mb-0 text-primary">${selectedQuote.precioConDescuento?.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                </div>
-              </div>
-
-              <h5 className="text-info mb-3"><FaCreditCard className="me-2" />Método y Esquema</h5>
-              <div className="p-3 border rounded">
-                <p className="mb-2">
-                  <strong>Método Seleccionado:</strong>{' '}
-                  {(() => {
-                    const style = getPaymentStyle(selectedQuote);
-                    return (
-                      <Badge
-                        bg={style.bg === 'custom-nu' ? null : style.bg}
-                        style={style.style}
-                      >
-                        {style.text}
-                      </Badge>
-                    );
-                  })()}
-                </p>
-
-                <p className="mb-1"><strong>Esquema de Pago:</strong></p>
-                <div className="bg-secondary bg-opacity-10 p-2 rounded text-muted small">
-                  {selectedQuote.esquemaPago || 'No especificado'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="d-flex justify-content-end align-items-center mt-4 pt-3 border-top gap-2">
-            <div className="text-muted small me-auto">
-              Creada: {formatDate(selectedQuote.createdAt)}
-            </div>
-            <div className="quote-details-actions d-flex">
-              {/* Botones de acción existentes */}
-              <Button variant="secondary" onClick={() => setShowQuoteDetails(false)}>
-                Cerrar
-              </Button>
-              {selectedQuote.status === 'pending' && (
-                <>
-                  <Button
-                    variant="success"
-                    className="ms-2"
-                    onClick={() => {
-                      handleApproveQuote(selectedQuote._id);
-                      setShowQuoteDetails(false);
-                    }}
-                  >
-                    Aprobar
-                  </Button>
-                  <Button
-                    variant="danger"
-                    className="ms-2"
-                    onClick={() => {
-                      handleRejectQuote(selectedQuote._id);
-                      setShowQuoteDetails(false);
-                    }}
-                  >
-                    Rechazar
-                  </Button>
-                </>
-              )}
-              <Button
-                variant="outline-danger"
-                className="ms-2"
-                onClick={() => {
-                  handleDeleteQuote(selectedQuote._id);
-                  setShowQuoteDetails(false);
-                }}
-              >
-                Eliminar
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Renderizar mensaje de error
-  const renderError = () => {
-    if (!error) return null;
-
-    return (
-      <Alert variant="danger" className="mb-4">
-        <Alert.Heading>
-          <FaExclamationCircle className="me-2" />
-          Error
-        </Alert.Heading>
-        <p>{error}</p>
-      </Alert>
-    );
-  };
-
-  // Renderizar spinner de carga
-  const renderLoading = () => {
-    if (!loading) return null;
-
-    return (
-      <div className="text-center py-5">
-        <Spinner animation="border" role="status" variant="primary" />
-        <p className="mt-2">Cargando cotizaciones...</p>
-      </div>
-    );
+  const getPaymentInfo = (quote) => {
+    const key = quote._paymentKey;
+    if (key === 'sin-metodo') return { label: 'N/A', color: '#9ca3af', icon: <FaCreditCard />, border: '#d1d5db' };
+    return paymentConfig[key] || paymentConfig['tarjeta'];
   };
 
   return (
-    <div className="manage-quotes-container">
-      <div className="stats-horizontal-section">
-        <div className="stats-block total">
-          <div className="stats-block-content">
-            <span className="stats-block-title">Total Generadas (Admin)</span>
-            <span className="stats-block-number">{generatedQuotes?.length || 0}</span>
-          </div>
-        </div>
-        <div className="stats-block pending">
-          <div className="stats-block-content">
-            <span className="stats-block-title">Pendientes</span>
-            <span className="stats-block-number">{generatedQuotes?.filter(q => String(q.status).trim().toLowerCase() === 'pending').length || 0}</span>
-          </div>
-        </div>
-        <div className="stats-block approved">
-          <div className="stats-block-content">
-            <span className="stats-block-title">Aprobadas</span>
-            <span className="stats-block-number">{generatedQuotes?.filter(q => String(q.status).trim().toLowerCase() === 'approved').length || 0}</span>
-          </div>
-        </div>
-        <div className="stats-block rejected">
-          <div className="stats-block-content">
-            <span className="stats-block-title">Rechazadas</span>
-            <span className="stats-block-number">{generatedQuotes?.filter(q => String(q.status).trim().toLowerCase() === 'rejected').length || 0}</span>
-          </div>
-        </div>
-        <div className="stats-block paid">
-          <div className="stats-block-content">
-            <span className="stats-block-title">Pagadas</span>
-            <span className="stats-block-number">{generatedQuotes?.filter(q => String(q.status).trim().toLowerCase() === 'paid').length || 0}</span>
-          </div>
-        </div>
-        <div className="stats-block cancelled">
-          <div className="stats-block-content">
-            <span className="stats-block-title">Canceladas</span>
-            <span className="stats-block-number">{generatedQuotes?.filter(q => String(q.status).trim().toLowerCase() === 'cancelled').length || 0}</span>
-          </div>
+    <div className="mq">
+      {/* Stats Pills */}
+      <div className="mq-stats">
+        {[
+          { key: 'total', label: 'Total', val: stats.total, color: '#4a6cf7' },
+          { key: 'pending', label: 'Pendientes', val: stats.pending, color: '#f59e0b' },
+          { key: 'approved', label: 'Aprobadas', val: stats.approved, color: '#10b981' },
+          { key: 'paid', label: 'Pagadas', val: stats.paid, color: '#3b82f6' },
+          { key: 'rejected', label: 'Rechazadas', val: stats.rejected, color: '#ef4444' },
+          { key: 'cancelled', label: 'Canceladas', val: stats.cancelled, color: '#6b7280' },
+        ].map(s => (
+          <button
+            key={s.key}
+            className={`mq-stat-pill ${filter === s.key || (filter === 'all' && s.key === 'total') ? 'mq-stat-active' : ''}`}
+            style={{ '--pill-color': s.color }}
+            onClick={() => { setFilter(s.key === 'total' ? 'all' : s.key); setCurrentPage(1); }}
+          >
+            <span className="mq-stat-num">{s.val}</span>
+            <span className="mq-stat-label">{s.label}</span>
+          </button>
+        ))}
+        <div className="mq-stat-pill mq-stat-revenue">
+          <span className="mq-stat-num">{formatCurrency(stats.revenue)}</span>
+          <span className="mq-stat-label">Ingreso</span>
         </div>
       </div>
 
-      {renderError()}
+      {/* Toolbar */}
+      <div className="mq-toolbar">
+        <div className="mq-search">
+          <FaSearch className="mq-search-icon" />
+          <input type="text" placeholder="Buscar por cliente, título, email o ID..." value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
+        </div>
+        <div className="mq-sort-group">
+          <button className={`mq-sort-btn ${sortBy.startsWith('date') ? 'active' : ''}`}
+            onClick={() => setSortBy(sortBy === 'date-desc' ? 'date-asc' : 'date-desc')}>
+            {sortBy === 'date-asc' ? <FaSortAmountUp /> : <FaSortAmountDown />} Fecha
+          </button>
+          <button className={`mq-sort-btn ${sortBy.startsWith('price') ? 'active' : ''}`}
+            onClick={() => setSortBy(sortBy === 'price-desc' ? 'price-asc' : 'price-desc')}>
+            {sortBy === 'price-asc' ? <FaSortAmountUp /> : <FaSortAmountDown />} Precio
+          </button>
+        </div>
+      </div>
 
+      {/* Filter Row */}
+      <div className="mq-filter-row">
+        {/* Source filter */}
+        <div className="mq-filter-group">
+          <span className="mq-filter-label">Origen</span>
+          <div className="mq-filter-pills">
+            <button className={`mq-fpill ${sourceFilter === 'all' ? 'mq-fpill-active' : ''}`}
+              onClick={() => { setSourceFilter('all'); setCurrentPage(1); }}>
+              Todas <span className="mq-fpill-count">{stats.total}</span>
+            </button>
+            <button className={`mq-fpill mq-fpill-sofia ${sourceFilter === 'regular' ? 'mq-fpill-active' : ''}`}
+              onClick={() => { setSourceFilter('regular'); setCurrentPage(1); }}>
+              Sofia <span className="mq-fpill-count">{stats.regCount}</span>
+            </button>
+            <button className={`mq-fpill mq-fpill-cotizador ${sourceFilter === 'generated' ? 'mq-fpill-active' : ''}`}
+              onClick={() => { setSourceFilter('generated'); setCurrentPage(1); }}>
+              <FaCalculator /> Cotizador <span className="mq-fpill-count">{stats.genCount}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Payment method filter */}
+        <div className="mq-filter-group" style={{ position: 'relative' }}>
+          <span className="mq-filter-label">Método de pago</span>
+          <button className={`mq-fpill mq-fpill-dropdown ${paymentFilter !== 'all' ? 'mq-fpill-active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); setPaymentDropdownOpen(!paymentDropdownOpen); }}>
+            {paymentFilter === 'all' ? 'Todos' : (
+              paymentFilter === 'sin-metodo' ? 'Sin método' :
+              paymentConfig[paymentFilter]?.label || paymentFilter
+            )}
+            <FaChevronDown className="mq-chevron" />
+          </button>
+          {paymentDropdownOpen && (
+            <div className="mq-pay-dropdown" onClick={(e) => e.stopPropagation()}>
+              {[
+                { key: 'all', label: 'Todos los métodos', color: '#374151', icon: null },
+                { key: 'tarjeta-nu', label: 'Tarjeta Nu', color: '#820ad1', icon: <FaCreditCard /> },
+                { key: 'tarjeta-bbva', label: 'Tarjeta BBVA', color: '#0d6efd', icon: <FaCreditCard /> },
+                { key: 'efectivo', label: 'Efectivo', color: '#16a34a', icon: <FaMoneyBillWave /> },
+                { key: 'tarjeta', label: 'Tarjeta (otro)', color: '#374151', icon: <FaCreditCard /> },
+                { key: 'sin-metodo', label: 'Sin método', color: '#9ca3af', icon: null },
+              ].map(opt => (
+                <button key={opt.key}
+                  className={`mq-pay-dropdown-item ${paymentFilter === opt.key ? 'mq-pay-dropdown-active' : ''}`}
+                  onClick={() => { setPaymentFilter(opt.key); setPaymentDropdownOpen(false); setCurrentPage(1); }}>
+                  {opt.icon && <span style={{ color: opt.color }}>{opt.icon}</span>}
+                  <span>{opt.label}</span>
+                  {paymentFilter === opt.key && <FaCheck className="mq-pay-check" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
       {loading ? (
-        renderLoading()
+        <div className="mq-loading"><Spinner animation="border" size="sm" /> Cargando...</div>
+      ) : pageQuotes.length === 0 ? (
+        <div className="mq-empty">No hay cotizaciones{filter !== 'all' ? ` con estado "${statusConfig[filter]?.label}"` : ''}</div>
       ) : (
         <>
-          {renderFiltersSection()}
-          {renderQuoteCards()}
+          <div className="mq-grid">
+            {pageQuotes.map(quote => {
+              const sc = statusConfig[quote.status] || statusConfig.pending;
+              const pm = getPaymentInfo(quote);
+              return (
+                <div key={`${quote._source}-${quote._id}`} className="mq-card"
+                  style={{ borderLeftColor: pm.border || '#e5e7eb' }}>
+                  {/* Card Header */}
+                  <div className="mq-card-head">
+                    <div className="mq-card-client">
+                      <FaUser className="mq-card-client-icon" />
+                      <span className="mq-card-name">{quote._clientName}</span>
+                      <span className={`mq-source-tag mq-source-${quote._source}`}>
+                        {quote._source === 'generated' ? <FaCalculator /> : <FaGlobe />}
+                        {quote._sourceLabel}
+                      </span>
+                      {quote._createdBy && (
+                        <span className="mq-sofia-badge">{quote._createdBy}</span>
+                      )}
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                      <button className="mq-status-badge"
+                        style={{ background: sc.bg, color: sc.color, borderColor: `${sc.color}40` }}
+                        onClick={(e) => { e.stopPropagation(); setOpenDropdown(openDropdown === quote._id ? null : quote._id); }}
+                        disabled={!!updatingId}>
+                        {updatingId === quote._id ? <ImSpinner2 className="mq-spin" /> : <>{sc.icon} {sc.label}</>}
+                        <FaChevronDown className="mq-chevron" />
+                      </button>
+                      {openDropdown === quote._id && (
+                        <div className="mq-dropdown" onClick={(e) => e.stopPropagation()}>
+                          {Object.entries(statusConfig).filter(([k]) => k !== quote.status).map(([k, v]) => (
+                            <button key={k} className="mq-dropdown-item" onClick={() => handleStatus(quote, k)}>
+                              <span style={{ color: v.color }}>{v.icon}</span> {v.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="mq-card-body" onClick={() => setSelectedQuote(quote)}>
+                    <div className="mq-card-title">{quote._title}</div>
+                    <div className="mq-card-meta">
+                      {quote._service && <span className="mq-card-tag"><FaFileAlt /> {quote._service}</span>}
+                      {quote._level && <span className="mq-card-tag"><FaGraduationCap /> {quote._level}</span>}
+                      {quote._pages && <span className="mq-card-tag">{quote._pages} págs</span>}
+                    </div>
+                    {/* Extra info rows */}
+                    <div className="mq-card-info">
+                      {quote._career && <div className="mq-card-info-row"><span className="mq-card-info-label">Carrera</span><span>{quote._career}</span></div>}
+                      {quote._area && <div className="mq-card-info-row"><span className="mq-card-info-label">Área</span><span>{quote._area}</span></div>}
+                      {quote._email && <div className="mq-card-info-row"><span className="mq-card-info-label">Email</span><span>{quote._email}</span></div>}
+                      {quote._deliveryTime && <div className="mq-card-info-row"><span className="mq-card-info-label">Plazo</span><span>{quote._deliveryTime}</span></div>}
+                      {quote._paymentScheme && <div className="mq-card-info-row"><span className="mq-card-info-label">Esquema</span><span>{quote._paymentScheme}</span></div>}
+                      {quote.publicId && <div className="mq-card-info-row"><span className="mq-card-info-label">ID</span><span className="mq-card-id">{quote.publicId.slice(0, 8)}...</span></div>}
+                    </div>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="mq-card-foot">
+                    <div className="mq-card-pricing">
+                      <span className="mq-card-price">{formatCurrency(quote._price)}</span>
+                      {quote._discount > 0 && <span className="mq-card-disc">-{formatCurrency(quote._discount)}</span>}
+                      {quote._surcharge > 0 && <span className="mq-card-surch">+{formatCurrency(quote._surcharge)}</span>}
+                    </div>
+                    <div className="mq-card-foot-right">
+                      <span className="mq-card-payment" style={{ color: pm.color }}>{pm.icon} {pm.label}</span>
+                      <span className="mq-card-date"><FaCalendarAlt /> {quote._dueDate || formatDate(quote.createdAt)}</span>
+                      {quote.createdAt && quote._dueDate && <span className="mq-card-date-sub">Creada: {formatDate(quote.createdAt)}</span>}
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="mq-card-actions">
+                    <button className="mq-act mq-act-view" onClick={() => setSelectedQuote(quote)} title="Ver detalle"><FaEye /></button>
+                    {quote._source === 'generated' && (
+                      <button className="mq-act mq-act-pdf" onClick={() => handleDownload(quote)} title="Descargar PDF"><FaFilePdf /></button>
+                    )}
+                    <button className="mq-act mq-act-del" onClick={() => handleDelete(quote)} title="Eliminar"><FaTrash /></button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mq-pagination">
+              <span className="mq-page-info">{filteredQuotes.length} cotizaciones · Pág {currentPage}/{totalPages}</span>
+              <Pagination size="sm">
+                <Pagination.Prev disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} />
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let page;
+                  if (totalPages <= 5) page = i + 1;
+                  else if (currentPage <= 3) page = i + 1;
+                  else if (currentPage >= totalPages - 2) page = totalPages - 4 + i;
+                  else page = currentPage - 2 + i;
+                  return <Pagination.Item key={page} active={page === currentPage} onClick={() => setCurrentPage(page)}>{page}</Pagination.Item>;
+                })}
+                <Pagination.Next disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} />
+              </Pagination>
+            </div>
+          )}
         </>
       )}
 
-      {showQuoteDetails && selectedQuote && renderQuoteDetails()}
+      {/* Detail Modal */}
+      {selectedQuote && (
+        <div className="mq-modal-overlay" onClick={() => setSelectedQuote(null)}>
+          <div className="mq-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mq-modal-header">
+              <h3>
+                Cotización #{selectedQuote._id?.slice(-6)}
+                <span className={`mq-source-tag mq-source-${selectedQuote._source}`} style={{ marginLeft: 8 }}>
+                  {selectedQuote._source === 'generated' ? <FaCalculator /> : <FaGlobe />}
+                  {selectedQuote._sourceLabel}
+                </span>
+              </h3>
+              <div className="mq-modal-right">
+                <span className="mq-status-badge" style={{ background: statusConfig[selectedQuote.status]?.bg, color: statusConfig[selectedQuote.status]?.color, borderColor: `${statusConfig[selectedQuote.status]?.color}40` }}>
+                  {statusConfig[selectedQuote.status]?.icon} {statusConfig[selectedQuote.status]?.label}
+                </span>
+                <button className="mq-close" onClick={() => setSelectedQuote(null)}>&times;</button>
+              </div>
+            </div>
+            <div className="mq-modal-body">
+              <div className="mq-modal-cols">
+                <div className="mq-modal-col">
+                  <h4>Proyecto</h4>
+                  <div className="mq-details">
+                    {[
+                      ['Cliente', selectedQuote._clientName],
+                      ['Email', selectedQuote._email],
+                      ['Tipo', selectedQuote._taskType],
+                      ['Servicio', selectedQuote._service],
+                      ['Título', selectedQuote._title],
+                      ['Área', selectedQuote._area],
+                      ['Carrera', selectedQuote._career],
+                      ['Nivel', selectedQuote._level],
+                      ['Páginas', selectedQuote._pages],
+                      ['Plazo', selectedQuote._deliveryTime],
+                      ['Entrega', selectedQuote._dueDate],
+                    ].filter(([, val]) => val).map(([label, val]) => (
+                      <div key={label} className="mq-detail-row"><span className="mq-dlabel">{label}</span><span>{val}</span></div>
+                    ))}
+                    {selectedQuote.publicId && (
+                      <div className="mq-detail-row"><span className="mq-dlabel">Public ID</span><span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{selectedQuote.publicId}</span></div>
+                    )}
+                  </div>
+                  {selectedQuote._description && <p className="mq-desc">{selectedQuote._description}</p>}
+                </div>
+                <div className="mq-modal-col">
+                  <h4>Financiero</h4>
+                  <div className="mq-finance">
+                    <div className="mq-frow"><span>Precio base</span><span>{formatCurrency(selectedQuote._basePrice)}</span></div>
+                    {selectedQuote._discount > 0 && <div className="mq-frow mq-fdisc"><span>Descuento</span><span>-{formatCurrency(selectedQuote._discount)}</span></div>}
+                    {selectedQuote._surcharge > 0 && <div className="mq-frow mq-fsurch"><span>Recargo{selectedQuote._surchargePercent ? ` (${selectedQuote._surchargePercent}%)` : ''}</span><span>+{formatCurrency(selectedQuote._surcharge)}</span></div>}
+                    <div className="mq-ftotal"><span>Total</span><span>{formatCurrency(selectedQuote._price)}</span></div>
+                  </div>
+                  <div className="mq-details" style={{ marginTop: 16 }}>
+                    {selectedQuote._paymentMethod && (
+                      <div className="mq-detail-row">
+                        <span className="mq-dlabel">Método</span>
+                        <span className="mq-payment-tag" style={{ color: getPaymentInfo(selectedQuote).color }}>{getPaymentInfo(selectedQuote).icon} {getPaymentInfo(selectedQuote).label}</span>
+                      </div>
+                    )}
+                    {selectedQuote._paymentScheme && <div className="mq-detail-row"><span className="mq-dlabel">Esquema</span><span className="mq-scheme">{selectedQuote._paymentScheme}</span></div>}
+                    <div className="mq-detail-row"><span className="mq-dlabel">Creada</span><span>{formatDate(selectedQuote.createdAt)}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mq-modal-footer">
+              <button className="mq-btn mq-btn-ghost" onClick={() => setSelectedQuote(null)}>Cerrar</button>
+              {selectedQuote._source === 'generated' && (
+                <button className="mq-btn mq-btn-outline" onClick={() => handleDownload(selectedQuote)}><FaFilePdf /> PDF</button>
+              )}
+              {selectedQuote.status === 'pending' && (
+                <>
+                  <button className="mq-btn mq-btn-success" onClick={() => { handleStatus(selectedQuote, 'approved'); setSelectedQuote(null); }}><FaCheck /> Aprobar</button>
+                  <button className="mq-btn mq-btn-danger" onClick={() => { handleStatus(selectedQuote, 'rejected'); setSelectedQuote(null); }}><FaTimes /> Rechazar</button>
+                </>
+              )}
+              <button className="mq-btn mq-btn-del" onClick={() => { handleDelete(selectedQuote); setSelectedQuote(null); }}><FaTrash /></button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
