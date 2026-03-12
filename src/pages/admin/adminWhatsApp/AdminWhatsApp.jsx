@@ -230,7 +230,7 @@ const AdminWhatsApp = () => {
         <Alert variant="danger">
           <Alert.Heading>Error de conexión</Alert.Heading>
           <p>{error}</p>
-          <p className="mb-0">Verifica que las variables de entorno <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code> estén configuradas correctamente.</p>
+          <p className="mb-0">Asegúrate de que el Backend de pago esté corriendo o desplegado, y de haber iniciado sesión como administrador.</p>
           <Button variant="outline-danger" className="mt-2" onClick={() => fetchLeads()}>
             <FaSync className="me-2" /> Reintentar
           </Button>
