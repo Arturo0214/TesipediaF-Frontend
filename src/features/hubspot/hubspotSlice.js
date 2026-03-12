@@ -61,6 +61,13 @@ const hubspotSlice = createSlice({
       .addCase(fetchHubspotSummary.fulfilled, (state, action) => {
         state.loading = false;
         state.summary = action.payload;
+        // Auto-populate contacts and deals from summary to avoid extra API calls
+        if (action.payload.allContacts) {
+          state.contacts = action.payload.allContacts;
+        }
+        if (action.payload.allDeals) {
+          state.deals = action.payload.allDeals;
+        }
       })
       .addCase(fetchHubspotSummary.rejected, (state, action) => {
         state.loading = false;

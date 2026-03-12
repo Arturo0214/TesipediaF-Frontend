@@ -6,8 +6,9 @@ import {
   FaEnvelope, FaPhone, FaBuilding, FaSyncAlt, FaCalendarAlt,
   FaArrowUp, FaArrowDown, FaPercentage, FaTrophy, FaTimesCircle,
   FaUserPlus, FaMoneyBillWave, FaChartBar, FaExchangeAlt,
+  FaTimes, FaUser, FaTag, FaClock,
 } from 'react-icons/fa';
-import { fetchHubspotSummary, fetchHubspotContacts, fetchHubspotDeals } from '../../../features/hubspot/hubspotSlice';
+import { fetchHubspotSummary } from '../../../features/hubspot/hubspotSlice';
 import './AdminHubSpot.css';
 
 const AdminHubSpot = () => {
@@ -17,22 +18,17 @@ const AdminHubSpot = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [contactSearch, setContactSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
       dispatch(fetchHubspotSummary());
-      dispatch(fetchHubspotContacts({ limit: 100 }));
-      dispatch(fetchHubspotDeals({ limit: 100 }));
     }
   }, [dispatch, isAuthenticated, isAdmin]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([
-      dispatch(fetchHubspotSummary()),
-      dispatch(fetchHubspotContacts({ limit: 100 })),
-      dispatch(fetchHubspotDeals({ limit: 100 })),
-    ]);
+    await dispatch(fetchHubspotSummary());
     setRefreshing(false);
   };
 
@@ -61,6 +57,7 @@ const AdminHubSpot = () => {
 
   const fmt = (n) => `$${(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0 })}`;
   const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
+  const fmtDateFull = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
 
   const getStageLabel = (stageId) => {
     for (const p of pipelinesData) {
@@ -82,7 +79,6 @@ const AdminHubSpot = () => {
     evangelist: '#ec4899', other: '#9ca3af', unknown: '#d1d5db',
   };
 
-  // Bar chart max for scaling
   const maxWeekly = Math.max(...(charts.weeklyContacts || []).map(w => w.count), 1);
   const maxMonthlyRev = Math.max(...(charts.monthlyRevenue || []).map(m => m.revenue), 1);
 
@@ -103,8 +99,118 @@ const AdminHubSpot = () => {
     );
   }
 
+  const handleContactClick = (contact) => {
+    setSelectedContact(contact);
+  };
+
   return (
     <div className="hs">
+      {/* Contact Detail Drawer */}
+      {selectedContact && (
+        <div className="hs-drawer-overlay" onClick={() => setSelectedContact(null)}>
+          <div className="hs-drawer" onClick={e => e.stopPropagation()}>
+            <div className="hs-drawer-header">
+              <h3>Detalle del contacto</h3>
+              <button className="hs-drawer-close" onClick={() => setSelectedContact(null)}><FaTimes /></button>
+            </div>
+            <div className="hs-drawer-body">
+              {(() => {
+                const p = selectedContact.properties || {};
+                const name = `${p.firstname || ''} ${p.lastname || ''}`.trim() || 'Sin nombre';
+                const lc = p.lifecyclestage || 'unknown';
+                return (
+                  <>
+                    <div className="hs-drawer-profile">
+                      <div className="hs-drawer-avatar" style={{ background: lifecycleColors[lc] || '#6b7280' }}>
+                        {(p.firstname || 'S')[0].toUpperCase()}
+                      </div>
+                      <div className="hs-drawer-name">{name}</div>
+                      <span className="hs-lifecycle-tag lg" style={{ background: `${lifecycleColors[lc]}18`, color: lifecycleColors[lc] }}>
+                        {lifecycleLabels[lc] || lc}
+                      </span>
+                    </div>
+
+                    <div className="hs-drawer-section">
+                      <h4>Informacion de contacto</h4>
+                      <div className="hs-drawer-fields">
+                        <div className="hs-drawer-field">
+                          <FaEnvelope className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Email</span>
+                            <span className="hs-drawer-field-value">{p.email || 'No disponible'}</span>
+                          </div>
+                        </div>
+                        <div className="hs-drawer-field">
+                          <FaPhone className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Telefono</span>
+                            <span className="hs-drawer-field-value">{p.phone || 'No disponible'}</span>
+                          </div>
+                        </div>
+                        <div className="hs-drawer-field">
+                          <FaBuilding className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Empresa</span>
+                            <span className="hs-drawer-field-value">{p.company || 'No disponible'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hs-drawer-section">
+                      <h4>Etapa y estado</h4>
+                      <div className="hs-drawer-fields">
+                        <div className="hs-drawer-field">
+                          <FaTag className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Etapa del ciclo de vida</span>
+                            <span className="hs-drawer-field-value" style={{ color: lifecycleColors[lc], fontWeight: 600 }}>
+                              {lifecycleLabels[lc] || lc}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="hs-drawer-field">
+                          <FaChartLine className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Estado del lead</span>
+                            <span className="hs-drawer-field-value">{p.hs_lead_status || 'Sin estado'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hs-drawer-section">
+                      <h4>Fechas</h4>
+                      <div className="hs-drawer-fields">
+                        <div className="hs-drawer-field">
+                          <FaCalendarAlt className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Creado</span>
+                            <span className="hs-drawer-field-value">{fmtDateFull(p.createdate)}</span>
+                          </div>
+                        </div>
+                        <div className="hs-drawer-field">
+                          <FaClock className="hs-drawer-field-icon" />
+                          <div>
+                            <span className="hs-drawer-field-label">Ultima modificacion</span>
+                            <span className="hs-drawer-field-value">{fmtDateFull(p.hs_lastmodifieddate)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hs-drawer-section">
+                      <h4>ID de HubSpot</h4>
+                      <span className="hs-drawer-id">{selectedContact.id}</span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="hs-header">
         <div className="hs-header-left">
@@ -124,16 +230,15 @@ const AdminHubSpot = () => {
         {['overview', 'contacts', 'deals'].map(tab => (
           <button key={tab} className={`hs-nav-btn ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
             {tab === 'overview' && <><FaChartBar /> Resumen</>}
-            {tab === 'contacts' && <><FaUsers /> Contactos ({kpis.totalContacts || 0})</>}
+            {tab === 'contacts' && <><FaUsers /> Contactos ({filteredContacts.length})</>}
             {tab === 'deals' && <><FaDollarSign /> Deals ({kpis.totalDeals || 0})</>}
           </button>
         ))}
       </div>
 
-      {/* ═══════════════ OVERVIEW TAB ═══════════════ */}
+      {/* OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <>
-          {/* KPI Row 1: Revenue & Deals */}
           <div className="hs-kpi-grid">
             <div className="hs-kpi">
               <div className="hs-kpi-top">
@@ -170,12 +275,11 @@ const AdminHubSpot = () => {
                 <span className="hs-kpi-icon orange"><FaExchangeAlt /></span>
               </div>
               <div className="hs-kpi-value">{kpis.conversionRate || 0}%</div>
-              <div className="hs-kpi-label">Tasa de conversión</div>
+              <div className="hs-kpi-label">Tasa de conversion</div>
               <div className="hs-kpi-sub">{kpis.customersCount || 0} clientes de {kpis.totalContacts || 0} leads</div>
             </div>
           </div>
 
-          {/* KPI Row 2: Win/Loss */}
           <div className="hs-kpi-row-small">
             <div className="hs-kpi-mini won">
               <FaTrophy />
@@ -208,9 +312,7 @@ const AdminHubSpot = () => {
             </div>
           </div>
 
-          {/* Charts Row */}
           <div className="hs-charts-row">
-            {/* Weekly contacts */}
             <div className="hs-chart-card">
               <h4 className="hs-chart-title">Contactos por semana</h4>
               <div className="hs-bar-chart">
@@ -224,7 +326,6 @@ const AdminHubSpot = () => {
               </div>
             </div>
 
-            {/* Monthly revenue */}
             <div className="hs-chart-card">
               <h4 className="hs-chart-title">Ingresos mensuales</h4>
               <div className="hs-bar-chart">
@@ -239,7 +340,6 @@ const AdminHubSpot = () => {
             </div>
           </div>
 
-          {/* Lifecycle funnel */}
           {Object.keys(contactData.byLifecycle || {}).length > 0 && (
             <div className="hs-funnel-card">
               <h4 className="hs-chart-title">Embudo de contactos</h4>
@@ -264,7 +364,6 @@ const AdminHubSpot = () => {
             </div>
           )}
 
-          {/* Pipeline stages */}
           {Object.keys(dealData.byStage || {}).length > 0 && (
             <div className="hs-funnel-card">
               <h4 className="hs-chart-title">Pipeline de Deals</h4>
@@ -287,7 +386,6 @@ const AdminHubSpot = () => {
             </div>
           )}
 
-          {/* Recent contacts */}
           {(contactData.recent || []).length > 0 && (
             <div className="hs-recent-card">
               <h4 className="hs-chart-title">Contactos recientes</h4>
@@ -313,7 +411,7 @@ const AdminHubSpot = () => {
         </>
       )}
 
-      {/* ═══════════════ CONTACTS TAB ═══════════════ */}
+      {/* CONTACTS TAB */}
       {activeTab === 'contacts' && (
         <>
           <div className="hs-toolbar">
@@ -329,7 +427,7 @@ const AdminHubSpot = () => {
                 <tr>
                   <th>Contacto</th>
                   <th>Email</th>
-                  <th>Teléfono</th>
+                  <th>Telefono</th>
                   <th>Empresa</th>
                   <th>Etapa</th>
                   <th>Fecha</th>
@@ -343,7 +441,7 @@ const AdminHubSpot = () => {
                   const name = `${p.firstname || ''} ${p.lastname || ''}`.trim() || 'Sin nombre';
                   const lc = p.lifecyclestage || 'unknown';
                   return (
-                    <tr key={c.id}>
+                    <tr key={c.id} className="hs-clickable-row" onClick={() => handleContactClick(c)}>
                       <td>
                         <div className="hs-cell-name">
                           <div className="hs-avatar-sm" style={{ background: lifecycleColors[lc] || '#6b7280' }}>
@@ -370,14 +468,14 @@ const AdminHubSpot = () => {
         </>
       )}
 
-      {/* ═══════════════ DEALS TAB ═══════════════ */}
+      {/* DEALS TAB */}
       {activeTab === 'deals' && (
         <>
           {filteredDeals.length === 0 ? (
             <div className="hs-empty-state">
               <FaMoneyBillWave className="hs-empty-icon" />
               <p>No hay deals registrados en HubSpot</p>
-              <span>Los deals se crearán automáticamente cuando se confirmen pagos</span>
+              <span>Los deals se crearan automaticamente cuando se confirmen pagos</span>
             </div>
           ) : (
             <div className="hs-table-wrap">
@@ -421,7 +519,6 @@ const AdminHubSpot = () => {
   );
 };
 
-/* Small helper component */
 const GrowthBadge = ({ value }) => {
   if (value === undefined || value === null) return null;
   const positive = value >= 0;
