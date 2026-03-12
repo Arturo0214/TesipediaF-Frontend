@@ -13,24 +13,30 @@
     overflow: hidden;
 }
 
-/* Título principal */
-.tesipedia-admin-title {
-    color: #2c3e50;
-    font-weight: 600;
-    margin: 0;
-    padding: 1rem;
-    text-align: center;
-    font-size: 1.75rem;
+/* Top bar compacto */
+.tesipedia-admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 16px;
     flex-shrink: 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+}
+.tesipedia-admin-topbar-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: 0.02em;
 }
 
 /* Contenedor principal con grid */
 .tesipedia-admin-container {
     display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 0.75rem;
-    padding: 0 0.75rem 0.75rem;
-    height: calc(100vh - 60px);
+    grid-template-columns: 220px 1fr;
+    gap: 0;
+    padding: 0;
+    height: calc(100vh - 33px);
     overflow: hidden;
     flex: 1;
 }
@@ -38,13 +44,13 @@
 /* Contenedor de la barra lateral */
 .tesipedia-admin-sidebar {
     background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid #e5e7eb;
     height: 100%;
     position: relative;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 /* Navegación */
@@ -144,15 +150,11 @@
 
 /* Contenido principal */
 .tesipedia-admin-content {
-    background-color: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background-color: #f9fafb;
     height: 100%;
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 20px 24px;
     position: relative;
-    background-color: #ffffff;
-    padding: 1rem;
 }
 
 /* Contenedor de componentes */
@@ -272,8 +274,16 @@
 
 /* Media queries */
 @media (max-width: 992px) {
+    .tesipedia-admin-topbar {
+        display: none;
+    }
     .tesipedia-admin-container {
         grid-template-columns: 1fr;
+        height: 100vh;
+    }
+    .tesipedia-admin-content {
+        padding: 12px;
+        padding-top: 52px; /* space for hamburger button */
     }
 }
 
@@ -750,23 +760,16 @@
         top: 0;
         bottom: 0;
         width: 260px;
-        /* Slightly wider */
         z-index: 21000;
-        /* Higher than overlay */
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
         background-color: white;
-        /* Ensure background */
+        border-right: none;
     }
 
     .tesipedia-admin-sidebar.active {
         transform: translateX(0);
-    }
-
-    .tesipedia-admin-container {
-        grid-template-columns: 1fr;
-        padding-left: 0;
     }
 }
 

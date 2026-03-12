@@ -336,7 +336,9 @@ const AdminPanel = () => {
             </button>
             {/* Overlay oscuro cuando el sidebar está abierto en mobile */}
             {isSidebarOpen && <div className="tesipedia-admin-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
-            <h1 className="tesipedia-admin-title">Panel de Administración</h1>
+            <div className="tesipedia-admin-topbar">
+                <span className="tesipedia-admin-topbar-label">Panel de Administración</span>
+            </div>
             <div className="tesipedia-admin-container">
                 <aside className={`tesipedia-admin-sidebar ${isSidebarOpen ? 'active' : ''}`}>
                     <nav className="tesipedia-admin-nav">

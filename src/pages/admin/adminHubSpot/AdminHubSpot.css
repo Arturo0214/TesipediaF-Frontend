@@ -150,10 +150,18 @@
   .hs-charts-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .hs-kpi-grid { grid-template-columns: 1fr; }
-  .hs-kpi-row-small { grid-template-columns: 1fr 1fr; }
-  .hs-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .hs-nav { flex-direction: column; }
+  .hs { padding: 0 0 24px; }
+  .hs-kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hs-kpi { padding: 12px; }
+  .hs-kpi-value { font-size: 1.2rem; }
+  .hs-kpi-row-small { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hs-kpi-mini { padding: 10px 12px; }
+  .hs-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .hs-title { font-size: 1.1rem; }
+  .hs-nav { gap: 2px; padding: 3px; }
+  .hs-nav-btn { padding: 8px 10px; font-size: 0.78rem; }
   .hs-funnel-label { width: 70px; font-size: 0.7rem; }
   .hs-funnel-count { width: 70px; font-size: 0.68rem; }
+  .hs-table thead th, .hs-table tbody td { padding: 8px 10px; font-size: 0.78rem; }
+  .hs-drawer { width: 100vw; max-width: 100vw; }
 }

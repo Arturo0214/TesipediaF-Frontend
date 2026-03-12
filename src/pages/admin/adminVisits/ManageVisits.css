@@ -131,10 +131,20 @@
   .vs-charts-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .vs-kpi-grid { grid-template-columns: 1fr; }
-  .vs-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .vs-nav { flex-direction: column; }
+  .vs { padding: 0 0 24px; }
+  .vs-kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .vs-kpi { padding: 12px; }
+  .vs-kpi-value { font-size: 1.2rem; }
+  .vs-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .vs-title { font-size: 1.1rem; }
+  .vs-nav { gap: 2px; padding: 3px; }
+  .vs-nav-btn { padding: 8px 10px; font-size: 0.78rem; }
   .vs-rank-name { width: 70px; font-size: 0.75rem; }
   .vs-rank-name.mono { width: 100px; }
   .vs-toolbar { flex-direction: column; }
+  .vs-timeline-chart { height: 140px; }
+  .vs-hourly-chart { height: 100px; }
+  .vs-table thead th, .vs-table tbody td { padding: 8px 10px; font-size: 0.78rem; }
+  .vs-visitor-ua { max-width: 120px; }
+  .vs-drawer { width: 100vw; max-width: 100vw; }
 }
