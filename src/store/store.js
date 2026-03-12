@@ -10,6 +10,8 @@ import visitReducer from '../features/visits/visitsSlice';
 import chatReducer from '../features/chat/chatSlice';
 import notificationsReducer from '../features/notifications/notificationSlice';
 import userReducer from '../features/auth/userSlice';
+import projectReducer from '../features/projects/projectSlice';
+import hubspotReducer from '../features/hubspot/hubspotSlice';
 
 // Especialmente para el chat
 const chatPersistConfig = {
@@ -27,7 +29,9 @@ const rootReducer = combineReducers({
     visits: visitReducer,
     notifications: notificationsReducer,
     users: userReducer,
-    chat: persistReducer(chatPersistConfig, chatReducer), // ✅ Persistir chat ignorando socket
+    projects: projectReducer,
+    chat: persistReducer(chatPersistConfig, chatReducer),
+    hubspot: hubspotReducer,
 });
 
 // Configuración de persistencia global

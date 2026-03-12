@@ -404,6 +404,95 @@
   margin-top: 2px;
 }
 
+/* ── Clickable elements ── */
+.adm-kpi-clickable {
+  cursor: pointer;
+}
+
+.adm-kpi-clickable:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+}
+
+.adm-action-clickable {
+  cursor: pointer;
+}
+
+.adm-action-clickable:hover {
+  background: #f0f4ff !important;
+}
+
+/* ── Section Label ── */
+.adm-dash-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ff7043;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 8px 0 14px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* ── HubSpot KPIs ── */
+.adm-hubspot-kpis {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.adm-kpi-hubspot {
+  border-left: 3px solid #ff7043;
+}
+
+/* ── HubSpot Pipeline ── */
+.adm-hs-pipeline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adm-hs-stage {
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+
+.adm-hs-stage-bar {
+  padding: 12px 6px;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 800;
+  transition: transform 0.12s;
+}
+
+.adm-hs-stage-bar:hover {
+  transform: scale(1.04);
+}
+
+.adm-hs-stage-count {
+  font-size: 1.2rem;
+  display: block;
+}
+
+.adm-hs-stage-label {
+  display: block;
+  font-size: 0.65rem;
+  color: #6b7280;
+  margin-top: 4px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.adm-hs-stage-amount {
+  display: block;
+  font-size: 0.6rem;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+
 /* ── Empty State ── */
 .adm-empty-state {
   display: flex;
@@ -425,8 +514,20 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .adm-hubspot-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .adm-dash-grid {
     grid-template-columns: 1fr;
+  }
+
+  .adm-hs-pipeline {
+    flex-wrap: wrap;
+  }
+
+  .adm-hs-stage {
+    flex: 1 1 30%;
   }
 }
 
@@ -489,6 +590,10 @@
     grid-template-columns: 1fr;
   }
 
+  .adm-hubspot-kpis {
+    grid-template-columns: 1fr;
+  }
+
   .adm-kpi-card {
     padding: 12px;
   }
@@ -499,5 +604,9 @@
 
   .adm-pipeline-stage {
     flex: 1 1 100%;
+  }
+
+  .adm-hs-stage {
+    flex: 1 1 45%;
   }
 }
