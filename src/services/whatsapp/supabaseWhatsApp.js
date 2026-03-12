@@ -4,51 +4,34 @@
  * Las credenciales sensibles quedan en el Backend, nunca en el frontend.
  */
 
-import { API_URL } from '../../config/constants';
+import axiosWithAuth from '../../utils/axioswithAuth';
 
-const BASE = `${API_URL}/api/v1/whatsapp`;
-
-/**
- * Helper: fetch con credenciales (cookies JWT)
- */
-async function apiFetch(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: `Error ${res.status}` }));
-    throw new Error(errorData.message || `Error ${res.status}`);
-  }
-  return res.json();
-}
+const BASE = '/api/v1/whatsapp';
 
 /**
  * Obtener todos los leads con conversaciones
  */
 export async function getLeads() {
-  return apiFetch('/leads');
+  const { data } = await axiosWithAuth.get(`${BASE}/leads`);
+  return data;
 }
 
 /**
  * Obtener un lead específico por wa_id
  */
 export async function getLeadByWaId(waId) {
-  return apiFetch(`/leads/${waId}`);
+  const { data } = await axiosWithAuth.get(`${BASE}/leads/${waId}`);
+  return data;
 }
 
 /**
  * Activar/desactivar modo humano para un lead
  */
 export async function toggleModoHumano(waId, modoHumano) {
-  return apiFetch(`/leads/${waId}/modo-humano`, {
-    method: 'PATCH',
-    body: JSON.stringify({ modo_humano: modoHumano }),
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/modo-humano`, {
+    modo_humano: modoHumano,
   });
+  return data;
 }
 
 /**
@@ -56,10 +39,11 @@ export async function toggleModoHumano(waId, modoHumano) {
  * Todo pasa por el Backend (seguro)
  */
 export async function sendWhatsAppMessage(waId, mensaje) {
-  return apiFetch('/send', {
-    method: 'POST',
-    body: JSON.stringify({ wa_id: waId, mensaje }),
+  const { data } = await axiosWithAuth.post(`${BASE}/send`, {
+    wa_id: waId,
+    mensaje,
   });
+  return data;
 }
 
 /**
