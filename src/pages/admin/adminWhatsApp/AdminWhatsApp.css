@@ -640,8 +640,7 @@
    ============================================ */
 @media (max-width: 992px) {
   .wa-panel {
-    /* Admin content has padding-top:52px + padding:12px on mobile */
-    height: calc(100vh - 64px);
+    height: 100%;
     border-radius: 0;
     box-shadow: none;
   }
@@ -853,7 +852,7 @@
 
 @media (max-width: 480px) {
   .wa-panel {
-    height: calc(100vh - 64px);
+    height: 100%;
   }
 
   .wa-header {

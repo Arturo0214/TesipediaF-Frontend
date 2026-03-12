@@ -39,8 +39,8 @@
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
-    height: calc(100vh - 12rem);
     flex: 1;
+    min-height: 0;
 }
 
 /* Estilos para las tablas */

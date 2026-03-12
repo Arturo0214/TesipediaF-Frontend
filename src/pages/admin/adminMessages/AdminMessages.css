@@ -810,10 +810,11 @@
 /* ============================================
    Responsive — Mobile
    ============================================ */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .msg-panel {
-    height: calc(100vh - 80px);
+    height: 100%;
     border-radius: 0;
+    box-shadow: none;
   }
 
   .msg-header {
@@ -885,7 +886,7 @@
 
 @media (max-width: 480px) {
   .msg-panel {
-    height: calc(100vh - 60px);
+    height: 100%;
   }
 
   .msg-conversation-item {

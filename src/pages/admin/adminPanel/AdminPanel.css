@@ -282,8 +282,18 @@
         height: 100vh;
     }
     .tesipedia-admin-content {
-        padding: 12px;
+        padding: 8px;
         padding-top: 52px; /* space for hamburger button */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .tesipedia-admin-component {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
     }
 }
 

@@ -25,7 +25,7 @@ body.admin-page .mu-action-dropdown>* {
     z-index: 1;
     background-color: #fff;
     overflow: hidden;
-    height: 100vh;
+    height: 100%;
     min-height: 600px;
 }
 
@@ -96,8 +96,8 @@ body.admin-page .mu-action-dropdown>* {
     position: relative;
     z-index: 1;
     background-color: white;
-    height: calc(100vh - 12rem);
     flex: 1;
+    min-height: 0;
 }
 
 .mu-manage-users-table {
@@ -540,11 +540,12 @@ body.admin-page .mu-action-dropdown>* {
 
     .mu-manage-users-container {
         min-height: 400px;
-        height: 100dvh;
+        height: 100%;
     }
 
     .mu-table-scroll {
-        max-height: calc(100dvh - 260px);
+        max-height: none;
+        flex: 1;
     }
 
     .mu-manage-users-title,
@@ -710,8 +711,7 @@ body.admin-page .mu-col-actions {
     width: 100%;
     flex: 1 1 auto;
     overflow-y: auto;
-    min-height: 300px;
-    max-height: calc(100vh - 210px);
+    min-height: 0;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     background: #fff;
