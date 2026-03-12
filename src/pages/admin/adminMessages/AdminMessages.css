@@ -7,7 +7,7 @@
 .msg-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 120px);
   background: #f0f2f5;
   border-radius: 12px;
   overflow: hidden;
