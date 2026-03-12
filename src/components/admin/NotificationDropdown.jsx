@@ -1,9 +1,37 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Badge, ListGroup, Button } from 'react-bootstrap';
-import { FaBell, FaCheck, FaRegBell } from 'react-icons/fa';
+import { ListGroup } from 'react-bootstrap';
+import {
+    FaBell,
+    FaCheck,
+    FaRegBell,
+    FaFileAlt,
+    FaCommentDots,
+    FaEye,
+    FaCreditCard,
+    FaProjectDiagram,
+    FaExclamationTriangle,
+    FaInfoCircle,
+    FaShoppingCart,
+    FaTruck,
+} from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { markNotificationAsRead, markAllNotificationsAsRead } from '../../features/notifications/notificationSlice';
 import './NotificationDropdown.css';
+
+// Map notification types to icons and colors
+const typeConfig = {
+    cotizacion: { icon: FaFileAlt, color: '#4a6cf7', bg: '#eef1ff', label: 'Cotización' },
+    mensaje: { icon: FaCommentDots, color: '#00b894', bg: '#e6f9f3', label: 'Mensaje' },
+    visita: { icon: FaEye, color: '#6c5ce7', bg: '#f0eeff', label: 'Visita' },
+    pago: { icon: FaCreditCard, color: '#e17055', bg: '#fef0ec', label: 'Pago' },
+    proyecto: { icon: FaProjectDiagram, color: '#fdcb6e', bg: '#fef9e7', label: 'Proyecto' },
+    pedido: { icon: FaShoppingCart, color: '#00cec9', bg: '#e6fcfb', label: 'Pedido' },
+    entrega: { icon: FaTruck, color: '#55a3e5', bg: '#ebf4fd', label: 'Entrega' },
+    alerta: { icon: FaExclamationTriangle, color: '#d63031', bg: '#fce4e4', label: 'Alerta' },
+    info: { icon: FaInfoCircle, color: '#636e72', bg: '#f0f0f0', label: 'Info' },
+};
+
+const defaultTypeConfig = { icon: FaBell, color: '#636e72', bg: '#f0f0f0', label: 'Notificación' };
 
 const NotificationDropdown = () => {
     const [show, setShow] = useState(false);
@@ -15,7 +43,7 @@ const NotificationDropdown = () => {
     const unreadCount = useSelector(state => state.notifications.unreadCount || 0);
     const loading = useSelector(state => state.notifications.loading);
 
-    // Cerrar el menú al hacer click fuera
+    // Close on outside click
     useEffect(() => {
         if (!show) return;
         function handleClickOutside(event) {
@@ -32,24 +60,22 @@ const NotificationDropdown = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [show]);
 
-    const handleMarkAsRead = async (e, notificationId) => {
-        // Prevent the click from bubbling up to the item click handler
-        if (e) e.stopPropagation();
-        try {
-            await dispatch(markNotificationAsRead(notificationId)).unwrap();
-        } catch (error) {
-            console.error('Error al marcar notificación como leída:', error);
-        }
-    };
-
     const handleNotificationClick = async (notification) => {
-        // Mark as read on click if unread
         if (!notification.isRead) {
             try {
                 await dispatch(markNotificationAsRead(notification._id)).unwrap();
             } catch (error) {
                 console.error('Error al marcar notificación como leída:', error);
             }
+        }
+    };
+
+    const handleMarkAsRead = async (e, notificationId) => {
+        e.stopPropagation();
+        try {
+            await dispatch(markNotificationAsRead(notificationId)).unwrap();
+        } catch (error) {
+            console.error('Error al marcar notificación como leída:', error);
         }
     };
 
@@ -66,44 +92,39 @@ const NotificationDropdown = () => {
         const date = new Date(dateString);
         const now = new Date();
         const diffInSeconds = Math.floor((now - date) / 1000);
-        if (diffInSeconds < 60) return `hace ${diffInSeconds}s`;
+        if (diffInSeconds < 60) return 'Ahora';
         const diffInMinutes = Math.floor(diffInSeconds / 60);
-        if (diffInMinutes < 60) return `hace ${diffInMinutes}min`;
+        if (diffInMinutes < 60) return `${diffInMinutes}min`;
         const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) return `hace ${diffInHours}h`;
+        if (diffInHours < 24) return `${diffInHours}h`;
         const diffInDays = Math.floor(diffInHours / 24);
-        if (diffInDays < 7) return `hace ${diffInDays}d`;
+        if (diffInDays < 7) return `${diffInDays}d`;
         return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
     };
 
-    const recentNotifications = notifications.slice(0, 10);
+    const recentNotifications = notifications.slice(0, 15);
 
-    // Calcular posición del dropdown relativa al icono
+    // Position dropdown relative to bell icon
     const [menuStyle, setMenuStyle] = useState({});
     useEffect(() => {
         if (show && iconRef.current) {
             const rect = iconRef.current.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
 
-            // Position below the bell icon, aligned to the right
-            let top = rect.bottom + 6;
-            let left = rect.left;
+            let top = rect.bottom + 8;
+            let left = rect.left - 160; // Center roughly
 
-            // Make sure it doesn't go off the right edge
-            if (left + 380 > viewportWidth) {
-                left = viewportWidth - 380 - 12;
-            }
-
-            // Make sure it doesn't go off the left edge
-            if (left < 12) {
-                left = 12;
-            }
+            // Bounds checks
+            if (left + 400 > viewportWidth) left = viewportWidth - 412;
+            if (left < 8) left = 8;
+            if (top + 500 > viewportHeight) top = Math.max(8, viewportHeight - 510);
 
             setMenuStyle({ top, left });
         }
     }, [show]);
 
-    const capitalizeFirst = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    const getTypeConfig = (type) => typeConfig[type] || defaultTypeConfig;
 
     return (
         <>
@@ -112,7 +133,6 @@ const NotificationDropdown = () => {
                 ref={iconRef}
                 aria-label="Mostrar notificaciones"
                 onClick={() => setShow((prev) => !prev)}
-                tabIndex={0}
                 type="button"
             >
                 <div className="admin-notification-icon-wrapper">
@@ -126,75 +146,90 @@ const NotificationDropdown = () => {
             </button>
             {show && (
                 <div
-                    className="notification-dropdown-menu notification-dropdown-fixed"
+                    className="notif-dropdown"
                     ref={menuRef}
                     style={menuStyle}
                 >
-                    <div className="notification-header">
-                        <h6>Notificaciones</h6>
+                    {/* Header */}
+                    <div className="notif-dropdown-header">
+                        <div className="notif-dropdown-header-left">
+                            <h6>Notificaciones</h6>
+                            {unreadCount > 0 && (
+                                <span className="notif-unread-count">{unreadCount}</span>
+                            )}
+                        </div>
                         {unreadCount > 0 && (
-                            <button
-                                className="mark-all-read-btn"
-                                onClick={handleMarkAllAsRead}
-                            >
-                                Marcar todas como leídas
+                            <button className="notif-mark-all-btn" onClick={handleMarkAllAsRead}>
+                                <FaCheck size={10} />
+                                Leer todas
                             </button>
                         )}
                     </div>
 
-                    <div className="notification-list">
+                    {/* List */}
+                    <div className="notif-dropdown-list">
                         {loading ? (
-                            <div className="text-center py-3">
-                                <div className="spinner-border spinner-border-sm" role="status">
-                                    <span className="visually-hidden">Cargando...</span>
-                                </div>
+                            <div className="notif-empty-state">
+                                <div className="spinner-border spinner-border-sm" role="status" />
+                                <span>Cargando...</span>
                             </div>
                         ) : recentNotifications.length === 0 ? (
-                            <div className="text-center">
-                                <FaRegBell className="mb-2" />
-                                <p className="mb-0">No hay notificaciones</p>
+                            <div className="notif-empty-state">
+                                <FaRegBell size={24} />
+                                <span>Sin notificaciones</span>
                             </div>
                         ) : (
-                            <ListGroup variant="flush">
-                                {recentNotifications.map((notification) => (
-                                    <ListGroup.Item
+                            recentNotifications.map((notification) => {
+                                const config = getTypeConfig(notification.type);
+                                const Icon = config.icon;
+
+                                return (
+                                    <div
                                         key={notification._id}
-                                        className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                                        className={`notif-item ${!notification.isRead ? 'notif-item-unread' : ''}`}
                                         onClick={() => handleNotificationClick(notification)}
                                     >
-                                        <div className="notification-content">
-                                            <div className="notification-title">
-                                                {capitalizeFirst(notification.title || notification.type || 'Notificación')}
+                                        <div
+                                            className="notif-item-icon"
+                                            style={{ background: config.bg, color: config.color }}
+                                        >
+                                            <Icon size={14} />
+                                        </div>
+                                        <div className="notif-item-body">
+                                            <div className="notif-item-top">
+                                                <span className="notif-item-type" style={{ color: config.color }}>
+                                                    {config.label}
+                                                </span>
+                                                <span className="notif-item-time">
+                                                    {formatDate(notification.createdAt)}
+                                                </span>
                                             </div>
-                                            <div className="notification-message">
+                                            <div className="notif-item-message">
                                                 {notification.message || notification.body}
                                             </div>
-                                            <div className="notification-meta">
-                                                <small>
-                                                    {formatDate(notification.createdAt)}
-                                                </small>
-                                                {!notification.isRead && (
-                                                    <button
-                                                        className="mark-read-btn"
-                                                        onClick={(e) => handleMarkAsRead(e, notification._id)}
-                                                        title="Marcar como leída"
-                                                    >
-                                                        <FaCheck size={10} /> Leída
-                                                    </button>
-                                                )}
-                                            </div>
                                         </div>
-                                    </ListGroup.Item>
-                                ))}
-                            </ListGroup>
+                                        {!notification.isRead && (
+                                            <button
+                                                className="notif-item-read-btn"
+                                                onClick={(e) => handleMarkAsRead(e, notification._id)}
+                                                title="Marcar como leída"
+                                            >
+                                                <FaCheck size={9} />
+                                            </button>
+                                        )}
+                                        {!notification.isRead && (
+                                            <div className="notif-item-dot" />
+                                        )}
+                                    </div>
+                                );
+                            })
                         )}
                     </div>
 
-                    {notifications.length > 10 && (
-                        <div className="notification-footer">
-                            <button className="view-all-btn">
-                                Ver todas ({notifications.length})
-                            </button>
+                    {/* Footer */}
+                    {notifications.length > 15 && (
+                        <div className="notif-dropdown-footer">
+                            <span>Mostrando 15 de {notifications.length}</span>
                         </div>
                     )}
                 </div>

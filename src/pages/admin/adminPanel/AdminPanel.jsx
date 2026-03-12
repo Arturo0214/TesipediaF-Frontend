@@ -27,7 +27,7 @@ import {
     fetchNotifications,
     markNotificationsByType // Nuevo import
 } from '../../../features/notifications/notificationSlice';
-import { connectSocket, onSocketEvent } from '../../../services/socket/socketService';
+import { connectSocket, onSocketEvent, emitSocketEvent } from '../../../services/socket/socketService';
 import './AdminPanel.css';
 import '../adminCommon.css';
 import '../../../components/admin/NotificationDropdown.css';
@@ -193,6 +193,12 @@ const AdminPanel = () => {
         console.log('[Socket] Conectando socket para usuario:', authUser._id);
         dispatch(fetchNotifications());
         const socket = connectSocket(authUser._id, false, token);
+
+        // Unirse a la sala de notificaciones
+        if (socket) {
+            emitSocketEvent('joinNotifications');
+        }
+
         onSocketEvent('notification:new', (notification) => {
             console.log('[Socket] Recibida notificación nueva:', notification);
             dispatch(addNotification(notification));
@@ -205,6 +211,15 @@ const AdminPanel = () => {
             console.log('[Socket] Notificación eliminada:', notificationId);
             dispatch(removeNotification(notificationId));
         });
+
+        // Polling de respaldo cada 30 segundos para detectar nuevas notificaciones
+        const pollInterval = setInterval(() => {
+            dispatch(fetchNotifications());
+        }, 30000);
+
+        return () => {
+            clearInterval(pollInterval);
+        };
         // eslint-disable-next-line
     }, [authUser?._id]);
 
