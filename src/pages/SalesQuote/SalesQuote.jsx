@@ -19,6 +19,8 @@ const SalesQuote = () => {
     const [metodoPago, setMetodoPago] = useState('efectivo'); // 'efectivo' o 'tarjeta'
     const [formData, setFormData] = useState({
         clientName: '',
+        clientEmail: '',
+        clientPhone: '',
         tipoTrabajo: '',
         customTipoTrabajo: '',
         tipoServicio: 'modalidad1', // modalidad1 (100%), modalidad2 (75%), correccion (50%)
@@ -348,6 +350,8 @@ const SalesQuote = () => {
             const prices = calculatePrices();
             const quoteData = {
                 clientName: formData.clientName,
+                clientEmail: formData.clientEmail,
+                clientPhone: formData.clientPhone,
                 tipoTrabajo: tipoTrabajoParaPDF,
                 tipoServicio: formData.tipoServicio,
                 tituloTrabajo: formData.tituloTrabajo,
@@ -485,9 +489,17 @@ const SalesQuote = () => {
                                         <div className="form-section">
                                             <div className="section-title"><FaUser className="me-1" /> Cliente y Proyecto</div>
                                             <Row className="g-2">
-                                                <Col xs={12}>
+                                                <Col xs={12} md={6}>
                                                     <div className="micro-label">Cliente *</div>
                                                     <Form.Control size="sm" type="text" placeholder="Nombre del cliente" value={formData.clientName} onChange={(e) => handleInputChange('clientName', e.target.value)} />
+                                                </Col>
+                                                <Col xs={6} md={3}>
+                                                    <div className="micro-label">Email</div>
+                                                    <Form.Control size="sm" type="email" placeholder="correo@ejemplo.com" value={formData.clientEmail} onChange={(e) => handleInputChange('clientEmail', e.target.value)} />
+                                                </Col>
+                                                <Col xs={6} md={3}>
+                                                    <div className="micro-label">Teléfono</div>
+                                                    <Form.Control size="sm" type="tel" placeholder="55 1234 5678" value={formData.clientPhone} onChange={(e) => handleInputChange('clientPhone', e.target.value)} />
                                                 </Col>
                                                 <Col xs={6}>
                                                     <div className="micro-label">Tipo de Trabajo *</div>
