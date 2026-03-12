@@ -20,6 +20,7 @@
   padding: 12px 20px;
   background: #075e54;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .wa-header-title {
@@ -71,6 +72,7 @@
   padding: 10px 12px;
   background: #f6f6f6;
   border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 .wa-search-icon {
@@ -270,6 +272,7 @@
   align-items: center;
   justify-content: center;
   color: #6b7c85;
+  flex-shrink: 0;
 }
 
 .wa-chat-header-name {
@@ -309,6 +312,25 @@
 .wa-human-toggle {
   font-size: 0.8rem;
   white-space: nowrap;
+}
+
+/* Botón volver (mobile) */
+.wa-back-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #075e54;
+  font-size: 1.1rem;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.wa-back-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* Mensajes */
@@ -525,7 +547,7 @@
   background: #f0f0f0;
   padding: 8px 16px;
   border-top: 1px solid #d0d0d0;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .wa-file-info {
@@ -579,7 +601,7 @@
 
 .wa-attach-btn {
   color: #54656f;
-  background: #f0f0f0;
+  background: transparent;
   border: none;
 }
 .wa-attach-btn:hover {
@@ -609,15 +631,26 @@
 }
 
 /* ============================================
-   Responsive
+   Responsive — Mobile
    ============================================ */
 @media (max-width: 768px) {
   .wa-panel {
     height: calc(100vh - 80px);
+    border-radius: 0;
   }
 
+  .wa-header {
+    padding: 10px 14px;
+  }
+
+  .wa-header-title h2 {
+    font-size: 0.95rem;
+  }
+
+  /* En mobile: lista ocupa todo, chat se muestra encima */
   .wa-conversations-col {
     max-width: 100%;
+    flex: 1;
   }
 
   .wa-chat-col {
@@ -626,21 +659,97 @@
 
   .wa-chat-col.wa-chat-active {
     display: flex;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 100;
-    max-height: 100vh;
+    z-index: 10;
+    max-height: 100%;
+  }
+
+  /* Hacer el body relative para el chat absolute */
+  .wa-body {
+    position: relative;
+  }
+
+  /* Mostrar botón volver en mobile */
+  .wa-back-btn {
+    display: flex;
+  }
+
+  /* Chat header mobile */
+  .wa-chat-header {
+    padding: 8px 10px;
+    flex-wrap: nowrap;
   }
 
   .wa-chat-header-actions {
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
   }
 
+  .wa-lead-info-pills {
+    display: none;
+  }
+
+  .wa-human-toggle {
+    font-size: 0.75rem;
+  }
+
+  /* Mensajes */
   .wa-message {
     max-width: 90%;
+  }
+
+  .wa-messages-container {
+    padding: 10px;
+  }
+
+  .wa-message-input-container {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .wa-message-input {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .wa-send-btn,
+  .wa-attach-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .wa-media-img {
+    max-width: 180px;
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wa-panel {
+    height: calc(100vh - 60px);
+  }
+
+  .wa-conversation-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .wa-conv-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .wa-chat-header-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .wa-chat-header-name {
+    font-size: 0.85rem;
   }
 }

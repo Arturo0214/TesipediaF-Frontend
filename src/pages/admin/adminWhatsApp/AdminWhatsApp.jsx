@@ -16,6 +16,7 @@ import {
   FaPaperclip,
   FaTimes,
   FaFile,
+  FaArrowLeft,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -405,7 +406,7 @@ const AdminWhatsApp = () => {
         </Col>
 
         {/* Panel de chat */}
-        <Col md={8} className="wa-chat-col">
+        <Col md={8} className={`wa-chat-col ${selectedLead ? 'wa-chat-active' : ''}`}>
           {!selectedLead ? (
             <div className="wa-no-chat-selected">
               <FaWhatsapp size={64} />
@@ -417,6 +418,9 @@ const AdminWhatsApp = () => {
               {/* Header del chat */}
               <div className="wa-chat-header">
                 <div className="wa-chat-header-info">
+                  <button className="wa-back-btn" onClick={() => setSelectedLead(null)}>
+                    <FaArrowLeft />
+                  </button>
                   <div className="wa-chat-header-avatar"><FaUser /></div>
                   <div>
                     <div className="wa-chat-header-name">{selectedLead.nombre || 'Cliente'}</div>

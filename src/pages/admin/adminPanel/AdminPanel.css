@@ -617,51 +617,17 @@
     margin-top: 1.5rem;
 }
 
-/* ===== CORRECCIONES PARA DROPDOWNS ===== */
-
-/* Asegurar que los dropdowns en el panel de administración sean visibles */
-.admin-panel-content .dropdown-menu,
-.admin-panel-content [class*="dropdown"],
-.admin-panel-content [class*="menu"],
-.admin-panel-content [class*="popover"],
-.admin-panel-content [class*="tooltip"],
-.admin-panel-content [class*="modal"],
-.admin-panel-content [class*="dialog"],
-.admin-panel-content [class*="overlay"],
-.admin-panel-content [class*="popup"] {
-    position: absolute !important;
-    z-index: 9999 !important;
-    pointer-events: auto !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-    overflow: visible !important;
+/* ===== DROPDOWNS ===== */
+.admin-panel-content .dropdown-menu {
+    z-index: 1030;
 }
 
-/* Asegurar que los botones que abren dropdowns sean clickeables */
-.admin-panel-content button,
-.admin-panel-content .btn,
-.admin-panel-content [class*="button"],
-.admin-panel-content [class*="btn"] {
-    position: relative !important;
-    z-index: 9998 !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
+.modal {
+    z-index: 1050;
 }
 
-/* Asegurar que los elementos dentro de los dropdowns sean clickeables */
-.admin-panel-content .dropdown-menu *,
-.admin-panel-content [class*="dropdown"] *,
-.admin-panel-content [class*="menu"] *,
-.admin-panel-content [class*="popover"] *,
-.admin-panel-content [class*="tooltip"] *,
-.admin-panel-content [class*="modal"] *,
-.admin-panel-content [class*="dialog"] *,
-.admin-panel-content [class*="overlay"] *,
-.admin-panel-content [class*="popup"] * {
-    position: relative !important;
-    z-index: 10000 !important;
-    pointer-events: auto !important;
+.modal-backdrop {
+    z-index: 1040;
 }
 
 @media (max-width: 768px) {

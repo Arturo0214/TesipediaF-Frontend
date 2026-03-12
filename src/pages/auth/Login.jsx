@@ -21,7 +21,7 @@ const Login = () => {
 
   const { email, password } = formData;
 
-  const { user, isLoading, isError, isSuccess, message } = useSelector(
+  const { user, isLoading, isError, isSuccess, isAdmin, message } = useSelector(
     (state) => state.auth
   );
 
@@ -55,12 +55,14 @@ const Login = () => {
           });
       } else {
         // Si no hay publicId, redirigir a la ruta original
-        const { from } = location.state || { from: { pathname: '/dashboard' } };
+        // Admins van al panel de admin por defecto
+        const defaultPath = isAdmin ? '/admin' : '/dashboard';
+        const { from } = location.state || { from: { pathname: defaultPath } };
         navigate(from.pathname);
       }
       dispatch(reset());
     }
-  }, [user, isError, isSuccess, message, navigate, dispatch, location]);
+  }, [user, isError, isSuccess, isAdmin, message, navigate, dispatch, location]);
 
   const onChange = (e) => {
     setFormData((prevState) => ({
