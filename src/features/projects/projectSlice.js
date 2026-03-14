@@ -114,6 +114,19 @@ export const addComment = createAsyncThunk(
     }
 );
 
+// Update project (general - priority, color, kanbanOrder, etc.)
+export const updateProject = createAsyncThunk(
+    'projects/updateProject',
+    async ({ projectId, data }, thunkAPI) => {
+        try {
+            return await projectService.updateProject(projectId, data);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 const projectSlice = createSlice({
     name: 'projects',
     initialState,
@@ -225,6 +238,17 @@ const projectSlice = createSlice({
             // Add comment
             .addCase(addComment.fulfilled, (state, action) => {
                 state.isSuccess = true;
+                if (state.currentProject?._id === action.payload._id) {
+                    state.currentProject = action.payload;
+                }
+            })
+            // Update project (general)
+            .addCase(updateProject.fulfilled, (state, action) => {
+                state.isSuccess = true;
+                const index = state.projects.findIndex(p => p._id === action.payload._id);
+                if (index !== -1) {
+                    state.projects[index] = action.payload;
+                }
                 if (state.currentProject?._id === action.payload._id) {
                     state.currentProject = action.payload;
                 }
