@@ -22,6 +22,7 @@ function ManagePayments() {
     const [expandedPayment, setExpandedPayment] = useState(null);
     const [chartPeriod, setChartPeriod] = useState('monthly');
     const [currentPage, setCurrentPage] = useState(1);
+    const [calMonth, setCalMonth] = useState(new Date());
     const [showAddModal, setShowAddModal] = useState(false);
     const [addingPayment, setAddingPayment] = useState(false);
     const [newPayment, setNewPayment] = useState({
@@ -259,6 +260,78 @@ function ManagePayments() {
                     )}
                 </div>
             </div>
+
+            {/* ===== PAYMENT CALENDAR ===== */}
+            {(() => {
+                const year = calMonth.getFullYear();
+                const month = calMonth.getMonth();
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startingDow = firstDay.getDay();
+
+                const calDays = [];
+                for (let i = 0; i < startingDow; i++) calDays.push(null);
+                for (let i = 1; i <= daysInMonth; i++) calDays.push(new Date(year, month, i));
+
+                const dayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+                return (
+                    <div className="mp-pay-calendar-section">
+                        <div className="mp-pay-cal-header">
+                            <h3><FaCalendarAlt /> Calendario de Pagos</h3>
+                            <div className="mp-pay-cal-nav">
+                                <button onClick={() => setCalMonth(new Date(year, month - 1))}><FaChevronLeft /></button>
+                                <span className="mp-pay-cal-month">
+                                    {calMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                </span>
+                                <button onClick={() => setCalMonth(new Date(year, month + 1))}><FaChevronRight /></button>
+                            </div>
+                        </div>
+                        <div className="mp-pay-cal-grid">
+                            {dayLabels.map(d => (
+                                <div key={d} className="mp-pay-cal-day-header">{d}</div>
+                            ))}
+                            {calDays.map((day, idx) => {
+                                const isToday = day && day.toDateString() === new Date().toDateString();
+                                const installmentsOnDay = day ? allInstallments.filter(inst =>
+                                    inst.dueDate && new Date(inst.dueDate).toDateString() === day.toDateString()
+                                ) : [];
+                                const paymentsOnDay = day ? payments.filter(p =>
+                                    p.date && new Date(p.date).toDateString() === day.toDateString()
+                                ) : [];
+                                const dayTotal = [...installmentsOnDay.map(i => i.amount), ...paymentsOnDay.filter(p => !installmentsOnDay.length).map(p => p.amount)]
+                                    .reduce((s, a) => s + (a || 0), 0);
+
+                                return (
+                                    <div key={idx} className={`mp-pay-cal-day ${isToday ? 'today' : ''} ${!day ? 'empty' : ''}`}>
+                                        {day && <span className="mp-pay-cal-day-num">{day.getDate()}</span>}
+                                        <div className="mp-pay-cal-events">
+                                            {installmentsOnDay.slice(0, 3).map((inst, i) => (
+                                                <div key={i} className="mp-pay-cal-chip installment">
+                                                    <strong>{inst.clientName?.split(' ')[0]}</strong>
+                                                    <span>{formatMoney(inst.amount)}</span>
+                                                </div>
+                                            ))}
+                                            {paymentsOnDay.length > 0 && installmentsOnDay.length === 0 && paymentsOnDay.slice(0, 3).map((p, i) => (
+                                                <div key={i} className={`mp-pay-cal-chip source-${p.source}`}>
+                                                    <strong>{p.clientName?.split(' ')[0]}</strong>
+                                                    <span>{formatMoney(p.amount)}</span>
+                                                </div>
+                                            ))}
+                                            {(installmentsOnDay.length > 3 || (installmentsOnDay.length === 0 && paymentsOnDay.length > 3)) && (
+                                                <div className="mp-pay-cal-more">
+                                                    +{Math.max(installmentsOnDay.length, paymentsOnDay.length) - 3} más
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* ===== UPCOMING INSTALLMENTS ===== */}
             {upcoming.length > 0 && (
