@@ -15,6 +15,7 @@ import {
     FaBell,
     FaSignOutAlt,
     FaBars,
+    FaTimes,
     FaWhatsapp,
     FaCalculator,
     FaHubspot
@@ -326,13 +327,13 @@ const AdminPanel = () => {
 
     return (
         <div className="tesipedia-admin-panel">
-            {/* Botón hamburguesa solo en mobile */}
+            {/* Botón menú solo en mobile */}
             <button
-                className="tesipedia-admin-sidebar-toggle"
+                className={`tesipedia-admin-sidebar-toggle${isSidebarOpen ? ' active' : ''}`}
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                aria-label="Abrir menú"
+                aria-label={isSidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
             >
-                <FaBars />
+                {isSidebarOpen ? <FaTimes /> : <FaBars />}
             </button>
             {/* Overlay oscuro cuando el sidebar está abierto en mobile */}
             {isSidebarOpen && <div className="tesipedia-admin-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
