@@ -1,5 +1,6 @@
 /* ============================================
    ManagePayments — Pagos e Ingresos Dashboard
+   Single-page layout with chart sections
    ============================================ */
 
 .mp-pay {
@@ -37,7 +38,7 @@
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .spinning { animation: spin 1s linear infinite; }
 
-/* Header */
+/* ===== HEADER ===== */
 .mp-pay-header {
   display: flex;
   align-items: center;
@@ -74,10 +75,10 @@
 }
 .mp-pay-refresh:hover { background: #f3f4f6; }
 
-/* Summary Cards */
+/* ===== SUMMARY CARDS ===== */
 .mp-pay-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -125,7 +126,362 @@
   margin: 4px 0 0;
 }
 
-/* Upcoming Installments */
+/* ===== CHARTS SECTION ===== */
+.mp-pay-charts-section {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.mp-pay-chart-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.mp-pay-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.mp-pay-chart-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mp-pay-chart-title-group h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mp-pay-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.mp-pay-trend.up { background: #dcfce7; color: #16a34a; }
+.mp-pay-trend.down { background: #fee2e2; color: #dc2626; }
+
+.mp-pay-chart-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mp-pay-toggle-group {
+  display: flex;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mp-pay-toggle-group button {
+  padding: 6px 14px;
+  border: none;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-right: 1px solid #e5e7eb;
+}
+.mp-pay-toggle-group button:last-child { border-right: none; }
+.mp-pay-toggle-group button:hover { background: #f9fafb; }
+.mp-pay-toggle-group button.active {
+  background: #3b82f6;
+  color: #fff;
+}
+
+/* Chart area with Y-axis */
+.mp-pay-chart-area {
+  display: flex;
+  gap: 8px;
+  height: 250px;
+}
+
+.mp-pay-chart-yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 4px 24px 0;
+  min-width: 70px;
+}
+
+.mp-pay-chart-yaxis span {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.mp-pay-chart-bars-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.mp-pay-chart-gridlines {
+  position: absolute;
+  inset: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.mp-pay-gridline {
+  border-bottom: 1px dashed #f3f4f6;
+  width: 100%;
+}
+
+.mp-pay-chart-bars {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: calc(100% - 24px);
+  padding-bottom: 24px;
+  position: relative;
+}
+
+.mp-pay-chart-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.mp-pay-chart-bar-wrapper {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.mp-pay-chart-bar {
+  width: 100%;
+  max-width: 48px;
+  border-radius: 6px 6px 0 0;
+  position: relative;
+  min-height: 4px;
+  transition: height 0.4s ease;
+  cursor: pointer;
+}
+
+.mp-pay-chart-bar.ingreso {
+  background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
+}
+.mp-pay-chart-bar.comision {
+  background: linear-gradient(180deg, #ea580c 0%, #fb923c 100%);
+}
+
+.mp-pay-chart-bar.ingreso:hover { background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%); }
+.mp-pay-chart-bar.comision:hover { background: linear-gradient(180deg, #c2410c 0%, #ea580c 100%); }
+
+.mp-pay-chart-bar-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.4;
+  z-index: 10;
+  pointer-events: none;
+}
+.mp-pay-chart-bar-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+.mp-pay-chart-bar:hover .mp-pay-chart-bar-tooltip { display: block; }
+
+.mp-pay-chart-bar-label {
+  font-size: 0.65rem;
+  color: #6b7280;
+  margin-top: 6px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.mp-pay-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 60px 20px;
+  color: #d1d5db;
+}
+.mp-pay-chart-empty svg { font-size: 2rem; }
+.mp-pay-chart-empty p { font-size: 0.85rem; color: #9ca3af; margin: 0; }
+
+/* ===== SIDE CHART — Source breakdown ===== */
+.mp-pay-chart-side h3 {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mp-pay-source-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.mp-pay-source-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mp-pay-source-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #374151;
+  font-weight: 500;
+}
+.mp-pay-source-label svg { font-size: 0.85rem; color: #6b7280; }
+
+.mp-pay-source-bar-track {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mp-pay-source-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.mp-pay-source-bar-fill.source-stripe { background: #6366f1; }
+.mp-pay-source-bar-fill.source-sofia { background: #3b82f6; }
+.mp-pay-source-bar-fill.source-guest { background: #8b5cf6; }
+
+.mp-pay-source-values {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.mp-pay-source-values strong { font-size: 0.82rem; color: #1f2937; }
+.mp-pay-source-values span { font-size: 0.72rem; color: #9ca3af; }
+
+.mp-pay-no-data {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  padding: 20px 0;
+}
+
+/* Split visual — Comisión vs Neto */
+.mp-pay-split-visual {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 16px;
+}
+
+.mp-pay-split-visual h4 {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.mp-pay-split-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mp-pay-split-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mp-pay-split-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.mp-pay-split-color.neto { background: #3b82f6; }
+.mp-pay-split-color.comision { background: #ea580c; }
+
+.mp-pay-split-label {
+  font-size: 0.72rem;
+  color: #6b7280;
+  display: block;
+}
+
+.mp-pay-split-item strong {
+  font-size: 0.82rem;
+  color: #1f2937;
+}
+
+.mp-pay-split-bar-track {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.mp-pay-split-bar-neto {
+  background: #3b82f6;
+  height: 100%;
+  transition: width 0.4s ease;
+}
+.mp-pay-split-bar-comision {
+  background: #ea580c;
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+/* ===== UPCOMING INSTALLMENTS ===== */
 .mp-pay-upcoming {
   background: #fffbeb;
   border: 1px solid #fde68a;
@@ -190,11 +546,34 @@
   margin: 8px 0 0;
 }
 
+/* ===== PAYMENTS TABLE SECTION ===== */
+.mp-pay-table-section {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+.mp-pay-table-header {
+  padding: 20px 20px 0;
+}
+
+.mp-pay-table-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Filters */
 .mp-pay-filters {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  padding: 16px 20px;
   flex-wrap: wrap;
 }
 
@@ -202,7 +581,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 0 12px;
@@ -225,7 +604,7 @@
   padding: 10px 14px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: #fff;
+  background: #f9fafb;
   font-size: 0.85rem;
   color: #374151;
   cursor: pointer;
@@ -233,11 +612,7 @@
 
 /* Table */
 .mp-pay-table-container {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
   overflow-x: auto;
-  margin-bottom: 24px;
 }
 
 .mp-pay-table {
@@ -255,6 +630,7 @@
   letter-spacing: 0.5px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  border-top: 1px solid #e5e7eb;
   white-space: nowrap;
 }
 
@@ -419,88 +795,42 @@
   font-size: 0.9rem;
 }
 
-/* Monthly Revenue Chart */
-.mp-pay-monthly {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 20px;
-}
-
-.mp-pay-monthly h3 {
-  margin: 0 0 20px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mp-pay-bars {
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-  height: 200px;
-}
-
-.mp-pay-bar-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  height: 100%;
-}
-
-.mp-pay-bar-wrapper {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.mp-pay-bar {
-  width: 100%;
-  max-width: 60px;
-  background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
-  border-radius: 8px 8px 0 0;
-  position: relative;
-  min-height: 8px;
-  transition: height 0.3s ease;
-}
-
-.mp-pay-bar-val {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: #1f2937;
-  white-space: nowrap;
-}
-
-.mp-pay-bar-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #374151;
-  text-transform: capitalize;
-}
-
-.mp-pay-bar-count {
-  font-size: 0.65rem;
-  color: #9ca3af;
-}
-
 /* ============================================
    RESPONSIVE
    ============================================ */
 
+@media (max-width: 1200px) {
+  .mp-pay-charts-section {
+    grid-template-columns: 1fr;
+  }
+  .mp-pay-chart-side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .mp-pay-chart-side h3 {
+    grid-column: 1 / -1;
+  }
+  .mp-pay-split-visual {
+    border-top: none;
+    border-left: 1px solid #f3f4f6;
+    padding-top: 0;
+    padding-left: 20px;
+  }
+}
+
 @media (max-width: 992px) {
   .mp-pay-summary {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .mp-pay-chart-side {
+    grid-template-columns: 1fr;
+  }
+  .mp-pay-split-visual {
+    border-left: none;
+    border-top: 1px solid #f3f4f6;
+    padding-left: 0;
+    padding-top: 16px;
   }
 }
 
@@ -515,12 +845,29 @@
   .mp-pay-card { padding: 14px; }
   .mp-pay-card-value { font-size: 1.2rem; }
 
+  .mp-pay-chart-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mp-pay-chart-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .mp-pay-chart-area {
+    height: 200px;
+  }
+
+  .mp-pay-chart-yaxis {
+    min-width: 55px;
+  }
+
   .mp-pay-filters {
     flex-direction: column;
   }
 
   .mp-pay-search { min-width: 100%; }
-
   .mp-pay-filters select { width: 100%; }
 
   .mp-pay-table thead th,
@@ -535,9 +882,6 @@
 
   .mp-pay-installment { min-width: 100%; }
 
-  .mp-pay-bars { height: 150px; gap: 8px; }
-  .mp-pay-bar-val { font-size: 0.55rem; }
-
   .mp-pay-upcoming-item {
     flex-wrap: wrap;
     gap: 8px;
@@ -548,4 +892,13 @@
   .mp-pay-card-icon { width: 40px; height: 40px; font-size: 1.1rem; }
   .mp-pay-card-value { font-size: 1.1rem; }
   .mp-pay-card-label { font-size: 0.7rem; }
+
+  .mp-pay-toggle-group button {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+  }
+
+  .mp-pay-chart-bar-label {
+    font-size: 0.55rem;
+  }
 }
