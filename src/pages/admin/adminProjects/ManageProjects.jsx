@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllProjects, updateProjectStatus, updateProgress, addComment } from '../../../features/projects/projectSlice';
 import axiosWithAuth from '../../../utils/axioswithAuth';
-import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt } from 'react-icons/fa';
+import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt } from 'react-icons/fa';
 import './ManageProjects.css';
 
 function ManageProjects() {
@@ -12,6 +12,7 @@ function ManageProjects() {
     const [view, setView] = useState('kanban'); // kanban, calendar, list
     const [searchTerm, setSearchTerm] = useState('');
     const [googleConnected, setGoogleConnected] = useState(false);
+    const [googleEmail, setGoogleEmail] = useState('');
     const [selectedProject, setSelectedProject] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -19,12 +20,25 @@ function ManageProjects() {
     const [draggedCard, setDraggedCard] = useState(null);
     const [commentText, setCommentText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [syncingProject, setSyncingProject] = useState(null);
+    const [lastSync, setLastSync] = useState(null);
 
     // Load projects on mount
     useEffect(() => {
         dispatch(getAllProjects());
         checkGoogleConnection();
     }, [dispatch]);
+
+    // Check URL params for google=connected
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('google') === 'connected') {
+            setGoogleConnected(true);
+            checkGoogleConnection();
+            // Clean the URL
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, []);
 
     // Fetch Google events for the current month
     useEffect(() => {
@@ -37,6 +51,9 @@ function ManageProjects() {
         try {
             const response = await axiosWithAuth.get('/google/connection-status');
             setGoogleConnected(response.data.connected || false);
+            if (response.data.email) {
+                setGoogleEmail(response.data.email);
+            }
         } catch (err) {
             setGoogleConnected(false);
         }
@@ -47,7 +64,10 @@ function ManageProjects() {
             const timeMin = new Date(year, month, 1).toISOString();
             const timeMax = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
             const response = await axiosWithAuth.get(`/google/events?timeMin=${timeMin}&timeMax=${timeMax}`);
-            setGoogleEvents(response.data || []);
+            // Google Calendar API returns { items: [...] } or the data directly
+            const events = response.data?.items || response.data || [];
+            setGoogleEvents(Array.isArray(events) ? events : []);
+            setLastSync(new Date());
         } catch (err) {
             // Silently fail if Google Calendar not connected
         }
@@ -62,6 +82,23 @@ function ManageProjects() {
         } catch (err) {
             console.error('Error connecting Google Calendar:', err);
         }
+    };
+
+    const handleSyncProject = async (projectId) => {
+        setSyncingProject(projectId);
+        try {
+            await axiosWithAuth.post(`/google/sync-project/${projectId}`);
+            await fetchGoogleEvents(currentMonth.getFullYear(), currentMonth.getMonth());
+        } catch (err) {
+            console.error('Error syncing project:', err);
+        }
+        setSyncingProject(null);
+    };
+
+    const handleRefreshEvents = async () => {
+        setLoading(true);
+        await fetchGoogleEvents(currentMonth.getFullYear(), currentMonth.getMonth());
+        setLoading(false);
     };
 
     const filteredProjects = projects.filter((project) => {
@@ -178,6 +215,9 @@ function ManageProjects() {
         return (
             <div className="mp-calendar">
                 <div className="mp-cal-header">
+                    <h2 className="mp-cal-title">
+                        {googleConnected ? 'Calendario de Arturo' : 'Calendario de Proyectos'}
+                    </h2>
                     <div className="mp-cal-nav">
                         <button onClick={() => setCurrentMonth(new Date(year, month - 1))}>
                             <FaChevronLeft />
@@ -516,11 +556,38 @@ function ManageProjects() {
                         <div className="mp-modal-section">
                             <h3 className="mp-section-title">Google Calendar</h3>
                             {googleConnected ? (
-                                <button className="mp-btn mp-btn-secondary">
-                                    <FaGoogle /> Sincronizar con Google Calendar
-                                </button>
+                                <div className="mp-gcal-sync-section">
+                                    {selectedProject.googleCalendarEventId ? (
+                                        <div className="mp-gcal-synced">
+                                            <FaCheckCircle className="mp-gcal-synced-icon" />
+                                            <span>Sincronizado con Google Calendar</span>
+                                            <button
+                                                className="mp-btn mp-btn-secondary mp-btn-sm"
+                                                onClick={() => handleSyncProject(selectedProject._id)}
+                                                disabled={syncingProject === selectedProject._id}
+                                            >
+                                                <FaSync className={syncingProject === selectedProject._id ? 'spinning' : ''} />
+                                                {syncingProject === selectedProject._id ? 'Actualizando...' : 'Actualizar evento'}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            className="mp-btn mp-btn-secondary"
+                                            onClick={() => handleSyncProject(selectedProject._id)}
+                                            disabled={syncingProject === selectedProject._id}
+                                        >
+                                            <FaGoogle />
+                                            {syncingProject === selectedProject._id ? 'Sincronizando...' : 'Sincronizar con Google Calendar'}
+                                        </button>
+                                    )}
+                                </div>
                             ) : (
-                                <p className="mp-no-connection">Google Calendar no conectado</p>
+                                <div className="mp-gcal-not-connected">
+                                    <p>Google Calendar no conectado</p>
+                                    <button className="mp-btn mp-btn-secondary mp-btn-sm" onClick={handleConnectGoogle}>
+                                        <FaGoogle /> Conectar ahora
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -577,15 +644,49 @@ function ManageProjects() {
                         />
                     </div>
 
-                    <button
-                        className={`mp-google-btn ${googleConnected ? 'connected' : ''}`}
-                        onClick={handleConnectGoogle}
-                    >
-                        <FaGoogle />
-                        {googleConnected ? 'Conectado' : 'Conectar Google Calendar'}
-                    </button>
+                    {googleConnected ? (
+                        <div className="mp-google-status">
+                            <FaCheckCircle className="mp-google-check" />
+                            <span>Google Calendar conectado</span>
+                        </div>
+                    ) : (
+                        <button
+                            className="mp-google-btn"
+                            onClick={handleConnectGoogle}
+                        >
+                            <FaGoogle />
+                            Conectar Google Calendar
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {/* Google Calendar Connected Banner */}
+            {googleConnected && (
+                <div className="mp-google-banner">
+                    <div className="mp-google-banner-left">
+                        <FaGoogle className="mp-google-banner-icon" />
+                        <div>
+                            <h3>Calendario de Arturo</h3>
+                            {googleEmail && <span className="mp-google-email">{googleEmail}</span>}
+                        </div>
+                    </div>
+                    <div className="mp-google-banner-right">
+                        {lastSync && (
+                            <span className="mp-last-sync">
+                                Última sincronización: {lastSync.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        )}
+                        <button className="mp-refresh-btn" onClick={handleRefreshEvents} disabled={loading}>
+                            <FaSync className={loading ? 'spinning' : ''} />
+                            {loading ? 'Sincronizando...' : 'Actualizar'}
+                        </button>
+                        {googleEvents.length > 0 && (
+                            <span className="mp-event-count">{googleEvents.length} eventos este mes</span>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {view === 'kanban' && renderKanbanView()}
             {view === 'calendar' && renderCalendarView()}

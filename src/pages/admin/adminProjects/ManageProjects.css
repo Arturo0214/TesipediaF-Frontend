@@ -1113,6 +1113,180 @@
 }
 
 /* ============================================
+   GOOGLE CALENDAR CONNECTED BANNER
+   ============================================ */
+
+.mp-google-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border: 1px solid #a5d6a7;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.mp-google-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mp-google-banner-icon {
+  font-size: 1.6rem;
+  color: #4285f4;
+  background: white;
+  padding: 8px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.2);
+}
+
+.mp-google-banner-left h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1b5e20;
+}
+
+.mp-google-email {
+  font-size: 0.8rem;
+  color: #558b2f;
+}
+
+.mp-google-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mp-last-sync {
+  font-size: 0.75rem;
+  color: #689f38;
+}
+
+.mp-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid #81c784;
+  background: white;
+  border-radius: 8px;
+  color: #2e7d32;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.mp-refresh-btn:hover {
+  background: #e8f5e9;
+  border-color: #66bb6a;
+}
+
+.mp-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mp-event-count {
+  font-size: 0.78rem;
+  background: #2e7d32;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Google Status in Header */
+.mp-google-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.mp-google-check {
+  color: #2e7d32;
+  font-size: 1rem;
+}
+
+/* Calendar Title */
+.mp-cal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+/* Google Calendar Sync Section in Modal */
+.mp-gcal-sync-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mp-gcal-synced {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 0.88rem;
+}
+
+.mp-gcal-synced-icon {
+  color: #2e7d32;
+  font-size: 1.1rem;
+}
+
+.mp-gcal-not-connected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff3e0;
+  border-radius: 8px;
+  color: #e65100;
+  font-size: 0.88rem;
+}
+
+.mp-gcal-not-connected p {
+  margin: 0;
+}
+
+.mp-btn-sm {
+  padding: 5px 12px !important;
+  font-size: 0.78rem !important;
+}
+
+/* Google Event Chip Improvements */
+.mp-cal-event-chip.google-event {
+  background: #e8f0fe;
+  border-left-color: #4285f4;
+  color: #1a73e8;
+}
+
+/* ============================================
    PRINT STYLES
    ============================================ */
 
@@ -1120,6 +1294,7 @@
   .mp-header,
   .mp-search,
   .mp-google-btn,
+  .mp-google-banner,
   .mp-modal-overlay {
     display: none;
   }
