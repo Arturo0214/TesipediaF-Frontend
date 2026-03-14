@@ -6,6 +6,9 @@
   padding: 20px;
   background: #f5f7fa;
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ── Header Section ── */
@@ -337,13 +340,18 @@
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   padding: 20px;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .mp-cal-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .mp-cal-nav {
@@ -383,8 +391,9 @@
 
 .mp-cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 100%;
 }
 
 .mp-cal-day-header {
@@ -892,6 +901,19 @@
     min-height: 80px;
   }
 
+  .mp-google-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mp-google-banner-right {
+    flex-wrap: wrap;
+  }
+
+  .mp-cal-title {
+    font-size: 1rem;
+  }
+
   .mp-table {
     font-size: 0.8rem;
   }
@@ -930,8 +952,19 @@
     max-width: none;
   }
 
-  .mp-google-btn {
+  .mp-google-btn,
+  .mp-google-status {
     width: 100%;
+    justify-content: center;
+  }
+
+  .mp-google-banner-left h3 {
+    font-size: 0.9rem;
+  }
+
+  .mp-google-banner-right {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .mp-kanban {
@@ -1126,6 +1159,9 @@
   padding: 14px 20px;
   margin-bottom: 20px;
   gap: 16px;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .mp-google-banner-left {
