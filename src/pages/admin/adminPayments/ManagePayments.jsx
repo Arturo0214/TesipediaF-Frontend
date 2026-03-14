@@ -2,12 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import {
     FaDollarSign, FaChartLine, FaUsers, FaCalendarAlt,
-    FaSearch, FaChevronDown, FaChevronUp, FaSync,
+    FaSearch, FaChevronDown, FaChevronUp, FaSync, FaPlus, FaTimes,
     FaCreditCard, FaMoneyBillWave, FaPercentage,
     FaExclamationTriangle, FaCheckCircle, FaClock, FaFileInvoiceDollar,
-    FaChartBar, FaChartArea, FaArrowUp, FaArrowDown
+    FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 import './ManagePayments.css';
+
+const ITEMS_PER_PAGE = 10;
 
 function ManagePayments() {
     const [dashboardData, setDashboardData] = useState(null);
@@ -17,12 +20,16 @@ function ManagePayments() {
     const [filterEsquema, setFilterEsquema] = useState('all');
     const [filterSource, setFilterSource] = useState('all');
     const [expandedPayment, setExpandedPayment] = useState(null);
-    const [chartPeriod, setChartPeriod] = useState('monthly'); // daily, weekly, monthly
-    const [chartType, setChartType] = useState('ingresos'); // ingresos, comisiones
+    const [chartPeriod, setChartPeriod] = useState('monthly');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addingPayment, setAddingPayment] = useState(false);
+    const [newPayment, setNewPayment] = useState({
+        clientName: '', clientEmail: '', title: '',
+        amount: '', method: 'transferencia', esquemaPago: 'Pago único', notes: ''
+    });
 
-    useEffect(() => {
-        fetchDashboard();
-    }, []);
+    useEffect(() => { fetchDashboard(); }, []);
 
     const fetchDashboard = async () => {
         setLoading(true);
@@ -36,119 +43,87 @@ function ManagePayments() {
         setLoading(false);
     };
 
-    const formatMoney = (amount) => {
-        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount || 0);
+    const handleAddPayment = async (e) => {
+        e.preventDefault();
+        if (!newPayment.clientName || !newPayment.amount || !newPayment.title) {
+            toast.error('Completa los campos obligatorios');
+            return;
+        }
+        setAddingPayment(true);
+        try {
+            await axiosWithAuth.post('/payments/manual', newPayment);
+            toast.success('Pago registrado correctamente');
+            setShowAddModal(false);
+            setNewPayment({ clientName: '', clientEmail: '', title: '', amount: '', method: 'transferencia', esquemaPago: 'Pago único', notes: '' });
+            fetchDashboard();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al registrar pago');
+        }
+        setAddingPayment(false);
     };
+
+    const formatMoney = (amount) =>
+        new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount || 0);
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';
         return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
-    const getSourceLabel = (source) => {
-        const labels = { stripe: 'Stripe', sofia: 'Sofia', guest: 'Invitado' };
-        return labels[source] || source;
-    };
-
+    const getSourceLabel = (source) => ({ stripe: 'Stripe', sofia: 'Sofia', guest: 'Invitado', manual: 'Manual' }[source] || source);
     const getSourceIcon = (source) => {
         if (source === 'stripe') return <FaCreditCard />;
         if (source === 'sofia') return <FaFileInvoiceDollar />;
+        if (source === 'manual') return <FaMoneyBillWave />;
         return <FaUsers />;
     };
-
-    const getEsquemaLabel = (esquema) => {
-        const labels = {
-            'unico': 'Pago único',
-            '50-50': '50% - 50%',
-            '33-33-34': '33% - 33% - 34%',
-            '6-quincenas': '6 Quincenas',
-            '6-msi': '6 MSI'
-        };
-        return labels[esquema] || esquema;
-    };
+    const getEsquemaLabel = (esquema) => ({
+        'unico': 'Pago único', '50-50': '50% - 50%', '33-33-34': '33-33-34%',
+        '6-quincenas': '6 Quincenas', '6-msi': '6 MSI'
+    }[esquema] || esquema);
 
     const getStatusBadge = (status) => {
         const map = {
-            completed: { label: 'Completado', cls: 'mp-pay-badge-success' },
-            paid: { label: 'Pagado', cls: 'mp-pay-badge-success' },
-            pendiente: { label: 'Pendiente', cls: 'mp-pay-badge-warning' },
-            pending: { label: 'Pendiente', cls: 'mp-pay-badge-warning' },
-            failed: { label: 'Fallido', cls: 'mp-pay-badge-danger' },
-            cancelled: { label: 'Cancelado', cls: 'mp-pay-badge-danger' },
-            refunded: { label: 'Reembolsado', cls: 'mp-pay-badge-info' },
+            completed: { label: 'Completado', cls: 'success' },
+            paid: { label: 'Pagado', cls: 'success' },
+            pending: { label: 'Pendiente', cls: 'warning' },
+            failed: { label: 'Fallido', cls: 'danger' },
+            cancelled: { label: 'Cancelado', cls: 'danger' },
+            refunded: { label: 'Reembolsado', cls: 'info' },
         };
-        const info = map[status] || { label: status, cls: 'mp-pay-badge-default' };
-        return <span className={`mp-pay-badge ${info.cls}`}>{info.label}</span>;
+        const info = map[status] || { label: status, cls: 'default' };
+        return <span className={`mp-pay-badge mp-pay-badge-${info.cls}`}>{info.label}</span>;
     };
 
-    // Get chart data based on selected period
+    // Chart data
     const chartData = useMemo(() => {
         if (!dashboardData) return [];
-        let data = [];
-        if (chartPeriod === 'daily') {
-            data = (dashboardData.daily || []).slice(-30);
-        } else if (chartPeriod === 'weekly') {
-            data = (dashboardData.weekly || []).slice(-12);
-        } else {
-            data = (dashboardData.monthly || []).slice(-12);
-        }
-        return data;
+        if (chartPeriod === 'daily') return (dashboardData.daily || []).slice(-30);
+        if (chartPeriod === 'weekly') return (dashboardData.weekly || []).slice(-12);
+        return (dashboardData.monthly || []).slice(-12);
     }, [dashboardData, chartPeriod]);
 
-    // Format chart label based on period
     const formatChartLabel = (item) => {
-        if (chartPeriod === 'daily') {
-            return new Date(item.date + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-        } else if (chartPeriod === 'weekly') {
-            const d = new Date(item.week + 'T12:00:00');
-            return `Sem ${d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
-        } else {
-            return new Date(item.month + '-01').toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-        }
+        if (chartPeriod === 'daily') return new Date(item.date + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+        if (chartPeriod === 'weekly') return `Sem ${new Date(item.week + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+        return new Date(item.month + '-01').toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
     };
 
-    const getChartKey = (item) => {
-        return item.date || item.week || item.month;
-    };
-
-    const getChartValue = (item) => {
-        return chartType === 'comisiones' ? item.comisiones : item.ingresos;
-    };
-
-    // Compute max for bar scaling
-    const chartMax = useMemo(() => {
-        if (chartData.length === 0) return 1;
-        return Math.max(...chartData.map(d => getChartValue(d)), 1);
-    }, [chartData, chartType]);
-
-    // Compute period-over-period change
-    const periodChange = useMemo(() => {
-        if (chartData.length < 2) return null;
-        const current = getChartValue(chartData[chartData.length - 1]);
-        const prev = getChartValue(chartData[chartData.length - 2]);
-        if (prev === 0) return null;
-        return ((current - prev) / prev * 100).toFixed(1);
-    }, [chartData, chartType]);
+    const getChartKey = (item) => item.date || item.week || item.month;
+    const ingresosMax = useMemo(() => Math.max(...chartData.map(d => d.ingresos || 0), 1), [chartData]);
+    const comisionesMax = useMemo(() => Math.max(...chartData.map(d => d.comisiones || 0), 1), [chartData]);
 
     if (loading) {
         return (
             <div className="mp-pay">
-                <div className="mp-pay-loading">
-                    <FaSync className="spinning" />
-                    <p>Cargando datos de pagos...</p>
-                </div>
+                <div className="mp-pay-loading"><FaSync className="spinning" /><p>Cargando datos de pagos...</p></div>
             </div>
         );
     }
-
     if (error) {
         return (
             <div className="mp-pay">
-                <div className="mp-pay-error">
-                    <FaExclamationTriangle />
-                    <p>{error}</p>
-                    <button onClick={fetchDashboard}>Reintentar</button>
-                </div>
+                <div className="mp-pay-error"><FaExclamationTriangle /><p>{error}</p><button onClick={fetchDashboard}>Reintentar</button></div>
             </div>
         );
     }
@@ -158,28 +133,24 @@ function ManagePayments() {
     // Filters
     const filtered = payments.filter((p) => {
         const term = searchTerm.toLowerCase();
-        const matchesSearch = !term ||
-            p.clientName?.toLowerCase().includes(term) ||
-            p.clientEmail?.toLowerCase().includes(term) ||
-            p.title?.toLowerCase().includes(term);
+        const matchesSearch = !term || p.clientName?.toLowerCase().includes(term) || p.clientEmail?.toLowerCase().includes(term) || p.title?.toLowerCase().includes(term);
         const matchesEsquema = filterEsquema === 'all' || p.esquema === filterEsquema;
         const matchesSource = filterSource === 'all' || p.source === filterSource;
         return matchesSearch && matchesEsquema && matchesSource;
     });
 
-    // Upcoming installments from all filtered payments (next 30 days)
+    // Pagination
+    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+    const paginatedPayments = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+    // Upcoming installments
     const now = new Date();
     const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const allInstallments = [];
     for (const p of filtered) {
         if (p.schedule) {
             for (const inst of p.schedule) {
-                allInstallments.push({
-                    ...inst,
-                    clientName: p.clientName,
-                    title: p.title,
-                    esquema: p.esquema,
-                });
+                allInstallments.push({ ...inst, clientName: p.clientName, title: p.title, esquema: p.esquema });
             }
         }
     }
@@ -189,218 +160,103 @@ function ManagePayments() {
         return d >= now && d <= in30Days;
     });
 
-    // Compute source breakdown for mini summary
-    const sourceBreakdown = payments.reduce((acc, p) => {
-        if (!acc[p.source]) acc[p.source] = { count: 0, amount: 0 };
-        acc[p.source].count += 1;
-        acc[p.source].amount += p.amount;
-        return acc;
-    }, {});
-
     return (
         <div className="mp-pay">
             {/* Header */}
             <div className="mp-pay-header">
                 <div>
                     <h1 className="mp-pay-title">Pagos e Ingresos</h1>
-                    <span className="mp-pay-subtitle">Dashboard financiero — {filtered.length} pagos registrados</span>
+                    <span className="mp-pay-subtitle">{filtered.length} pagos registrados</span>
                 </div>
-                <button className="mp-pay-refresh" onClick={fetchDashboard}>
-                    <FaSync /> Actualizar
-                </button>
+                <div className="mp-pay-header-actions">
+                    <button className="mp-pay-add-btn" onClick={() => setShowAddModal(true)}>
+                        <FaPlus /> Registrar Pago
+                    </button>
+                    <button className="mp-pay-refresh" onClick={fetchDashboard}>
+                        <FaSync /> Actualizar
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}
             <div className="mp-pay-summary">
                 <div className="mp-pay-card mp-pay-card-green">
                     <div className="mp-pay-card-icon"><FaDollarSign /></div>
-                    <div>
-                        <p className="mp-pay-card-label">Ingresos Totales</p>
-                        <h2 className="mp-pay-card-value">{formatMoney(summary.totalIngresos)}</h2>
-                    </div>
+                    <div><p className="mp-pay-card-label">Ingresos Totales</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalIngresos)}</h2></div>
                 </div>
                 <div className="mp-pay-card mp-pay-card-orange">
                     <div className="mp-pay-card-icon"><FaPercentage /></div>
-                    <div>
-                        <p className="mp-pay-card-label">Comisión Ventas (15%)</p>
-                        <h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2>
-                    </div>
+                    <div><p className="mp-pay-card-label">Comisión Ventas (15%)</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2></div>
                 </div>
                 <div className="mp-pay-card mp-pay-card-blue">
                     <div className="mp-pay-card-icon"><FaChartLine /></div>
-                    <div>
-                        <p className="mp-pay-card-label">Neto Empresa</p>
-                        <h2 className="mp-pay-card-value">{formatMoney(summary.netoEmpresa)}</h2>
-                    </div>
+                    <div><p className="mp-pay-card-label">Neto Empresa</p><h2 className="mp-pay-card-value">{formatMoney(summary.netoEmpresa)}</h2></div>
                 </div>
                 <div className="mp-pay-card mp-pay-card-purple">
                     <div className="mp-pay-card-icon"><FaUsers /></div>
-                    <div>
-                        <p className="mp-pay-card-label">Total Ventas</p>
-                        <h2 className="mp-pay-card-value">{summary.totalPagos}</h2>
-                    </div>
+                    <div><p className="mp-pay-card-label">Total Ventas</p><h2 className="mp-pay-card-value">{summary.totalPagos}</h2></div>
                 </div>
             </div>
 
-            {/* ===== CHARTS SECTION ===== */}
-            <div className="mp-pay-charts-section">
-                {/* Revenue Chart — with period selector */}
-                <div className="mp-pay-chart-card mp-pay-chart-main">
+            {/* ===== CHARTS — Two side by side ===== */}
+            <div className="mp-pay-charts-row">
+                {/* Ingresos Chart */}
+                <div className="mp-pay-chart-card">
                     <div className="mp-pay-chart-header">
-                        <div className="mp-pay-chart-title-group">
-                            <h3><FaChartBar /> {chartType === 'comisiones' ? 'Comisiones por Ventas' : 'Ingresos Totales'}</h3>
-                            {periodChange !== null && (
-                                <span className={`mp-pay-trend ${parseFloat(periodChange) >= 0 ? 'up' : 'down'}`}>
-                                    {parseFloat(periodChange) >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-                                    {Math.abs(parseFloat(periodChange))}%
-                                </span>
-                            )}
-                        </div>
-                        <div className="mp-pay-chart-controls">
-                            <div className="mp-pay-toggle-group">
-                                <button
-                                    className={chartType === 'ingresos' ? 'active' : ''}
-                                    onClick={() => setChartType('ingresos')}
-                                >
-                                    Ingresos
+                        <h3><FaChartBar /> Ingresos Totales</h3>
+                        <div className="mp-pay-toggle-group">
+                            {['daily', 'weekly', 'monthly'].map(p => (
+                                <button key={p} className={chartPeriod === p ? 'active' : ''} onClick={() => setChartPeriod(p)}>
+                                    {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Semanal' : 'Mensual'}
                                 </button>
-                                <button
-                                    className={chartType === 'comisiones' ? 'active' : ''}
-                                    onClick={() => setChartType('comisiones')}
-                                >
-                                    Comisiones
-                                </button>
-                            </div>
-                            <div className="mp-pay-toggle-group">
-                                <button
-                                    className={chartPeriod === 'daily' ? 'active' : ''}
-                                    onClick={() => setChartPeriod('daily')}
-                                >
-                                    Diario
-                                </button>
-                                <button
-                                    className={chartPeriod === 'weekly' ? 'active' : ''}
-                                    onClick={() => setChartPeriod('weekly')}
-                                >
-                                    Semanal
-                                </button>
-                                <button
-                                    className={chartPeriod === 'monthly' ? 'active' : ''}
-                                    onClick={() => setChartPeriod('monthly')}
-                                >
-                                    Mensual
-                                </button>
-                            </div>
+                            ))}
                         </div>
                     </div>
-
                     {chartData.length > 0 ? (
-                        <div className="mp-pay-chart-area">
-                            {/* Y-axis labels */}
-                            <div className="mp-pay-chart-yaxis">
-                                <span>{formatMoney(chartMax)}</span>
-                                <span>{formatMoney(chartMax * 0.5)}</span>
-                                <span>$0</span>
-                            </div>
-                            <div className="mp-pay-chart-bars-area">
-                                {/* Grid lines */}
-                                <div className="mp-pay-chart-gridlines">
-                                    <div className="mp-pay-gridline" />
-                                    <div className="mp-pay-gridline" />
-                                    <div className="mp-pay-gridline" />
-                                </div>
-                                {/* Bars */}
-                                <div className="mp-pay-chart-bars">
-                                    {chartData.map((item) => {
-                                        const value = getChartValue(item);
-                                        const pct = chartMax > 0 ? (value / chartMax) * 100 : 0;
-                                        const isComisiones = chartType === 'comisiones';
-                                        return (
-                                            <div key={getChartKey(item)} className="mp-pay-chart-bar-col">
-                                                <div className="mp-pay-chart-bar-wrapper">
-                                                    <div
-                                                        className={`mp-pay-chart-bar ${isComisiones ? 'comision' : 'ingreso'}`}
-                                                        style={{ height: `${Math.max(pct, 3)}%` }}
-                                                    >
-                                                        <span className="mp-pay-chart-bar-tooltip">
-                                                            {formatMoney(value)}
-                                                            <br />{item.count} venta{item.count !== 1 ? 's' : ''}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <span className="mp-pay-chart-bar-label">{formatChartLabel(item)}</span>
+                        <div className="mp-pay-chart-bars">
+                            {chartData.map((item) => {
+                                const pct = ingresosMax > 0 ? (item.ingresos / ingresosMax) * 100 : 0;
+                                return (
+                                    <div key={getChartKey(item)} className="mp-pay-bar-col">
+                                        <div className="mp-pay-bar-wrapper">
+                                            <div className="mp-pay-bar ingreso" style={{ height: `${Math.max(pct, 4)}%` }}>
+                                                <span className="mp-pay-bar-tooltip">{formatMoney(item.ingresos)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                        </div>
+                                        <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     ) : (
-                        <div className="mp-pay-chart-empty">
-                            <FaChartArea />
-                            <p>No hay datos para este periodo</p>
-                        </div>
+                        <div className="mp-pay-chart-empty"><p>Sin datos</p></div>
                     )}
                 </div>
 
-                {/* Source breakdown mini chart */}
-                <div className="mp-pay-chart-card mp-pay-chart-side">
-                    <h3><FaFileInvoiceDollar /> Desglose por Fuente</h3>
-                    <div className="mp-pay-source-breakdown">
-                        {Object.entries(sourceBreakdown).map(([source, data]) => {
-                            const pct = summary.totalIngresos > 0 ? (data.amount / summary.totalIngresos * 100) : 0;
-                            return (
-                                <div key={source} className="mp-pay-source-row">
-                                    <div className="mp-pay-source-label">
-                                        {getSourceIcon(source)}
-                                        <span>{getSourceLabel(source)}</span>
-                                    </div>
-                                    <div className="mp-pay-source-bar-track">
-                                        <div
-                                            className={`mp-pay-source-bar-fill source-${source}`}
-                                            style={{ width: `${Math.max(pct, 2)}%` }}
-                                        />
-                                    </div>
-                                    <div className="mp-pay-source-values">
-                                        <strong>{formatMoney(data.amount)}</strong>
-                                        <span>{data.count} venta{data.count !== 1 ? 's' : ''}</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        {Object.keys(sourceBreakdown).length === 0 && (
-                            <p className="mp-pay-no-data">Sin datos aún</p>
-                        )}
+                {/* Comisiones Chart */}
+                <div className="mp-pay-chart-card">
+                    <div className="mp-pay-chart-header">
+                        <h3><FaPercentage /> Comisiones por Ventas</h3>
                     </div>
-
-                    {/* Comisión vs Neto donut-style visual */}
-                    <div className="mp-pay-split-visual">
-                        <h4>Distribución de Ingresos</h4>
-                        <div className="mp-pay-split-bars">
-                            <div className="mp-pay-split-item">
-                                <div className="mp-pay-split-color neto" />
-                                <div>
-                                    <span className="mp-pay-split-label">Neto Empresa (85%)</span>
-                                    <strong>{formatMoney(summary.netoEmpresa)}</strong>
-                                </div>
-                            </div>
-                            <div className="mp-pay-split-item">
-                                <div className="mp-pay-split-color comision" />
-                                <div>
-                                    <span className="mp-pay-split-label">Comisión Ventas (15%)</span>
-                                    <strong>{formatMoney(summary.totalComisiones)}</strong>
-                                </div>
-                            </div>
+                    {chartData.length > 0 ? (
+                        <div className="mp-pay-chart-bars">
+                            {chartData.map((item) => {
+                                const pct = comisionesMax > 0 ? (item.comisiones / comisionesMax) * 100 : 0;
+                                return (
+                                    <div key={getChartKey(item)} className="mp-pay-bar-col">
+                                        <div className="mp-pay-bar-wrapper">
+                                            <div className="mp-pay-bar comision" style={{ height: `${Math.max(pct, 4)}%` }}>
+                                                <span className="mp-pay-bar-tooltip">{formatMoney(item.comisiones)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
+                                            </div>
+                                        </div>
+                                        <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        <div className="mp-pay-split-bar-track">
-                            <div className="mp-pay-split-bar-neto" style={{
-                                width: summary.totalIngresos > 0 ? `${(summary.netoEmpresa / summary.totalIngresos * 100)}%` : '85%'
-                            }} />
-                            <div className="mp-pay-split-bar-comision" style={{
-                                width: summary.totalIngresos > 0 ? `${(summary.totalComisiones / summary.totalIngresos * 100)}%` : '15%'
-                            }} />
-                        </div>
-                    </div>
+                    ) : (
+                        <div className="mp-pay-chart-empty"><p>Sin datos</p></div>
+                    )}
                 </div>
             </div>
 
@@ -419,37 +275,31 @@ function ManagePayments() {
                                 <div className="mp-pay-upcoming-amount">{formatMoney(inst.amount)}</div>
                             </div>
                         ))}
-                        {upcoming.length > 5 && (
-                            <p className="mp-pay-upcoming-more">+{upcoming.length - 5} pagos más</p>
-                        )}
+                        {upcoming.length > 5 && <p className="mp-pay-upcoming-more">+{upcoming.length - 5} pagos más</p>}
                     </div>
                 </div>
             )}
 
             {/* ===== PAYMENTS TABLE ===== */}
             <div className="mp-pay-table-section">
-                <div className="mp-pay-table-header">
+                <div className="mp-pay-table-top">
                     <h3><FaMoneyBillWave /> Registro de Pagos</h3>
                 </div>
                 <div className="mp-pay-filters">
                     <div className="mp-pay-search">
                         <FaSearch />
-                        <input
-                            type="text"
-                            placeholder="Buscar por cliente o título..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                        <input type="text" placeholder="Buscar por cliente o título..." value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} />
                     </div>
-                    <select value={filterEsquema} onChange={(e) => setFilterEsquema(e.target.value)}>
+                    <select value={filterEsquema} onChange={(e) => { setFilterEsquema(e.target.value); setCurrentPage(1); }}>
                         <option value="all">Todos los esquemas</option>
                         <option value="unico">Pago único</option>
                         <option value="50-50">50% - 50%</option>
-                        <option value="33-33-34">33% - 33% - 34%</option>
+                        <option value="33-33-34">33-33-34%</option>
                         <option value="6-quincenas">6 Quincenas</option>
                         <option value="6-msi">6 MSI</option>
                     </select>
-                    <select value={filterSource} onChange={(e) => setFilterSource(e.target.value)}>
+                    <select value={filterSource} onChange={(e) => { setFilterSource(e.target.value); setCurrentPage(1); }}>
                         <option value="all">Todas las fuentes</option>
                         <option value="stripe">Stripe/PayPal</option>
                         <option value="sofia">Cotizaciones Sofia</option>
@@ -463,9 +313,9 @@ function ManagePayments() {
                             <tr>
                                 <th>Cliente</th>
                                 <th>Proyecto</th>
-                                <th>Monto Total</th>
+                                <th>Monto</th>
                                 <th>Esquema</th>
-                                <th>Comisión (15%)</th>
+                                <th>Comisión</th>
                                 <th>Fuente</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
@@ -473,12 +323,10 @@ function ManagePayments() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map((payment) => (
+                            {paginatedPayments.map((payment) => (
                                 <React.Fragment key={payment._id}>
-                                    <tr
-                                        className={`mp-pay-row ${expandedPayment === payment._id ? 'expanded' : ''}`}
-                                        onClick={() => setExpandedPayment(expandedPayment === payment._id ? null : payment._id)}
-                                    >
+                                    <tr className={`mp-pay-row ${expandedPayment === payment._id ? 'expanded' : ''}`}
+                                        onClick={() => setExpandedPayment(expandedPayment === payment._id ? null : payment._id)}>
                                         <td>
                                             <div className="mp-pay-client">
                                                 <strong>{payment.clientName}</strong>
@@ -489,18 +337,12 @@ function ManagePayments() {
                                         <td className="mp-pay-amount">{formatMoney(payment.amount)}</td>
                                         <td><span className="mp-pay-esquema-badge">{getEsquemaLabel(payment.esquema)}</span></td>
                                         <td className="mp-pay-commission">{formatMoney(payment.commission)}</td>
-                                        <td>
-                                            <span className="mp-pay-source-badge">
-                                                {getSourceIcon(payment.source)} {getSourceLabel(payment.source)}
-                                            </span>
-                                        </td>
+                                        <td><span className="mp-pay-source-badge">{getSourceIcon(payment.source)} {getSourceLabel(payment.source)}</span></td>
                                         <td>{getStatusBadge(payment.status)}</td>
                                         <td>{formatDate(payment.date)}</td>
                                         <td>
                                             {payment.schedule?.length > 1 && (
-                                                expandedPayment === payment._id
-                                                    ? <FaChevronUp className="mp-pay-expand-icon" />
-                                                    : <FaChevronDown className="mp-pay-expand-icon" />
+                                                expandedPayment === payment._id ? <FaChevronUp className="mp-pay-expand-icon" /> : <FaChevronDown className="mp-pay-expand-icon" />
                                             )}
                                         </td>
                                     </tr>
@@ -514,9 +356,7 @@ function ManagePayments() {
                                                             const isPast = new Date(inst.dueDate) < now;
                                                             return (
                                                                 <div key={idx} className={`mp-pay-installment ${isPast ? 'past' : 'upcoming'}`}>
-                                                                    <div className="mp-pay-inst-icon">
-                                                                        {isPast ? <FaCheckCircle /> : <FaClock />}
-                                                                    </div>
+                                                                    <div className="mp-pay-inst-icon">{isPast ? <FaCheckCircle /> : <FaClock />}</div>
                                                                     <div className="mp-pay-inst-info">
                                                                         <strong>{inst.label}</strong>
                                                                         <span>{formatDate(inst.dueDate)}</span>
@@ -526,9 +366,6 @@ function ManagePayments() {
                                                             );
                                                         })}
                                                     </div>
-                                                    {payment.esquemaRaw && (
-                                                        <p className="mp-pay-esquema-raw">Esquema original: {payment.esquemaRaw}</p>
-                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -536,16 +373,84 @@ function ManagePayments() {
                                 </React.Fragment>
                             ))}
                             {filtered.length === 0 && (
-                                <tr>
-                                    <td colSpan="9" className="mp-pay-empty">
-                                        No se encontraron pagos con los filtros aplicados
-                                    </td>
-                                </tr>
+                                <tr><td colSpan="9" className="mp-pay-empty">No se encontraron pagos</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="mp-pay-pagination">
+                        <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}><FaChevronLeft /></button>
+                        <span>Página {currentPage} de {totalPages}</span>
+                        <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}><FaChevronRight /></button>
+                    </div>
+                )}
             </div>
+
+            {/* ===== ADD PAYMENT MODAL ===== */}
+            {showAddModal && (
+                <div className="mp-pay-modal-overlay" onClick={() => setShowAddModal(false)}>
+                    <div className="mp-pay-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="mp-pay-modal-header">
+                            <h2>Registrar Pago Manual</h2>
+                            <button className="mp-pay-modal-close" onClick={() => setShowAddModal(false)}><FaTimes /></button>
+                        </div>
+                        <form onSubmit={handleAddPayment}>
+                            <div className="mp-pay-modal-body">
+                                <div className="mp-pay-form-grid">
+                                    <div className="mp-pay-form-group">
+                                        <label>Nombre del Cliente *</label>
+                                        <input type="text" value={newPayment.clientName} onChange={(e) => setNewPayment({ ...newPayment, clientName: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Email del Cliente</label>
+                                        <input type="email" value={newPayment.clientEmail} onChange={(e) => setNewPayment({ ...newPayment, clientEmail: e.target.value })} />
+                                    </div>
+                                    <div className="mp-pay-form-group mp-pay-form-full">
+                                        <label>Título del Proyecto *</label>
+                                        <input type="text" value={newPayment.title} onChange={(e) => setNewPayment({ ...newPayment, title: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Monto (MXN) *</label>
+                                        <input type="number" min="0" step="0.01" value={newPayment.amount} onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Método de Pago</label>
+                                        <select value={newPayment.method} onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value })}>
+                                            <option value="transferencia">Transferencia</option>
+                                            <option value="efectivo">Efectivo</option>
+                                            <option value="stripe">Stripe</option>
+                                            <option value="paypal">PayPal</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Esquema de Pago</label>
+                                        <select value={newPayment.esquemaPago} onChange={(e) => setNewPayment({ ...newPayment, esquemaPago: e.target.value })}>
+                                            <option value="Pago único">Pago único</option>
+                                            <option value="50-50">50% - 50%</option>
+                                            <option value="33-33-34">33% - 33% - 34%</option>
+                                            <option value="6 quincenas">6 Quincenas</option>
+                                            <option value="6 MSI">6 MSI</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-pay-form-group mp-pay-form-full">
+                                        <label>Notas</label>
+                                        <textarea rows="2" value={newPayment.notes} onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })} placeholder="Notas adicionales..." />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mp-pay-modal-footer">
+                                <button type="button" className="mp-pay-btn-cancel" onClick={() => setShowAddModal(false)}>Cancelar</button>
+                                <button type="submit" className="mp-pay-btn-save" disabled={addingPayment}>
+                                    {addingPayment ? <><FaSync className="spinning" /> Guardando...</> : 'Guardar Pago'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllProjects, updateProjectStatus, updateProgress, addComment } from '../../../features/projects/projectSlice';
 import axiosWithAuth from '../../../utils/axioswithAuth';
-import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 import './ManageProjects.css';
 
 function ManageProjects() {
@@ -22,6 +23,13 @@ function ManageProjects() {
     const [loading, setLoading] = useState(false);
     const [syncingProject, setSyncingProject] = useState(null);
     const [lastSync, setLastSync] = useState(null);
+    const [showAddProject, setShowAddProject] = useState(false);
+    const [addingProject, setAddingProject] = useState(false);
+    const [newProject, setNewProject] = useState({
+        taskTitle: '', taskType: 'Tesis', clientName: '', clientEmail: '',
+        studyArea: '', career: '', educationLevel: 'licenciatura',
+        requirements: '', pages: '', dueDate: '', priority: 'medium'
+    });
 
     // Load projects on mount
     useEffect(() => {
@@ -99,6 +107,25 @@ function ManageProjects() {
         setLoading(true);
         await fetchGoogleEvents(currentMonth.getFullYear(), currentMonth.getMonth());
         setLoading(false);
+    };
+
+    const handleAddProject = async (e) => {
+        e.preventDefault();
+        if (!newProject.taskTitle || !newProject.taskType || !newProject.dueDate) {
+            toast.error('Completa los campos obligatorios');
+            return;
+        }
+        setAddingProject(true);
+        try {
+            await axiosWithAuth.post('/projects/manual', newProject);
+            toast.success('Proyecto creado correctamente');
+            setShowAddProject(false);
+            setNewProject({ taskTitle: '', taskType: 'Tesis', clientName: '', clientEmail: '', studyArea: '', career: '', educationLevel: 'licenciatura', requirements: '', pages: '', dueDate: '', priority: 'medium' });
+            dispatch(getAllProjects());
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al crear proyecto');
+        }
+        setAddingProject(false);
     };
 
     const filteredProjects = projects.filter((project) => {
@@ -634,6 +661,9 @@ function ManageProjects() {
                 </div>
 
                 <div className="mp-header-right">
+                    <button className="mp-add-btn" onClick={() => setShowAddProject(true)}>
+                        <FaPlus /> Nuevo Proyecto
+                    </button>
                     <div className="mp-search">
                         <FaSearch className="mp-search-icon" />
                         <input
@@ -693,6 +723,92 @@ function ManageProjects() {
             {view === 'list' && renderListView()}
 
             {renderModal()}
+
+            {/* Add Project Modal */}
+            {showAddProject && (
+                <div className="mp-modal-overlay" onClick={() => setShowAddProject(false)}>
+                    <div className="mp-modal mp-modal-wide" onClick={(e) => e.stopPropagation()}>
+                        <div className="mp-modal-header">
+                            <h2>Nuevo Proyecto Manual</h2>
+                            <button className="mp-close" onClick={() => setShowAddProject(false)}><FaTimes /></button>
+                        </div>
+                        <form onSubmit={handleAddProject}>
+                            <div className="mp-modal-body">
+                                <div className="mp-add-form-grid">
+                                    <div className="mp-add-form-group mp-add-form-full">
+                                        <label>Título del Proyecto *</label>
+                                        <input type="text" value={newProject.taskTitle} onChange={(e) => setNewProject({ ...newProject, taskTitle: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Tipo de Trabajo *</label>
+                                        <select value={newProject.taskType} onChange={(e) => setNewProject({ ...newProject, taskType: e.target.value })}>
+                                            <option value="Tesis">Tesis</option>
+                                            <option value="Tesina">Tesina</option>
+                                            <option value="Ensayo">Ensayo</option>
+                                            <option value="Protocolo">Protocolo</option>
+                                            <option value="Proyecto de investigación">Proyecto de investigación</option>
+                                            <option value="Artículo">Artículo</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Nivel Educativo</label>
+                                        <select value={newProject.educationLevel} onChange={(e) => setNewProject({ ...newProject, educationLevel: e.target.value })}>
+                                            <option value="licenciatura">Licenciatura</option>
+                                            <option value="maestria">Maestría</option>
+                                            <option value="doctorado">Doctorado</option>
+                                            <option value="preparatoria">Preparatoria</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Nombre del Cliente</label>
+                                        <input type="text" value={newProject.clientName} onChange={(e) => setNewProject({ ...newProject, clientName: e.target.value })} />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Email del Cliente</label>
+                                        <input type="email" value={newProject.clientEmail} onChange={(e) => setNewProject({ ...newProject, clientEmail: e.target.value })} />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Carrera</label>
+                                        <input type="text" value={newProject.career} onChange={(e) => setNewProject({ ...newProject, career: e.target.value })} placeholder="Ej: Derecho" />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Área de Estudio</label>
+                                        <input type="text" value={newProject.studyArea} onChange={(e) => setNewProject({ ...newProject, studyArea: e.target.value })} placeholder="Ej: Ciencias Sociales" />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Páginas</label>
+                                        <input type="number" min="1" value={newProject.pages} onChange={(e) => setNewProject({ ...newProject, pages: e.target.value })} />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Fecha de Entrega *</label>
+                                        <input type="date" value={newProject.dueDate} onChange={(e) => setNewProject({ ...newProject, dueDate: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Prioridad</label>
+                                        <select value={newProject.priority} onChange={(e) => setNewProject({ ...newProject, priority: e.target.value })}>
+                                            <option value="low">Bajo</option>
+                                            <option value="medium">Medio</option>
+                                            <option value="high">Alto</option>
+                                            <option value="urgent">Urgente</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-add-form-group mp-add-form-full">
+                                        <label>Requisitos / Descripción</label>
+                                        <textarea rows="3" value={newProject.requirements} onChange={(e) => setNewProject({ ...newProject, requirements: e.target.value })} placeholder="Describe los requisitos del proyecto..." />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mp-modal-footer">
+                                <button type="button" className="mp-btn mp-btn-ghost" onClick={() => setShowAddProject(false)}>Cancelar</button>
+                                <button type="submit" className="mp-btn mp-btn-primary" disabled={addingProject}>
+                                    {addingProject ? <><FaSync className="spinning" /> Creando...</> : 'Crear Proyecto'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
