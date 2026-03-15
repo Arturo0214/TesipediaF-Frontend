@@ -11,6 +11,7 @@ const axiosWithAuth = axios.create({
 
 const getAuthToken = () => {
   try {
+    // 1. Intentar desde cookie
     const cookies = document.cookie.split(';').reduce((cookiesObj, cookie) => {
       if (!cookie) return cookiesObj;
       const [name, value] = cookie.trim().split('=').map(c => c.trim());
@@ -20,7 +21,33 @@ const getAuthToken = () => {
       return cookiesObj;
     }, {});
 
-    return cookies.jwt || '';
+    if (cookies.jwt) {
+      return cookies.jwt;
+    }
+
+    // 2. Fallback: localStorage (móviles pueden borrar cookies)
+    try {
+      const stored = localStorage.getItem('jwt_backup');
+      if (stored) {
+        // Re-establecer cookie desde localStorage
+        const isSecure = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        let cookieConfig = 'path=/';
+        if (isLocalhost) {
+          cookieConfig += '; samesite=lax';
+        } else {
+          cookieConfig += '; samesite=none';
+          if (isSecure) cookieConfig += '; secure';
+        }
+        document.cookie = `jwt=${stored}; max-age=${365 * 24 * 60 * 60}; ${cookieConfig}`;
+        console.log('[Auth] Token restaurado desde localStorage en interceptor');
+        return stored;
+      }
+    } catch (e) {
+      // localStorage no disponible
+    }
+
+    return '';
   } catch (error) {
     console.error('Error extracting JWT token:', error);
     return '';
@@ -87,13 +114,24 @@ axiosWithAuth.interceptors.response.use(
 
     if (error.response) {
       switch (error.response.status) {
-        case 401:
-          console.error('Authentication error - Token expirado o inválido');
-          if (window.location.pathname !== '/login') {
-            document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        case 401: {
+          // Solo cerrar sesión si NO estamos en login y NO hay token válido
+          // Evitar logout en errores temporales de red
+          const currentToken = getAuthToken();
+          const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+          const isAuthRoute = error.config?.url?.includes('/auth/');
+
+          if (!isLoginPage && !isAuthRoute && !currentToken) {
+            // No hay token — redirigir al login
+            console.warn('Sin token de autenticación, redirigiendo a login');
             window.location.href = '/login';
+          } else if (!isLoginPage && !isAuthRoute) {
+            // Token existe pero el server lo rechazó — puede ser expirado
+            // Intentar refrescar silenciosamente en vez de sacar al usuario
+            console.warn('Token rechazado por el servidor (401) — sesión posiblemente expirada');
           }
           break;
+        }
 
         case 403:
           console.error('Authorization error - Permisos insuficientes');

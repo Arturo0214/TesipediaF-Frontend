@@ -7,26 +7,27 @@ const initialState = {
   user: null,
   isAuthenticated: false,
   isAdmin: false,
+  isSuperAdmin: false,
   isLoading: false,
   isError: false,
   isSuccess: false,
   message: ''
 };
 
-// Helper function to check if user is admin
+// Helper function to check if user is admin (includes superadmin)
 const checkIsAdmin = (user) => {
   if (!user) return false;
-
-  // Verificar si el usuario tiene el rol de administrador
-  const isAdminRole = user.role === 'admin';
-
-  // Verificar si el usuario tiene permisos de administrador
+  const isAdminRole = user.role === 'admin' || user.role === 'superadmin';
   const hasAdminPermissions = user.permissions?.includes('admin') ||
     user.isAdmin === true ||
     user.admin === true;
-
-  // El usuario es administrador si tiene el rol o los permisos
   return isAdminRole || hasAdminPermissions;
+};
+
+// Helper to check if user is superadmin
+const checkIsSuperAdmin = (user) => {
+  if (!user) return false;
+  return user.role === 'superadmin';
 };
 
 // Thunks
@@ -109,6 +110,7 @@ const authSlice = createSlice({
     },
     checkAdminStatus: (state) => {
       state.isAdmin = checkIsAdmin(state.user);
+      state.isSuperAdmin = checkIsSuperAdmin(state.user);
     }
   },
   extraReducers: (builder) => {
@@ -133,6 +135,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload;
         state.isAdmin = checkIsAdmin(action.payload);
+        state.isSuperAdmin = checkIsSuperAdmin(action.payload);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -141,6 +144,7 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.isAdmin = false;
+        state.isSuperAdmin = false;
       })
 
       // Register
@@ -153,6 +157,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload;
         state.isAdmin = checkIsAdmin(action.payload);
+        state.isSuperAdmin = checkIsSuperAdmin(action.payload);
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
@@ -161,15 +166,16 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.isAdmin = false;
+        state.isSuperAdmin = false;
       })
 
       // Logout
       .addCase(logout.fulfilled, (state) => {
-        // Limpiar todo el estado
         Object.assign(state, {
           user: null,
           isAuthenticated: false,
           isAdmin: false,
+          isSuperAdmin: false,
           isLoading: false,
           isError: false,
           isSuccess: true,
@@ -177,11 +183,11 @@ const authSlice = createSlice({
         });
       })
       .addCase(logout.rejected, (state) => {
-        // Limpiar todo el estado incluso si hay error
         Object.assign(state, {
           user: null,
           isAuthenticated: false,
           isAdmin: false,
+          isSuperAdmin: false,
           isLoading: false,
           isError: false,
           isSuccess: true,
@@ -228,12 +234,14 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload;
         state.isAdmin = checkIsAdmin(action.payload);
+        state.isSuperAdmin = checkIsSuperAdmin(action.payload);
       })
       .addCase(getProfile.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
         state.isAdmin = false;
+        state.isSuperAdmin = false;
       });
   },
 });

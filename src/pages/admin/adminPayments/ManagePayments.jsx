@@ -27,9 +27,10 @@ function ManagePayments() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [addingPayment, setAddingPayment] = useState(false);
     const [newPayment, setNewPayment] = useState({
-        clientName: '', clientEmail: '', title: '',
+        clientName: '', clientEmail: '', clientPhone: '', title: '',
         amount: '', method: 'transferencia', esquemaPago: 'Pago único',
-        paymentDate: new Date().toISOString().slice(0, 10), notes: ''
+        paymentDate: new Date().toISOString().slice(0, 10), notes: '',
+        dueDate: '', taskType: '',
     });
 
     useEffect(() => { fetchDashboard(); }, []);
@@ -54,10 +55,13 @@ function ManagePayments() {
         }
         setAddingPayment(true);
         try {
-            await axiosWithAuth.post('/payments/manual', newPayment);
-            toast.success('Pago registrado correctamente');
+            const res = await axiosWithAuth.post('/payments/manual', newPayment);
+            const msgs = ['Pago registrado'];
+            if (res.data?.project) msgs.push('+ proyecto creado');
+            if (res.data?.clientCreated) msgs.push('+ cuenta de cliente creada');
+            toast.success(msgs.join(' '));
             setShowAddModal(false);
-            setNewPayment({ clientName: '', clientEmail: '', title: '', amount: '', method: 'transferencia', esquemaPago: 'Pago único', paymentDate: new Date().toISOString().slice(0, 10), notes: '' });
+            setNewPayment({ clientName: '', clientEmail: '', clientPhone: '', title: '', amount: '', method: 'transferencia', esquemaPago: 'Pago único', paymentDate: new Date().toISOString().slice(0, 10), notes: '', dueDate: '', taskType: '' });
             fetchDashboard();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Error al registrar pago');
@@ -495,17 +499,52 @@ function ManagePayments() {
                         <form onSubmit={handleAddPayment}>
                             <div className="mp-pay-modal-body">
                                 <div className="mp-pay-form-grid">
+                                    {/* --- Datos del Cliente --- */}
+                                    <div className="mp-pay-form-group mp-pay-form-full">
+                                        <label style={{ fontWeight: 600, color: '#2563eb', fontSize: '0.85rem', marginBottom: 8, display: 'block' }}>Datos del Cliente</label>
+                                    </div>
                                     <div className="mp-pay-form-group">
                                         <label>Nombre del Cliente *</label>
                                         <input type="text" value={newPayment.clientName} onChange={(e) => setNewPayment({ ...newPayment, clientName: e.target.value })} required />
                                     </div>
                                     <div className="mp-pay-form-group">
                                         <label>Email del Cliente</label>
-                                        <input type="email" value={newPayment.clientEmail} onChange={(e) => setNewPayment({ ...newPayment, clientEmail: e.target.value })} />
+                                        <input type="email" value={newPayment.clientEmail} onChange={(e) => setNewPayment({ ...newPayment, clientEmail: e.target.value })} placeholder="Se creará cuenta automática" />
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Teléfono (WhatsApp)</label>
+                                        <input type="tel" value={newPayment.clientPhone} onChange={(e) => setNewPayment({ ...newPayment, clientPhone: e.target.value })} placeholder="55 1234 5678" />
+                                    </div>
+
+                                    {/* --- Datos del Proyecto --- */}
+                                    <div className="mp-pay-form-group mp-pay-form-full">
+                                        <label style={{ fontWeight: 600, color: '#2563eb', fontSize: '0.85rem', marginBottom: 8, display: 'block', marginTop: 8 }}>Datos del Proyecto</label>
                                     </div>
                                     <div className="mp-pay-form-group mp-pay-form-full">
                                         <label>Título del Proyecto *</label>
                                         <input type="text" value={newPayment.title} onChange={(e) => setNewPayment({ ...newPayment, title: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Tipo de Trabajo</label>
+                                        <select value={newPayment.taskType} onChange={(e) => setNewPayment({ ...newPayment, taskType: e.target.value })}>
+                                            <option value="">Seleccionar...</option>
+                                            <option value="Tesis">Tesis</option>
+                                            <option value="Tesina">Tesina</option>
+                                            <option value="Ensayo">Ensayo</option>
+                                            <option value="Protocolo">Protocolo</option>
+                                            <option value="Artículo">Artículo</option>
+                                            <option value="Presentación">Presentación</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Fecha de Entrega</label>
+                                        <input type="date" value={newPayment.dueDate} onChange={(e) => setNewPayment({ ...newPayment, dueDate: e.target.value })} />
+                                    </div>
+
+                                    {/* --- Datos del Pago --- */}
+                                    <div className="mp-pay-form-group mp-pay-form-full">
+                                        <label style={{ fontWeight: 600, color: '#2563eb', fontSize: '0.85rem', marginBottom: 8, display: 'block', marginTop: 8 }}>Datos del Pago</label>
                                     </div>
                                     <div className="mp-pay-form-group">
                                         <label>Monto (MXN) *</label>
@@ -540,6 +579,10 @@ function ManagePayments() {
                                         <textarea rows="2" value={newPayment.notes} onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })} placeholder="Notas adicionales..." />
                                     </div>
                                 </div>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: 8 }}>
+                                    Al registrar el pago se creará automáticamente el proyecto y la cuenta del cliente.
+                                    Si proporcionas teléfono, las credenciales se enviarán por WhatsApp.
+                                </p>
                             </div>
                             <div className="mp-pay-modal-footer">
                                 <button type="button" className="mp-pay-btn-cancel" onClick={() => setShowAddModal(false)}>Cancelar</button>

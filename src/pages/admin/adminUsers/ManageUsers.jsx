@@ -13,7 +13,7 @@ import { toast } from 'react-hot-toast';
 import {
   FaUsers, FaUserShield, FaPen, FaUserGraduate, FaUserCheck,
   FaSearch, FaEdit, FaTrash, FaTimes, FaSync, FaChevronLeft, FaChevronRight,
-  FaUserTie, FaBan, FaCheckCircle
+  FaUserTie, FaBan, FaCheckCircle, FaCrown
 } from 'react-icons/fa';
 
 const ITEMS_PER_PAGE = 15;
@@ -21,6 +21,7 @@ const ITEMS_PER_PAGE = 15;
 function ManageUsers() {
   const dispatch = useDispatch();
   const { users = [], loading = false, error = null, success = false } = useSelector((state) => state.users || {});
+  const { isSuperAdmin } = useSelector((state) => state.auth || {});
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
@@ -40,10 +41,11 @@ function ManageUsers() {
   const stats = useMemo(() => {
     const total = users.length;
     const active = users.filter(u => u.isActive).length;
+    const superadmins = users.filter(u => u.role === 'superadmin').length;
     const admins = users.filter(u => u.role === 'admin').length;
     const redactores = users.filter(u => u.role === 'redactor').length;
     const clientes = users.filter(u => u.role === 'cliente').length;
-    return { total, active, admins, redactores, clientes };
+    return { total, active, superadmins, admins, redactores, clientes };
   }, [users]);
 
   // Filtered users
@@ -102,12 +104,25 @@ function ManageUsers() {
 
   const getRoleBadge = (role) => {
     const map = {
+      superadmin: { label: 'Super Admin', cls: 'superadmin', icon: <FaCrown /> },
       admin: { label: 'Admin', cls: 'admin', icon: <FaUserShield /> },
       redactor: { label: 'Redactor', cls: 'redactor', icon: <FaPen /> },
       cliente: { label: 'Cliente', cls: 'cliente', icon: <FaUserGraduate /> },
     };
     const info = map[role] || { label: role, cls: 'cliente', icon: <FaUsers /> };
     return <span className={`mu-badge mu-badge-${info.cls}`}>{info.icon} {info.label}</span>;
+  };
+
+  // Check if current user can edit/delete a given user
+  const canEditUser = (user) => {
+    if (user.role === 'superadmin' && !isSuperAdmin) return false;
+    return true;
+  };
+
+  const canDeleteUser = (user) => {
+    if (user.role === 'superadmin') return false;
+    if (user.role === 'admin' && !isSuperAdmin) return false;
+    return true;
   };
 
   if (loading && users.length === 0) {
@@ -165,6 +180,7 @@ function ManageUsers() {
           </div>
           <select value={filterRole} onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}>
             <option value="all">Todos los roles</option>
+            {isSuperAdmin && <option value="superadmin">Super Admin</option>}
             <option value="admin">Administradores</option>
             <option value="redactor">Redactores</option>
             <option value="cliente">Clientes</option>
@@ -211,12 +227,19 @@ function ManageUsers() {
                   <td className="mu-date-cell">{formatDate(user.createdAt)}</td>
                   <td>
                     <div className="mu-actions">
-                      <button className="mu-action-edit" onClick={() => handleEditOpen(user)} title="Editar">
-                        <FaEdit />
-                      </button>
-                      <button className="mu-action-delete" onClick={() => { setDeletingUser(user); setEditingUser(null); }} title="Eliminar">
-                        <FaTrash />
-                      </button>
+                      {canEditUser(user) && (
+                        <button className="mu-action-edit" onClick={() => handleEditOpen(user)} title="Editar">
+                          <FaEdit />
+                        </button>
+                      )}
+                      {canDeleteUser(user) && (
+                        <button className="mu-action-delete" onClick={() => { setDeletingUser(user); setEditingUser(null); }} title="Eliminar">
+                          <FaTrash />
+                        </button>
+                      )}
+                      {!canEditUser(user) && !canDeleteUser(user) && (
+                        <span className="mu-badge mu-badge-superadmin" style={{ fontSize: '0.7rem' }}><FaCrown /> Protegido</span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -257,6 +280,7 @@ function ManageUsers() {
               <div className="mu-form-group">
                 <label>Rol</label>
                 <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
+                  {isSuperAdmin && <option value="superadmin">Super Admin</option>}
                   <option value="admin">Administrador</option>
                   <option value="redactor">Redactor</option>
                   <option value="cliente">Cliente</option>

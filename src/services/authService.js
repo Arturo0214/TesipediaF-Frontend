@@ -1,11 +1,5 @@
 import axiosWithAuth from '../utils/axioswithAuth';
 
-// Obtener token de las cookies
-export const getToken = () => {
-    const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : null;
-};
-
 // Función auxiliar para configurar cookies según el entorno
 const getCookieConfig = () => {
     const isSecure = window.location.protocol === 'https:';
@@ -27,10 +21,63 @@ const getCookieConfig = () => {
     return cookieString;
 };
 
+// Guardar token en localStorage como respaldo
+const saveTokenBackup = (token) => {
+    try {
+        localStorage.setItem('jwt_backup', token);
+    } catch (e) {
+        console.warn('[Auth] No se pudo guardar backup en localStorage:', e);
+    }
+};
+
+// Limpiar token de localStorage
+const clearTokenBackup = () => {
+    try {
+        localStorage.removeItem('jwt_backup');
+    } catch (e) {
+        console.warn('[Auth] No se pudo limpiar localStorage:', e);
+    }
+};
+
+// Obtener token de las cookies (con fallback a localStorage para móviles)
+export const getToken = () => {
+    // Primero intentar desde cookie
+    const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+    if (match && match[1]) {
+        const token = decodeURIComponent(match[1]);
+        // Sincronizar con localStorage por si la cookie se pierde después
+        saveTokenBackup(token);
+        return token;
+    }
+    // Fallback: localStorage (navegadores móviles pueden borrar cookies)
+    try {
+        const stored = localStorage.getItem('jwt_backup');
+        if (stored) {
+            // Re-establecer la cookie desde localStorage
+            const cookieConfig = getCookieConfig();
+            document.cookie = `jwt=${stored}; max-age=${365 * 24 * 60 * 60}; ${cookieConfig}`;
+            console.log('[Auth] Token restaurado desde localStorage a cookie');
+            return stored;
+        }
+    } catch (e) {
+        console.warn('[Auth] No se pudo acceder a localStorage:', e);
+    }
+    return null;
+};
+
 // Registrar un nuevo usuario
 const register = async (userData) => {
     const response = await axiosWithAuth.post('/auth/register', userData, { withCredentials: true });
-    return response.data; // Retorna el usuario
+
+    // Si el backend devuelve token, guardarlo
+    if (response.data.token) {
+        const cookieConfig = getCookieConfig();
+        document.cookie = `jwt=${response.data.token}; max-age=${365 * 24 * 60 * 60}; ${cookieConfig}`;
+        saveTokenBackup(response.data.token);
+        console.log('[Auth] Token guardado tras registro');
+    }
+
+    return response.data;
 };
 
 // Iniciar sesión
@@ -40,17 +87,19 @@ const login = async (userData) => {
 
         // Verificar si la respuesta contiene el token
         if (response.data.token) {
-            // Establecer la cookie con el token
+            // Establecer la cookie con max-age de 1 año
             const cookieConfig = getCookieConfig();
-            const cookieString = `jwt=${response.data.token}; ${cookieConfig}`;
+            const cookieString = `jwt=${response.data.token}; max-age=${365 * 24 * 60 * 60}; ${cookieConfig}`;
 
             document.cookie = cookieString;
-            console.log('[Auth Debug] Cookie establecida:', cookieString);
+            // Guardar backup en localStorage para móviles
+            saveTokenBackup(response.data.token);
+            console.log('[Auth] Token guardado en cookie + localStorage');
         }
 
         return response.data;
     } catch (error) {
-        console.error('[Auth Debug] Error en login:', error);
+        console.error('[Auth] Error en login:', error);
         throw error.response?.data || error;
     }
 };
@@ -62,14 +111,21 @@ const logout = async () => {
 
         // Limpiar la cookie JWT
         const cookieConfig = getCookieConfig();
-        const cookieString = `jwt=; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${cookieConfig}`;
+        document.cookie = `jwt=; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; ${cookieConfig}`;
 
-        document.cookie = cookieString;
-        console.log('[Auth Debug] Cookie JWT eliminada');
+        // Limpiar backup de localStorage
+        clearTokenBackup();
+
+        console.log('[Auth] Sesión cerrada — cookie y localStorage limpiados');
 
         return response.data;
     } catch (error) {
-        console.error('[Auth Debug] Error en logout:', error);
+        // Incluso si falla el request, limpiar localmente
+        const cookieConfig = getCookieConfig();
+        document.cookie = `jwt=; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; ${cookieConfig}`;
+        clearTokenBackup();
+
+        console.error('[Auth] Error en logout:', error);
         throw error.response?.data || error;
     }
 };

@@ -26,9 +26,10 @@ function ManageProjects() {
     const [showAddProject, setShowAddProject] = useState(false);
     const [addingProject, setAddingProject] = useState(false);
     const [newProject, setNewProject] = useState({
-        taskTitle: '', taskType: 'Tesis', clientName: '', clientEmail: '',
+        taskTitle: '', taskType: 'Tesis', clientName: '', clientEmail: '', clientPhone: '',
         studyArea: '', career: '', educationLevel: 'licenciatura',
-        requirements: '', pages: '', dueDate: '', priority: 'medium'
+        requirements: '', pages: '', dueDate: '', priority: 'medium',
+        amount: '', method: 'transferencia', esquemaPago: 'Pago único', paymentDate: new Date().toISOString().slice(0, 10),
     });
 
     // Load projects on mount
@@ -117,10 +118,13 @@ function ManageProjects() {
         }
         setAddingProject(true);
         try {
-            await axiosWithAuth.post('/projects/manual', newProject);
-            toast.success('Proyecto creado correctamente');
+            const res = await axiosWithAuth.post('/projects/manual', newProject);
+            const msgs = ['Proyecto creado'];
+            if (res.data?.payment) msgs.push('+ pago registrado');
+            if (res.data?.clientCreated) msgs.push('+ cuenta de cliente creada');
+            toast.success(msgs.join(' '));
             setShowAddProject(false);
-            setNewProject({ taskTitle: '', taskType: 'Tesis', clientName: '', clientEmail: '', studyArea: '', career: '', educationLevel: 'licenciatura', requirements: '', pages: '', dueDate: '', priority: 'medium' });
+            setNewProject({ taskTitle: '', taskType: 'Tesis', clientName: '', clientEmail: '', clientPhone: '', studyArea: '', career: '', educationLevel: 'licenciatura', requirements: '', pages: '', dueDate: '', priority: 'medium', amount: '', method: 'transferencia', esquemaPago: 'Pago único', paymentDate: new Date().toISOString().slice(0, 10) });
             dispatch(getAllProjects());
         } catch (err) {
             toast.error(err.response?.data?.message || 'Error al crear proyecto');
@@ -766,7 +770,11 @@ function ManageProjects() {
                                     </div>
                                     <div className="mp-add-form-group">
                                         <label>Email del Cliente</label>
-                                        <input type="email" value={newProject.clientEmail} onChange={(e) => setNewProject({ ...newProject, clientEmail: e.target.value })} />
+                                        <input type="email" value={newProject.clientEmail} onChange={(e) => setNewProject({ ...newProject, clientEmail: e.target.value })} placeholder="Se creará cuenta automática" />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Teléfono (WhatsApp)</label>
+                                        <input type="tel" value={newProject.clientPhone} onChange={(e) => setNewProject({ ...newProject, clientPhone: e.target.value })} placeholder="55 1234 5678" />
                                     </div>
                                     <div className="mp-add-form-group">
                                         <label>Carrera</label>
@@ -797,6 +805,44 @@ function ManageProjects() {
                                         <label>Requisitos / Descripción</label>
                                         <textarea rows="3" value={newProject.requirements} onChange={(e) => setNewProject({ ...newProject, requirements: e.target.value })} placeholder="Describe los requisitos del proyecto..." />
                                     </div>
+
+                                    {/* --- Sección de Pago (opcional) --- */}
+                                    <div className="mp-add-form-group mp-add-form-full">
+                                        <label style={{ fontWeight: 600, color: '#2563eb', fontSize: '0.85rem', marginTop: 8, display: 'block' }}>Datos del Pago (opcional)</label>
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Monto (MXN)</label>
+                                        <input type="number" min="0" step="0.01" value={newProject.amount} onChange={(e) => setNewProject({ ...newProject, amount: e.target.value })} placeholder="Si ingresa monto, se registra el pago" />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Fecha del Pago</label>
+                                        <input type="date" value={newProject.paymentDate} onChange={(e) => setNewProject({ ...newProject, paymentDate: e.target.value })} />
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Método de Pago</label>
+                                        <select value={newProject.method} onChange={(e) => setNewProject({ ...newProject, method: e.target.value })}>
+                                            <option value="transferencia">Transferencia</option>
+                                            <option value="efectivo">Efectivo</option>
+                                            <option value="mercadolibre">Mercado Libre</option>
+                                            <option value="stripe">Stripe</option>
+                                            <option value="paypal">PayPal</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-add-form-group">
+                                        <label>Esquema de Pago</label>
+                                        <select value={newProject.esquemaPago} onChange={(e) => setNewProject({ ...newProject, esquemaPago: e.target.value })}>
+                                            <option value="Pago único">Pago único</option>
+                                            <option value="50-50">50% - 50%</option>
+                                            <option value="33-33-34">33% - 33% - 34%</option>
+                                            <option value="6 quincenas">6 Quincenas</option>
+                                            <option value="6 MSI">6 MSI</option>
+                                        </select>
+                                    </div>
+
+                                    <p style={{ fontSize: '0.75rem', color: '#6b7280', gridColumn: '1/-1', margin: '4px 0 0' }}>
+                                        Al crear el proyecto se creará automáticamente la cuenta del cliente (si proporcionas email).
+                                        Si ingresas monto, se vinculará un pago. Las credenciales se envían por WhatsApp.
+                                    </p>
                                 </div>
                             </div>
                             <div className="mp-modal-footer">
