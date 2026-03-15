@@ -6,6 +6,7 @@ import {
   FaHourglassHalf, FaCheckCircle, FaTimesCircle,
   FaCreditCard, FaMoneyBillWave, FaSortAmountDown, FaSortAmountUp,
   FaCalendarAlt, FaFileAlt, FaGraduationCap, FaUser, FaGlobe, FaCalculator,
+  FaEdit, FaSave, FaPhone,
 } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
@@ -70,6 +71,7 @@ const normalizeGenerated = (q) => {
     _paymentScheme: q.esquemaPago || '',
     _description: q.descripcionServicio || '',
     _email: q.clientEmail || '',
+    _phone: q.clientPhone || '',
   };
 };
 
@@ -106,6 +108,7 @@ const normalizeRegular = (q) => {
     _paymentScheme: '',
     _description: q.requirements || '',
     _email: q.email || q.user?.email || '',
+    _phone: q.phone || '',
   };
 };
 
@@ -124,6 +127,9 @@ const ManageQuotes = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editFields, setEditFields] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
   const quotesPerPage = 12;
 
   useEffect(() => {
@@ -241,6 +247,50 @@ const ManageQuotes = () => {
     } else {
       toast.error('PDF solo disponible para cotizaciones del cotizador');
     }
+  };
+
+  const handleEditQuote = () => {
+    if (!selectedQuote) return;
+    setEditMode(true);
+    if (selectedQuote._source === 'generated') {
+      setEditFields({
+        clientName: selectedQuote.clientName || selectedQuote._clientName || '',
+        clientEmail: selectedQuote.clientEmail || selectedQuote._email || '',
+        clientPhone: selectedQuote.clientPhone || selectedQuote._phone || '',
+      });
+    } else {
+      setEditFields({
+        name: selectedQuote.name || selectedQuote._clientName || '',
+        email: selectedQuote.email || selectedQuote._email || '',
+        phone: selectedQuote.phone || selectedQuote._phone || '',
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedQuote) return;
+    setSavingEdit(true);
+    try {
+      if (selectedQuote._source === 'generated') {
+        await dispatch(updateGeneratedQuote({
+          quoteId: selectedQuote._id,
+          updatedData: editFields,
+        })).unwrap();
+        dispatch(getGeneratedQuotes());
+      } else {
+        await dispatch(updateQuote({
+          quoteId: selectedQuote._id,
+          updatedData: editFields,
+        })).unwrap();
+        dispatch(getAllQuotes());
+      }
+      toast.success('Cotización actualizada');
+      setEditMode(false);
+      setSelectedQuote(null);
+    } catch (err) {
+      toast.error(err || 'Error al guardar');
+    }
+    setSavingEdit(false);
   };
 
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
@@ -414,6 +464,7 @@ const ManageQuotes = () => {
                       {quote._career && <div className="mq-card-info-row"><span className="mq-card-info-label">Carrera</span><span>{quote._career}</span></div>}
                       {quote._area && <div className="mq-card-info-row"><span className="mq-card-info-label">Área</span><span>{quote._area}</span></div>}
                       {quote._email && <div className="mq-card-info-row"><span className="mq-card-info-label">Email</span><span>{quote._email}</span></div>}
+                      {quote._phone && <div className="mq-card-info-row"><span className="mq-card-info-label">Tel</span><span>{quote._phone}</span></div>}
                       {quote._deliveryTime && <div className="mq-card-info-row"><span className="mq-card-info-label">Plazo</span><span>{quote._deliveryTime}</span></div>}
                       {quote._paymentScheme && <div className="mq-card-info-row"><span className="mq-card-info-label">Esquema</span><span>{quote._paymentScheme}</span></div>}
                       {quote.publicId && <div className="mq-card-info-row"><span className="mq-card-info-label">ID</span><span className="mq-card-id">{quote.publicId.slice(0, 8)}...</span></div>}
@@ -491,26 +542,51 @@ const ManageQuotes = () => {
                 <div className="mq-modal-col">
                   <h4>Proyecto</h4>
                   <div className="mq-details">
-                    {[
-                      ['Cliente', selectedQuote._clientName],
-                      ['Email', selectedQuote._email],
-                      ['Tipo', selectedQuote._taskType],
-                      ['Servicio', selectedQuote._service],
-                      ['Título', selectedQuote._title],
-                      ['Área', selectedQuote._area],
-                      ['Carrera', selectedQuote._career],
-                      ['Nivel', selectedQuote._level],
-                      ['Páginas', selectedQuote._pages],
-                      ['Plazo', selectedQuote._deliveryTime],
-                      ['Entrega', selectedQuote._dueDate],
-                    ].filter(([, val]) => val).map(([label, val]) => (
-                      <div key={label} className="mq-detail-row"><span className="mq-dlabel">{label}</span><span>{val}</span></div>
-                    ))}
-                    {selectedQuote.publicId && (
+                    {editMode ? (
+                      <>
+                        <div className="mq-detail-row mq-edit-row">
+                          <span className="mq-dlabel">Cliente</span>
+                          <input className="mq-edit-input" value={editFields[selectedQuote._source === 'generated' ? 'clientName' : 'name'] || ''}
+                            onChange={(e) => setEditFields({ ...editFields, [selectedQuote._source === 'generated' ? 'clientName' : 'name']: e.target.value })} />
+                        </div>
+                        <div className="mq-detail-row mq-edit-row">
+                          <span className="mq-dlabel">Email</span>
+                          <input className="mq-edit-input" type="email" value={editFields[selectedQuote._source === 'generated' ? 'clientEmail' : 'email'] || ''}
+                            onChange={(e) => setEditFields({ ...editFields, [selectedQuote._source === 'generated' ? 'clientEmail' : 'email']: e.target.value })}
+                            placeholder="correo@ejemplo.com" />
+                        </div>
+                        <div className="mq-detail-row mq-edit-row">
+                          <span className="mq-dlabel"><FaPhone /> Teléfono</span>
+                          <input className="mq-edit-input" type="tel" value={editFields[selectedQuote._source === 'generated' ? 'clientPhone' : 'phone'] || ''}
+                            onChange={(e) => setEditFields({ ...editFields, [selectedQuote._source === 'generated' ? 'clientPhone' : 'phone']: e.target.value })}
+                            placeholder="55 1234 5678" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {[
+                          ['Cliente', selectedQuote._clientName],
+                          ['Email', selectedQuote._email],
+                          ['Teléfono', selectedQuote._phone],
+                          ['Tipo', selectedQuote._taskType],
+                          ['Servicio', selectedQuote._service],
+                          ['Título', selectedQuote._title],
+                          ['Área', selectedQuote._area],
+                          ['Carrera', selectedQuote._career],
+                          ['Nivel', selectedQuote._level],
+                          ['Páginas', selectedQuote._pages],
+                          ['Plazo', selectedQuote._deliveryTime],
+                          ['Entrega', selectedQuote._dueDate],
+                        ].filter(([, val]) => val).map(([label, val]) => (
+                          <div key={label} className="mq-detail-row"><span className="mq-dlabel">{label}</span><span>{val}</span></div>
+                        ))}
+                      </>
+                    )}
+                    {selectedQuote.publicId && !editMode && (
                       <div className="mq-detail-row"><span className="mq-dlabel">Public ID</span><span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{selectedQuote.publicId}</span></div>
                     )}
                   </div>
-                  {selectedQuote._description && <p className="mq-desc">{selectedQuote._description}</p>}
+                  {selectedQuote._description && !editMode && <p className="mq-desc">{selectedQuote._description}</p>}
                 </div>
                 <div className="mq-modal-col">
                   <h4>Financiero</h4>
@@ -534,17 +610,29 @@ const ManageQuotes = () => {
               </div>
             </div>
             <div className="mq-modal-footer">
-              <button className="mq-btn mq-btn-ghost" onClick={() => setSelectedQuote(null)}>Cerrar</button>
-              {selectedQuote._source === 'generated' && (
-                <button className="mq-btn mq-btn-outline" onClick={() => handleDownload(selectedQuote)}><FaFilePdf /> PDF</button>
-              )}
-              {selectedQuote.status === 'pending' && (
+              <button className="mq-btn mq-btn-ghost" onClick={() => { setSelectedQuote(null); setEditMode(false); }}>Cerrar</button>
+              {editMode ? (
                 <>
-                  <button className="mq-btn mq-btn-success" onClick={() => { handleStatus(selectedQuote, 'approved'); setSelectedQuote(null); }}><FaCheck /> Aprobar</button>
-                  <button className="mq-btn mq-btn-danger" onClick={() => { handleStatus(selectedQuote, 'rejected'); setSelectedQuote(null); }}><FaTimes /> Rechazar</button>
+                  <button className="mq-btn mq-btn-ghost" onClick={() => setEditMode(false)}>Cancelar</button>
+                  <button className="mq-btn mq-btn-success" onClick={handleSaveEdit} disabled={savingEdit}>
+                    <FaSave /> {savingEdit ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="mq-btn mq-btn-outline" onClick={handleEditQuote}><FaEdit /> Editar</button>
+                  {selectedQuote._source === 'generated' && (
+                    <button className="mq-btn mq-btn-outline" onClick={() => handleDownload(selectedQuote)}><FaFilePdf /> PDF</button>
+                  )}
+                  {selectedQuote.status === 'pending' && (
+                    <>
+                      <button className="mq-btn mq-btn-success" onClick={() => { handleStatus(selectedQuote, 'approved'); setSelectedQuote(null); }}><FaCheck /> Aprobar</button>
+                      <button className="mq-btn mq-btn-danger" onClick={() => { handleStatus(selectedQuote, 'rejected'); setSelectedQuote(null); }}><FaTimes /> Rechazar</button>
+                    </>
+                  )}
+                  <button className="mq-btn mq-btn-del" onClick={() => { handleDelete(selectedQuote); setSelectedQuote(null); }}><FaTrash /></button>
                 </>
               )}
-              <button className="mq-btn mq-btn-del" onClick={() => { handleDelete(selectedQuote); setSelectedQuote(null); }}><FaTrash /></button>
             </div>
           </div>
         </div>

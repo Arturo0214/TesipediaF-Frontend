@@ -1,8 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import AdminLayout from './components/layout/AdminLayout';
+import ClientLayout from './components/layout/ClientLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import QuoteCheckMiddleware from './components/common/QuoteCheckMiddleware';
 
 import Home from './pages/Home/Home';
 import Login from './pages/auth/Login';
@@ -23,13 +23,9 @@ import SalesQuote from './pages/SalesQuote/SalesQuote';
 
 import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy';
 
-import Dashboard from './pages/dashboard/Dashboard';
-import Profile from './pages/dashboard/Profile';
-import MyQuotes from './pages/dashboard/MyQuotes';
-import MyOrders from './pages/dashboard/MyOrders';
-import Messages from './pages/dashboard/Messages';
-import Payments from './pages/dashboard/Payments';
-import MyProject from './pages/dashboard/MyProject';
+import ClientPanel from './pages/Client/ClientPanel';
+import WriterPanel from './pages/Writer/WriterPanel';
+import RoleDashboard from './components/common/RoleDashboard';
 
 // Admin Pages
 import AdminPanel from './pages/admin/adminPanel/AdminPanel';
@@ -38,7 +34,7 @@ const router = createBrowserRouter(
   [
     {
       path: '/',
-      element: <MainLayout />, // Público y clientes
+      element: <MainLayout />, // Público
       children: [
         { index: true, element: <Home /> },
         { path: 'login', element: <Login /> },
@@ -57,30 +53,27 @@ const router = createBrowserRouter(
         { path: 'payment/success', element: <PaymentSuccess /> },
         { path: 'payment/cancel', element: <PaymentCancel /> },
         { path: 'cotizaciones', element: <SalesQuote /> },
+      ],
+    },
 
+    // Panel de Cliente/Redactor — layout propio sin navbar público (como AdminPanel)
+    {
+      element: <ProtectedRoute />,
+      children: [
         {
-          element: <ProtectedRoute />,
+          element: <ClientLayout />,
           children: [
-            // Rutas que requieren verificación de cotización
-            {
-              element: <QuoteCheckMiddleware />,
-              children: [
-                { path: 'dashboard', element: <Dashboard /> },
-              ],
-            },
-            // Rutas que solo requieren autenticación
-            { path: 'perfil', element: <Profile /> },
-            { path: 'mis-cotizaciones', element: <MyQuotes /> },
-            { path: 'mis-pedidos', element: <MyOrders /> },
-            { path: 'mensajes', element: <Messages /> },
-            { path: 'pagos', element: <Payments /> },
-            { path: 'mi-proyecto', element: <MyProject /> },
+            { path: 'dashboard', element: <RoleDashboard /> },
+            { path: 'mi-proyecto', element: <ClientPanel /> },
+            { path: 'panel-redactor', element: <WriterPanel /> },
           ],
         },
       ],
     },
+
+    // Panel de Admin — layout propio
     {
-      element: <ProtectedRoute requireAdmin />, // Protegido para Admin
+      element: <ProtectedRoute requireAdmin />,
       children: [
         {
           element: <AdminLayout />,
@@ -97,7 +90,7 @@ const router = createBrowserRouter(
             { path: 'admin/escritores', element: <AdminPanel /> },
             { path: 'admin/servicios', element: <AdminPanel /> },
             { path: 'admin/visitas', element: <AdminPanel /> },
-            { path: 'admin/*', element: <AdminPanel /> }, // Captura todas las rutas admin/* y las redirige a AdminPanel
+            { path: 'admin/*', element: <AdminPanel /> },
           ],
         },
       ],

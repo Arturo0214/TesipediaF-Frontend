@@ -566,3 +566,29 @@
   .mp-pay-toggle-group button { padding: 4px 8px; font-size: 0.65rem; }
   .mp-pay-bar-label { font-size: 0.55rem; }
 }
+
+/* ===== Delete Button & Danger Modal ===== */
+.mp-pay-actions-cell {
+  display: flex; align-items: center; gap: 8px; justify-content: flex-end;
+}
+.mp-pay-delete-btn {
+  background: none; border: none; color: #cbd5e1; cursor: pointer;
+  padding: 6px; border-radius: 6px; font-size: 0.85rem; transition: all 0.2s;
+  display: flex; align-items: center;
+}
+.mp-pay-delete-btn:hover { color: #ef4444; background: #fef2f2; }
+
+.mp-pay-modal-sm { max-width: 420px; }
+
+.mp-pay-modal-header-danger {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+}
+.mp-pay-modal-header-danger h2 { color: #dc2626 !important; }
+
+.mp-pay-btn-danger {
+  padding: 10px 24px; background: #ef4444; color: #fff; border: none;
+  border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 6px; transition: background 0.2s;
+}
+.mp-pay-btn-danger:hover { background: #dc2626; }
+.mp-pay-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }

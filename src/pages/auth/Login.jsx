@@ -107,11 +107,11 @@ const Login = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>
                     <FaEnvelope className="me-2" />
-                    Correo Electrónico
+                    Correo o Teléfono
                   </Form.Label>
                   <Form.Control
-                    type="email"
-                    placeholder="tu@email.com"
+                    type="text"
+                    placeholder="tu@email.com o número de teléfono"
                     name="email"
                     value={email}
                     onChange={onChange}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import {
     FaDollarSign, FaChartLine, FaUsers, FaCalendarAlt,
     FaSearch, FaChevronDown, FaChevronUp, FaSync, FaPlus, FaTimes,
-    FaCreditCard, FaMoneyBillWave, FaPercentage,
+    FaCreditCard, FaMoneyBillWave, FaPercentage, FaTrash,
     FaExclamationTriangle, FaCheckCircle, FaClock, FaFileInvoiceDollar,
     FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -13,6 +14,7 @@ import './ManagePayments.css';
 const ITEMS_PER_PAGE = 10;
 
 function ManagePayments() {
+    const { isSuperAdmin } = useSelector((state) => state.auth || {});
     const [view, setView] = useState('dashboard');
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -67,6 +69,23 @@ function ManagePayments() {
             toast.error(err.response?.data?.message || 'Error al registrar pago');
         }
         setAddingPayment(false);
+    };
+
+    const [confirmDelete, setConfirmDelete] = useState(null); // { _id, source, clientName }
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDeletePayment = async (payment) => {
+        setDeleting(true);
+        try {
+            await axiosWithAuth.delete(`/payments/dashboard/${payment._id}?source=${payment.source}`);
+            toast.success('Pago eliminado');
+            setConfirmDelete(null);
+            setExpandedPayment(null);
+            fetchDashboard();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al eliminar pago');
+        }
+        setDeleting(false);
     };
 
     const formatMoney = (amount) =>
@@ -438,7 +457,16 @@ function ManagePayments() {
                                             <td><span className="mp-pay-source-badge">{getSourceIcon(payment.source)} {getSourceLabel(payment.source)}</span></td>
                                             <td>{getStatusBadge(payment.status)}</td>
                                             <td>{formatDate(payment.date)}</td>
-                                            <td>
+                                            <td className="mp-pay-actions-cell">
+                                                {isSuperAdmin && (
+                                                    <button
+                                                        className="mp-pay-delete-btn"
+                                                        title="Eliminar pago"
+                                                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(payment); }}
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+                                                )}
                                                 {payment.schedule?.length > 1 && (
                                                     expandedPayment === payment._id ? <FaChevronUp className="mp-pay-expand-icon" /> : <FaChevronDown className="mp-pay-expand-icon" />
                                                 )}
@@ -591,6 +619,43 @@ function ManagePayments() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* ===== DELETE CONFIRMATION MODAL ===== */}
+            {confirmDelete && (
+                <div className="mp-pay-modal-overlay" onClick={() => setConfirmDelete(null)}>
+                    <div className="mp-pay-modal mp-pay-modal-sm" onClick={(e) => e.stopPropagation()}>
+                        <div className="mp-pay-modal-header mp-pay-modal-header-danger">
+                            <h2><FaTrash /> Eliminar Pago</h2>
+                            <button className="mp-pay-modal-close" onClick={() => setConfirmDelete(null)}><FaTimes /></button>
+                        </div>
+                        <div className="mp-pay-modal-body" style={{ textAlign: 'center', padding: '24px' }}>
+                            <FaExclamationTriangle style={{ fontSize: '2.5rem', color: '#ef4444', marginBottom: 12 }} />
+                            <p style={{ fontSize: '1rem', marginBottom: 8 }}>
+                                ¿Estás seguro de eliminar este pago?
+                            </p>
+                            <p style={{ fontWeight: 600, fontSize: '1.05rem' }}>
+                                {confirmDelete.clientName} — {formatMoney(confirmDelete.amount)}
+                            </p>
+                            <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 4 }}>
+                                Fuente: {getSourceLabel(confirmDelete.source)} · {confirmDelete.title}
+                            </p>
+                            <p style={{ fontSize: '0.78rem', color: '#dc2626', marginTop: 12 }}>
+                                Esta acción no se puede deshacer.
+                            </p>
+                        </div>
+                        <div className="mp-pay-modal-footer">
+                            <button type="button" className="mp-pay-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancelar</button>
+                            <button
+                                type="button"
+                                className="mp-pay-btn-danger"
+                                disabled={deleting}
+                                onClick={() => handleDeletePayment(confirmDelete)}
+                            >
+                                {deleting ? <><FaSync className="spinning" /> Eliminando...</> : <><FaTrash /> Eliminar</>}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

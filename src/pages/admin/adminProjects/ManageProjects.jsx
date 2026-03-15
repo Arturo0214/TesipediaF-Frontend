@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllProjects, updateProjectStatus, updateProgress, addComment } from '../../../features/projects/projectSlice';
 import axiosWithAuth from '../../../utils/axioswithAuth';
-import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus } from 'react-icons/fa';
+import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus, FaUserPlus } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import './ManageProjects.css';
 
@@ -31,6 +31,42 @@ function ManageProjects() {
         requirements: '', pages: '', dueDate: '', priority: 'medium',
         amount: '', method: 'transferencia', esquemaPago: 'Pago único', paymentDate: new Date().toISOString().slice(0, 10),
     });
+
+    const [creatingClient, setCreatingClient] = useState(null); // project ID being processed
+
+    // Handler to create client user from project
+    const handleCreateClient = async (e, project) => {
+        e.stopPropagation();
+        if (!project.clientEmail && !project.clientPhone) {
+            toast.error('Este proyecto no tiene email ni teléfono de cliente');
+            return;
+        }
+        if (project.client) {
+            toast('Este proyecto ya tiene un usuario cliente vinculado', { icon: '👤' });
+            return;
+        }
+        setCreatingClient(project._id);
+        try {
+            const { data } = await axiosWithAuth.post(`/projects/${project._id}/create-client`);
+            if (data.alreadyExists && !data.password) {
+                toast.success(`Usuario ya existía: ${data.loginIdentifier || data.user.email}\nSe vinculó al proyecto`, {
+                    duration: 5000, style: { whiteSpace: 'pre-line' }
+                });
+            } else {
+                const login = data.loginIdentifier || data.user.email;
+                toast.success(
+                    `✅ Usuario creado\n🔑 Login: ${login}\n🔑 Contraseña: ${data.password}\n📱 Credenciales enviadas por WhatsApp`,
+                    { duration: 10000, style: { whiteSpace: 'pre-line' } }
+                );
+            }
+            // Refresh projects to update client info
+            dispatch(getAllProjects());
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al crear usuario cliente');
+        } finally {
+            setCreatingClient(null);
+        }
+    };
 
     // Load projects on mount
     useEffect(() => {
@@ -357,6 +393,21 @@ function ManageProjects() {
                                     {project.clientName && (
                                         <p className="mp-card-client">
                                             <FaUser /> {project.clientName}
+                                            {!project.client && (project.clientEmail || project.clientPhone) && (
+                                                <button
+                                                    className="mp-create-client-btn-inline"
+                                                    title="Crear usuario cliente"
+                                                    onClick={(e) => handleCreateClient(e, project)}
+                                                    disabled={creatingClient === project._id}
+                                                >
+                                                    <FaUserPlus />
+                                                </button>
+                                            )}
+                                            {project.client && (
+                                                <span className="mp-client-linked-badge" title={`Usuario: ${project.client.email || ''}`}>
+                                                    <FaCheckCircle />
+                                                </span>
+                                            )}
                                         </p>
                                     )}
 
@@ -449,13 +500,28 @@ function ManageProjects() {
                                 </div>
                                 <small>{project.progress || 0}%</small>
                             </td>
-                            <td>
+                            <td className="mp-actions-cell">
                                 <button className="mp-action-btn" onClick={() => {
                                     setSelectedProject(project);
                                     setShowModal(true);
                                 }}>
                                     Ver
                                 </button>
+                                {!project.client && (project.clientEmail || project.clientPhone) && (
+                                    <button
+                                        className="mp-action-btn mp-create-client-btn"
+                                        onClick={(e) => handleCreateClient(e, project)}
+                                        disabled={creatingClient === project._id}
+                                        title="Crear usuario cliente"
+                                    >
+                                        <FaUserPlus /> {creatingClient === project._id ? '...' : 'Crear Usuario'}
+                                    </button>
+                                )}
+                                {project.client && (
+                                    <span className="mp-client-linked-badge" title={`Usuario: ${project.client.email || ''}`}>
+                                        <FaCheckCircle style={{ color: '#22c55e' }} /> Vinculado
+                                    </span>
+                                )}
                             </td>
                         </tr>
                     ))}
@@ -498,6 +564,31 @@ function ManageProjects() {
                                     <label>Área de Estudio</label>
                                     <p>{selectedProject.studyArea || '-'}</p>
                                 </div>
+                            </div>
+
+                            {/* Sección Crear Usuario Cliente */}
+                            <div className="mp-client-user-section">
+                                {selectedProject.client ? (
+                                    <div className="mp-client-exists">
+                                        <FaCheckCircle style={{ color: '#22c55e' }} />
+                                        <span>Usuario cliente vinculado: <strong>{selectedProject.client.email || selectedProject.clientEmail}</strong></span>
+                                    </div>
+                                ) : (selectedProject.clientEmail || selectedProject.clientPhone) ? (
+                                    <button
+                                        className="mp-btn mp-btn-create-client"
+                                        onClick={(e) => handleCreateClient(e, selectedProject)}
+                                        disabled={creatingClient === selectedProject._id}
+                                    >
+                                        <FaUserPlus />
+                                        {creatingClient === selectedProject._id
+                                            ? 'Creando usuario...'
+                                            : 'Crear Usuario y Contraseña'}
+                                    </button>
+                                ) : (
+                                    <p className="mp-no-email-warning">
+                                        <FaUser /> Sin email ni teléfono de cliente — no se puede crear usuario
+                                    </p>
+                                )}
                             </div>
                         </div>
 

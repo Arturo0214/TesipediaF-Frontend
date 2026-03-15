@@ -529,3 +529,16 @@
   .mq-stat-revenue { flex: 0 0 auto; }
   .mq-pagination { flex-direction: column; gap: 8px; }
 }
+
+/* ── Edit mode in modal ── */
+.mq-edit-row { display: flex; align-items: center; gap: 8px; }
+.mq-edit-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.mq-edit-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }

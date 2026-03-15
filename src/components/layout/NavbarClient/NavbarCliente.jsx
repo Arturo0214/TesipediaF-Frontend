@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout, reset } from '../../../features/auth/authSlice';
-import { FaUser, FaBell, FaCog, FaSignOutAlt, FaComments, FaFileAlt, FaBlog } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import './NavbarCliente.css';
 import Notifications from '../../../pages/Client/Notifications/Notifications';
@@ -91,25 +91,13 @@ function NavbarCliente() {
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={Link} to="/cotizar" onClick={closeNavbar}>Cotizar</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={Link} to="/mi-proyecto" onClick={closeNavbar}>Mi Proyecto</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={Link} to="/pagos" onClick={closeNavbar}>Pagos</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={Link} to="/servicios" onClick={closeNavbar}>Servicios</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={Link} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas frecuentes</Nav.Link>
+                                <Nav.Link as={Link} to="/dashboard" onClick={closeNavbar}>Mi Panel</Nav.Link>
                             </motion.div>
                         </Nav>
                         <Nav className="align-items-center">
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button as={Link} to="/cotizar" className="btn-cotizar me-2" onClick={closeNavbar}>
-                                    Cotizar Tesis
+                                <Button as={Link} to="/dashboard" className="btn-cotizar me-2" onClick={closeNavbar}>
+                                    Ir a Mi Panel
                                 </Button>
                             </motion.div>
                             <AnimatePresence>
@@ -133,17 +121,8 @@ function NavbarCliente() {
                                                 {user?.name}
                                             </Dropdown.Toggle>
                                             <Dropdown.Menu>
-                                                <Dropdown.Item as={Link} to="/perfil" onClick={closeNavbar}>
-                                                    <FaUser className="me-2" /> Editar Perfil
-                                                </Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/mensajes" onClick={closeNavbar}>
-                                                    <FaComments className="me-2" /> Mensajes
-                                                </Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/mis-cotizaciones" onClick={closeNavbar}>
-                                                    <FaFileAlt className="me-2" /> Mis Cotizaciones
-                                                </Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/blog" onClick={closeNavbar}>
-                                                    <FaBlog className="me-2" /> Blog
+                                                <Dropdown.Item as={Link} to="/dashboard" onClick={closeNavbar}>
+                                                    <FaUser className="me-2" /> Mi Panel
                                                 </Dropdown.Item>
                                                 <Dropdown.Divider />
                                                 <Dropdown.Item onClick={handleLogout}>
