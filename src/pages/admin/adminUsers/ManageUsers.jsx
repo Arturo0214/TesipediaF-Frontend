@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Table, Button, Spinner, Alert, Form, Row, Col, Tabs, Tab } from 'react-bootstrap';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUsers,
@@ -11,426 +10,300 @@ import {
 } from '../../../features/auth/userSlice';
 import './ManageUsers.css';
 import { toast } from 'react-hot-toast';
-import { FaEdit, FaTrash, FaUserTimes } from 'react-icons/fa';
+import {
+  FaUsers, FaUserShield, FaPen, FaUserGraduate, FaUserCheck,
+  FaSearch, FaEdit, FaTrash, FaTimes, FaSync, FaChevronLeft, FaChevronRight,
+  FaUserTie, FaBan, FaCheckCircle
+} from 'react-icons/fa';
+
+const ITEMS_PER_PAGE = 15;
 
 function ManageUsers() {
   const dispatch = useDispatch();
   const { users = [], loading = false, error = null, success = false } = useSelector((state) => state.users || {});
 
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showEditDropdown, setShowEditDropdown] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: '',
-    isActive: true
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({ role: '', isActive: true });
+  const [deletingUser, setDeletingUser] = useState(null);
 
-  // Filtros
-  const [filters, setFilters] = useState({
-    name: '',
-    role: '',
-    status: ''
-  });
-
-  // Usuarios filtrados
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [activeTab, setActiveTab] = useState('todos');
+  useEffect(() => { dispatch(fetchUsers()); }, [dispatch]);
 
   useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (success) {
-      dispatch(clearSuccess());
-    }
+    if (success) { dispatch(clearSuccess()); }
   }, [success, dispatch]);
 
-  // Aplicar filtros cuando cambian o cuando se cargan los usuarios
-  useEffect(() => {
-    if (users.length > 0) {
-      let result = [...users];
+  // Summary stats
+  const stats = useMemo(() => {
+    const total = users.length;
+    const active = users.filter(u => u.isActive).length;
+    const admins = users.filter(u => u.role === 'admin').length;
+    const redactores = users.filter(u => u.role === 'redactor').length;
+    const clientes = users.filter(u => u.role === 'cliente').length;
+    return { total, active, admins, redactores, clientes };
+  }, [users]);
 
-      // Filtrar por pestaña activa
-      if (activeTab === 'redactores') {
-        result = result.filter(user => user.role === 'redactor');
-      }
-
-      // Filtrar por nombre
-      if (filters.name) {
-        const searchTerm = filters.name.toLowerCase();
-        result = result.filter(user =>
-          user.name && user.name.toLowerCase().includes(searchTerm)
-        );
-      }
-
-      // Filtrar por rol
-      if (filters.role) {
-        result = result.filter(user => user.role === filters.role);
-      }
-
-      // Filtrar por estado
-      if (filters.status) {
-        const isActive = filters.status === 'active';
-        result = result.filter(user => user.isActive === isActive);
-      }
-
-      setFilteredUsers(result);
-    } else {
-      setFilteredUsers([]);
+  // Filtered users
+  const filtered = useMemo(() => {
+    let result = [...users];
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(u =>
+        u.name?.toLowerCase().includes(term) || u.email?.toLowerCase().includes(term)
+      );
     }
-  }, [filters, users, activeTab]);
+    if (filterRole !== 'all') result = result.filter(u => u.role === filterRole);
+    if (filterStatus !== 'all') result = result.filter(u => u.isActive === (filterStatus === 'active'));
+    return result;
+  }, [users, searchTerm, filterRole, filterStatus]);
 
-  const handleEditClick = (user) => {
-    if (showEditDropdown === user._id) {
-      setShowEditDropdown(null);
-      return;
-    }
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-    setSelectedUser(user);
-    setFormData({
-      name: user.name || '',
-      email: user.email || '',
-      role: user.role || '',
-      isActive: user.isActive || false
-    });
-    setShowEditDropdown(user._id);
-    setShowDeleteConfirm(null);
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  const handleDeleteClick = (user) => {
-    if (showDeleteConfirm === user._id) {
-      setShowDeleteConfirm(null);
-      return;
-    }
-
-    setSelectedUser(user);
-    setShowDeleteConfirm(user._id);
-    setShowEditDropdown(null);
+  const handleEditOpen = (user) => {
+    setEditingUser(user);
+    setEditForm({ role: user.role, isActive: user.isActive });
+    setDeletingUser(null);
   };
 
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (selectedUser?._id) {
-      try {
-        await dispatch(updateUserRole({ id: selectedUser._id, role: formData.role })).unwrap();
-        await dispatch(updateUserStatus({ id: selectedUser._id, isActive: formData.isActive })).unwrap();
-        toast.success('Usuario actualizado correctamente');
-        setShowEditDropdown(null);
-        setTimeout(() => {
-          dispatch(fetchUsers());
-        }, 300);
-      } catch (err) {
-        toast.error(err?.message || err?.toString() || 'Error al actualizar el usuario');
-      }
+  const handleEditSave = async () => {
+    if (!editingUser) return;
+    try {
+      await dispatch(updateUserRole({ id: editingUser._id, role: editForm.role })).unwrap();
+      await dispatch(updateUserStatus({ id: editingUser._id, isActive: editForm.isActive })).unwrap();
+      toast.success('Usuario actualizado');
+      setEditingUser(null);
+      dispatch(fetchUsers());
+    } catch (err) {
+      toast.error(err?.message || 'Error al actualizar');
     }
   };
 
   const handleDeleteConfirm = async () => {
-    if (selectedUser?._id) {
-      await dispatch(deleteUser(selectedUser._id));
-      setShowDeleteConfirm(null);
+    if (!deletingUser) return;
+    try {
+      await dispatch(deleteUser(deletingUser._id)).unwrap();
+      toast.success('Usuario eliminado');
+      setDeletingUser(null);
       dispatch(fetchUsers());
+    } catch (err) {
+      toast.error(err?.message || 'Error al eliminar');
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Cerrar dropdowns cuando se hace clic fuera de ellos
-  const handleClickOutside = (e) => {
-    if (!e.target.closest('.mu-action-dropdown') && !e.target.closest('.mu-action-button')) {
-      setShowEditDropdown(null);
-      setShowDeleteConfirm(null);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+  const getRoleBadge = (role) => {
+    const map = {
+      admin: { label: 'Admin', cls: 'admin', icon: <FaUserShield /> },
+      redactor: { label: 'Redactor', cls: 'redactor', icon: <FaPen /> },
+      cliente: { label: 'Cliente', cls: 'cliente', icon: <FaUserGraduate /> },
     };
-  }, []);
-
-  // Formatear fecha
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
+    const info = map[role] || { label: role, cls: 'cliente', icon: <FaUsers /> };
+    return <span className={`mu-badge mu-badge-${info.cls}`}>{info.icon} {info.label}</span>;
   };
 
-  if (loading) {
+  if (loading && users.length === 0) {
     return (
-      <Container fluid className="mu-manage-users-container d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </Spinner>
-      </Container>
+      <div className="mu-page">
+        <div className="mu-loading"><FaSync className="mu-spinning" /><p>Cargando usuarios...</p></div>
+      </div>
     );
   }
 
   return (
-    <Container fluid className="mu-manage-users-container">
-      <h2 className="mu-manage-users-title">Gestión de Usuarios</h2>
-
-      {error && typeof error === 'string' && (
-        <Alert variant="danger" onClose={() => dispatch(clearError())} dismissible className="admin-alert">
-          {error}
-        </Alert>
-      )}
-
-      {/* Tabs para alternar entre Todos y Redactores */}
-      <div className="mu-tabs-sticky">
-        <Tabs
-          id="users-tabs"
-          activeKey={activeTab}
-          onSelect={(k) => setActiveTab(k)}
-          className="mb-3"
-        >
-          <Tab eventKey="todos" title="Todos" />
-          <Tab eventKey="redactores" title="Redactores" />
-        </Tabs>
+    <div className="mu-page">
+      {/* Header */}
+      <div className="mu-header">
+        <div>
+          <h1 className="mu-title">Gestión de Usuarios</h1>
+          <span className="mu-subtitle">{filtered.length} usuarios</span>
+        </div>
+        <button className="mu-refresh-btn" onClick={() => dispatch(fetchUsers())}>
+          <FaSync /> Actualizar
+        </button>
       </div>
 
-      {/* Filtros de búsqueda */}
-      <div className="mu-filters-sticky">
-        <div className="mu-filters-container">
-          <div className="mu-filter-item">
-            <label className="mu-filter-label">Buscar por nombre</label>
-            <Form.Control
-              type="text"
-              name="name"
-              value={filters.name}
-              onChange={handleFilterChange}
-              placeholder="Buscar..."
-              size="sm"
-            />
-          </div>
-          <div className="mu-filter-item">
-            <label className="mu-filter-label">Filtrar por rol</label>
-            <Form.Select
-              name="role"
-              value={filters.role}
-              onChange={handleFilterChange}
-              size="sm"
-            >
-              <option value="">Todos</option>
-              <option value="admin">Administrador</option>
-              <option value="redactor">Redactor</option>
-              <option value="cliente">Cliente</option>
-            </Form.Select>
-          </div>
-          <div className="mu-filter-item">
-            <label className="mu-filter-label">Estado</label>
-            <Form.Select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              size="sm"
-            >
-              <option value="">Todos</option>
-              <option value="active">Activo</option>
-              <option value="inactive">Inactivo</option>
-            </Form.Select>
-          </div>
+      {/* Summary Cards */}
+      <div className="mu-summary">
+        <div className="mu-card mu-card-blue">
+          <div className="mu-card-icon"><FaUsers /></div>
+          <div><p className="mu-card-label">Total Usuarios</p><h2 className="mu-card-value">{stats.total}</h2></div>
+        </div>
+        <div className="mu-card mu-card-green">
+          <div className="mu-card-icon"><FaUserCheck /></div>
+          <div><p className="mu-card-label">Activos</p><h2 className="mu-card-value">{stats.active}</h2></div>
+        </div>
+        <div className="mu-card mu-card-purple">
+          <div className="mu-card-icon"><FaUserShield /></div>
+          <div><p className="mu-card-label">Admins</p><h2 className="mu-card-value">{stats.admins}</h2></div>
+        </div>
+        <div className="mu-card mu-card-orange">
+          <div className="mu-card-icon"><FaPen /></div>
+          <div><p className="mu-card-label">Redactores</p><h2 className="mu-card-value">{stats.redactores}</h2></div>
+        </div>
+        <div className="mu-card mu-card-teal">
+          <div className="mu-card-icon"><FaUserGraduate /></div>
+          <div><p className="mu-card-label">Clientes</p><h2 className="mu-card-value">{stats.clientes}</h2></div>
         </div>
       </div>
 
-      {/* Tabla con scroll vertical */}
-      <div className="mu-table-scroll mu-table-responsive">
-        <Table className="mu-manage-users-table admin-table">
-          <thead>
-            <tr>
-              <th className="mu-col-id">ID</th>
-              <th className="mu-col-name">Nombre</th>
-              <th className="mu-col-email">Email</th>
-              <th className="mu-col-role">Rol</th>
-              <th className="mu-col-status">Estado</th>
-              <th className="mu-col-date">Fecha registro</th>
-              <th className="mu-col-actions">Acciones</th>
-            </tr>
-          </thead>
-          <tbody style={{ position: 'relative' }}>
-            {Array.isArray(filteredUsers) && filteredUsers.map(user => (
-              <tr key={user._id}>
-                <td className="mu-col-id">{user._id || 'N/A'}</td>
-                <td className="mu-col-name">{user.name || 'N/A'}</td>
-                <td className="mu-col-email">{user.email || 'N/A'}</td>
-                <td className="mu-col-role">
-                  <span className={`mu-role-badge mu-role-${user.role || 'cliente'}`}>
-                    {user.role === 'admin' ? 'Admin' :
-                      user.role === 'redactor' ? 'Redactor' :
-                        user.role === 'cliente' ? 'Cliente' : 'Cliente'}
-                  </span>
-                </td>
-                <td className="mu-col-status">
-                  <span className={`mu-user-status ${user.isActive ? 'mu-status-active' : 'mu-status-inactive'}`}>
-                    {user.isActive ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td className="mu-col-date">
-                  <span className="mu-join-date">{formatDate(user.createdAt)}</span>
-                </td>
-                <td className="mu-col-actions" style={{ position: 'relative', zIndex: 2 }}>
-                  <div className="mu-action-buttons">
-                    <Button
-                      className="mu-action-button mu-edit-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditClick(user);
-                      }}
-                      title="Editar usuario"
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      className="mu-action-button mu-delete-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(user);
-                      }}
-                      title="Eliminar usuario"
-                    >
-                      <FaTrash />
-                    </Button>
+      {/* Filters */}
+      <div className="mu-table-section">
+        <div className="mu-filters">
+          <div className="mu-search">
+            <FaSearch />
+            <input type="text" placeholder="Buscar por nombre o email..." value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} />
+          </div>
+          <select value={filterRole} onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}>
+            <option value="all">Todos los roles</option>
+            <option value="admin">Administradores</option>
+            <option value="redactor">Redactores</option>
+            <option value="cliente">Clientes</option>
+          </select>
+          <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}>
+            <option value="all">Todos los estados</option>
+            <option value="active">Activos</option>
+            <option value="inactive">Inactivos</option>
+          </select>
+        </div>
 
-                    {/* Edit Dropdown */}
-                    {showEditDropdown === user._id && (
-                      <div
-                        className="mu-action-dropdown mu-edit-dropdown"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="mu-dropdown-header">
-                          <h6>Editar Usuario</h6>
-                          <Button
-                            variant="link"
-                            className="mu-close-dropdown"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowEditDropdown(null);
-                            }}
-                          >
-                            <FaUserTimes />
-                          </Button>
-                        </div>
-                        <Form onSubmit={handleEditSubmit}>
-                          <div className="mu-dropdown-body">
-                            <Form.Group className="mb-2">
-                              <Form.Label>Nombre</Form.Label>
-                              <Form.Control
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                disabled
-                                size="sm"
-                              />
-                            </Form.Group>
-                            <Form.Group className="mb-2">
-                              <Form.Label>Email</Form.Label>
-                              <Form.Control
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                disabled
-                                size="sm"
-                              />
-                            </Form.Group>
-                            <Form.Group className="mb-2">
-                              <Form.Label>Rol</Form.Label>
-                              <Form.Select
-                                name="role"
-                                value={formData.role}
-                                onChange={handleInputChange}
-                                size="sm"
-                                disabled={selectedUser && selectedUser._id === (JSON.parse(localStorage.getItem('user'))?._id)}
-                              >
-                                <option value="admin">Administrador</option>
-                                <option value="redactor">Redactor</option>
-                                <option value="cliente">Cliente</option>
-                              </Form.Select>
-                            </Form.Group>
-                            <Form.Group className="mb-2">
-                              <Form.Check
-                                type="checkbox"
-                                name="isActive"
-                                label="Usuario Activo"
-                                checked={formData.isActive}
-                                onChange={handleInputChange}
-                                disabled={loading}
-                              />
-                            </Form.Group>
-                          </div>
-                          <div className="mu-dropdown-footer">
-                            <Button variant="secondary" size="sm" onClick={() => setShowEditDropdown(null)}>
-                              Cancelar
-                            </Button>
-                            <Button variant="primary" type="submit" size="sm" disabled={loading}>
-                              {loading ? <Spinner animation="border" size="sm" /> : 'Guardar'}
-                            </Button>
-                          </div>
-                        </Form>
-                      </div>
-                    )}
-
-                    {/* Delete Confirmation Dropdown */}
-                    {showDeleteConfirm === user._id && (
-                      <div
-                        className="mu-action-dropdown mu-delete-dropdown"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="mu-dropdown-header">
-                          <h6>Confirmar Eliminación</h6>
-                          <Button
-                            variant="link"
-                            className="mu-close-dropdown"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowDeleteConfirm(null);
-                            }}
-                          >
-                            <FaUserTimes />
-                          </Button>
-                        </div>
-                        <div className="mu-dropdown-body">
-                          <p>¿Estás seguro de que deseas eliminar al usuario {user.name || ''}?</p>
-                        </div>
-                        <div className="mu-dropdown-footer">
-                          <Button variant="secondary" size="sm" onClick={() => setShowDeleteConfirm(null)}>
-                            Cancelar
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={handleDeleteConfirm}>
-                            Eliminar
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </td>
+        {/* Table */}
+        <div className="mu-table-container">
+          <table className="mu-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Registro</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {paginated.map((user) => (
+                <tr key={user._id}>
+                  <td>
+                    <div className="mu-user-cell">
+                      <div className="mu-user-avatar">
+                        {(user.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="mu-user-info">
+                        <strong>{user.name || 'Sin nombre'}</strong>
+                        <small>{user.email || '-'}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{getRoleBadge(user.role)}</td>
+                  <td>
+                    <span className={`mu-status ${user.isActive ? 'mu-status-active' : 'mu-status-inactive'}`}>
+                      {user.isActive ? <><FaCheckCircle /> Activo</> : <><FaBan /> Inactivo</>}
+                    </span>
+                  </td>
+                  <td className="mu-date-cell">{formatDate(user.createdAt)}</td>
+                  <td>
+                    <div className="mu-actions">
+                      <button className="mu-action-edit" onClick={() => handleEditOpen(user)} title="Editar">
+                        <FaEdit />
+                      </button>
+                      <button className="mu-action-delete" onClick={() => { setDeletingUser(user); setEditingUser(null); }} title="Eliminar">
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan="5" className="mu-empty">No se encontraron usuarios</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mu-pagination">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}><FaChevronLeft /></button>
+            <span>Página {currentPage} de {totalPages}</span>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}><FaChevronRight /></button>
+          </div>
+        )}
       </div>
-    </Container>
+
+      {/* Edit Modal */}
+      {editingUser && (
+        <div className="mu-modal-overlay" onClick={() => setEditingUser(null)}>
+          <div className="mu-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mu-modal-header">
+              <h2>Editar Usuario</h2>
+              <button className="mu-modal-close" onClick={() => setEditingUser(null)}><FaTimes /></button>
+            </div>
+            <div className="mu-modal-body">
+              <div className="mu-modal-user-preview">
+                <div className="mu-user-avatar lg">{(editingUser.name || 'U').charAt(0).toUpperCase()}</div>
+                <div>
+                  <strong>{editingUser.name}</strong>
+                  <small>{editingUser.email}</small>
+                </div>
+              </div>
+              <div className="mu-form-group">
+                <label>Rol</label>
+                <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
+                  <option value="admin">Administrador</option>
+                  <option value="redactor">Redactor</option>
+                  <option value="cliente">Cliente</option>
+                </select>
+              </div>
+              <div className="mu-form-group">
+                <label className="mu-checkbox-label">
+                  <input type="checkbox" checked={editForm.isActive}
+                    onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} />
+                  <span>Usuario Activo</span>
+                </label>
+              </div>
+            </div>
+            <div className="mu-modal-footer">
+              <button className="mu-btn-cancel" onClick={() => setEditingUser(null)}>Cancelar</button>
+              <button className="mu-btn-save" onClick={handleEditSave}>Guardar Cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {deletingUser && (
+        <div className="mu-modal-overlay" onClick={() => setDeletingUser(null)}>
+          <div className="mu-modal mu-modal-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="mu-modal-header mu-modal-header-danger">
+              <h2>Confirmar Eliminación</h2>
+              <button className="mu-modal-close" onClick={() => setDeletingUser(null)}><FaTimes /></button>
+            </div>
+            <div className="mu-modal-body">
+              <p className="mu-delete-msg">
+                ¿Estás seguro de que deseas eliminar al usuario <strong>{deletingUser.name}</strong>?
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="mu-modal-footer">
+              <button className="mu-btn-cancel" onClick={() => setDeletingUser(null)}>Cancelar</button>
+              <button className="mu-btn-danger" onClick={handleDeleteConfirm}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && typeof error === 'string' && (
+        <div className="mu-toast-error" onClick={() => dispatch(clearError())}>{error}</div>
+      )}
+    </div>
   );
 }
 

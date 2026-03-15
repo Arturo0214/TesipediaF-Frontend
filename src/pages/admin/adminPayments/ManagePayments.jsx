@@ -13,6 +13,7 @@ import './ManagePayments.css';
 const ITEMS_PER_PAGE = 10;
 
 function ManagePayments() {
+    const [view, setView] = useState('dashboard');
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -27,7 +28,8 @@ function ManagePayments() {
     const [addingPayment, setAddingPayment] = useState(false);
     const [newPayment, setNewPayment] = useState({
         clientName: '', clientEmail: '', title: '',
-        amount: '', method: 'transferencia', esquemaPago: 'Pago único', notes: ''
+        amount: '', method: 'transferencia', esquemaPago: 'Pago único',
+        paymentDate: new Date().toISOString().slice(0, 10), notes: ''
     });
 
     useEffect(() => { fetchDashboard(); }, []);
@@ -55,7 +57,7 @@ function ManagePayments() {
             await axiosWithAuth.post('/payments/manual', newPayment);
             toast.success('Pago registrado correctamente');
             setShowAddModal(false);
-            setNewPayment({ clientName: '', clientEmail: '', title: '', amount: '', method: 'transferencia', esquemaPago: 'Pago único', notes: '' });
+            setNewPayment({ clientName: '', clientEmail: '', title: '', amount: '', method: 'transferencia', esquemaPago: 'Pago único', paymentDate: new Date().toISOString().slice(0, 10), notes: '' });
             fetchDashboard();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Error al registrar pago');
@@ -71,11 +73,12 @@ function ManagePayments() {
         return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
-    const getSourceLabel = (source) => ({ stripe: 'Stripe', sofia: 'Sofia', guest: 'Invitado', manual: 'Manual' }[source] || source);
+    const getSourceLabel = (source) => ({ stripe: 'Stripe', sofia: 'Sofia', guest: 'Invitado', manual: 'Manual', mercadolibre: 'Mercado Libre' }[source] || source);
     const getSourceIcon = (source) => {
         if (source === 'stripe') return <FaCreditCard />;
         if (source === 'sofia') return <FaFileInvoiceDollar />;
         if (source === 'manual') return <FaMoneyBillWave />;
+        if (source === 'mercadolibre') return <FaCreditCard />;
         return <FaUsers />;
     };
     const getEsquemaLabel = (esquema) => ({
@@ -179,7 +182,7 @@ function ManagePayments() {
                 </div>
             </div>
 
-            {/* Summary Cards */}
+            {/* Summary Cards — always visible */}
             <div className="mp-pay-summary">
                 <div className="mp-pay-card mp-pay-card-green">
                     <div className="mp-pay-card-icon"><FaDollarSign /></div>
@@ -199,268 +202,287 @@ function ManagePayments() {
                 </div>
             </div>
 
-            {/* ===== CHARTS — Two side by side ===== */}
-            <div className="mp-pay-charts-row">
-                {/* Ingresos Chart */}
-                <div className="mp-pay-chart-card">
-                    <div className="mp-pay-chart-header">
-                        <h3><FaChartBar /> Ingresos Totales</h3>
-                        <div className="mp-pay-toggle-group">
-                            {['daily', 'weekly', 'monthly'].map(p => (
-                                <button key={p} className={chartPeriod === p ? 'active' : ''} onClick={() => setChartPeriod(p)}>
-                                    {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Semanal' : 'Mensual'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    {chartData.length > 0 ? (
-                        <div className="mp-pay-chart-bars">
-                            {chartData.map((item) => {
-                                const pct = ingresosMax > 0 ? (item.ingresos / ingresosMax) * 100 : 0;
-                                return (
-                                    <div key={getChartKey(item)} className="mp-pay-bar-col">
-                                        <div className="mp-pay-bar-wrapper">
-                                            <div className="mp-pay-bar ingreso" style={{ height: `${Math.max(pct, 4)}%` }}>
-                                                <span className="mp-pay-bar-tooltip">{formatMoney(item.ingresos)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
-                                            </div>
-                                        </div>
-                                        <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="mp-pay-chart-empty"><p>Sin datos</p></div>
-                    )}
-                </div>
-
-                {/* Comisiones Chart */}
-                <div className="mp-pay-chart-card">
-                    <div className="mp-pay-chart-header">
-                        <h3><FaPercentage /> Comisiones por Ventas</h3>
-                    </div>
-                    {chartData.length > 0 ? (
-                        <div className="mp-pay-chart-bars">
-                            {chartData.map((item) => {
-                                const pct = comisionesMax > 0 ? (item.comisiones / comisionesMax) * 100 : 0;
-                                return (
-                                    <div key={getChartKey(item)} className="mp-pay-bar-col">
-                                        <div className="mp-pay-bar-wrapper">
-                                            <div className="mp-pay-bar comision" style={{ height: `${Math.max(pct, 4)}%` }}>
-                                                <span className="mp-pay-bar-tooltip">{formatMoney(item.comisiones)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
-                                            </div>
-                                        </div>
-                                        <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="mp-pay-chart-empty"><p>Sin datos</p></div>
-                    )}
-                </div>
+            {/* ===== VIEW TOGGLE ===== */}
+            <div className="mp-pay-view-toggle">
+                <button className={`mp-pay-view-btn ${view === 'dashboard' ? 'active' : ''}`} onClick={() => setView('dashboard')}>
+                    <FaChartBar /> Dashboard
+                </button>
+                <button className={`mp-pay-view-btn ${view === 'calendar' ? 'active' : ''}`} onClick={() => setView('calendar')}>
+                    <FaCalendarAlt /> Calendario
+                </button>
+                <button className={`mp-pay-view-btn ${view === 'register' ? 'active' : ''}`} onClick={() => setView('register')}>
+                    <FaMoneyBillWave /> Registro
+                </button>
             </div>
 
-            {/* ===== PAYMENT CALENDAR ===== */}
-            {(() => {
-                const year = calMonth.getFullYear();
-                const month = calMonth.getMonth();
-                const firstDay = new Date(year, month, 1);
-                const lastDay = new Date(year, month + 1, 0);
-                const daysInMonth = lastDay.getDate();
-                const startingDow = firstDay.getDay();
-
-                const calDays = [];
-                for (let i = 0; i < startingDow; i++) calDays.push(null);
-                for (let i = 1; i <= daysInMonth; i++) calDays.push(new Date(year, month, i));
-
-                const dayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-                return (
-                    <div className="mp-pay-calendar-section">
-                        <div className="mp-pay-cal-header">
-                            <h3><FaCalendarAlt /> Calendario de Pagos</h3>
-                            <div className="mp-pay-cal-nav">
-                                <button onClick={() => setCalMonth(new Date(year, month - 1))}><FaChevronLeft /></button>
-                                <span className="mp-pay-cal-month">
-                                    {calMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                                </span>
-                                <button onClick={() => setCalMonth(new Date(year, month + 1))}><FaChevronRight /></button>
+            {/* ===== DASHBOARD VIEW — Charts ===== */}
+            {view === 'dashboard' && (
+                <div className="mp-pay-charts-row">
+                    {/* Ingresos Chart */}
+                    <div className="mp-pay-chart-card">
+                        <div className="mp-pay-chart-header">
+                            <h3><FaChartBar /> Ingresos Totales</h3>
+                            <div className="mp-pay-toggle-group">
+                                {['daily', 'weekly', 'monthly'].map(p => (
+                                    <button key={p} className={chartPeriod === p ? 'active' : ''} onClick={() => setChartPeriod(p)}>
+                                        {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Semanal' : 'Mensual'}
+                                    </button>
+                                ))}
                             </div>
                         </div>
-                        <div className="mp-pay-cal-grid">
-                            {dayLabels.map(d => (
-                                <div key={d} className="mp-pay-cal-day-header">{d}</div>
-                            ))}
-                            {calDays.map((day, idx) => {
-                                const isToday = day && day.toDateString() === new Date().toDateString();
-                                const installmentsOnDay = day ? allInstallments.filter(inst =>
-                                    inst.dueDate && new Date(inst.dueDate).toDateString() === day.toDateString()
-                                ) : [];
-                                const paymentsOnDay = day ? payments.filter(p =>
-                                    p.date && new Date(p.date).toDateString() === day.toDateString()
-                                ) : [];
-                                const dayTotal = [...installmentsOnDay.map(i => i.amount), ...paymentsOnDay.filter(p => !installmentsOnDay.length).map(p => p.amount)]
-                                    .reduce((s, a) => s + (a || 0), 0);
-
-                                return (
-                                    <div key={idx} className={`mp-pay-cal-day ${isToday ? 'today' : ''} ${!day ? 'empty' : ''}`}>
-                                        {day && <span className="mp-pay-cal-day-num">{day.getDate()}</span>}
-                                        <div className="mp-pay-cal-events">
-                                            {installmentsOnDay.slice(0, 3).map((inst, i) => (
-                                                <div key={i} className="mp-pay-cal-chip installment">
-                                                    <strong>{inst.clientName?.split(' ')[0]}</strong>
-                                                    <span>{formatMoney(inst.amount)}</span>
+                        {chartData.length > 0 ? (
+                            <div className="mp-pay-chart-bars">
+                                {chartData.map((item) => {
+                                    const pct = ingresosMax > 0 ? (item.ingresos / ingresosMax) * 100 : 0;
+                                    return (
+                                        <div key={getChartKey(item)} className="mp-pay-bar-col">
+                                            <div className="mp-pay-bar-wrapper">
+                                                <div className="mp-pay-bar ingreso" style={{ height: `${Math.max(pct, 4)}%` }}>
+                                                    <span className="mp-pay-bar-tooltip">{formatMoney(item.ingresos)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
                                                 </div>
-                                            ))}
-                                            {paymentsOnDay.length > 0 && installmentsOnDay.length === 0 && paymentsOnDay.slice(0, 3).map((p, i) => (
-                                                <div key={i} className={`mp-pay-cal-chip source-${p.source}`}>
-                                                    <strong>{p.clientName?.split(' ')[0]}</strong>
-                                                    <span>{formatMoney(p.amount)}</span>
-                                                </div>
-                                            ))}
-                                            {(installmentsOnDay.length > 3 || (installmentsOnDay.length === 0 && paymentsOnDay.length > 3)) && (
-                                                <div className="mp-pay-cal-more">
-                                                    +{Math.max(installmentsOnDay.length, paymentsOnDay.length) - 3} más
-                                                </div>
-                                            )}
+                                            </div>
+                                            <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                );
-            })()}
-
-            {/* ===== UPCOMING INSTALLMENTS ===== */}
-            {upcoming.length > 0 && (
-                <div className="mp-pay-upcoming">
-                    <h3><FaClock /> Próximos pagos (30 días)</h3>
-                    <div className="mp-pay-upcoming-list">
-                        {upcoming.slice(0, 5).map((inst, idx) => (
-                            <div key={idx} className="mp-pay-upcoming-item">
-                                <div className="mp-pay-upcoming-date">{formatDate(inst.dueDate)}</div>
-                                <div className="mp-pay-upcoming-info">
-                                    <strong>{inst.clientName}</strong>
-                                    <span>{inst.label} — {inst.title}</span>
-                                </div>
-                                <div className="mp-pay-upcoming-amount">{formatMoney(inst.amount)}</div>
+                                    );
+                                })}
                             </div>
-                        ))}
-                        {upcoming.length > 5 && <p className="mp-pay-upcoming-more">+{upcoming.length - 5} pagos más</p>}
+                        ) : (
+                            <div className="mp-pay-chart-empty"><p>Sin datos</p></div>
+                        )}
+                    </div>
+
+                    {/* Comisiones Chart */}
+                    <div className="mp-pay-chart-card">
+                        <div className="mp-pay-chart-header">
+                            <h3><FaPercentage /> Comisiones por Ventas</h3>
+                        </div>
+                        {chartData.length > 0 ? (
+                            <div className="mp-pay-chart-bars">
+                                {chartData.map((item) => {
+                                    const pct = comisionesMax > 0 ? (item.comisiones / comisionesMax) * 100 : 0;
+                                    return (
+                                        <div key={getChartKey(item)} className="mp-pay-bar-col">
+                                            <div className="mp-pay-bar-wrapper">
+                                                <div className="mp-pay-bar comision" style={{ height: `${Math.max(pct, 4)}%` }}>
+                                                    <span className="mp-pay-bar-tooltip">{formatMoney(item.comisiones)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
+                                                </div>
+                                            </div>
+                                            <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="mp-pay-chart-empty"><p>Sin datos</p></div>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* ===== PAYMENTS TABLE ===== */}
-            <div className="mp-pay-table-section">
-                <div className="mp-pay-table-top">
-                    <h3><FaMoneyBillWave /> Registro de Pagos</h3>
-                </div>
-                <div className="mp-pay-filters">
-                    <div className="mp-pay-search">
-                        <FaSearch />
-                        <input type="text" placeholder="Buscar por cliente o título..." value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} />
-                    </div>
-                    <select value={filterEsquema} onChange={(e) => { setFilterEsquema(e.target.value); setCurrentPage(1); }}>
-                        <option value="all">Todos los esquemas</option>
-                        <option value="unico">Pago único</option>
-                        <option value="50-50">50% - 50%</option>
-                        <option value="33-33-34">33-33-34%</option>
-                        <option value="6-quincenas">6 Quincenas</option>
-                        <option value="6-msi">6 MSI</option>
-                    </select>
-                    <select value={filterSource} onChange={(e) => { setFilterSource(e.target.value); setCurrentPage(1); }}>
-                        <option value="all">Todas las fuentes</option>
-                        <option value="stripe">Stripe/PayPal</option>
-                        <option value="sofia">Cotizaciones Sofia</option>
-                        <option value="guest">Pagos Invitados</option>
-                    </select>
-                </div>
+            {/* ===== CALENDAR VIEW ===== */}
+            {view === 'calendar' && (
+                <>
+                    {(() => {
+                        const year = calMonth.getFullYear();
+                        const month = calMonth.getMonth();
+                        const firstDay = new Date(year, month, 1);
+                        const lastDay = new Date(year, month + 1, 0);
+                        const daysInMonth = lastDay.getDate();
+                        const startingDow = firstDay.getDay();
 
-                <div className="mp-pay-table-container">
-                    <table className="mp-pay-table">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Proyecto</th>
-                                <th>Monto</th>
-                                <th>Esquema</th>
-                                <th>Comisión</th>
-                                <th>Fuente</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedPayments.map((payment) => (
-                                <React.Fragment key={payment._id}>
-                                    <tr className={`mp-pay-row ${expandedPayment === payment._id ? 'expanded' : ''}`}
-                                        onClick={() => setExpandedPayment(expandedPayment === payment._id ? null : payment._id)}>
-                                        <td>
-                                            <div className="mp-pay-client">
-                                                <strong>{payment.clientName}</strong>
-                                                {payment.clientEmail && <small>{payment.clientEmail}</small>}
+                        const calDays = [];
+                        for (let i = 0; i < startingDow; i++) calDays.push(null);
+                        for (let i = 1; i <= daysInMonth; i++) calDays.push(new Date(year, month, i));
+
+                        const dayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+                        return (
+                            <div className="mp-pay-calendar-section">
+                                <div className="mp-pay-cal-header">
+                                    <h3><FaCalendarAlt /> Calendario de Pagos</h3>
+                                    <div className="mp-pay-cal-nav">
+                                        <button onClick={() => setCalMonth(new Date(year, month - 1))}><FaChevronLeft /></button>
+                                        <span className="mp-pay-cal-month">
+                                            {calMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                        </span>
+                                        <button onClick={() => setCalMonth(new Date(year, month + 1))}><FaChevronRight /></button>
+                                    </div>
+                                </div>
+                                <div className="mp-pay-cal-grid">
+                                    {dayLabels.map(d => (
+                                        <div key={d} className="mp-pay-cal-day-header">{d}</div>
+                                    ))}
+                                    {calDays.map((day, idx) => {
+                                        const isToday = day && day.toDateString() === new Date().toDateString();
+                                        const installmentsOnDay = day ? allInstallments.filter(inst =>
+                                            inst.dueDate && new Date(inst.dueDate).toDateString() === day.toDateString()
+                                        ) : [];
+                                        const paymentsOnDay = day ? payments.filter(p =>
+                                            p.date && new Date(p.date).toDateString() === day.toDateString()
+                                        ) : [];
+
+                                        return (
+                                            <div key={idx} className={`mp-pay-cal-day ${isToday ? 'today' : ''} ${!day ? 'empty' : ''}`}>
+                                                {day && <span className="mp-pay-cal-day-num">{day.getDate()}</span>}
+                                                <div className="mp-pay-cal-events">
+                                                    {installmentsOnDay.slice(0, 3).map((inst, i) => (
+                                                        <div key={i} className="mp-pay-cal-chip installment">
+                                                            <strong>{inst.clientName?.split(' ')[0]}</strong>
+                                                            <span>{formatMoney(inst.amount)}</span>
+                                                        </div>
+                                                    ))}
+                                                    {paymentsOnDay.length > 0 && installmentsOnDay.length === 0 && paymentsOnDay.slice(0, 3).map((p, i) => (
+                                                        <div key={i} className={`mp-pay-cal-chip source-${p.source}`}>
+                                                            <strong>{p.clientName?.split(' ')[0]}</strong>
+                                                            <span>{formatMoney(p.amount)}</span>
+                                                        </div>
+                                                    ))}
+                                                    {(installmentsOnDay.length > 3 || (installmentsOnDay.length === 0 && paymentsOnDay.length > 3)) && (
+                                                        <div className="mp-pay-cal-more">
+                                                            +{Math.max(installmentsOnDay.length, paymentsOnDay.length) - 3} más
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td className="mp-pay-title-cell">{payment.title}</td>
-                                        <td className="mp-pay-amount">{formatMoney(payment.amount)}</td>
-                                        <td><span className="mp-pay-esquema-badge">{getEsquemaLabel(payment.esquema)}</span></td>
-                                        <td className="mp-pay-commission">{formatMoney(payment.commission)}</td>
-                                        <td><span className="mp-pay-source-badge">{getSourceIcon(payment.source)} {getSourceLabel(payment.source)}</span></td>
-                                        <td>{getStatusBadge(payment.status)}</td>
-                                        <td>{formatDate(payment.date)}</td>
-                                        <td>
-                                            {payment.schedule?.length > 1 && (
-                                                expandedPayment === payment._id ? <FaChevronUp className="mp-pay-expand-icon" /> : <FaChevronDown className="mp-pay-expand-icon" />
-                                            )}
-                                        </td>
-                                    </tr>
-                                    {expandedPayment === payment._id && payment.schedule?.length > 1 && (
-                                        <tr className="mp-pay-schedule-row">
-                                            <td colSpan="9">
-                                                <div className="mp-pay-schedule">
-                                                    <h4>Calendario de Pagos — {getEsquemaLabel(payment.esquema)}</h4>
-                                                    <div className="mp-pay-schedule-grid">
-                                                        {payment.schedule.map((inst, idx) => {
-                                                            const isPast = new Date(inst.dueDate) < now;
-                                                            return (
-                                                                <div key={idx} className={`mp-pay-installment ${isPast ? 'past' : 'upcoming'}`}>
-                                                                    <div className="mp-pay-inst-icon">{isPast ? <FaCheckCircle /> : <FaClock />}</div>
-                                                                    <div className="mp-pay-inst-info">
-                                                                        <strong>{inst.label}</strong>
-                                                                        <span>{formatDate(inst.dueDate)}</span>
-                                                                    </div>
-                                                                    <div className="mp-pay-inst-amount">{formatMoney(inst.amount)}</div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* Upcoming installments — shown below calendar */}
+                    {upcoming.length > 0 && (
+                        <div className="mp-pay-upcoming">
+                            <h3><FaClock /> Próximos pagos (30 días)</h3>
+                            <div className="mp-pay-upcoming-list">
+                                {upcoming.slice(0, 5).map((inst, idx) => (
+                                    <div key={idx} className="mp-pay-upcoming-item">
+                                        <div className="mp-pay-upcoming-date">{formatDate(inst.dueDate)}</div>
+                                        <div className="mp-pay-upcoming-info">
+                                            <strong>{inst.clientName}</strong>
+                                            <span>{inst.label} — {inst.title}</span>
+                                        </div>
+                                        <div className="mp-pay-upcoming-amount">{formatMoney(inst.amount)}</div>
+                                    </div>
+                                ))}
+                                {upcoming.length > 5 && <p className="mp-pay-upcoming-more">+{upcoming.length - 5} pagos más</p>}
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
+            {/* ===== REGISTER VIEW — Table ===== */}
+            {view === 'register' && (
+                <div className="mp-pay-table-section">
+                    <div className="mp-pay-table-top">
+                        <h3><FaMoneyBillWave /> Registro de Pagos</h3>
+                    </div>
+                    <div className="mp-pay-filters">
+                        <div className="mp-pay-search">
+                            <FaSearch />
+                            <input type="text" placeholder="Buscar por cliente o título..." value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} />
+                        </div>
+                        <select value={filterEsquema} onChange={(e) => { setFilterEsquema(e.target.value); setCurrentPage(1); }}>
+                            <option value="all">Todos los esquemas</option>
+                            <option value="unico">Pago único</option>
+                            <option value="50-50">50% - 50%</option>
+                            <option value="33-33-34">33-33-34%</option>
+                            <option value="6-quincenas">6 Quincenas</option>
+                            <option value="6-msi">6 MSI</option>
+                        </select>
+                        <select value={filterSource} onChange={(e) => { setFilterSource(e.target.value); setCurrentPage(1); }}>
+                            <option value="all">Todas las fuentes</option>
+                            <option value="stripe">Stripe/PayPal</option>
+                            <option value="sofia">Cotizaciones Sofia</option>
+                            <option value="guest">Pagos Invitados</option>
+                        </select>
+                    </div>
+
+                    <div className="mp-pay-table-container">
+                        <table className="mp-pay-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Proyecto</th>
+                                    <th>Monto</th>
+                                    <th>Esquema</th>
+                                    <th>Comisión</th>
+                                    <th>Fuente</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedPayments.map((payment) => (
+                                    <React.Fragment key={payment._id}>
+                                        <tr className={`mp-pay-row ${expandedPayment === payment._id ? 'expanded' : ''}`}
+                                            onClick={() => setExpandedPayment(expandedPayment === payment._id ? null : payment._id)}>
+                                            <td>
+                                                <div className="mp-pay-client">
+                                                    <strong>{payment.clientName}</strong>
+                                                    {payment.clientEmail && <small>{payment.clientEmail}</small>}
                                                 </div>
                                             </td>
+                                            <td className="mp-pay-title-cell">{payment.title}</td>
+                                            <td className="mp-pay-amount">{formatMoney(payment.amount)}</td>
+                                            <td><span className="mp-pay-esquema-badge">{getEsquemaLabel(payment.esquema)}</span></td>
+                                            <td className="mp-pay-commission">{formatMoney(payment.commission)}</td>
+                                            <td><span className="mp-pay-source-badge">{getSourceIcon(payment.source)} {getSourceLabel(payment.source)}</span></td>
+                                            <td>{getStatusBadge(payment.status)}</td>
+                                            <td>{formatDate(payment.date)}</td>
+                                            <td>
+                                                {payment.schedule?.length > 1 && (
+                                                    expandedPayment === payment._id ? <FaChevronUp className="mp-pay-expand-icon" /> : <FaChevronDown className="mp-pay-expand-icon" />
+                                                )}
+                                            </td>
                                         </tr>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                            {filtered.length === 0 && (
-                                <tr><td colSpan="9" className="mp-pay-empty">No se encontraron pagos</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="mp-pay-pagination">
-                        <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}><FaChevronLeft /></button>
-                        <span>Página {currentPage} de {totalPages}</span>
-                        <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}><FaChevronRight /></button>
+                                        {expandedPayment === payment._id && payment.schedule?.length > 1 && (
+                                            <tr className="mp-pay-schedule-row">
+                                                <td colSpan="9">
+                                                    <div className="mp-pay-schedule">
+                                                        <h4>Calendario de Pagos — {getEsquemaLabel(payment.esquema)}</h4>
+                                                        <div className="mp-pay-schedule-grid">
+                                                            {payment.schedule.map((inst, idx) => {
+                                                                const isPast = new Date(inst.dueDate) < now;
+                                                                return (
+                                                                    <div key={idx} className={`mp-pay-installment ${isPast ? 'past' : 'upcoming'}`}>
+                                                                        <div className="mp-pay-inst-icon">{isPast ? <FaCheckCircle /> : <FaClock />}</div>
+                                                                        <div className="mp-pay-inst-info">
+                                                                            <strong>{inst.label}</strong>
+                                                                            <span>{formatDate(inst.dueDate)}</span>
+                                                                        </div>
+                                                                        <div className="mp-pay-inst-amount">{formatMoney(inst.amount)}</div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                                {filtered.length === 0 && (
+                                    <tr><td colSpan="9" className="mp-pay-empty">No se encontraron pagos</td></tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                )}
-            </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="mp-pay-pagination">
+                            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}><FaChevronLeft /></button>
+                            <span>Página {currentPage} de {totalPages}</span>
+                            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}><FaChevronRight /></button>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* ===== ADD PAYMENT MODAL ===== */}
             {showAddModal && (
@@ -490,10 +512,15 @@ function ManagePayments() {
                                         <input type="number" min="0" step="0.01" value={newPayment.amount} onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })} required />
                                     </div>
                                     <div className="mp-pay-form-group">
+                                        <label>Fecha del Pago *</label>
+                                        <input type="date" value={newPayment.paymentDate} onChange={(e) => setNewPayment({ ...newPayment, paymentDate: e.target.value })} required />
+                                    </div>
+                                    <div className="mp-pay-form-group">
                                         <label>Método de Pago</label>
                                         <select value={newPayment.method} onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value })}>
                                             <option value="transferencia">Transferencia</option>
                                             <option value="efectivo">Efectivo</option>
+                                            <option value="mercadolibre">Mercado Libre</option>
                                             <option value="stripe">Stripe</option>
                                             <option value="paypal">PayPal</option>
                                         </select>

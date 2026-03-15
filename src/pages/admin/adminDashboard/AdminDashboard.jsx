@@ -1,5 +1,6 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Spinner } from 'react-bootstrap';
+import axiosWithAuth from '../../../utils/axioswithAuth';
 import {
   FaFileAlt,
   FaProjectDiagram,
@@ -33,6 +34,7 @@ import { fetchHubspotSummary } from '../../../features/hubspot/hubspotSlice';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
+  const [paymentsDash, setPaymentsDash] = useState(null);
   const quotes = useSelector(state => state.quotes.quotes || []);
   const quotesLoading = useSelector(state => state.quotes.loading);
   const projects = useSelector(state => state.projects?.projects || []);
@@ -56,6 +58,8 @@ const AdminDashboard = () => {
     dispatch(getVisits());
     dispatch(fetchNotifications());
     dispatch(fetchHubspotSummary());
+    // Fetch real payments dashboard
+    axiosWithAuth.get('/payments/dashboard').then(res => setPaymentsDash(res.data)).catch(() => {});
   }, [dispatch]);
 
   // ── Navigation helper ─────────────────────────────
@@ -283,12 +287,15 @@ const AdminDashboard = () => {
             <FaDollarSign />
           </div>
           <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Ingresos del mes</span>
+            <span className="adm-kpi-label">Ingresos totales</span>
             <span className="adm-kpi-value">
-              {isLoading ? <Spinner size="sm" /> : formatCurrency(metrics.revenueThisMonth)}
+              {isLoading ? <Spinner size="sm" /> : formatCurrency(paymentsDash?.summary?.totalIngresos || metrics.revenueThisMonth)}
             </span>
             <span className="adm-kpi-trend">
-              {metrics.revenueLastMonth > 0 ? `${formatCurrency(metrics.revenueLastMonth)} mes anterior` : 'Sin datos previos'}
+              {paymentsDash?.summary
+                ? `${paymentsDash.summary.totalPagos} ventas · Comisión: ${formatCurrency(paymentsDash.summary.totalComisiones)}`
+                : (metrics.revenueLastMonth > 0 ? `${formatCurrency(metrics.revenueLastMonth)} mes anterior` : 'Sin datos previos')
+              }
             </span>
           </div>
         </div>
