@@ -30,7 +30,7 @@ import { es } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import './AdminWhatsApp.css';
 
-const POLL_INTERVAL = 8000; // 8 segundos
+const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
 const AdminWhatsApp = () => {
   const [leads, setLeads] = useState([]);
@@ -42,20 +42,32 @@ const AdminWhatsApp = () => {
   const [error, setError] = useState(null);
   const [togglingHuman, setTogglingHuman] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newChatNumber, setNewChatNumber] = useState('');
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const selectedLeadRef = useRef(null); // ref para evitar stale closure en polling
+  const prevMsgCountRef = useRef(0); // para detectar mensajes nuevos y hacer scroll
 
-  // Cargar leads
+  // Mantener el ref sincronizado con el state
+  useEffect(() => {
+    selectedLeadRef.current = selectedLead;
+    // Scroll cuando cambia el lead seleccionado
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [selectedLead]);
+
+  // Cargar leads — usa el ref para siempre tener el selectedLead actual
   const fetchLeads = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       const data = await getLeads();
       setLeads(data);
-      // Actualizar el lead seleccionado si existe
-      if (selectedLead) {
-        const updated = data.find(l => l.wa_id === selectedLead.wa_id);
+      // Actualizar el lead seleccionado usando el REF (no el state, que puede estar stale)
+      const currentSelected = selectedLeadRef.current;
+      if (currentSelected) {
+        const updated = data.find(l => l.wa_id === currentSelected.wa_id);
         if (updated) setSelectedLead(updated);
       }
       setError(null);
@@ -65,18 +77,26 @@ const AdminWhatsApp = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [selectedLead]);
+  }, []); // sin dependencias — usa ref en vez de state
 
   // Polling para actualizaciones en tiempo real
   useEffect(() => {
     fetchLeads();
     pollRef.current = setInterval(() => fetchLeads(true), POLL_INTERVAL);
     return () => clearInterval(pollRef.current);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchLeads]);
 
-  // Scroll al último mensaje
+  // Scroll automático cuando llegan mensajes nuevos
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (selectedLead) {
+      const hist = parseHistorial(selectedLead.historial_chat);
+      if (hist.length > prevMsgCountRef.current) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+      prevMsgCountRef.current = hist.length;
+    } else {
+      prevMsgCountRef.current = 0;
+    }
   }, [selectedLead]);
 
   // Seleccionar una conversación
@@ -143,6 +163,36 @@ const AdminWhatsApp = () => {
   const clearFile = () => {
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Iniciar nueva conversación con un número
+  const handleNewChat = async () => {
+    const cleaned = newChatNumber.replace(/\D/g, '');
+    if (cleaned.length < 10) {
+      toast.error('Ingresa un número válido (mínimo 10 dígitos)');
+      return;
+    }
+    // Verificar si ya existe en la lista
+    const existing = leads.find(l => l.wa_id === cleaned);
+    if (existing) {
+      handleSelectLead(existing);
+      setShowNewChat(false);
+      setNewChatNumber('');
+      return;
+    }
+    // Enviar un mensaje inicial para crear el lead en el backend
+    try {
+      await sendWhatsAppMessage(cleaned, '¡Hola! Iniciando conversación desde el panel admin.');
+      toast.success('Conversación creada');
+      setShowNewChat(false);
+      setNewChatNumber('');
+      await fetchLeads();
+      // Seleccionar el nuevo lead
+      const fresh = await getLeadByWaId(cleaned);
+      if (fresh) setSelectedLead(fresh);
+    } catch (err) {
+      toast.error('Error al crear conversación: ' + err.message);
+    }
   };
 
   // Filtrar leads
@@ -351,7 +401,31 @@ const AdminWhatsApp = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="wa-search-input"
             />
+            <Button
+              variant="success"
+              size="sm"
+              className="wa-new-chat-btn ms-2"
+              onClick={() => setShowNewChat(!showNewChat)}
+              title="Nueva conversación"
+            >
+              +
+            </Button>
           </div>
+          {showNewChat && (
+            <div className="wa-new-chat-box">
+              <input
+                type="text"
+                placeholder="Número con código país (ej: 525583352096)"
+                value={newChatNumber}
+                onChange={(e) => setNewChatNumber(e.target.value)}
+                className="wa-search-input"
+                onKeyDown={(e) => e.key === 'Enter' && handleNewChat()}
+              />
+              <Button variant="success" size="sm" onClick={handleNewChat} className="ms-2">
+                <FaPaperPlane />
+              </Button>
+            </div>
+          )}
 
           <div className="wa-conversations-list">
             {loading && leads.length === 0 ? (

@@ -197,14 +197,27 @@ const ManageQuotes = () => {
   const handleStatus = async (quote, newStatus) => {
     setUpdatingId(quote._id); setOpenDropdown(null);
     try {
+      let result;
       if (quote._source === 'generated') {
-        await dispatch(updateGeneratedQuote({ quoteId: quote._id, updatedData: { status: newStatus } })).unwrap();
+        result = await dispatch(updateGeneratedQuote({ quoteId: quote._id, updatedData: { status: newStatus } })).unwrap();
         dispatch(getGeneratedQuotes());
       } else {
-        await dispatch(updateQuote({ quoteId: quote._id, updatedData: { status: newStatus } })).unwrap();
+        result = await dispatch(updateQuote({ quoteId: quote._id, updatedData: { status: newStatus } })).unwrap();
         dispatch(getAllQuotes());
       }
-      toast.success(`Estado: ${statusConfig[newStatus]?.label || newStatus}`);
+
+      // Si se marcó como pagada, mostrar feedback de auto-creación
+      if (newStatus === 'paid' && result?._autoCreated) {
+        const ac = result._autoCreated;
+        const msgs = [`✅ Cotización marcada como pagada`];
+        if (ac.project) msgs.push(`📁 Proyecto creado`);
+        if (ac.payment) msgs.push(`💰 Pago registrado`);
+        if (ac.clientCreated) msgs.push(`👤 Usuario cliente creado y credenciales enviadas por WhatsApp`);
+        if (ac.projectError) msgs.push(`⚠️ Error en proyecto: ${ac.projectError}`);
+        toast.success(msgs.join('\n'), { duration: 8000, style: { whiteSpace: 'pre-line' } });
+      } else {
+        toast.success(`Estado: ${statusConfig[newStatus]?.label || newStatus}`);
+      }
     } catch (err) { toast.error(err || 'Error'); }
     setUpdatingId(null);
   };
