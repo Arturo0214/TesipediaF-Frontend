@@ -3,53 +3,8 @@
    ============================================ */
 .ct-page { background: #f8fafc; min-height: 100vh; }
 
-/* ── Hero ── */
-.ct-hero {
-  position: relative;
-  padding: 7rem 0 3.5rem;
-  text-align: center;
-  overflow: hidden;
-  color: white;
-}
-.ct-hero-bg {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
-  z-index: 0;
-}
-.ct-hero-bg::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.2) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 80%, rgba(99,102,241,0.15) 0%, transparent 50%);
-}
-.ct-hero-inner { position: relative; z-index: 2; }
-
-.ct-hero-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.15);
-  padding: 6px 18px; border-radius: 50px;
-  font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.9);
-  margin-bottom: 1.25rem;
-}
-.ct-hero-title {
-  font-size: 2.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem;
-}
-.ct-hero-accent {
-  background: linear-gradient(90deg, #60a5fa, #a78bfa);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.ct-hero-sub {
-  font-size: 1.1rem; color: rgba(255,255,255,0.75);
-  max-width: 550px; margin: 0 auto 2rem; line-height: 1.6;
-}
-.ct-hero-stats { display: flex; gap: 2.5rem; justify-content: center; }
-.ct-hero-stat { text-align: center; }
-.ct-hero-stat-num { display: block; font-size: 1.8rem; font-weight: 800; }
-.ct-hero-stat-lbl { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
-
 /* ── Main Content ── */
-.ct-main { padding: 3rem 0 4rem; margin-top: -2rem; position: relative; z-index: 3; }
+.ct-main { padding: 6rem 0 4rem; position: relative; z-index: 3; }
 
 /* ── CTA Cards ── */
 .ct-cta-card {
@@ -121,20 +76,13 @@
 
 /* ── Responsive ── */
 @media (max-width: 992px) {
-  .ct-hero { padding: 6rem 0 2.5rem; }
-  .ct-hero-title { font-size: 2.2rem; }
-  .ct-main { padding: 2rem 0 3rem; }
+  .ct-main { padding: 5rem 0 3rem; }
 }
 @media (max-width: 768px) {
-  .ct-hero { padding: 5rem 1rem 2rem; }
-  .ct-hero-title { font-size: 1.8rem; }
-  .ct-hero-stats { gap: 1.5rem; }
-  .ct-hero-stat-num { font-size: 1.4rem; }
+  .ct-main { padding: 4.5rem 1rem 2.5rem; }
   .ct-info-panel { padding: 1.5rem; }
   .ct-trust { flex-direction: column; gap: 0.75rem; }
 }
 @media (max-width: 480px) {
-  .ct-hero-title { font-size: 1.5rem; }
-  .ct-hero-sub { font-size: 0.95rem; }
   .ct-cta-card { padding: 1.5rem; }
 }

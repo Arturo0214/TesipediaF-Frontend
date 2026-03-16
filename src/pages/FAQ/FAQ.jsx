@@ -96,38 +96,6 @@ function FAQ() {
 
   return (
     <div className="fq-page">
-      {/* ── Hero ── */}
-      <section className="fq-hero">
-        <div className="fq-hero-bg" />
-        <Container className="fq-hero-inner">
-          <span className="fq-hero-badge">
-            <FaQuestionCircle /> Centro de Ayuda
-          </span>
-          <h1 className="fq-hero-title">
-            Preguntas{' '}
-            <span className="fq-hero-accent">Frecuentes</span>
-          </h1>
-          <p className="fq-hero-sub">
-            Todo lo que necesitas saber sobre nuestro servicio de
-            desarrollo de tesis profesional.
-          </p>
-          <div className="fq-hero-stats">
-            <div className="fq-hero-stat">
-              <span className="fq-hero-stat-num">+3,000</span>
-              <span className="fq-hero-stat-lbl">Titulados</span>
-            </div>
-            <div className="fq-hero-stat">
-              <span className="fq-hero-stat-num">98%</span>
-              <span className="fq-hero-stat-lbl">Satisfacción</span>
-            </div>
-            <div className="fq-hero-stat">
-              <span className="fq-hero-stat-num">&lt;5 min</span>
-              <span className="fq-hero-stat-lbl">Respuesta</span>
-            </div>
-          </div>
-        </Container>
-      </section>
-
       {/* ── Main Content ── */}
       <Container className="fq-main">
         {/* Category Filter */}

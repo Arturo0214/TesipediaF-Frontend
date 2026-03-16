@@ -3,53 +3,8 @@
    ============================================ */
 .fq-page { background: #f8fafc; min-height: 100vh; }
 
-/* ── Hero ── */
-.fq-hero {
-  position: relative;
-  padding: 7rem 0 3.5rem;
-  text-align: center;
-  overflow: hidden;
-  color: white;
-}
-.fq-hero-bg {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
-  z-index: 0;
-}
-.fq-hero-bg::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.2) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 80%, rgba(99,102,241,0.15) 0%, transparent 50%);
-}
-.fq-hero-inner { position: relative; z-index: 2; }
-
-.fq-hero-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.15);
-  padding: 6px 18px; border-radius: 50px;
-  font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.9);
-  margin-bottom: 1.25rem;
-}
-.fq-hero-title {
-  font-size: 2.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem;
-}
-.fq-hero-accent {
-  background: linear-gradient(90deg, #60a5fa, #a78bfa);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.fq-hero-sub {
-  font-size: 1.1rem; color: rgba(255,255,255,0.75);
-  max-width: 550px; margin: 0 auto 2rem; line-height: 1.6;
-}
-.fq-hero-stats { display: flex; gap: 2.5rem; justify-content: center; }
-.fq-hero-stat { text-align: center; }
-.fq-hero-stat-num { display: block; font-size: 1.8rem; font-weight: 800; }
-.fq-hero-stat-lbl { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
-
 /* ── Main Content ── */
-.fq-main { padding: 3rem 0 4rem; margin-top: -2rem; position: relative; z-index: 3; }
+.fq-main { padding: 6rem 0 4rem; position: relative; z-index: 3; }
 
 /* ── Category Filters ── */
 .fq-filters {
@@ -202,15 +157,10 @@
 
 /* ── Responsive ── */
 @media (max-width: 992px) {
-  .fq-hero { padding: 6rem 0 2.5rem; }
-  .fq-hero-title { font-size: 2.2rem; }
-  .fq-main { padding: 2rem 0 3rem; }
+  .fq-main { padding: 5rem 0 3rem; }
 }
 @media (max-width: 768px) {
-  .fq-hero { padding: 5rem 1rem 2rem; }
-  .fq-hero-title { font-size: 1.8rem; }
-  .fq-hero-stats { gap: 1.5rem; }
-  .fq-hero-stat-num { font-size: 1.4rem; }
+  .fq-main { padding: 4.5rem 1rem 2.5rem; }
   .fq-filters { gap: 0.5rem; }
   .fq-filter-btn { padding: 8px 14px; font-size: 0.82rem; }
   .fq-cta-inner { padding: 2rem 1.5rem; }
@@ -218,8 +168,6 @@
   .fq-cta-trust { flex-direction: column; gap: 0.5rem; align-items: center; }
 }
 @media (max-width: 480px) {
-  .fq-hero-title { font-size: 1.5rem; }
-  .fq-hero-sub { font-size: 0.95rem; }
   .fq-item .accordion-button { padding: 1rem; font-size: 0.95rem; }
   .fq-answer { padding: 1rem; font-size: 0.9rem; }
   .fq-cta-buttons { flex-direction: column; }

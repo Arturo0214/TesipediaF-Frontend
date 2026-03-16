@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from 'react-bootstrap';
 import {
   FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaComments,
   FaWhatsapp, FaGraduationCap, FaShieldAlt, FaCheckCircle,
-  FaHeadset, FaPaperPlane
+  FaPaperPlane
 } from 'react-icons/fa';
 import ChatPanel from '../../components/chat/ChatPanel';
 import './Contact.css';
@@ -13,36 +13,6 @@ function Contact() {
 
   return (
     <div className="ct-page">
-      {/* ── Hero ── */}
-      <section className="ct-hero">
-        <div className="ct-hero-bg" />
-        <Container className="ct-hero-inner">
-          <span className="ct-hero-badge"><FaHeadset /> Atención Personalizada</span>
-          <h1 className="ct-hero-title">
-            ¿Listo para empezar tu{' '}
-            <span className="ct-hero-accent">tesis?</span>
-          </h1>
-          <p className="ct-hero-sub">
-            Nuestro equipo de asesores está disponible para orientarte
-            en cada paso de tu proyecto académico.
-          </p>
-          <div className="ct-hero-stats">
-            <div className="ct-hero-stat">
-              <span className="ct-hero-stat-num">+3,000</span>
-              <span className="ct-hero-stat-lbl">Titulados</span>
-            </div>
-            <div className="ct-hero-stat">
-              <span className="ct-hero-stat-num">98%</span>
-              <span className="ct-hero-stat-lbl">Aprobación</span>
-            </div>
-            <div className="ct-hero-stat">
-              <span className="ct-hero-stat-num">24/7</span>
-              <span className="ct-hero-stat-lbl">Soporte</span>
-            </div>
-          </div>
-        </Container>
-      </section>
-
       {/* ── Main Content ── */}
       <Container className="ct-main">
         <Row className="g-4 align-items-stretch">
