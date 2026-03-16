@@ -124,9 +124,7 @@ function MainNavbar() {
                                                 {user?.name}
                                             </Dropdown.Toggle>
                                             <Dropdown.Menu>
-                                                <Dropdown.Item as={Link} to="/dashboard" onClick={closeNavbar}>Dashboard</Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/perfil" onClick={closeNavbar}>Mi Perfil</Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/mis-cotizaciones" onClick={closeNavbar}>Mis Cotizaciones</Dropdown.Item>
+                                                <Dropdown.Item as={Link} to="/dashboard" onClick={closeNavbar}>Mi Panel</Dropdown.Item>
                                                 <Dropdown.Divider />
                                                 <Dropdown.Item onClick={handleLogout}>Cerrar Sesión</Dropdown.Item>
                                             </Dropdown.Menu>

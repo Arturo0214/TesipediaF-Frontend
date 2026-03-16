@@ -1,180 +1,134 @@
-import { Container, Card, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Container } from 'react-bootstrap';
 import {
-    FaClipboardList,
-    FaChartLine,
-    FaTag,
-    FaBookReader,
-    FaHeadset,
-    FaUserGraduate,
+    FaFileAlt,
+    FaSearch,
+    FaRobot,
+    FaCalendarCheck,
+    FaUserTie,
+    FaGraduationCap,
     FaWhatsapp,
-    FaComments
+    FaComments,
+    FaArrowRight
 } from 'react-icons/fa';
 import './ServicesSection.css';
 
-const sections = [
+const services = [
     {
-        title: "Servicios",
-        description: "Descubre nuestra gama completa de servicios académicos especializados en desarrollo y asesoría de tesis.",
-        icon: <FaClipboardList />,
-        path: "/servicios",
+        icon: <FaFileAlt />,
+        title: "Desarrollo Completo de Tesis",
+        description: "Desde la selección del tema hasta las conclusiones. Cubrimos tesis, tesinas, ensayos y trabajos de investigación para todos los niveles académicos.",
         color: "#2563eb",
-        gradient: "linear-gradient(135deg, #3b82f6, #2563eb)"
     },
     {
-        title: "Cómo Funciona",
-        description: "Conoce nuestro proceso paso a paso y metodología para garantizar el éxito de tu proyecto académico.",
-        icon: <FaChartLine />,
-        path: "/como-funciona",
-        color: "#7c3aed",
-        gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)"
+        icon: <FaSearch />,
+        title: "Escáner Anti-Plagio (Turnitin)",
+        description: "Cada trabajo pasa por Turnitin para garantizar 100% de originalidad. Recibe tu reporte de autenticidad como respaldo.",
+        color: "#10b981",
     },
     {
-        title: "Precios",
-        description: "Planes flexibles y transparentes adaptados a tus necesidades académicas y presupuesto.",
-        icon: <FaTag />,
-        color: "#059669",
-        gradient: "linear-gradient(135deg, #10b981, #059669)",
-        isPricing: true,
-        buttons: [
-            { text: "Ver Precios", path: "/precios", primary: true },
-            { text: "Cotizar Tesis", path: "/cotizar", primary: false }
-        ]
+        icon: <FaRobot />,
+        title: "Escáner Anti-IA",
+        description: "Verificamos que el contenido sea completamente humano. Pasamos los detectores de IA más exigentes del mercado.",
+        color: "#8b5cf6",
     },
     {
-        title: "Blog",
-        description: "Recursos, consejos y guías para potenciar tu desarrollo académico y profesional.",
-        icon: <FaBookReader />,
-        path: "/blog",
-        color: "#dc2626",
-        gradient: "linear-gradient(135deg, #ef4444, #dc2626)"
+        icon: <FaCalendarCheck />,
+        title: "Entrega Puntual Garantizada",
+        description: "Entrega desde 3 semanas con seguimiento en tiempo real. Cumplimos plazos sin excepción, tu tranquilidad es nuestra prioridad.",
+        color: "#f59e0b",
     },
     {
-        title: "Contacto",
-        description: "Estamos aquí para responder tus dudas y ayudarte a iniciar tu proyecto de tesis.",
-        icon: <FaHeadset />,
-        path: "/contacto",
+        icon: <FaUserTie />,
+        title: "Asesoría Personalizada",
+        description: "Un asesor dedicado te acompaña durante todo el proceso. Resolvemos dudas, ajustamos cambios y te preparamos para tu defensa.",
+        color: "#ef4444",
+    },
+    {
+        icon: <FaGraduationCap />,
+        title: "Acompañamiento hasta Titulación",
+        description: "No terminamos con la entrega. Te apoyamos con correcciones, preparación de defensa y todo lo necesario hasta que tengas tu título.",
         color: "#0891b2",
-        gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
-        isContact: true,
-        buttons: [
-            { text: "Chat Interno", action: "openChat", primary: true, icon: <FaComments /> },
-            { text: "WhatsApp", path: "https://wa.me/525583352096", primary: false, icon: <FaWhatsapp /> }
-        ]
     },
-    {
-        title: "Área de Estudiantes",
-        description: "Accede a tu cuenta o regístrate para comenzar tu proyecto de tesis con nosotros. ¡Tu éxito académico comienza aquí!",
-        icon: <FaUserGraduate />,
-        color: "#6366f1",
-        gradient: "linear-gradient(135deg, #818cf8, #6366f1)",
-        isStudentArea: true
-    }
+];
+
+const processSteps = [
+    { step: "01", title: "Contáctanos", desc: "Escríbenos por WhatsApp o chat para contarnos tu proyecto." },
+    { step: "02", title: "Recibe tu plan", desc: "Te damos un plan personalizado con tiempos, costos y alcance." },
+    { step: "03", title: "Desarrollo", desc: "Nuestro equipo trabaja tu tesis con seguimiento constante." },
+    { step: "04", title: "Entrega y titulación", desc: "Recibes tu trabajo listo y te acompañamos hasta la defensa." },
 ];
 
 const ServicesSection = ({ onOpenChat }) => {
-    const handleButtonClick = (button) => {
-        if (button.action === "openChat") {
-            onOpenChat();
-        }
-    };
-
     return (
-        <section className="sections-overview">
+        <section className="sections-overview" id="servicios">
             <Container>
+                {/* ── What we do ── */}
                 <div className="section-header">
-                    <h2 className="section-subtitle">NAVEGACIÓN</h2>
+                    <h2 className="section-subtitle">NUESTROS SERVICIOS</h2>
                     <h3 className="section-title">
-                        Descubre todo lo que <span className="highlight">ofrecemos</span>
+                        Todo lo que necesitas para{' '}<span className="highlight">titularte</span>
                     </h3>
+                    <p className="section-description">
+                        Ofrecemos un servicio integral de desarrollo de tesis profesional con los más altos
+                        estándares académicos. Cada proyecto es único y recibe atención personalizada.
+                    </p>
                 </div>
+
                 <div className="sections-grid">
-                    {sections.map((section, index) => (
+                    {services.map((service, index) => (
                         <div key={index} className="section-link-wrapper">
-                            <Card
+                            <div
                                 className="section-card"
-                                style={{
-                                    '--card-gradient': section.gradient,
-                                    '--card-color': section.color
-                                }}
+                                style={{ '--card-color': service.color }}
                             >
                                 <div className="card-content">
-                                    <div className="icon-wrapper">
-                                        {section.icon}
+                                    <div className="icon-wrapper" style={{ background: `${service.color}15`, color: service.color }}>
+                                        {service.icon}
                                     </div>
-                                    <h3 className="card-title">{section.title}</h3>
-                                    <p className="card-description">{section.description}</p>
-
-                                    {section.isStudentArea ? (
-                                        <div className="action-buttons">
-                                            <Button
-                                                as={Link}
-                                                to="/login"
-                                                variant="primary"
-                                                className="action-btn"
-                                            >
-                                                Iniciar Sesión
-                                            </Button>
-                                            <Button
-                                                as={Link}
-                                                to="/register"
-                                                variant="outline-primary"
-                                                className="action-btn"
-                                            >
-                                                Registrarse
-                                            </Button>
-                                        </div>
-                                    ) : section.isPricing ? (
-                                        <div className="action-buttons">
-                                            <Button
-                                                as={Link}
-                                                to="/precios"
-                                                variant="primary"
-                                                className="action-btn"
-                                            >
-                                                Ver Precios
-                                            </Button>
-                                            <Button
-                                                as={Link}
-                                                to="/cotizar"
-                                                variant="outline-primary"
-                                                className="action-btn"
-                                            >
-                                                Cotizar Tesis
-                                            </Button>
-                                        </div>
-                                    ) : section.isContact ? (
-                                        <div className="action-buttons">
-                                            <Button
-                                                onClick={() => handleButtonClick(section.buttons[0])}
-                                                variant="primary"
-                                                className="action-btn"
-                                            >
-                                                <FaComments className="me-2" />
-                                                Chat Interno
-                                            </Button>
-                                            <Button
-                                                as="a"
-                                                href="https://wa.me/525583352096"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                variant="outline-primary"
-                                                className="action-btn"
-                                            >
-                                                <FaWhatsapp className="me-2" />
-                                                WhatsApp
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <Link to={section.path} className="explore-link">
-                                            Explorar
-                                            <span className="arrow">→</span>
-                                        </Link>
-                                    )}
+                                    <h3 className="card-title">{service.title}</h3>
+                                    <p className="card-description">{service.description}</p>
                                 </div>
-                            </Card>
+                            </div>
                         </div>
                     ))}
+                </div>
+
+                {/* ── How it works (process) ── */}
+                <div className="section-header" style={{ marginTop: '5rem' }}>
+                    <h2 className="section-subtitle">PROCESO</h2>
+                    <h3 className="section-title">
+                        ¿Cómo funciona{' '}<span className="highlight">Tesipedia</span>?
+                    </h3>
+                </div>
+
+                <div className="process-strip">
+                    {processSteps.map((ps, i) => (
+                        <div key={i} className="process-step-card">
+                            <div className="process-step-number">{ps.step}</div>
+                            <h4 className="process-step-title">{ps.title}</h4>
+                            <p className="process-step-desc">{ps.desc}</p>
+                            {i < processSteps.length - 1 && <FaArrowRight className="process-arrow" />}
+                        </div>
+                    ))}
+                </div>
+
+                {/* ── CTA ── */}
+                <div className="services-cta">
+                    <h3 className="services-cta-title">¿Listo para empezar tu tesis?</h3>
+                    <p className="services-cta-desc">Contáctanos hoy y recibe un plan personalizado sin compromiso</p>
+                    <div className="services-cta-buttons">
+                        <a
+                            href="https://wa.me/525583352096?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="services-cta-btn services-cta-wa"
+                        >
+                            <FaWhatsapp /> Escribir por WhatsApp
+                        </a>
+                        <button onClick={onOpenChat} className="services-cta-btn services-cta-chat">
+                            <FaComments /> Chat en Línea
+                        </button>
+                    </div>
                 </div>
             </Container>
         </section>

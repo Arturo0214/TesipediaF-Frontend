@@ -1,6 +1,6 @@
 import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaFacebookF, FaTwitter, FaInstagram, FaWhatsapp } from 'react-icons/fa';
+import { FaFacebookF, FaInstagram, FaWhatsapp, FaEnvelope } from 'react-icons/fa';
 
 export function Footer() {
     return (
@@ -11,40 +11,41 @@ export function Footer() {
                         <h5 className="mb-3">Tesipedia</h5>
                         <p className="mb-3">
                             Desarrollamos tesis profesionales con metodología y asesoría personalizada.
-                            Garantizamos calidad y originalidad en cada trabajo.
+                            Más de 1,500 estudiantes titulados confían en nosotros.
                         </p>
                         <div className="social-links">
-                            <a href="#" className="me-3 text-light">
+                            <a href="https://www.facebook.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light">
                                 <FaFacebookF />
                             </a>
-                            <a href="#" className="me-3 text-light">
-                                <FaTwitter />
-                            </a>
-                            <a href="#" className="me-3 text-light">
+                            <a href="https://www.instagram.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light">
                                 <FaInstagram />
                             </a>
-                            <a href="#" className="text-light">
+                            <a href="https://wa.me/525583352096" target="_blank" rel="noopener noreferrer" className="text-light">
                                 <FaWhatsapp />
                             </a>
                         </div>
                     </Col>
-                    <Col md={2}>
+                    <Col md={3}>
                         <h5 className="mb-3">Enlaces</h5>
                         <ul className="list-unstyled">
                             <li className="mb-2">
                                 <Link to="/" className="text-light text-decoration-none">Inicio</Link>
                             </li>
                             <li className="mb-2">
-                                <Link to="/servicios" className="text-light text-decoration-none">Servicios</Link>
+                                <Link to="/sobre-nosotros" className="text-light text-decoration-none">Sobre Nosotros</Link>
                             </li>
-                            <li className="mb-2 text-light">¿Cómo Funciona?</li>
-
+                            <li className="mb-2">
+                                <Link to="/preguntas-frecuentes" className="text-light text-decoration-none">Preguntas Frecuentes</Link>
+                            </li>
+                            <li className="mb-2">
+                                <Link to="/contacto" className="text-light text-decoration-none">Contacto</Link>
+                            </li>
                             <li className="mb-2">
                                 <Link to="/politica-de-privacidad" className="text-light text-decoration-none">Política de Privacidad</Link>
                             </li>
                         </ul>
                     </Col>
-                    <Col md={3}>
+                    <Col md={2}>
                         <h5 className="mb-3">Servicios</h5>
                         <ul className="list-unstyled">
                             <li className="mb-2 text-light">Desarrollo de Tesis</li>
@@ -57,18 +58,18 @@ export function Footer() {
                         <h5 className="mb-3">Contacto</h5>
                         <ul className="list-unstyled">
                             <li className="mb-2">
-                                <strong>Email:</strong><br />
+                                <FaEnvelope className="me-2" />
                                 tesipediaoficial@gmail.com
                             </li>
                             <li className="mb-2">
-                                <strong>WhatsApp:</strong><br />
-                                <a href="https://wa.me/525541004180" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none">
-                                    +52 55 4100 4180
+                                <FaWhatsapp className="me-2" />
+                                <a href="https://wa.me/525583352096" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none">
+                                    +52 55 8335 2096
                                 </a>
                             </li>
                             <li className="mb-2">
                                 <strong>Horario:</strong><br />
-                                Lun-Vie: 9:00 - 18:00
+                                Lun-Sáb: 9:00 - 20:00
                             </li>
                         </ul>
                     </Col>
@@ -84,4 +85,4 @@ export function Footer() {
             </Container>
         </footer>
     );
-} 
+}

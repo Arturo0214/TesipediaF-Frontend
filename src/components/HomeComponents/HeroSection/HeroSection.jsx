@@ -1,6 +1,5 @@
 import { Col, Container, Row, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { FaCheck, FaClock, FaShieldAlt, FaArrowRight, FaComments, FaWhatsapp } from 'react-icons/fa';
+import { FaCheck, FaClock, FaShieldAlt, FaComments, FaWhatsapp } from 'react-icons/fa';
 import './HeroSection.css';
 
 const HeroSection = ({ stats, currentStat, onOpenChat }) => {
@@ -14,7 +13,7 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
               ¡Tu Título Profesional en Tiempo Récord!
             </h1>
             <p className="lead mb-4">
-              Más de 1,500 estudiantes titulados confían en nuestra metodología profesional y asesoría especializada.
+              Más de 3,000 estudiantes titulados confían en nuestra metodología profesional y asesoría especializada.
             </p>
             <div className="hero-section-features mb-4">
               <div className="hero-section-feature-item">
@@ -29,19 +28,20 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
             </div>
             <div className="d-flex gap-3 justify-content-center">
               <Button
-                as={Link}
-                to="/cotizar"
+                as="a"
+                href="https://wa.me/525583352096?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn-gradient-primary"
               >
                 <span>¡Quiero Titularme Ya!</span>
               </Button>
               <Button
-                as={Link}
-                to="/como-funciona"
+                onClick={onOpenChat}
                 className="btn-outline-gradient"
               >
-                <span>Ver Proceso</span>
-                <FaArrowRight className="arrow-icon" />
+                <FaComments style={{ position: 'relative', zIndex: 2 }} />
+                <span>Chat en Línea</span>
               </Button>
             </div>
           </Col>

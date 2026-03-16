@@ -84,7 +84,7 @@
     opacity: 0.7;
 }
 
-.section-title {
+.sections-overview .section-title {
     font-size: 1.75rem;
     font-weight: 800;
     color: #1a202c;
@@ -93,6 +93,7 @@
     line-height: 1.2;
     width: 100%;
     opacity: 0.9;
+    display: block;
 }
 
 .highlight {
@@ -172,8 +173,8 @@
 }
 
 .icon-wrapper svg {
-    color: white;
     font-size: 1.5rem;
+    color: inherit;
 }
 
 .card-title {
@@ -449,3 +450,86 @@
 .explore-link:active {
     transform: scale(0.98);
 }
+
+/* ── Section description ── */
+.section-description {
+    font-size: 1rem;
+    color: #64748b;
+    line-height: 1.6;
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+/* ── Process Strip ── */
+.process-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 2rem auto 0;
+    position: relative;
+}
+.process-step-card {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+.process-step-card:hover { transform: translateY(-4px); }
+.process-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #6366f1);
+    color: white;
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+.process-step-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 0.4rem; }
+.process-step-desc { font-size: 0.85rem; color: #64748b; line-height: 1.5; margin: 0; }
+.process-arrow {
+    display: none; /* arrows only make sense on desktop, and we use layout flow */
+}
+
+@media (max-width: 768px) {
+    .process-strip { grid-template-columns: 1fr 1fr; gap: 1rem; }
+}
+@media (max-width: 480px) {
+    .process-strip { grid-template-columns: 1fr; }
+}
+
+/* ── Services CTA ── */
+.services-cta {
+    text-align: center;
+    margin-top: 3.5rem;
+    padding: 2.5rem 2rem;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    border-radius: 20px;
+    color: white;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.services-cta-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.5rem; }
+.services-cta-desc { font-size: 1rem; opacity: 0.9; margin-bottom: 1.5rem; }
+.services-cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.services-cta-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 10px; font-weight: 600;
+    font-size: 1rem; text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.3s ease;
+}
+.services-cta-wa {
+    background: #22c55e; color: white;
+}
+.services-cta-wa:hover { background: #16a34a; transform: translateY(-2px); color: white; }
+.services-cta-chat {
+    background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+}
+.services-cta-chat:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }

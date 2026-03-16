@@ -7,19 +7,13 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import Home from './pages/Home/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import Services from './pages/Services/Services';
-import HowItWorks from './pages/HowItWorks/HowItWorks';
-import Quote from './pages/Quote/Quote';
-import Blog from './pages/Blog/Blog';
 import Contact from './pages/Contact/Contact';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
-import Prices from './pages/Prices/Prices';
 import AboutUs from './pages/AboutUs/AboutUs';
 import FAQ from './pages/FAQ/FAQ';
 import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel/PaymentCancel';
-import SalesQuote from './pages/SalesQuote/SalesQuote';
 
 import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy';
 
@@ -39,20 +33,14 @@ const router = createBrowserRouter(
         { index: true, element: <Home /> },
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
-        { path: 'servicios', element: <Services /> },
-        { path: 'como-funciona', element: <HowItWorks /> },
-        { path: 'cotizar', element: <Quote /> },
-        { path: 'blog', element: <Blog /> },
         { path: 'contacto', element: <Contact /> },
         { path: 'forgot-password', element: <ForgotPassword /> },
         { path: 'auth/reset-password/:token', element: <ResetPassword /> },
-        { path: 'precios', element: <Prices /> },
         { path: 'sobre-nosotros', element: <AboutUs /> },
         { path: 'politica-de-privacidad', element: <PrivacyPolicy /> },
         { path: 'preguntas-frecuentes', element: <FAQ /> },
         { path: 'payment/success', element: <PaymentSuccess /> },
         { path: 'payment/cancel', element: <PaymentCancel /> },
-        { path: 'cotizaciones', element: <SalesQuote /> },
       ],
     },
 

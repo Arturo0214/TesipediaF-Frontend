@@ -78,7 +78,7 @@ function NavbarCliente() {
                 onToggle={(expanded) => setExpanded(expanded)}
             >
                 <Container>
-                    <Navbar.Brand as={Link} to="/cotizar" className="brand-container" onClick={closeNavbar}>
+                    <Navbar.Brand as={Link} to="/dashboard" className="brand-container" onClick={closeNavbar}>
                         <motion.img
                             src={TesipediaLogo}
                             alt="Tesipedia"

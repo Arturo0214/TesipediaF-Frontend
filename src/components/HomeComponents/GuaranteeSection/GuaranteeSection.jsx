@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaCheck, FaCheckCircle, FaShieldAlt, FaClock, FaUserGraduate, FaHandshake, FaChartLine, FaPercent, FaMoneyBillWave, FaCreditCard, FaArrowRight } from 'react-icons/fa';
+import { FaCheck, FaCheckCircle, FaShieldAlt, FaClock, FaUserGraduate, FaHandshake, FaChartLine, FaPercent, FaMoneyBillWave, FaCreditCard, FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import './GuaranteeSection.css';
 
 const GuaranteeSection = () => {
@@ -43,7 +42,7 @@ const GuaranteeSection = () => {
         {
             icon: <FaChartLine />,
             title: "Resultados Comprobados",
-            description: "Más de 1000 estudiantes han logrado su título con nuestras tesis.",
+            description: "Más de 3,000 estudiantes han logrado su título con nuestras tesis.",
             highlight: "Éxito Garantizado",
             color: "#3B82F6"
         }
@@ -121,9 +120,14 @@ const GuaranteeSection = () => {
                                 </div>
                             </div>
                         </div>
-                        <Link to="/cotizar" className="tesi-guarantee-cta-button">
-                            Cotizar Ahora <FaArrowRight className="arrow-icon" />
-                        </Link>
+                        <a
+                            href="https://wa.me/525583352096?text=Hola%2C%20quiero%20cotizar%20mi%20tesis"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="tesi-guarantee-cta-button"
+                        >
+                            <FaWhatsapp style={{ marginRight: 8 }} /> Solicitar Cotización <FaArrowRight className="arrow-icon" />
+                        </a>
                     </div>
                 </div>
             </div>
