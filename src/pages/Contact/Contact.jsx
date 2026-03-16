@@ -1,80 +1,144 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaComments, FaWhatsapp } from 'react-icons/fa';
+import {
+  FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaComments,
+  FaWhatsapp, FaGraduationCap, FaShieldAlt, FaCheckCircle,
+  FaHeadset, FaPaperPlane
+} from 'react-icons/fa';
 import ChatPanel from '../../components/chat/ChatPanel';
 import './Contact.css';
 
 function Contact() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const handleWhatsAppClick = () => {
-    window.open('https://wa.me/525583352096', '_blank');
-  };
-
   return (
-    <div className="contact-page-container">
-      <div className="contact-hero-section">
-        <h1 className="contact-main-title">Contacto</h1>
-        <p className="contact-hero-text">Estamos aquí para ayudarte en tu proyecto académico</p>
-      </div>
+    <div className="ct-page">
+      {/* ── Hero ── */}
+      <section className="ct-hero">
+        <div className="ct-hero-bg" />
+        <Container className="ct-hero-inner">
+          <span className="ct-hero-badge"><FaHeadset /> Atención Personalizada</span>
+          <h1 className="ct-hero-title">
+            ¿Listo para empezar tu{' '}
+            <span className="ct-hero-accent">tesis?</span>
+          </h1>
+          <p className="ct-hero-sub">
+            Nuestro equipo de asesores está disponible para orientarte
+            en cada paso de tu proyecto académico.
+          </p>
+          <div className="ct-hero-stats">
+            <div className="ct-hero-stat">
+              <span className="ct-hero-stat-num">+3,000</span>
+              <span className="ct-hero-stat-lbl">Titulados</span>
+            </div>
+            <div className="ct-hero-stat">
+              <span className="ct-hero-stat-num">98%</span>
+              <span className="ct-hero-stat-lbl">Aprobación</span>
+            </div>
+            <div className="ct-hero-stat">
+              <span className="ct-hero-stat-num">24/7</span>
+              <span className="ct-hero-stat-lbl">Soporte</span>
+            </div>
+          </div>
+        </Container>
+      </section>
 
-      <Container className="contact-main-content">
-        <Row className="g-4">
+      {/* ── Main Content ── */}
+      <Container className="ct-main">
+        <Row className="g-4 align-items-stretch">
+          {/* Left — CTA Cards */}
           <Col lg={5}>
-            <div className="contact-chat-section">
-              <div className="contact-chat-content">
-                <h2 className="contact-section-title">¿Necesitas ayuda?</h2>
-                <p className="contact-section-text">
-                  Escríbenos directamente y te ayudaremos a encontrar la mejor solución
-                </p>
-                <div className="contact-buttons-container">
-                  <Button
-                    onClick={() => setIsChatOpen(true)}
-                    className="contact-chat-button"
-                  >
-                    <FaComments /> Iniciar Chat
-                  </Button>
-                  <Button
-                    onClick={handleWhatsAppClick}
-                    className="contact-whatsapp-button"
-                  >
-                    <FaWhatsapp /> Contactar por WhatsApp
-                  </Button>
-                </div>
+            <div className="ct-cta-card ct-cta-wa">
+              <div className="ct-cta-icon-wrap ct-cta-icon-green">
+                <FaWhatsapp />
               </div>
+              <h3 className="ct-cta-title">Escríbenos por WhatsApp</h3>
+              <p className="ct-cta-desc">
+                Respuesta en menos de 5 minutos. Cuéntanos sobre tu proyecto
+                y recibe una cotización personalizada.
+              </p>
+              <Button
+                as="a"
+                href="https://wa.me/525670071517?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ct-cta-btn ct-btn-green"
+              >
+                <FaWhatsapp /> Abrir WhatsApp <FaPaperPlane className="ct-btn-arrow" />
+              </Button>
+            </div>
+
+            <div className="ct-cta-card ct-cta-chat">
+              <div className="ct-cta-icon-wrap ct-cta-icon-blue">
+                <FaComments />
+              </div>
+              <h3 className="ct-cta-title">Chat en la Página</h3>
+              <p className="ct-cta-desc">
+                Habla con un asesor directamente desde aquí. Sin necesidad de
+                instalar nada, respuesta inmediata.
+              </p>
+              <Button
+                onClick={() => setIsChatOpen(true)}
+                className="ct-cta-btn ct-btn-blue"
+              >
+                <FaComments /> Iniciar Chat <FaPaperPlane className="ct-btn-arrow" />
+              </Button>
             </div>
           </Col>
+
+          {/* Right — Info */}
           <Col lg={7}>
-            <div className="contact-info-section">
-              <div className="contact-info-grid">
-                <div className="contact-info-card">
-                  <FaEnvelope className="contact-info-icon" />
+            <div className="ct-info-panel">
+              <h2 className="ct-info-title">Información de Contacto</h2>
+              <p className="ct-info-sub">Elige el canal que prefieras para comunicarte con nosotros</p>
+
+              <div className="ct-info-grid">
+                <div className="ct-info-item">
+                  <div className="ct-info-icon"><FaPhone /></div>
                   <div>
-                    <h3 className="contact-info-title">Correo Electrónico</h3>
-                    <p className="contact-info-text">tesipediaoficial@gmail.com</p>
+                    <h4>Teléfono / WhatsApp</h4>
+                    <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer">
+                      +52 56 7007 1517
+                    </a>
                   </div>
                 </div>
-                <div className="contact-info-card">
-                  <FaPhone className="contact-info-icon" />
+                <div className="ct-info-item">
+                  <div className="ct-info-icon"><FaEnvelope /></div>
                   <div>
-                    <h3 className="contact-info-title">Teléfono</h3>
-                    <p className="contact-info-text">+52 55 8335 2096</p>
+                    <h4>Correo Electrónico</h4>
+                    <span>tesipediaoficial@gmail.com</span>
                   </div>
                 </div>
-                <div className="contact-info-card">
-                  <FaMapMarkerAlt className="contact-info-icon" />
+                <div className="ct-info-item">
+                  <div className="ct-info-icon"><FaMapMarkerAlt /></div>
                   <div>
-                    <h3 className="contact-info-title">Ubicación</h3>
-                    <p className="contact-info-text">Ciudad de México, CDMX</p>
+                    <h4>Ubicación</h4>
+                    <span>Ciudad de México, CDMX</span>
                   </div>
                 </div>
-                <div className="contact-info-card">
-                  <FaClock className="contact-info-icon" />
+                <div className="ct-info-item">
+                  <div className="ct-info-icon"><FaClock /></div>
                   <div>
-                    <h3 className="contact-info-title">Horario de Atención</h3>
-                    <p className="contact-info-text">Lun - Vie: 9:00 AM - 6:00 PM</p>
-                    <p className="contact-info-text">Sáb: 9:00 AM - 2:00 PM</p>
+                    <h4>Horario de Atención</h4>
+                    <span>Lun – Vie: 9:00 AM – 6:00 PM</span>
+                    <span>Sáb: 9:00 AM – 2:00 PM</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Trust badges */}
+              <div className="ct-trust">
+                <div className="ct-trust-item">
+                  <FaCheckCircle className="ct-trust-icon" />
+                  <span>100% Confidencial</span>
+                </div>
+                <div className="ct-trust-item">
+                  <FaShieldAlt className="ct-trust-icon" />
+                  <span>Anti-Plagio Garantizado</span>
+                </div>
+                <div className="ct-trust-item">
+                  <FaGraduationCap className="ct-trust-icon" />
+                  <span>Acompañamiento Total</span>
                 </div>
               </div>
             </div>

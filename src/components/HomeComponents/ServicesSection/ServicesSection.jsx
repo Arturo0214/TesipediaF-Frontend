@@ -118,7 +118,7 @@ const ServicesSection = ({ onOpenChat }) => {
                     <p className="services-cta-desc">Contáctanos hoy y recibe un plan personalizado sin compromiso</p>
                     <div className="services-cta-buttons">
                         <a
-                            href="https://wa.me/525583352096?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
+                            href="https://wa.me/525670071517?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="services-cta-btn services-cta-wa"

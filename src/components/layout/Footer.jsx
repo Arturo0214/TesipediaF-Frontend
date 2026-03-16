@@ -11,7 +11,7 @@ export function Footer() {
                         <h5 className="mb-3">Tesipedia</h5>
                         <p className="mb-3">
                             Desarrollamos tesis profesionales con metodología y asesoría personalizada.
-                            Más de 1,500 estudiantes titulados confían en nosotros.
+                            Más de 3,000 estudiantes titulados confían en nosotros.
                         </p>
                         <div className="social-links">
                             <a href="https://www.facebook.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light">
@@ -20,7 +20,7 @@ export function Footer() {
                             <a href="https://www.instagram.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light">
                                 <FaInstagram />
                             </a>
-                            <a href="https://wa.me/525583352096" target="_blank" rel="noopener noreferrer" className="text-light">
+                            <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="text-light">
                                 <FaWhatsapp />
                             </a>
                         </div>
@@ -63,8 +63,8 @@ export function Footer() {
                             </li>
                             <li className="mb-2">
                                 <FaWhatsapp className="me-2" />
-                                <a href="https://wa.me/525583352096" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none">
-                                    +52 55 8335 2096
+                                <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none">
+                                    +52 56 7007 1517
                                 </a>
                             </li>
                             <li className="mb-2">

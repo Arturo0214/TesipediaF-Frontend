@@ -121,7 +121,7 @@ const GuaranteeSection = () => {
                             </div>
                         </div>
                         <a
-                            href="https://wa.me/525583352096?text=Hola%2C%20quiero%20cotizar%20mi%20tesis"
+                            href="https://wa.me/525670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="tesi-guarantee-cta-button"

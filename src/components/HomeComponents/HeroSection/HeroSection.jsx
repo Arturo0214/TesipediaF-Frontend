@@ -29,7 +29,7 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
             <div className="d-flex gap-3 justify-content-center">
               <Button
                 as="a"
-                href="https://wa.me/525583352096?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
+                href="https://wa.me/525670071517?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-gradient-primary"
@@ -86,7 +86,7 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
                 </Button>
                 <Button
                   as="a"
-                  href="https://wa.me/525583352096"
+                  href="https://wa.me/525670071517"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="contact-btn-new contact-btn-whatsapp-new"
