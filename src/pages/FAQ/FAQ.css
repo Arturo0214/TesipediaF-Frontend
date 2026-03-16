@@ -4,12 +4,12 @@
 .fq-page { background: #f8fafc; min-height: 100vh; }
 
 /* ── Main Content ── */
-.fq-main { padding: 2rem 0 4rem; margin-top: 80px; position: relative; z-index: 3; }
+.fq-main { padding: 0.5rem 0 3rem; position: relative; z-index: 3; }
 
 /* ── Category Filters ── */
 .fq-filters {
   display: flex; gap: 0.75rem; justify-content: center;
-  flex-wrap: wrap; margin-bottom: 2.5rem;
+  flex-wrap: wrap; margin-bottom: 1.5rem;
 }
 .fq-filter-btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -157,10 +157,10 @@
 
 /* ── Responsive ── */
 @media (max-width: 992px) {
-  .fq-main { padding: 1.5rem 0 3rem; }
+  .fq-main { padding: 0.5rem 0 2.5rem; }
 }
 @media (max-width: 768px) {
-  .fq-main { padding: 1rem 1rem 2.5rem; margin-top: 70px; }
+  .fq-main { padding: 0.5rem 1rem 2rem; }
   .fq-filters { gap: 0.5rem; }
   .fq-filter-btn { padding: 8px 14px; font-size: 0.82rem; }
   .fq-cta-inner { padding: 2rem 1.5rem; }
