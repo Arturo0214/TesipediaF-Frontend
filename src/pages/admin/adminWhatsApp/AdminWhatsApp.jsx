@@ -50,12 +50,18 @@ const AdminWhatsApp = () => {
   const fileInputRef = useRef(null);
   const selectedLeadRef = useRef(null); // ref para evitar stale closure en polling
   const prevMsgCountRef = useRef(0); // para detectar mensajes nuevos y hacer scroll
+  const prevLeadIdRef = useRef(null); // para scroll solo al cambiar de conversación
 
   // Mantener el ref sincronizado con el state
   useEffect(() => {
     selectedLeadRef.current = selectedLead;
-    // Scroll cuando cambia el lead seleccionado
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Solo scroll al seleccionar un lead DIFERENTE, no en cada refresh de polling
+    if (selectedLead && selectedLead.wa_id !== prevLeadIdRef.current) {
+      prevLeadIdRef.current = selectedLead.wa_id;
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else if (!selectedLead) {
+      prevLeadIdRef.current = null;
+    }
   }, [selectedLead]);
 
   // Cargar leads — usa el ref para siempre tener el selectedLead actual
@@ -68,7 +74,17 @@ const AdminWhatsApp = () => {
       const currentSelected = selectedLeadRef.current;
       if (currentSelected) {
         const updated = data.find(l => l.wa_id === currentSelected.wa_id);
-        if (updated) setSelectedLead(updated);
+        if (updated) {
+          // Solo actualizar si los datos realmente cambiaron (evita re-renders y scrolls innecesarios)
+          const chatChanged = JSON.stringify(updated.historial_chat) !== JSON.stringify(currentSelected.historial_chat);
+          const metaChanged = updated.updated_at !== currentSelected.updated_at
+            || updated.estado_sofia !== currentSelected.estado_sofia
+            || updated.modo_humano !== currentSelected.modo_humano
+            || updated.precio !== currentSelected.precio;
+          if (chatChanged || metaChanged) {
+            setSelectedLead(updated);
+          }
+        }
       }
       setError(null);
     } catch (err) {
