@@ -257,12 +257,17 @@ const ManageQuotes = () => {
         clientName: selectedQuote.clientName || selectedQuote._clientName || '',
         clientEmail: selectedQuote.clientEmail || selectedQuote._email || '',
         clientPhone: selectedQuote.clientPhone || selectedQuote._phone || '',
+        precioBase: selectedQuote._basePrice || 0,
+        descuentoMonto: selectedQuote._discount || 0,
+        recargoMonto: selectedQuote._surcharge || 0,
+        precioConDescuento: selectedQuote._price || 0,
       });
     } else {
       setEditFields({
         name: selectedQuote.name || selectedQuote._clientName || '',
         email: selectedQuote.email || selectedQuote._email || '',
         phone: selectedQuote.phone || selectedQuote._phone || '',
+        estimatedPrice: selectedQuote._price || 0,
       });
     }
   };
@@ -561,6 +566,62 @@ const ManageQuotes = () => {
                             onChange={(e) => setEditFields({ ...editFields, [selectedQuote._source === 'generated' ? 'clientPhone' : 'phone']: e.target.value })}
                             placeholder="55 1234 5678" />
                         </div>
+                        {/* ── Edición de precio ── */}
+                        <div className="mq-edit-section-label" style={{ marginTop: 12, fontWeight: 600, fontSize: '0.85rem', color: '#374151' }}>
+                          <FaDollarSign style={{ marginRight: 4 }} /> Precio
+                        </div>
+                        {selectedQuote._source === 'generated' ? (
+                          <>
+                            <div className="mq-detail-row mq-edit-row">
+                              <span className="mq-dlabel">Precio base</span>
+                              <input className="mq-edit-input" type="number" min="0" step="100"
+                                value={editFields.precioBase || ''}
+                                onChange={(e) => {
+                                  const base = Number(e.target.value) || 0;
+                                  const desc = Number(editFields.descuentoMonto) || 0;
+                                  const rec = Number(editFields.recargoMonto) || 0;
+                                  setEditFields({ ...editFields, precioBase: base, precioConDescuento: base - desc + rec });
+                                }} />
+                            </div>
+                            <div className="mq-detail-row mq-edit-row">
+                              <span className="mq-dlabel">Descuento</span>
+                              <input className="mq-edit-input" type="number" min="0" step="100"
+                                value={editFields.descuentoMonto || ''}
+                                onChange={(e) => {
+                                  const desc = Number(e.target.value) || 0;
+                                  const base = Number(editFields.precioBase) || 0;
+                                  const rec = Number(editFields.recargoMonto) || 0;
+                                  setEditFields({ ...editFields, descuentoMonto: desc, precioConDescuento: base - desc + rec });
+                                }} />
+                            </div>
+                            <div className="mq-detail-row mq-edit-row">
+                              <span className="mq-dlabel">Recargo</span>
+                              <input className="mq-edit-input" type="number" min="0" step="100"
+                                value={editFields.recargoMonto || ''}
+                                onChange={(e) => {
+                                  const rec = Number(e.target.value) || 0;
+                                  const base = Number(editFields.precioBase) || 0;
+                                  const desc = Number(editFields.descuentoMonto) || 0;
+                                  setEditFields({ ...editFields, recargoMonto: rec, precioConDescuento: base - desc + rec });
+                                }} />
+                            </div>
+                            <div className="mq-detail-row mq-edit-row">
+                              <span className="mq-dlabel" style={{ fontWeight: 700 }}>Total final</span>
+                              <input className="mq-edit-input" type="number" min="0" step="100"
+                                value={editFields.precioConDescuento || ''}
+                                onChange={(e) => setEditFields({ ...editFields, precioConDescuento: Number(e.target.value) || 0 })}
+                                style={{ fontWeight: 700 }} />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="mq-detail-row mq-edit-row">
+                            <span className="mq-dlabel" style={{ fontWeight: 700 }}>Precio</span>
+                            <input className="mq-edit-input" type="number" min="0" step="100"
+                              value={editFields.estimatedPrice || ''}
+                              onChange={(e) => setEditFields({ ...editFields, estimatedPrice: Number(e.target.value) || 0 })}
+                              style={{ fontWeight: 700 }} />
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
