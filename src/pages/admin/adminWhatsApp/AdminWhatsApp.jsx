@@ -735,14 +735,25 @@ const AdminWhatsApp = () => {
 
   return (
     <div className="wa-panel">
+      {/* Header izquierdo verde */}
+      <div className="wa-header">
+        <div className="wa-header-title">
+          <FaWhatsapp className="wa-header-icon" />
+          <h2>WhatsApp — Panel de Control</h2>
+        </div>
+        <Button variant="outline-secondary" size="sm" onClick={() => fetchLeads()}>
+          <FaSync className={loading ? 'fa-spin' : ''} /> Actualizar
+        </Button>
+      </div>
+
       <div className="wa-body">
         {/* Lista de conversaciones */}
         <div className="wa-conversations-col">
           <div className="wa-search-box">
-            <FaWhatsapp style={{ color: '#25d366', fontSize: '1.1rem', flexShrink: 0 }} />
+            <FaSearch className="wa-search-icon" />
             <input
               type="text"
-              placeholder="Buscar..."
+              placeholder="Buscar por nombre, teléfono o estado..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="wa-search-input"
@@ -876,8 +887,8 @@ const AdminWhatsApp = () => {
             </div>
           ) : (
             <>
-              {/* Header del chat */}
-              <div className="wa-chat-header">
+              {/* Row 1: Contacto + Actualizar */}
+              <div className="wa-chat-row1">
                 <div className="wa-chat-header-info">
                   <button className="wa-back-btn" onClick={() => setSelectedLead(null)}>
                     <FaArrowLeft />
@@ -890,21 +901,27 @@ const AdminWhatsApp = () => {
                     </div>
                   </div>
                 </div>
+                <Button variant="outline-secondary" size="sm" onClick={() => fetchLeads()}>
+                  <FaSync className={loading ? 'fa-spin' : ''} />
+                </Button>
+              </div>
+
+              {/* Row 2: Etiquetas + acciones */}
+              <div className="wa-chat-row2">
+                <div className="wa-lead-info-pills">
+                  {selectedLead.estado_sofia && (
+                    <Badge bg={getEstadoBadge(selectedLead.estado_sofia)}>
+                      <FaTag className="me-1" /> {selectedLead.estado_sofia}
+                    </Badge>
+                  )}
+                  {selectedLead.tipo_servicio && (
+                    <Badge bg="outline-secondary" className="wa-pill">{SERVICIO_LABEL[selectedLead.tipo_servicio] || selectedLead.tipo_servicio}</Badge>
+                  )}
+                  {selectedLead.precio && (
+                    <Badge bg="outline-success" className="wa-pill">${selectedLead.precio}</Badge>
+                  )}
+                </div>
                 <div className="wa-chat-header-actions">
-                  {/* Info del lead */}
-                  <div className="wa-lead-info-pills">
-                    {selectedLead.estado_sofia && (
-                      <Badge bg={getEstadoBadge(selectedLead.estado_sofia)}>
-                        <FaTag className="me-1" /> {selectedLead.estado_sofia}
-                      </Badge>
-                    )}
-                    {selectedLead.tipo_servicio && (
-                      <Badge bg="outline-secondary" className="wa-pill">{selectedLead.tipo_servicio}</Badge>
-                    )}
-                    {selectedLead.precio && (
-                      <Badge bg="outline-success" className="wa-pill">${selectedLead.precio}</Badge>
-                    )}
-                  </div>
                   {/* Botón Cotizar */}
                   <Button
                     variant="warning"
