@@ -599,16 +599,21 @@ const AdminWhatsApp = () => {
       const isHuman = !isUser && (msg.content?.startsWith('[HUMANO]') || msg.content?.startsWith('[HUMANO:'));
       const isBot = !isUser && !isHuman;
       // Extraer nombre del admin y limpiar el prefijo
-      let humanName = 'Humano';
+      let humanName = '';
       let content = msg.content;
       if (isHuman) {
-        const nameMatch = content.match(/^\[HUMANO:(\w+)\]\s*/);
+        const nameMatch = content.match(/^\[HUMANO:([^\]]+)\]\s*/);
         if (nameMatch) {
           humanName = nameMatch[1];
           content = content.replace(nameMatch[0], '');
         } else {
           content = content.replace('[HUMANO] ', '');
         }
+      }
+      // Inferir timestamp de mensajes de usuario sin hora: usar el del msg siguiente (bot)
+      let msgTimestamp = msg.timestamp;
+      if (!msgTimestamp && isUser && idx + 1 < historial.length && historial[idx + 1].timestamp) {
+        msgTimestamp = historial[idx + 1].timestamp;
       }
       let stateData = null;
 
@@ -643,7 +648,7 @@ const AdminWhatsApp = () => {
           </div>
           <div className="wa-message-bubble">
             <div className="wa-message-sender">
-              {isUser ? (selectedLead.nombre || 'Cliente') : isHuman ? `${humanName} (Humano)` : 'Sofía (Bot)'}
+              {isUser ? (selectedLead.nombre || 'Cliente') : isHuman ? (humanName ? `${humanName} (Humano)` : 'Humano') : 'Sofía (Bot)'}
             </div>
             
             {/* Si hay archivo/media */}
@@ -682,7 +687,7 @@ const AdminWhatsApp = () => {
             )}
 
             <div className="wa-message-time">
-               {msg.timestamp ? format(parseUTCDate(msg.timestamp), "HH:mm") : ''}
+               {msgTimestamp ? format(parseUTCDate(msgTimestamp), "HH:mm") : ''}
             </div>
           </div>
         </div>
