@@ -394,10 +394,10 @@ const SalesQuote = () => {
                 savedQuoteId = savedResult?.quote?._id || savedResult?._id || null;
                 console.log('✅ Cotización guardada en BD con ID:', savedQuoteId);
             } catch (saveErr) {
-                console.error('⚠️ Error al guardar cotización en BD:', saveErr);
+                console.error('⚠️ Error al guardar cotización en BD:', saveErr, JSON.stringify(saveErr));
                 Swal.fire({
                     title: 'Advertencia',
-                    text: 'La cotización se generará pero no se pudo guardar en el sistema. Por favor contacte al administrador si el problema persiste.',
+                    text: `La cotización se generará pero no se pudo guardar: ${saveErr?.message || saveErr || 'Error desconocido'}. Por favor contacte al administrador.`,
                     icon: 'warning',
                     confirmButtonText: 'Continuar de todas formas'
                 });
