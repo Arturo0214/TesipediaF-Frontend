@@ -59,6 +59,9 @@ function mapLeadToQuoteFields(lead) {
     carrera: lead.carrera || '',
     extensionEstimada: lead.paginas || '',
     fechaEntrega: lead.fecha_entrega || '',
+    fechaEntregaDate: '',
+    fechaPago1: new Date().toISOString().split('T')[0],
+    fechaAvance: '',
     tema: lead.tema || '',
     precioManual: '',
     descuentoEfectivo: 0,
@@ -938,8 +941,31 @@ const AdminWhatsApp = () => {
                           <Form.Select size="sm" value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => handleQuoteFieldChange('esquemaTipo', e.target.value)}>
                             <option value="50-50">50% inicio / 50% final</option>
                             <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
+                            <option value="6-quincenales">6 Pagos Quincenales</option>
+                            <option value="6-mensuales">6 Pagos Mensuales</option>
                             <option value="unico">Pago único</option>
                           </Form.Select>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Fecha Entrega</div>
+                          <Form.Control size="sm" type="date" value={quoteFields.fechaEntregaDate || ''}
+                            onChange={(e) => handleQuoteFieldChange('fechaEntregaDate', e.target.value)} />
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Pago Inicio</div>
+                          <Form.Control size="sm" type="date" value={quoteFields.fechaPago1 || ''}
+                            onChange={(e) => handleQuoteFieldChange('fechaPago1', e.target.value)} />
+                        </Col>
+                        {quoteFields.esquemaTipo === '33-33-34' && (
+                          <Col xs={6}>
+                            <div className="wq-micro-label">Pago Avance</div>
+                            <Form.Control size="sm" type="date" value={quoteFields.fechaAvance || ''}
+                              onChange={(e) => handleQuoteFieldChange('fechaAvance', e.target.value)} />
+                          </Col>
+                        )}
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Pago Final</div>
+                          <Form.Control size="sm" type="date" value={quoteFields.fechaEntregaDate || ''} disabled className="bg-light" />
                         </Col>
                       </Row>
                     </div>
