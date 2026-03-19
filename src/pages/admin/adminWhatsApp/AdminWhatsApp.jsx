@@ -31,6 +31,8 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { saveGeneratedQuote } from '../../../features/quotes/quoteSlice';
 import './AdminWhatsApp.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://tesipedia-backend-service-production.up.railway.app';
@@ -73,6 +75,7 @@ function mapLeadToQuoteFields(lead) {
 const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
 const AdminWhatsApp = () => {
+  const dispatch = useDispatch();
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
   const [message, setMessage] = useState('');
@@ -359,44 +362,32 @@ const AdminWhatsApp = () => {
       const pdfUrl = pdfData.pdfUrl || pdfData.fallbackUrl;
       const pdfPublicId = pdfData.publicId || '';
 
-      // 2. Guardar cotización en MongoDB para que aparezca en Cotizaciones
+      // 2. Guardar cotización en MongoDB via Redux (usa axiosWithAuth con cookies)
       const descuento = Number(f.descuentoEfectivo) || 0;
       const descuentoMonto = Math.round(precioBase * descuento / 100);
       const precioConDescuento = precioBase - descuentoMonto;
       try {
-        const saveResp = await fetch(`${API_URL}/quotes/generated`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            clientName: f.clientName,
-            clientPhone: f.clientPhone,
-            tipoTrabajo: f.tipoTrabajo || 'Tesis',
-            tipoServicio: f.tipoServicio || 'modalidad1',
-            extensionEstimada: String(f.extensionEstimada),
-            carrera: f.carrera,
-            area: f.area || quotePrice?.area || '',
-            tiempoEntrega: f.fechaEntrega || 'Por definir',
-            fechaEntrega: f.fechaEntregaDate || f.fechaEntrega || '',
-            precioBase,
-            descuentoEfectivo: descuento,
-            descuentoMonto,
-            precioConDescuento,
-            metodoPago: f.metodoPago || 'tarjeta-nu',
-            esquemaPago: f.esquemaTipo || '33-33-34',
-            pdfUrl: pdfUrl || null,
-            pdfPublicId: pdfPublicId || null,
-            status: 'pending',
-          }),
-        });
-        const saveData = await saveResp.json();
-        if (saveData.success) {
-          console.log('✅ Cotización guardada en BD:', saveData.quote?._id);
-        } else {
-          console.warn('⚠️ Cotización generada pero no se guardó en BD:', saveData);
-        }
+        const saveResult = await dispatch(saveGeneratedQuote({
+          clientName: f.clientName,
+          clientPhone: f.clientPhone,
+          tipoTrabajo: f.tipoTrabajo || 'Tesis',
+          tipoServicio: f.tipoServicio || 'modalidad1',
+          extensionEstimada: String(f.extensionEstimada),
+          carrera: f.carrera,
+          area: f.area || quotePrice?.area || '',
+          tiempoEntrega: f.fechaEntrega || 'Por definir',
+          fechaEntrega: f.fechaEntregaDate || f.fechaEntrega || '',
+          precioBase,
+          descuentoEfectivo: descuento,
+          descuentoMonto,
+          precioConDescuento,
+          metodoPago: f.metodoPago || 'tarjeta-nu',
+          esquemaPago: f.esquemaTipo || '33-33-34',
+          pdfUrl: pdfUrl || null,
+          pdfPublicId: pdfPublicId || null,
+          status: 'pending',
+        })).unwrap();
+        console.log('✅ Cotización guardada en BD:', saveResult?.quote?._id || saveResult?._id);
       } catch (saveErr) {
         console.error('⚠️ Error al guardar cotización en BD:', saveErr);
       }
