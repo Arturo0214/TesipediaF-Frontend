@@ -357,13 +357,56 @@ const AdminWhatsApp = () => {
       if (!pdfData.success) throw new Error(pdfData.message || 'Error generando PDF');
 
       const pdfUrl = pdfData.pdfUrl || pdfData.fallbackUrl;
+      const pdfPublicId = pdfData.publicId || '';
 
-      // Abrir el PDF en nueva pestaña para que el admin lo descargue/envíe manualmente
+      // 2. Guardar cotización en MongoDB para que aparezca en Cotizaciones
+      const descuento = Number(f.descuentoEfectivo) || 0;
+      const descuentoMonto = Math.round(precioBase * descuento / 100);
+      const precioConDescuento = precioBase - descuentoMonto;
+      try {
+        const saveResp = await fetch(`${API_URL}/quotes/generated`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
+          },
+          body: JSON.stringify({
+            clientName: f.clientName,
+            clientPhone: f.clientPhone,
+            tipoTrabajo: f.tipoTrabajo || 'Tesis',
+            tipoServicio: f.tipoServicio || 'modalidad1',
+            extensionEstimada: String(f.extensionEstimada),
+            carrera: f.carrera,
+            area: f.area || quotePrice?.area || '',
+            tiempoEntrega: f.fechaEntrega || 'Por definir',
+            fechaEntrega: f.fechaEntregaDate || f.fechaEntrega || '',
+            precioBase,
+            descuentoEfectivo: descuento,
+            descuentoMonto,
+            precioConDescuento,
+            metodoPago: f.metodoPago || 'tarjeta-nu',
+            esquemaPago: f.esquemaTipo || '33-33-34',
+            pdfUrl: pdfUrl || null,
+            pdfPublicId: pdfPublicId || null,
+            status: 'pending',
+          }),
+        });
+        const saveData = await saveResp.json();
+        if (saveData.success) {
+          console.log('✅ Cotización guardada en BD:', saveData.quote?._id);
+        } else {
+          console.warn('⚠️ Cotización generada pero no se guardó en BD:', saveData);
+        }
+      } catch (saveErr) {
+        console.error('⚠️ Error al guardar cotización en BD:', saveErr);
+      }
+
+      // 3. Abrir el PDF en nueva pestaña para que el admin lo descargue/envíe manualmente
       if (pdfUrl) {
         window.open(pdfUrl, '_blank');
       }
 
-      toast.success('PDF generado correctamente');
+      toast.success('PDF generado y cotización guardada');
       setShowQuoteModal(false);
     } catch (err) {
       toast.error('Error: ' + err.message);
