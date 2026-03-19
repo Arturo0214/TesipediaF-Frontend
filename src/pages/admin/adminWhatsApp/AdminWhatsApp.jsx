@@ -887,7 +887,7 @@ const AdminWhatsApp = () => {
             </div>
           ) : (
             <>
-              {/* Row 1: Contacto + Actualizar */}
+              {/* Row 1: Contacto + acciones principales */}
               <div className="wa-chat-row1">
                 <div className="wa-chat-header-info">
                   <button className="wa-back-btn" onClick={() => setSelectedLead(null)}>
@@ -901,12 +901,36 @@ const AdminWhatsApp = () => {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline-secondary" size="sm" onClick={() => fetchLeads()}>
-                  <FaSync className={loading ? 'fa-spin' : ''} />
-                </Button>
+                <div className="wa-chat-header-actions">
+                  <Button variant="warning" size="sm" onClick={openQuoteModal} className="wa-quote-btn" title="Cotizar">
+                    <FaCalculator className="me-1" /> Cotizar
+                  </Button>
+                  <select className="wa-estado-select" value={selectedLead.estado_sofia || ''}
+                    onChange={async (e) => {
+                      try {
+                        await updateLeadEstado(selectedLead.wa_id, e.target.value);
+                        setSelectedLead(prev => ({ ...prev, estado_sofia: e.target.value }));
+                        toast.success(`Estado: ${e.target.value.replace(/_/g, ' ')}`);
+                        fetchLeads(true);
+                      } catch (err) { toast.error('Error al cambiar estado'); }
+                    }}>
+                    <option value="bienvenida">Bienvenida</option>
+                    <option value="recopilando_datos">Recopilando datos</option>
+                    <option value="esperando_aprobacion">Esperando aprobación</option>
+                    <option value="cotizacion_enviada">Cotización enviada</option>
+                    <option value="cotizacion_confirmada">Cotización confirmada</option>
+                    <option value="pagado">Pagado</option>
+                    <option value="modo_humano">Modo humano</option>
+                  </select>
+                  <Button variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'} size="sm"
+                    onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
+                    title={selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
+                    {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano ? <><FaToggleOn className="me-1" /> Humano</> : <><FaToggleOff className="me-1" /> Bot</>}
+                  </Button>
+                </div>
               </div>
 
-              {/* Row 2: Etiquetas + acciones */}
+              {/* Row 2: Etiquetas del lead a la derecha */}
               <div className="wa-chat-row2">
                 <div className="wa-lead-info-pills">
                   {selectedLead.estado_sofia && (
@@ -920,56 +944,6 @@ const AdminWhatsApp = () => {
                   {selectedLead.precio && (
                     <Badge bg="outline-success" className="wa-pill">${selectedLead.precio}</Badge>
                   )}
-                </div>
-                <div className="wa-chat-header-actions">
-                  {/* Botón Cotizar */}
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    onClick={openQuoteModal}
-                    className="wa-quote-btn"
-                    title="Generar cotización desde datos del lead"
-                  >
-                    <FaCalculator className="me-1" /> Cotizar
-                  </Button>
-                  {/* Cambiar estado rápido */}
-                  <select
-                    className="wa-estado-select"
-                    value={selectedLead.estado_sofia || ''}
-                    onChange={async (e) => {
-                      try {
-                        await updateLeadEstado(selectedLead.wa_id, e.target.value);
-                        setSelectedLead(prev => ({ ...prev, estado_sofia: e.target.value }));
-                        toast.success(`Estado: ${e.target.value.replace(/_/g, ' ')}`);
-                        fetchLeads(true);
-                      } catch (err) { toast.error('Error al cambiar estado'); }
-                    }}
-                  >
-                    <option value="bienvenida">Bienvenida</option>
-                    <option value="recopilando_datos">Recopilando datos</option>
-                    <option value="esperando_aprobacion">Esperando aprobación</option>
-                    <option value="cotizacion_enviada">Cotización enviada</option>
-                    <option value="cotizacion_confirmada">Cotización confirmada</option>
-                    <option value="pagado">Pagado</option>
-                    <option value="modo_humano">Modo humano</option>
-                  </select>
-                  {/* Toggle modo humano */}
-                  <Button
-                    variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'}
-                    size="sm"
-                    onClick={handleToggleHuman}
-                    disabled={togglingHuman}
-                    className="wa-human-toggle"
-                    title={selectedLead.modo_humano ? 'Desactivar modo humano (Sofía responderá)' : 'Activar modo humano (Sofía se pausa)'}
-                  >
-                    {togglingHuman ? (
-                      <Spinner size="sm" />
-                    ) : selectedLead.modo_humano ? (
-                      <><FaToggleOn className="me-1" /> Modo Humano</>
-                    ) : (
-                      <><FaToggleOff className="me-1" /> Modo Bot</>
-                    )}
-                  </Button>
                 </div>
               </div>
 

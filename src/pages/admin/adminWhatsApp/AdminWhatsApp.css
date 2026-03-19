@@ -71,7 +71,7 @@
 .wa-search-box {
   display: flex;
   align-items: center;
-  padding: 6px 8px;
+  padding: 6px 10px;
   background: #f6f6f6;
   border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
@@ -321,31 +321,26 @@
   margin: 0;
 }
 
-/* Chat Row 1: contacto + actualizar */
+/* Chat Row 1: contacto + acciones — aligned with search box height */
 .wa-chat-row1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  background: #f0f2f5;
+  padding: 6px 10px;
+  background: #f6f6f6;
   border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
-  gap: 8px;
+  gap: 6px;
 }
 
-.wa-chat-row1 .btn-outline-secondary {
-  font-size: 0.75rem;
-  padding: 4px 8px;
-}
-
-/* Chat Row 2: etiquetas + acciones */
+/* Chat Row 2: etiquetas — aligned with filters height */
 .wa-chat-row2 {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 12px;
-  background: #ededed;
-  border-bottom: 1px solid #d0d0d0;
+  justify-content: flex-end;
+  padding: 6px 10px;
+  background: #f6f6f6;
+  border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
   gap: 6px;
 }
