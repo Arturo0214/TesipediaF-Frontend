@@ -28,7 +28,6 @@ import {
   updateLeadEstado,
   sendWhatsAppMessage,
   parseHistorial,
-  getWindowStatus,
   sendTemplateMessage,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
@@ -248,6 +247,23 @@ const AdminWhatsApp = () => {
     }
   }, [selectedLead]);
 
+  // Helper: calcular si la ventana de 24h expiró usando updated_at del lead
+  const calcWindowExpired = (leadData) => {
+    if (!leadData) return true;
+    const HOURS_24 = 24 * 60 * 60 * 1000;
+    // Intentar usar timestamp del último mensaje del usuario
+    const historial = parseHistorial(leadData.historial_chat);
+    const lastUserMsg = [...historial].reverse().find(m => m.role === 'user');
+    if (lastUserMsg?.timestamp) {
+      return (Date.now() - new Date(lastUserMsg.timestamp).getTime()) > HOURS_24;
+    }
+    // Fallback: usar updated_at del lead (se actualiza cada vez que llega un mensaje)
+    if (leadData.updated_at) {
+      return (Date.now() - new Date(leadData.updated_at).getTime()) > HOURS_24;
+    }
+    return true;
+  };
+
   // Seleccionar una conversación
   const handleSelectLead = async (lead) => {
     setSelectedLead(lead);
@@ -255,10 +271,13 @@ const AdminWhatsApp = () => {
     // Refrescar datos del lead seleccionado
     try {
       const fresh = await getLeadByWaId(lead.wa_id);
-      if (fresh) setSelectedLead(fresh);
-      // Verificar ventana de 24h
-      const windowInfo = await getWindowStatus(lead.wa_id);
-      setWindowExpired(windowInfo.expired);
+      if (fresh) {
+        setSelectedLead(fresh);
+        // Calcular ventana localmente (no depender del endpoint del backend)
+        setWindowExpired(calcWindowExpired(fresh));
+      } else {
+        setWindowExpired(calcWindowExpired(lead));
+      }
     } catch (err) {
       console.error('Error refrescando lead:', err);
     }
