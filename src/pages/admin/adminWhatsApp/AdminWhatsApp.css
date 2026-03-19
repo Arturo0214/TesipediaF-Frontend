@@ -370,8 +370,10 @@
 .wa-chat-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .wa-lead-info-pills {
@@ -486,6 +488,9 @@
   border-top-left-radius: 2px;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   min-width: 80px;
+  flex: 1;
+  min-height: 0;
+  overflow-wrap: break-word;
 }
 
 .wa-message-bot .wa-message-bubble {
