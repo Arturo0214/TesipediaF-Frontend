@@ -1018,9 +1018,11 @@ const AdminWhatsApp = () => {
                   value={message}
                   onChange={(e) => {
                     setMessage(e.target.value);
-                    // Auto-resize: crecer hacia arriba
+                    // Auto-resize: crecer hacia arriba (como Claude)
                     e.target.style.height = 'auto';
-                    e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+                    const newH = Math.min(e.target.scrollHeight, 160);
+                    e.target.style.height = newH + 'px';
+                    e.target.style.overflowY = newH >= 160 ? 'auto' : 'hidden';
                   }}
                   onKeyDown={(e) => {
                     // Enter envía, Shift+Enter nueva línea
