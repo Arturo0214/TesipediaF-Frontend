@@ -735,24 +735,14 @@ const AdminWhatsApp = () => {
 
   return (
     <div className="wa-panel">
-      <div className="wa-header">
-        <div className="wa-header-title">
-          <FaWhatsapp className="wa-header-icon" />
-          <h2>WhatsApp — Panel de Control</h2>
-        </div>
-        <Button variant="outline-secondary" size="sm" onClick={() => fetchLeads()}>
-          <FaSync className={loading ? 'fa-spin' : ''} /> Actualizar
-        </Button>
-      </div>
-
       <div className="wa-body">
         {/* Lista de conversaciones */}
         <div className="wa-conversations-col">
           <div className="wa-search-box">
-            <FaSearch className="wa-search-icon" />
+            <FaWhatsapp style={{ color: '#25d366', fontSize: '1.1rem', flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Buscar por nombre, teléfono o estado..."
+              placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="wa-search-input"

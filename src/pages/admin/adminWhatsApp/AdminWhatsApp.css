@@ -11,44 +11,6 @@
   overflow: hidden;
 }
 
-/* Header */
-.wa-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px;
-  background: #075e54;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-.wa-header-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.wa-header-title h2 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.wa-header-icon {
-  font-size: 1.4rem;
-}
-
-.wa-header .btn-outline-secondary {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8rem;
-}
-
-.wa-header .btn-outline-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: #fff;
-}
-
 /* Body — 2 columnas */
 .wa-body {
   flex: 1;
@@ -72,9 +34,19 @@
   display: flex;
   align-items: center;
   padding: 6px 8px;
-  background: #f6f6f6;
-  border-bottom: 1px solid #e0e0e0;
+  background: #075e54;
+  border-bottom: 1px solid #064e46;
   flex-shrink: 0;
+}
+
+.wa-search-box .wa-search-input {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: none;
+}
+
+.wa-search-box .wa-search-input::placeholder {
+  color: rgba(255,255,255,0.5);
 }
 
 .wa-search-icon {
@@ -148,11 +120,11 @@
 
 .wa-estado-select {
   padding: 3px 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 6px;
   font-size: 0.68rem;
-  background: #f9fafb;
-  color: #374151;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
   cursor: pointer;
   max-width: 140px;
 }
@@ -321,14 +293,14 @@
   margin: 0;
 }
 
-/* Chat header */
+/* Chat header — same height as search box */
 .wa-chat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 10px;
-  background: #ededed;
-  border-bottom: 1px solid #d0d0d0;
+  padding: 6px 10px;
+  background: #075e54;
+  border-bottom: 1px solid #064e46;
   flex-shrink: 0;
   gap: 6px;
   flex-wrap: nowrap;
@@ -345,23 +317,23 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #dfe5e7;
+  background: rgba(255,255,255,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7c85;
+  color: #fff;
   flex-shrink: 0;
 }
 
 .wa-chat-header-name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #111;
+  color: #fff;
 }
 
 .wa-chat-header-phone {
-  font-size: 0.75rem;
-  color: #667;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -383,10 +355,10 @@
 }
 
 .wa-pill {
-  background: #f0f0f0 !important;
-  color: #333 !important;
-  font-size: 0.7rem;
-  border: 1px solid #ddd;
+  background: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+  font-size: 0.68rem;
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 .wa-human-toggle {
