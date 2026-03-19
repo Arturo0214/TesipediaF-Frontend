@@ -16,7 +16,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  height: 46px;
+  padding: 0 12px;
   background: #075e54;
   color: #fff;
   flex-shrink: 0;
@@ -59,7 +60,8 @@
 .wa-search-box {
   display: flex;
   align-items: center;
-  padding: 6px 10px;
+  height: 34px;
+  padding: 0 10px;
   background: #f6f6f6;
   border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
@@ -105,12 +107,14 @@
   flex: 1;
 }
 
-/* Filtros compactos */
+/* Filtros compactos — matches wa-chat-row2 height */
 .wa-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 6px 10px;
+  height: 34px;
+  padding: 0 10px;
+  align-items: center;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
@@ -299,12 +303,13 @@
   margin: 0;
 }
 
-/* Chat Row 1: contacto + acciones */
+/* Chat Row 1: contacto + acciones — matches wa-left-header height */
 .wa-chat-row1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  height: 46px;
+  padding: 0 14px;
   background: #f6f6f6;
   border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
@@ -320,36 +325,45 @@
 }
 
 .wa-quote-btn {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 6px 14px !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 7px 16px !important;
   border-radius: 8px !important;
   white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .wa-estado-select {
-  padding: 6px 10px;
+  padding: 7px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   background: #fff;
   color: #374151;
   cursor: pointer;
+  font-weight: 500;
+}
+
+.wa-estado-select:focus {
+  outline: none;
+  border-color: #25d366;
 }
 
 .wa-human-toggle {
-  font-size: 0.78rem !important;
-  padding: 6px 14px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  padding: 7px 16px !important;
   border-radius: 8px !important;
   white-space: nowrap;
 }
 
-/* Chat Row 2: labels */
+/* Chat Row 2: labels — matches wa-search-box height */
 .wa-chat-row2 {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 5px 14px;
+  height: 34px;
+  padding: 0 14px;
   background: #ededed;
   border-bottom: 1px solid #d0d0d0;
   flex-shrink: 0;
