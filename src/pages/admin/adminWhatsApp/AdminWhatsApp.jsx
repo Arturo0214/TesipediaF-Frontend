@@ -285,7 +285,20 @@ const AdminWhatsApp = () => {
         }),
       });
       const data = await resp.json();
-      if (data.success || data.precioBase) {
+      if (data.success && data.pricing) {
+        // Normalizar respuesta del API al formato que usa el modal
+        setQuotePrice({
+          precioPorPagina: data.pricing.pricePerPage || 0,
+          precioBase: data.pricing.totalPrice || 0,
+          precioTotal: data.pricing.totalPrice || 0,
+          cargoUrgencia: 0,
+          area: data.pricing.studyArea || '',
+        });
+        // Si el API auto-detectó el área, actualizar el campo
+        if (data.pricing.studyAreaAutoDetected && data.pricing.studyArea) {
+          setQuoteFields(prev => ({ ...prev, area: prev.area || data.pricing.studyArea }));
+        }
+      } else if (data.precioBase) {
         setQuotePrice(data);
       }
     } catch (err) {
