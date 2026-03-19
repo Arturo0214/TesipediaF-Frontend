@@ -735,20 +735,17 @@ const AdminWhatsApp = () => {
 
   return (
     <div className="wa-panel">
-      {/* Header izquierdo verde */}
-      <div className="wa-header">
-        <div className="wa-header-title">
-          <FaWhatsapp className="wa-header-icon" />
-          <h2>WhatsApp — Panel de Control</h2>
-        </div>
-        <Button variant="outline-secondary" size="sm" onClick={() => fetchLeads()}>
-          <FaSync className={loading ? 'fa-spin' : ''} /> Actualizar
-        </Button>
-      </div>
-
       <div className="wa-body">
         {/* Lista de conversaciones */}
         <div className="wa-conversations-col">
+          {/* Header verde solo en columna izquierda */}
+          <div className="wa-left-header">
+            <FaWhatsapp style={{ fontSize: '1.1rem' }} />
+            <span className="wa-left-header-title">WhatsApp</span>
+            <Button variant="outline-light" size="sm" className="ms-auto wa-refresh-btn" onClick={() => fetchLeads()}>
+              <FaSync className={loading ? 'fa-spin' : ''} />
+            </Button>
+          </div>
           <div className="wa-search-box">
             <FaSearch className="wa-search-icon" />
             <input
