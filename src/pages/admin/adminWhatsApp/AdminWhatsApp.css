@@ -118,6 +118,42 @@
   flex: 1;
 }
 
+/* Filtro por estado */
+.wa-estado-filter {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.wa-estado-filter::-webkit-scrollbar {
+  height: 3px;
+}
+
+.wa-estado-pill {
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.wa-estado-pill:hover {
+  background: #e5e7eb;
+}
+
+.wa-estado-pill-active {
+  background: #25d366;
+  color: #fff;
+  border-color: #25d366;
+}
+
 .wa-conversations-list {
   flex: 1;
   overflow-y: auto;

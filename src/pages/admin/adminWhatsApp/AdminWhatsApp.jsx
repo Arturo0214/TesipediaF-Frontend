@@ -44,6 +44,7 @@ const AdminWhatsApp = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
+  const [estadoFilter, setEstadoFilter] = useState('all');
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
@@ -211,8 +212,17 @@ const AdminWhatsApp = () => {
     }
   };
 
+  // Obtener estados únicos para el filtro
+  const estadosUnicos = [...new Set(leads.map(l => l.estado_sofia || 'sin_estado').filter(Boolean))];
+
   // Filtrar leads
   const filteredLeads = leads.filter(lead => {
+    // Filtro por estado
+    if (estadoFilter !== 'all') {
+      const estado = lead.estado_sofia || 'sin_estado';
+      if (estado !== estadoFilter) return false;
+    }
+    // Filtro por búsqueda
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -442,6 +452,28 @@ const AdminWhatsApp = () => {
               </Button>
             </div>
           )}
+
+          {/* Filtro por estado */}
+          <div className="wa-estado-filter">
+            <button
+              className={`wa-estado-pill ${estadoFilter === 'all' ? 'wa-estado-pill-active' : ''}`}
+              onClick={() => setEstadoFilter('all')}
+            >
+              Todos ({leads.length})
+            </button>
+            {estadosUnicos.map(est => {
+              const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
+              return (
+                <button
+                  key={est}
+                  className={`wa-estado-pill ${estadoFilter === est ? 'wa-estado-pill-active' : ''}`}
+                  onClick={() => setEstadoFilter(est)}
+                >
+                  {est.replace(/_/g, ' ')} ({count})
+                </button>
+              );
+            })}
+          </div>
 
           <div className="wa-conversations-list">
             {loading && leads.length === 0 ? (
