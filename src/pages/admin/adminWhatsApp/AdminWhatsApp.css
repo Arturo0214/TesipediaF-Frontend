@@ -118,40 +118,31 @@
   flex: 1;
 }
 
-/* Filtro por estado */
-.wa-estado-filter {
+/* Filtros compactos */
+.wa-filters {
   display: flex;
   gap: 6px;
   padding: 8px 12px;
-  overflow-x: auto;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
-.wa-estado-filter::-webkit-scrollbar {
-  height: 3px;
-}
-
-.wa-estado-pill {
-  white-space: nowrap;
-  padding: 4px 10px;
-  border-radius: 12px;
+.wa-filter-select {
+  flex: 1;
+  padding: 5px 8px;
   border: 1px solid #d1d5db;
+  border-radius: 6px;
   background: #f9fafb;
-  color: #6b7280;
+  color: #374151;
   font-size: 0.72rem;
   cursor: pointer;
-  transition: all 0.15s;
+  appearance: auto;
 }
 
-.wa-estado-pill:hover {
-  background: #e5e7eb;
-}
-
-.wa-estado-pill-active {
-  background: #25d366;
-  color: #fff;
+.wa-filter-select:focus {
+  outline: none;
   border-color: #25d366;
+  box-shadow: 0 0 0 2px rgba(37,211,102,0.15);
 }
 
 .wa-conversations-list {

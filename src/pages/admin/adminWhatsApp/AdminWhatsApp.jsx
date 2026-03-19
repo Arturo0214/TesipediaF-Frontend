@@ -82,6 +82,33 @@ function mapLeadToQuoteFields(lead) {
   };
 }
 
+/* ── Detectar quién atendió (mensajes [HUMANO]) ── */
+const ADMIN_COLORS = {
+  arturo: { color: '#f59e0b', bg: '#fef3c7', label: 'Arturo' },
+  sandy: { color: '#ec4899', bg: '#fce7f3', label: 'Sandy' },
+  hugo: { color: '#3b82f6', bg: '#dbeafe', label: 'Hugo' },
+  _default: { color: '#6b7280', bg: '#f3f4f6', label: 'Sin atender' },
+};
+
+function getLeadAttendedBy(lead) {
+  const hist = parseHistorial(lead?.historial_chat);
+  // Buscar último mensaje [HUMANO] para saber quién atendió
+  for (let i = hist.length - 1; i >= 0; i--) {
+    const c = hist[i]?.content || '';
+    if (c.startsWith('[HUMANO]')) return 'atendido';
+  }
+  return null;
+}
+
+// Detectar admin logueado del localStorage/cookie — se usará para marcar leads
+function getAttendedColor(lead) {
+  const attended = getLeadAttendedBy(lead);
+  if (!attended) return ADMIN_COLORS._default;
+  // Si el lead fue atendido (tiene mensajes [HUMANO]) pero no sabemos por quién
+  // intentar detectar por modo_humano actual o simplemente marcar como atendido
+  return { color: '#10b981', bg: '#d1fae5', label: 'Atendido' };
+}
+
 const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
 const AdminWhatsApp = () => {
@@ -98,6 +125,7 @@ const AdminWhatsApp = () => {
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('all');
+  const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [quoteFields, setQuoteFields] = useState({});
   const [quotePrice, setQuotePrice] = useState(null);
@@ -442,6 +470,12 @@ const AdminWhatsApp = () => {
       const estado = lead.estado_sofia || 'sin_estado';
       if (estado !== estadoFilter) return false;
     }
+    // Filtro por atendido
+    if (attendedFilter !== 'all') {
+      const attended = getLeadAttendedBy(lead);
+      if (attendedFilter === 'atendido' && !attended) return false;
+      if (attendedFilter === 'sin_atender' && attended) return false;
+    }
     // Filtro por búsqueda
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -673,26 +707,30 @@ const AdminWhatsApp = () => {
             </div>
           )}
 
-          {/* Filtro por estado */}
-          <div className="wa-estado-filter">
-            <button
-              className={`wa-estado-pill ${estadoFilter === 'all' ? 'wa-estado-pill-active' : ''}`}
-              onClick={() => setEstadoFilter('all')}
+          {/* Filtros compactos */}
+          <div className="wa-filters">
+            <select
+              className="wa-filter-select"
+              value={estadoFilter}
+              onChange={(e) => setEstadoFilter(e.target.value)}
             >
-              Todos ({leads.length})
-            </button>
-            {estadosUnicos.map(est => {
-              const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
-              return (
-                <button
-                  key={est}
-                  className={`wa-estado-pill ${estadoFilter === est ? 'wa-estado-pill-active' : ''}`}
-                  onClick={() => setEstadoFilter(est)}
-                >
-                  {est.replace(/_/g, ' ')} ({count})
-                </button>
-              );
-            })}
+              <option value="all">Estado: Todos ({leads.length})</option>
+              {estadosUnicos.map(est => {
+                const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
+                return (
+                  <option key={est} value={est}>{est.replace(/_/g, ' ')} ({count})</option>
+                );
+              })}
+            </select>
+            <select
+              className="wa-filter-select"
+              value={attendedFilter}
+              onChange={(e) => setAttendedFilter(e.target.value)}
+            >
+              <option value="all">Atención: Todos</option>
+              <option value="atendido">Atendidos ({leads.filter(l => getLeadAttendedBy(l)).length})</option>
+              <option value="sin_atender">Sin atender ({leads.filter(l => !getLeadAttendedBy(l)).length})</option>
+            </select>
           </div>
 
           <div className="wa-conversations-list">
@@ -709,10 +747,12 @@ const AdminWhatsApp = () => {
               filteredLeads.map((lead) => {
                 const unread = getUnreadCount(lead);
                 const isSelected = selectedLead?.wa_id === lead.wa_id;
+                const attendedInfo = getAttendedColor(lead);
                 return (
                   <div
                     key={lead.wa_id}
                     className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''}`}
+                    style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid' }}
                     onClick={() => handleSelectLead(lead)}
                   >
                     <div className="wa-conv-avatar">
