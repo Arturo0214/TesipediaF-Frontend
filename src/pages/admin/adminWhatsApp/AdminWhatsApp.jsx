@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Badge, Button, Spinner, Alert } from 'react-bootstrap';
+import { Container, Badge, Button, Spinner, Alert, Form, Row, Col } from 'react-bootstrap';
 import {
   FaWhatsapp,
   FaUser,
@@ -40,6 +40,9 @@ const SERVICIO_MAP = { servicio_1: 'modalidad1', servicio_2: 'correccion', servi
 const SERVICIO_LABEL = { servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría', modalidad1: 'Redacción completa', correccion: 'Correcciones', modalidad2: 'Asesoría' };
 const PROYECTO_MAP = { proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro' };
 const NIVEL_MAP = { nivel_1: 'Licenciatura', nivel_2: 'Maestría', nivel_3: 'Doctorado' };
+const AREAS = ['Área 1: Ciencias Físico-Matemáticas y de las Ingenierías', 'Área 2: Ciencias Biológicas, Químicas y de la Salud', 'Área 3: Ciencias Sociales', 'Área 4: Humanidades y Artes'];
+const TIPOS_TRABAJO = ['Tesis', 'Tesina', 'Artículo Científico', 'Ensayo Académico', 'Protocolo de Investigación', 'Proyecto de Titulación', 'Reporte', 'Otro'];
+const NIVELES = ['Licenciatura', 'Maestría', 'Especialidad', 'Doctorado'];
 
 function mapLeadToQuoteFields(lead) {
   const tipoServicioRaw = lead.tipo_servicio || '';
@@ -52,6 +55,7 @@ function mapLeadToQuoteFields(lead) {
     tipoServicio,
     tipoTrabajo,
     nivelAcademico: nivel,
+    area: '',
     carrera: lead.carrera || '',
     extensionEstimada: lead.paginas || '',
     fechaEntrega: lead.fecha_entrega || '',
@@ -337,40 +341,13 @@ const AdminWhatsApp = () => {
 
       const pdfUrl = pdfData.pdfUrl || pdfData.fallbackUrl;
 
-      // 2. Enviar por WhatsApp
-      const quoteMsg = `¡Hola! 🎓 Ya tenemos lista tu cotización personalizada:\n\n` +
-        `📋 Resumen de tu proyecto:\n` +
-        `• Servicio: ${SERVICIO_LABEL[f.tipoServicio] || f.tipoServicio}\n` +
-        `• Proyecto: ${f.tipoTrabajo}\n` +
-        (f.carrera ? `• Carrera: ${f.carrera}\n` : '') +
-        `• Nivel: ${f.nivelAcademico}\n` +
-        (f.extensionEstimada ? `• Páginas: ${f.extensionEstimada}\n` : '') +
-        `\n💰 Tu cotización: *$${precioBase.toLocaleString('es-MX')} MXN*\n\n` +
-        `¿Te gustaría proceder? Estamos listos para ayudarte. 😊`;
-
-      // Send via WhatsApp API
-      const waResp = await fetch(`https://graph.facebook.com/v22.0/978427788691495/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_WHATSAPP_TOKEN || ''}`,
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: f.clientPhone,
-          type: 'document',
-          document: { link: pdfUrl, caption: quoteMsg, filename: 'Cotizacion-Tesipedia.pdf' },
-        }),
-      });
-
-      if (waResp.ok) {
-        toast.success('Cotización generada y enviada por WhatsApp');
-      } else {
-        toast.success('PDF generado. Error al enviar por WhatsApp — puedes enviarlo manualmente.');
+      // Abrir el PDF en nueva pestaña para que el admin lo descargue/envíe manualmente
+      if (pdfUrl) {
+        window.open(pdfUrl, '_blank');
       }
 
+      toast.success('PDF generado correctamente');
       setShowQuoteModal(false);
-      fetchLeads(true);
     } catch (err) {
       toast.error('Error: ' + err.message);
     }
@@ -838,135 +815,162 @@ const AdminWhatsApp = () => {
               <button className="wq-close" onClick={() => setShowQuoteModal(false)}>&times;</button>
             </div>
             <div className="wq-body">
-              <div className="wq-grid">
-                {/* Col izquierda — datos del cliente y proyecto */}
-                <div className="wq-col">
-                  <div className="wq-section-title">Cliente</div>
-                  <div className="wq-field">
-                    <label>Nombre</label>
-                    <input value={quoteFields.clientName || ''} onChange={(e) => handleQuoteFieldChange('clientName', e.target.value)} />
-                  </div>
-                  <div className="wq-field">
-                    <label>Teléfono</label>
-                    <input value={quoteFields.clientPhone || ''} onChange={(e) => handleQuoteFieldChange('clientPhone', e.target.value)} />
-                  </div>
-
-                  <div className="wq-section-title" style={{ marginTop: 12 }}>Proyecto</div>
-                  <div className="wq-field">
-                    <label>Tipo de trabajo</label>
-                    <select value={quoteFields.tipoTrabajo || ''} onChange={(e) => handleQuoteFieldChange('tipoTrabajo', e.target.value)}>
-                      <option value="Tesis">Tesis</option>
-                      <option value="Tesina">Tesina</option>
-                      <option value="Artículo científico">Artículo científico</option>
-                      <option value="Ensayo">Ensayo</option>
-                      <option value="Protocolo">Protocolo</option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                  </div>
-                  <div className="wq-field">
-                    <label>Servicio</label>
-                    <select value={quoteFields.tipoServicio || ''} onChange={(e) => handleQuoteFieldChange('tipoServicio', e.target.value)}>
-                      <option value="modalidad1">Redacción completa</option>
-                      <option value="correccion">Correcciones</option>
-                      <option value="modalidad2">Asesoría</option>
-                    </select>
-                  </div>
-                  <div className="wq-field">
-                    <label>Nivel académico</label>
-                    <select value={quoteFields.nivelAcademico || ''} onChange={(e) => handleQuoteFieldChange('nivelAcademico', e.target.value)}>
-                      <option value="Licenciatura">Licenciatura</option>
-                      <option value="Maestría">Maestría</option>
-                      <option value="Doctorado">Doctorado</option>
-                    </select>
-                  </div>
-                  <div className="wq-field">
-                    <label>Carrera</label>
-                    <input value={quoteFields.carrera || ''} onChange={(e) => handleQuoteFieldChange('carrera', e.target.value)} placeholder="Ej: Derecho, Psicología..." />
-                  </div>
-                  <div className="wq-field">
-                    <label>Páginas</label>
-                    <input type="number" min="1" value={quoteFields.extensionEstimada || ''} onChange={(e) => handleQuoteFieldChange('extensionEstimada', e.target.value)} />
-                  </div>
-                  <div className="wq-field">
-                    <label>Fecha de entrega</label>
-                    <input value={quoteFields.fechaEntrega || ''} onChange={(e) => handleQuoteFieldChange('fechaEntrega', e.target.value)} placeholder="Ej: 15 de mayo de 2026" />
-                  </div>
-                  {quoteFields.tema && (
-                    <div className="wq-field">
-                      <label>Tema</label>
-                      <input value={quoteFields.tema || ''} onChange={(e) => handleQuoteFieldChange('tema', e.target.value)} />
+              <Form>
+                <Row className="g-3">
+                  {/* COLUMNA IZQUIERDA */}
+                  <Col md={6}>
+                    <div className="wq-form-section">
+                      <div className="wq-section-title">Cliente y Proyecto</div>
+                      <Row className="g-2">
+                        <Col xs={7}>
+                          <div className="wq-micro-label">Cliente *</div>
+                          <Form.Control size="sm" value={quoteFields.clientName || ''} onChange={(e) => handleQuoteFieldChange('clientName', e.target.value)} placeholder="Nombre" />
+                        </Col>
+                        <Col xs={5}>
+                          <div className="wq-micro-label">Teléfono</div>
+                          <Form.Control size="sm" value={quoteFields.clientPhone || ''} onChange={(e) => handleQuoteFieldChange('clientPhone', e.target.value)} />
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Tipo de Trabajo *</div>
+                          <Form.Select size="sm" value={quoteFields.tipoTrabajo || ''} onChange={(e) => handleQuoteFieldChange('tipoTrabajo', e.target.value)}>
+                            <option value="">Seleccionar...</option>
+                            {TIPOS_TRABAJO.map(t => <option key={t} value={t}>{t}</option>)}
+                          </Form.Select>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Nivel Académico *</div>
+                          <Form.Select size="sm" value={quoteFields.nivelAcademico || ''} onChange={(e) => handleQuoteFieldChange('nivelAcademico', e.target.value)}>
+                            <option value="">Seleccionar...</option>
+                            {NIVELES.map(n => <option key={n} value={n}>{n}</option>)}
+                          </Form.Select>
+                        </Col>
+                        <Col xs={12}>
+                          <div className="wq-micro-label">Área de Estudio</div>
+                          <Form.Select size="sm" value={quoteFields.area || ''} onChange={(e) => handleQuoteFieldChange('area', e.target.value)}>
+                            <option value="">Seleccionar...</option>
+                            {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                          </Form.Select>
+                        </Col>
+                        <Col xs={8}>
+                          <div className="wq-micro-label">Carrera *</div>
+                          <Form.Control size="sm" value={quoteFields.carrera || ''} onChange={(e) => handleQuoteFieldChange('carrera', e.target.value)} placeholder="Nombre de la carrera" />
+                        </Col>
+                        <Col xs={4}>
+                          <div className="wq-micro-label">Páginas *</div>
+                          <Form.Control size="sm" type="number" min="1" value={quoteFields.extensionEstimada || ''} onChange={(e) => handleQuoteFieldChange('extensionEstimada', e.target.value)} placeholder="Cant." />
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Tipo de Servicio</div>
+                          <Form.Select size="sm" value={quoteFields.tipoServicio || 'modalidad1'} onChange={(e) => handleQuoteFieldChange('tipoServicio', e.target.value)}>
+                            <option value="modalidad1">Modalidad 1 - Hacemos todo (100%)</option>
+                            <option value="modalidad2">Modalidad 2 - Acompañamiento (75%)</option>
+                            <option value="correccion">Solo Corrección (50%)</option>
+                          </Form.Select>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Fecha Entrega</div>
+                          <Form.Control size="sm" value={quoteFields.fechaEntrega || ''} onChange={(e) => handleQuoteFieldChange('fechaEntrega', e.target.value)} placeholder="Ej: 15 de mayo" />
+                        </Col>
+                        {quoteFields.tema && (
+                          <Col xs={12}>
+                            <div className="wq-micro-label">Tema</div>
+                            <Form.Control size="sm" value={quoteFields.tema || ''} onChange={(e) => handleQuoteFieldChange('tema', e.target.value)} />
+                          </Col>
+                        )}
+                      </Row>
                     </div>
-                  )}
-                </div>
+                  </Col>
 
-                {/* Col derecha — precio y opciones de pago */}
-                <div className="wq-col">
-                  <div className="wq-section-title"><FaDollarSign /> Precio</div>
-
-                  {quotePriceLoading ? (
-                    <div className="wq-price-loading"><Spinner size="sm" /> Calculando...</div>
-                  ) : quotePrice ? (
-                    <div className="wq-price-card">
-                      <div className="wq-price-row"><span>Precio por página</span><span>${quotePrice.precioPorPagina?.toLocaleString('es-MX') || '—'}</span></div>
-                      <div className="wq-price-row"><span>Precio base ({quoteFields.extensionEstimada} págs)</span><span>${quotePrice.precioBase?.toLocaleString('es-MX') || '—'}</span></div>
-                      {quotePrice.cargoUrgencia > 0 && (
-                        <div className="wq-price-row wq-price-warn"><span>Cargo urgencia</span><span>+${quotePrice.cargoUrgencia?.toLocaleString('es-MX')}</span></div>
-                      )}
-                      <div className="wq-price-total"><span>Total sugerido</span><span>${quotePrice.precioTotal?.toLocaleString('es-MX') || '—'}</span></div>
+                  {/* COLUMNA DERECHA */}
+                  <Col md={6}>
+                    <div className="wq-form-section">
+                      <div className="wq-section-title"><FaDollarSign className="me-1" /> Inversión y Entrega</div>
+                      <Row className="g-2">
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Precio Base (auto)</div>
+                          <div className="input-group input-group-sm">
+                            <span className="input-group-text">$</span>
+                            <Form.Control type="number" value={quotePrice?.precioBase || ''} disabled className="bg-light" />
+                          </div>
+                          {quotePriceLoading && <div style={{ fontSize: '0.65rem', color: '#6b7280' }}><Spinner size="sm" style={{ width: 10, height: 10 }} /> Calculando...</div>}
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Precio Manual (sobrescribe)</div>
+                          <div className="input-group input-group-sm">
+                            <span className="input-group-text">$</span>
+                            <Form.Control type="number" min="0" step="500" value={quoteFields.precioManual || ''}
+                              onChange={(e) => handleQuoteFieldChange('precioManual', e.target.value)}
+                              placeholder={quotePrice ? String(quotePrice.precioBase) : '0'} />
+                          </div>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Descuento (%)</div>
+                          <div className="input-group input-group-sm">
+                            <Form.Control type="number" min="0" max="100" value={quoteFields.descuentoEfectivo || 0}
+                              onChange={(e) => handleQuoteFieldChange('descuentoEfectivo', e.target.value)} />
+                            <span className="input-group-text">%</span>
+                          </div>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="wq-micro-label">Método de Pago</div>
+                          <Form.Select size="sm" value={quoteFields.metodoPago || 'tarjeta-nu'} onChange={(e) => handleQuoteFieldChange('metodoPago', e.target.value)}>
+                            <option value="tarjeta-nu">Tarjeta Nu</option>
+                            <option value="tarjeta-bbva">Tarjeta BBVA</option>
+                            <option value="efectivo">Efectivo</option>
+                          </Form.Select>
+                        </Col>
+                        <Col xs={12}>
+                          <div className="wq-micro-label">Esquema de Pago</div>
+                          <Form.Select size="sm" value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => handleQuoteFieldChange('esquemaTipo', e.target.value)}>
+                            <option value="50-50">50% inicio / 50% final</option>
+                            <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
+                            <option value="unico">Pago único</option>
+                          </Form.Select>
+                        </Col>
+                      </Row>
                     </div>
-                  ) : (
-                    <div className="wq-price-empty">Completa nivel, páginas y carrera para calcular</div>
-                  )}
 
-                  <button className="wq-recalc-btn" onClick={() => fetchPrice()} disabled={quotePriceLoading}>
-                    <FaSync className={quotePriceLoading ? 'fa-spin' : ''} /> Recalcular
-                  </button>
+                    {/* Resumen de precio */}
+                    {(quotePrice || quoteFields.precioManual) && (
+                      <div className="wq-price-summary">
+                        <div className="d-flex justify-content-between mb-1" style={{ fontSize: '0.75rem' }}>
+                          <span>Base:</span>
+                          <strong>${(quoteFields.precioManual ? Number(quoteFields.precioManual) : (quotePrice?.precioBase || 0)).toLocaleString('es-MX')}</strong>
+                        </div>
+                        {quotePrice?.cargoUrgencia > 0 && !quoteFields.precioManual && (
+                          <div className="d-flex justify-content-between mb-1 text-warning" style={{ fontSize: '0.75rem' }}>
+                            <span>Urgencia:</span>
+                            <strong>+${quotePrice.cargoUrgencia.toLocaleString('es-MX')}</strong>
+                          </div>
+                        )}
+                        {Number(quoteFields.descuentoEfectivo) > 0 && (
+                          <div className="d-flex justify-content-between mb-1 text-success" style={{ fontSize: '0.75rem' }}>
+                            <span>Desc ({quoteFields.descuentoEfectivo}%):</span>
+                            <strong>-${Math.round((quoteFields.precioManual ? Number(quoteFields.precioManual) : (quotePrice?.precioBase || 0)) * Number(quoteFields.descuentoEfectivo) / 100).toLocaleString('es-MX')}</strong>
+                          </div>
+                        )}
+                        <div className="d-flex justify-content-between pt-2 border-top" style={{ fontSize: '0.9rem' }}>
+                          <strong>Total:</strong>
+                          <strong className="text-primary fs-5">
+                            ${(() => {
+                              const base = quoteFields.precioManual ? Number(quoteFields.precioManual) : (quotePrice?.precioBase || 0);
+                              const desc = Math.round(base * Number(quoteFields.descuentoEfectivo || 0) / 100);
+                              return (base - desc).toLocaleString('es-MX');
+                            })()} MXN
+                          </strong>
+                        </div>
+                      </div>
+                    )}
 
-                  <div className="wq-field" style={{ marginTop: 12 }}>
-                    <label>Precio manual (sobrescribe el calculado)</label>
-                    <input type="number" min="0" step="500" value={quoteFields.precioManual || ''}
-                      onChange={(e) => handleQuoteFieldChange('precioManual', e.target.value)}
-                      placeholder={quotePrice ? `$${quotePrice.precioBase?.toLocaleString('es-MX')} (calculado)` : 'Ingresar precio'} />
-                  </div>
-
-                  <div className="wq-field">
-                    <label>Descuento efectivo (%)</label>
-                    <input type="number" min="0" max="30" value={quoteFields.descuentoEfectivo || 0}
-                      onChange={(e) => handleQuoteFieldChange('descuentoEfectivo', e.target.value)} />
-                  </div>
-
-                  <div className="wq-field">
-                    <label>Método de pago</label>
-                    <select value={quoteFields.metodoPago || 'tarjeta-nu'} onChange={(e) => handleQuoteFieldChange('metodoPago', e.target.value)}>
-                      <option value="tarjeta-nu">Tarjeta Nu</option>
-                      <option value="tarjeta-bbva">Tarjeta BBVA</option>
-                      <option value="efectivo">Efectivo</option>
-                    </select>
-                  </div>
-
-                  <div className="wq-field">
-                    <label>Esquema de pago</label>
-                    <select value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => handleQuoteFieldChange('esquemaTipo', e.target.value)}>
-                      <option value="50-50">50% - 50%</option>
-                      <option value="33-33-34">33% - 33% - 34%</option>
-                      <option value="unico">Pago único</option>
-                    </select>
-                  </div>
-
-                  <div className="wq-final-price">
-                    <span>Precio final:</span>
-                    <span className="wq-final-amount">
-                      ${(quoteFields.precioManual ? Number(quoteFields.precioManual) : (quotePrice?.precioBase || 0)).toLocaleString('es-MX')} MXN
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="wq-footer">
-              <button className="wq-btn wq-btn-cancel" onClick={() => setShowQuoteModal(false)}>Cancelar</button>
-              <button className="wq-btn wq-btn-generate" onClick={handleGenerateQuotePDF} disabled={quoteGenerating}>
-                {quoteGenerating ? <><Spinner size="sm" className="me-1" />Generando...</> : <><FaFilePdf className="me-1" />Generar y Enviar PDF</>}
-              </button>
+                    {/* Botón Generar */}
+                    <div className="mt-3">
+                      <Button className="w-100 wq-generate-btn" onClick={handleGenerateQuotePDF} disabled={quoteGenerating}>
+                        {quoteGenerating ? (<><Spinner size="sm" className="me-2" />Generando...</>) : (<><FaFilePdf className="me-2" />Generar PDF</>)}
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Form>
             </div>
           </div>
         </div>
