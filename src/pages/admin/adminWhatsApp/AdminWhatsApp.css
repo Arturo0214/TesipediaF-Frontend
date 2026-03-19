@@ -121,20 +121,22 @@
 /* Filtros compactos */
 .wa-filters {
   display: flex;
-  gap: 6px;
-  padding: 8px 12px;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 10px;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
 .wa-filter-select {
-  flex: 1;
-  padding: 5px 8px;
+  flex: 1 1 calc(50% - 4px);
+  min-width: 0;
+  padding: 4px 6px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #f9fafb;
   color: #374151;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   cursor: pointer;
   appearance: auto;
 }

@@ -795,18 +795,12 @@ const AdminWhatsApp = () => {
               className="wa-filter-select"
               value={attendedFilter}
               onChange={(e) => setAttendedFilter(e.target.value)}
-            >
-              <option value="all">Atención: Todos</option>
-              <option value="atendido">Atendidos ({leads.filter(l => getLeadAttendedBy(l)).length})</option>
-              <option value="sin_atender">Sin atender ({leads.filter(l => !getLeadAttendedBy(l)).length})</option>
-            </select>
-            <select
-              className="wa-filter-select"
-              value={attendedFilter}
-              onChange={(e) => setAttendedFilter(e.target.value)}
               style={attendedFilter && ADMIN_COLORS[attendedFilter] ? { borderColor: ADMIN_COLORS[attendedFilter].color, color: ADMIN_COLORS[attendedFilter].color, fontWeight: 600 } : {}}
             >
-              <option value="all">Leads: Todos</option>
+              <option value="all">Atención: Todos</option>
+              <option value="sin_atender">Sin atender ({leads.filter(l => !getLeadAttendedBy(l)).length})</option>
+              <option value="atendido">Atendidos ({leads.filter(l => getLeadAttendedBy(l)).length})</option>
+              <option disabled>──────────</option>
               {['arturo', 'sandy', 'hugo'].map(admin => {
                 const count = leads.filter(l => getLeadAttendedBy(l) === admin).length;
                 return (
