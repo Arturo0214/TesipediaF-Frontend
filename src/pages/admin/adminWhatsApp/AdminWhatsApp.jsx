@@ -25,6 +25,7 @@ import {
   getLeads,
   getLeadByWaId,
   toggleModoHumano,
+  updateLeadEstado,
   sendWhatsAppMessage,
   parseHistorial,
 } from '../../../services/whatsapp/supabaseWhatsApp';
@@ -488,13 +489,19 @@ const AdminWhatsApp = () => {
         console.error('⚠️ Error al guardar cotización en BD:', saveErr);
       }
 
-      // 3. Abrir el PDF en nueva pestaña para que el admin lo descargue/envíe manualmente
+      // 3. Actualizar estado del lead a cotizacion_enviada
+      try {
+        await updateLeadEstado(f.clientPhone, 'cotizacion_enviada');
+      } catch (e) { console.warn('No se pudo actualizar estado:', e); }
+
+      // 4. Abrir el PDF en nueva pestaña para que el admin lo descargue/envíe manualmente
       if (pdfUrl) {
         window.open(pdfUrl, '_blank');
       }
 
       toast.success('PDF generado y cotización guardada');
       setShowQuoteModal(false);
+      fetchLeads(true);
     } catch (err) {
       toast.error('Error: ' + err.message);
     }
@@ -918,6 +925,27 @@ const AdminWhatsApp = () => {
                   >
                     <FaCalculator className="me-1" /> Cotizar
                   </Button>
+                  {/* Cambiar estado rápido */}
+                  <select
+                    className="wa-estado-select"
+                    value={selectedLead.estado_sofia || ''}
+                    onChange={async (e) => {
+                      try {
+                        await updateLeadEstado(selectedLead.wa_id, e.target.value);
+                        setSelectedLead(prev => ({ ...prev, estado_sofia: e.target.value }));
+                        toast.success(`Estado: ${e.target.value.replace(/_/g, ' ')}`);
+                        fetchLeads(true);
+                      } catch (err) { toast.error('Error al cambiar estado'); }
+                    }}
+                  >
+                    <option value="bienvenida">Bienvenida</option>
+                    <option value="recopilando_datos">Recopilando datos</option>
+                    <option value="esperando_aprobacion">Esperando aprobación</option>
+                    <option value="cotizacion_enviada">Cotización enviada</option>
+                    <option value="cotizacion_confirmada">Cotización confirmada</option>
+                    <option value="pagado">Pagado</option>
+                    <option value="modo_humano">Modo humano</option>
+                  </select>
                   {/* Toggle modo humano */}
                   <Button
                     variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'}

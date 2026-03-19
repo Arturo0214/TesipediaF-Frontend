@@ -55,6 +55,14 @@ export async function sendWhatsAppMessage(waId, mensaje, file = null) {
 }
 
 /**
+ * Actualizar estado_sofia de un lead
+ */
+export async function updateLeadEstado(waId, estado_sofia) {
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/estado`, { estado_sofia });
+  return data;
+}
+
+/**
  * Ya no se necesita appendMessageToHistory — el Backend lo hace en /send
  */
 

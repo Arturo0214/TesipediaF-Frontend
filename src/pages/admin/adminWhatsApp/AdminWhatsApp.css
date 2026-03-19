@@ -147,6 +147,17 @@
   box-shadow: 0 0 0 2px rgba(37,211,102,0.15);
 }
 
+.wa-estado-select {
+  padding: 3px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  background: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  max-width: 140px;
+}
+
 .wa-attended-tag {
   font-size: 0.62rem;
   font-weight: 600;
@@ -427,8 +438,8 @@
 .wa-message {
   display: flex;
   gap: 8px;
-  max-width: 75%;
-  align-items: flex-end;
+  max-width: 80%;
+  align-items: flex-start;
 }
 
 .wa-message-user {
