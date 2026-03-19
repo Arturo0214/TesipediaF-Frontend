@@ -17,6 +17,9 @@ import {
   FaTimes,
   FaFile,
   FaArrowLeft,
+  FaCalculator,
+  FaFilePdf,
+  FaDollarSign,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -29,6 +32,36 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import './AdminWhatsApp.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://tesipedia-backend-service-production.up.railway.app';
+
+/* ── Mapeo de labels internos a legibles ── */
+const SERVICIO_MAP = { servicio_1: 'modalidad1', servicio_2: 'correccion', servicio_3: 'modalidad2' };
+const SERVICIO_LABEL = { servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría', modalidad1: 'Redacción completa', correccion: 'Correcciones', modalidad2: 'Asesoría' };
+const PROYECTO_MAP = { proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro' };
+const NIVEL_MAP = { nivel_1: 'Licenciatura', nivel_2: 'Maestría', nivel_3: 'Doctorado' };
+
+function mapLeadToQuoteFields(lead) {
+  const tipoServicioRaw = lead.tipo_servicio || '';
+  const tipoServicio = SERVICIO_MAP[tipoServicioRaw] || tipoServicioRaw || 'modalidad1';
+  const tipoTrabajo = PROYECTO_MAP[lead.tipo_proyecto] || lead.tipo_proyecto || 'Tesis';
+  const nivel = NIVEL_MAP[lead.nivel] || lead.nivel || 'Licenciatura';
+  return {
+    clientName: lead.nombre || '',
+    clientPhone: lead.wa_id || '',
+    tipoServicio,
+    tipoTrabajo,
+    nivelAcademico: nivel,
+    carrera: lead.carrera || '',
+    extensionEstimada: lead.paginas || '',
+    fechaEntrega: lead.fecha_entrega || '',
+    tema: lead.tema || '',
+    precioManual: '',
+    descuentoEfectivo: 0,
+    metodoPago: 'tarjeta-nu',
+    esquemaTipo: '33-33-34',
+  };
+}
 
 const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
@@ -45,6 +78,11 @@ const AdminWhatsApp = () => {
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('all');
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quoteFields, setQuoteFields] = useState({});
+  const [quotePrice, setQuotePrice] = useState(null);
+  const [quotePriceLoading, setQuotePriceLoading] = useState(false);
+  const [quoteGenerating, setQuoteGenerating] = useState(false);
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
@@ -210,6 +248,133 @@ const AdminWhatsApp = () => {
     } catch (err) {
       toast.error('Error al crear conversación: ' + err.message);
     }
+  };
+
+  // ── Cotización rápida desde lead ──
+  const openQuoteModal = () => {
+    if (!selectedLead) return;
+    const fields = mapLeadToQuoteFields(selectedLead);
+    setQuoteFields(fields);
+    setQuotePrice(null);
+    setShowQuoteModal(true);
+    // Auto-calcular precio si hay datos suficientes
+    if (fields.nivelAcademico && fields.extensionEstimada && fields.carrera) {
+      fetchPrice(fields);
+    }
+  };
+
+  const fetchPrice = async (fields) => {
+    const f = fields || quoteFields;
+    if (!f.nivelAcademico || !f.extensionEstimada || !f.carrera) return;
+    setQuotePriceLoading(true);
+    try {
+      const resp = await fetch(`${API_URL}/api/quotes/calculate-sales-price`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          educationLevel: f.nivelAcademico,
+          pages: parseInt(f.extensionEstimada) || 30,
+          serviceType: f.tipoServicio || 'modalidad1',
+          taskType: f.tipoTrabajo || 'Tesis',
+          career: f.carrera,
+        }),
+      });
+      const data = await resp.json();
+      if (data.success || data.precioBase) {
+        setQuotePrice(data);
+      }
+    } catch (err) {
+      console.error('Error calculando precio:', err);
+    }
+    setQuotePriceLoading(false);
+  };
+
+  const handleQuoteFieldChange = (key, value) => {
+    const updated = { ...quoteFields, [key]: value };
+    setQuoteFields(updated);
+    // Re-calcular precio si cambian campos relevantes
+    if (['nivelAcademico', 'extensionEstimada', 'carrera', 'tipoServicio', 'tipoTrabajo'].includes(key)) {
+      if (updated.nivelAcademico && updated.extensionEstimada && updated.carrera) {
+        fetchPrice(updated);
+      }
+    }
+  };
+
+  const handleGenerateQuotePDF = async () => {
+    const f = quoteFields;
+    if (!f.clientName || !f.extensionEstimada || !f.nivelAcademico || !f.carrera) {
+      toast.error('Completa al menos: nombre, páginas, nivel y carrera');
+      return;
+    }
+    const precioBase = f.precioManual ? Number(f.precioManual) : (quotePrice?.precioBase || 0);
+    if (precioBase <= 0) {
+      toast.error('El precio debe ser mayor a 0');
+      return;
+    }
+    setQuoteGenerating(true);
+    try {
+      // 1. Generar PDF via backend
+      const pdfResp = await fetch(`${API_URL}/api/quotes/generate-quote-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientName: f.clientName,
+          tipoTrabajo: f.tipoTrabajo || 'Tesis',
+          tipoServicio: f.tipoServicio || 'modalidad1',
+          extensionEstimada: String(f.extensionEstimada),
+          carrera: f.carrera,
+          tiempoEntrega: f.fechaEntrega || 'Por definir',
+          fechaEntregaRaw: f.fechaEntrega || '',
+          precioBase,
+          descuentoEfectivo: Number(f.descuentoEfectivo) || 0,
+          recargoPorcentaje: 0,
+          metodoPago: f.metodoPago || 'tarjeta-nu',
+          esquemaTipo: f.esquemaTipo || '33-33-34',
+        }),
+      });
+      const pdfData = await pdfResp.json();
+      if (!pdfData.success) throw new Error(pdfData.message || 'Error generando PDF');
+
+      const pdfUrl = pdfData.pdfUrl || pdfData.fallbackUrl;
+
+      // 2. Enviar por WhatsApp
+      const quoteMsg = `¡Hola! 🎓 Ya tenemos lista tu cotización personalizada:\n\n` +
+        `📋 Resumen de tu proyecto:\n` +
+        `• Servicio: ${SERVICIO_LABEL[f.tipoServicio] || f.tipoServicio}\n` +
+        `• Proyecto: ${f.tipoTrabajo}\n` +
+        (f.carrera ? `• Carrera: ${f.carrera}\n` : '') +
+        `• Nivel: ${f.nivelAcademico}\n` +
+        (f.extensionEstimada ? `• Páginas: ${f.extensionEstimada}\n` : '') +
+        `\n💰 Tu cotización: *$${precioBase.toLocaleString('es-MX')} MXN*\n\n` +
+        `¿Te gustaría proceder? Estamos listos para ayudarte. 😊`;
+
+      // Send via WhatsApp API
+      const waResp = await fetch(`https://graph.facebook.com/v22.0/978427788691495/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_WHATSAPP_TOKEN || ''}`,
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: f.clientPhone,
+          type: 'document',
+          document: { link: pdfUrl, caption: quoteMsg, filename: 'Cotizacion-Tesipedia.pdf' },
+        }),
+      });
+
+      if (waResp.ok) {
+        toast.success('Cotización generada y enviada por WhatsApp');
+      } else {
+        toast.success('PDF generado. Error al enviar por WhatsApp — puedes enviarlo manualmente.');
+      }
+
+      setShowQuoteModal(false);
+      fetchLeads(true);
+    } catch (err) {
+      toast.error('Error: ' + err.message);
+    }
+    setQuoteGenerating(false);
   };
 
   // Obtener estados únicos para el filtro
@@ -566,6 +731,16 @@ const AdminWhatsApp = () => {
                       <Badge bg="outline-success" className="wa-pill">${selectedLead.precio}</Badge>
                     )}
                   </div>
+                  {/* Botón Cotizar */}
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={openQuoteModal}
+                    className="wa-quote-btn"
+                    title="Generar cotización desde datos del lead"
+                  >
+                    <FaCalculator className="me-1" /> Cotizar
+                  </Button>
                   {/* Toggle modo humano */}
                   <Button
                     variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'}
@@ -653,6 +828,149 @@ const AdminWhatsApp = () => {
           )}
         </div>
       </div>
+
+      {/* ── Modal de Cotización Rápida ── */}
+      {showQuoteModal && (
+        <div className="wq-overlay" onClick={() => setShowQuoteModal(false)}>
+          <div className="wq-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="wq-header">
+              <h3><FaCalculator className="me-2" />Cotización Rápida</h3>
+              <button className="wq-close" onClick={() => setShowQuoteModal(false)}>&times;</button>
+            </div>
+            <div className="wq-body">
+              <div className="wq-grid">
+                {/* Col izquierda — datos del cliente y proyecto */}
+                <div className="wq-col">
+                  <div className="wq-section-title">Cliente</div>
+                  <div className="wq-field">
+                    <label>Nombre</label>
+                    <input value={quoteFields.clientName || ''} onChange={(e) => handleQuoteFieldChange('clientName', e.target.value)} />
+                  </div>
+                  <div className="wq-field">
+                    <label>Teléfono</label>
+                    <input value={quoteFields.clientPhone || ''} onChange={(e) => handleQuoteFieldChange('clientPhone', e.target.value)} />
+                  </div>
+
+                  <div className="wq-section-title" style={{ marginTop: 12 }}>Proyecto</div>
+                  <div className="wq-field">
+                    <label>Tipo de trabajo</label>
+                    <select value={quoteFields.tipoTrabajo || ''} onChange={(e) => handleQuoteFieldChange('tipoTrabajo', e.target.value)}>
+                      <option value="Tesis">Tesis</option>
+                      <option value="Tesina">Tesina</option>
+                      <option value="Artículo científico">Artículo científico</option>
+                      <option value="Ensayo">Ensayo</option>
+                      <option value="Protocolo">Protocolo</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                  <div className="wq-field">
+                    <label>Servicio</label>
+                    <select value={quoteFields.tipoServicio || ''} onChange={(e) => handleQuoteFieldChange('tipoServicio', e.target.value)}>
+                      <option value="modalidad1">Redacción completa</option>
+                      <option value="correccion">Correcciones</option>
+                      <option value="modalidad2">Asesoría</option>
+                    </select>
+                  </div>
+                  <div className="wq-field">
+                    <label>Nivel académico</label>
+                    <select value={quoteFields.nivelAcademico || ''} onChange={(e) => handleQuoteFieldChange('nivelAcademico', e.target.value)}>
+                      <option value="Licenciatura">Licenciatura</option>
+                      <option value="Maestría">Maestría</option>
+                      <option value="Doctorado">Doctorado</option>
+                    </select>
+                  </div>
+                  <div className="wq-field">
+                    <label>Carrera</label>
+                    <input value={quoteFields.carrera || ''} onChange={(e) => handleQuoteFieldChange('carrera', e.target.value)} placeholder="Ej: Derecho, Psicología..." />
+                  </div>
+                  <div className="wq-field">
+                    <label>Páginas</label>
+                    <input type="number" min="1" value={quoteFields.extensionEstimada || ''} onChange={(e) => handleQuoteFieldChange('extensionEstimada', e.target.value)} />
+                  </div>
+                  <div className="wq-field">
+                    <label>Fecha de entrega</label>
+                    <input value={quoteFields.fechaEntrega || ''} onChange={(e) => handleQuoteFieldChange('fechaEntrega', e.target.value)} placeholder="Ej: 15 de mayo de 2026" />
+                  </div>
+                  {quoteFields.tema && (
+                    <div className="wq-field">
+                      <label>Tema</label>
+                      <input value={quoteFields.tema || ''} onChange={(e) => handleQuoteFieldChange('tema', e.target.value)} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Col derecha — precio y opciones de pago */}
+                <div className="wq-col">
+                  <div className="wq-section-title"><FaDollarSign /> Precio</div>
+
+                  {quotePriceLoading ? (
+                    <div className="wq-price-loading"><Spinner size="sm" /> Calculando...</div>
+                  ) : quotePrice ? (
+                    <div className="wq-price-card">
+                      <div className="wq-price-row"><span>Precio por página</span><span>${quotePrice.precioPorPagina?.toLocaleString('es-MX') || '—'}</span></div>
+                      <div className="wq-price-row"><span>Precio base ({quoteFields.extensionEstimada} págs)</span><span>${quotePrice.precioBase?.toLocaleString('es-MX') || '—'}</span></div>
+                      {quotePrice.cargoUrgencia > 0 && (
+                        <div className="wq-price-row wq-price-warn"><span>Cargo urgencia</span><span>+${quotePrice.cargoUrgencia?.toLocaleString('es-MX')}</span></div>
+                      )}
+                      <div className="wq-price-total"><span>Total sugerido</span><span>${quotePrice.precioTotal?.toLocaleString('es-MX') || '—'}</span></div>
+                    </div>
+                  ) : (
+                    <div className="wq-price-empty">Completa nivel, páginas y carrera para calcular</div>
+                  )}
+
+                  <button className="wq-recalc-btn" onClick={() => fetchPrice()} disabled={quotePriceLoading}>
+                    <FaSync className={quotePriceLoading ? 'fa-spin' : ''} /> Recalcular
+                  </button>
+
+                  <div className="wq-field" style={{ marginTop: 12 }}>
+                    <label>Precio manual (sobrescribe el calculado)</label>
+                    <input type="number" min="0" step="500" value={quoteFields.precioManual || ''}
+                      onChange={(e) => handleQuoteFieldChange('precioManual', e.target.value)}
+                      placeholder={quotePrice ? `$${quotePrice.precioBase?.toLocaleString('es-MX')} (calculado)` : 'Ingresar precio'} />
+                  </div>
+
+                  <div className="wq-field">
+                    <label>Descuento efectivo (%)</label>
+                    <input type="number" min="0" max="30" value={quoteFields.descuentoEfectivo || 0}
+                      onChange={(e) => handleQuoteFieldChange('descuentoEfectivo', e.target.value)} />
+                  </div>
+
+                  <div className="wq-field">
+                    <label>Método de pago</label>
+                    <select value={quoteFields.metodoPago || 'tarjeta-nu'} onChange={(e) => handleQuoteFieldChange('metodoPago', e.target.value)}>
+                      <option value="tarjeta-nu">Tarjeta Nu</option>
+                      <option value="tarjeta-bbva">Tarjeta BBVA</option>
+                      <option value="efectivo">Efectivo</option>
+                    </select>
+                  </div>
+
+                  <div className="wq-field">
+                    <label>Esquema de pago</label>
+                    <select value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => handleQuoteFieldChange('esquemaTipo', e.target.value)}>
+                      <option value="50-50">50% - 50%</option>
+                      <option value="33-33-34">33% - 33% - 34%</option>
+                      <option value="unico">Pago único</option>
+                    </select>
+                  </div>
+
+                  <div className="wq-final-price">
+                    <span>Precio final:</span>
+                    <span className="wq-final-amount">
+                      ${(quoteFields.precioManual ? Number(quoteFields.precioManual) : (quotePrice?.precioBase || 0)).toLocaleString('es-MX')} MXN
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="wq-footer">
+              <button className="wq-btn wq-btn-cancel" onClick={() => setShowQuoteModal(false)}>Cancelar</button>
+              <button className="wq-btn wq-btn-generate" onClick={handleGenerateQuotePDF} disabled={quoteGenerating}>
+                {quoteGenerating ? <><Spinner size="sm" className="me-1" />Generando...</> : <><FaFilePdf className="me-1" />Generar y Enviar PDF</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
