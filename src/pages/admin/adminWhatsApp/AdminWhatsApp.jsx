@@ -91,16 +91,26 @@ const ADMIN_COLORS = {
   _default: { color: '#d1d5db', bg: '#f9fafb', label: 'Sin atender', border: '#d1d5db' },
 };
 
+function normalizeAdminName(raw) {
+  if (!raw) return null;
+  const lower = raw.toLowerCase().trim();
+  // Match first name from known admins
+  if (lower.includes('arturo')) return 'arturo';
+  if (lower.includes('sandy')) return 'sandy';
+  if (lower.includes('hugo')) return 'hugo';
+  return lower.split(' ')[0]; // Fallback: use first name
+}
+
 function getLeadAttendedBy(lead) {
   // Primero checar el campo atendido_por de Supabase (más confiable)
-  if (lead?.atendido_por) return lead.atendido_por.toLowerCase();
+  if (lead?.atendido_por) return normalizeAdminName(lead.atendido_por);
   // Fallback: parsear historial para leads viejos sin el campo
   const hist = parseHistorial(lead?.historial_chat);
   for (let i = hist.length - 1; i >= 0; i--) {
     const c = hist[i]?.content || '';
-    // Formato nuevo: [HUMANO:Arturo] mensaje
-    const match = c.match(/^\[HUMANO:(\w+)\]/);
-    if (match) return match[1].toLowerCase();
+    // Formato nuevo: [HUMANO:Sandy Alvarado] mensaje
+    const match = c.match(/^\[HUMANO:([^\]]+)\]/);
+    if (match) return normalizeAdminName(match[1]);
     // Formato viejo: [HUMANO] mensaje
     if (c.startsWith('[HUMANO]')) return '_attended';
   }
@@ -548,12 +558,18 @@ const AdminWhatsApp = () => {
     }
   };
 
-  // Obtener último mensaje de un lead
+  // Obtener último mensaje de un lead (limpio, sin tags internos)
   const getLastMessage = (lead) => {
     const hist = parseHistorial(lead.historial_chat);
     if (hist.length === 0) return 'Sin mensajes';
     const last = hist[hist.length - 1];
-    const content = last.content || '';
+    let content = last.content || '';
+    // Limpiar tags [HUMANO:Name] y [HUMANO]
+    content = content.replace(/^\[HUMANO:[^\]]*\]\s*/, '').replace(/^\[HUMANO\]\s*/, '');
+    // Limpiar [STATE:{...}] y [CALCULAR_COTIZACION]
+    content = content.replace(/\[STATE:[\s\S]*?\]/g, '').replace(/\[CALCULAR_COTIZACION\]/g, '').trim();
+    // Formatear labels internos
+    content = formatLabel(content);
     return content.length > 50 ? content.slice(0, 50) + '...' : content;
   };
 
@@ -811,7 +827,7 @@ const AdminWhatsApp = () => {
                   <div
                     key={lead.wa_id}
                     className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''}`}
-                    style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid' }}
+                    style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
                     onClick={() => handleSelectLead(lead)}
                   >
                     <div className="wa-conv-avatar">
