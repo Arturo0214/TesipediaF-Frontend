@@ -272,7 +272,7 @@ const AdminWhatsApp = () => {
     if (!f.nivelAcademico || !f.extensionEstimada || !f.carrera) return;
     setQuotePriceLoading(true);
     try {
-      const resp = await fetch(`${API_URL}/api/quotes/calculate-sales-price`, {
+      const resp = await fetch(`${API_URL}/quotes/calculate-sales-price`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -281,6 +281,7 @@ const AdminWhatsApp = () => {
           serviceType: f.tipoServicio || 'modalidad1',
           taskType: f.tipoTrabajo || 'Tesis',
           career: f.carrera,
+          studyArea: f.area || '',
         }),
       });
       const data = await resp.json();
@@ -297,7 +298,7 @@ const AdminWhatsApp = () => {
     const updated = { ...quoteFields, [key]: value };
     setQuoteFields(updated);
     // Re-calcular precio si cambian campos relevantes
-    if (['nivelAcademico', 'extensionEstimada', 'carrera', 'tipoServicio', 'tipoTrabajo'].includes(key)) {
+    if (['nivelAcademico', 'extensionEstimada', 'carrera', 'tipoServicio', 'tipoTrabajo', 'area'].includes(key)) {
       if (updated.nivelAcademico && updated.extensionEstimada && updated.carrera) {
         fetchPrice(updated);
       }
@@ -318,7 +319,7 @@ const AdminWhatsApp = () => {
     setQuoteGenerating(true);
     try {
       // 1. Generar PDF via backend
-      const pdfResp = await fetch(`${API_URL}/api/quotes/generate-quote-pdf`, {
+      const pdfResp = await fetch(`${API_URL}/quotes/generate-quote-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -898,7 +899,7 @@ const AdminWhatsApp = () => {
                           <div className="wq-micro-label">Precio Manual (sobrescribe)</div>
                           <div className="input-group input-group-sm">
                             <span className="input-group-text">$</span>
-                            <Form.Control type="number" min="0" step="500" value={quoteFields.precioManual || ''}
+                            <Form.Control type="number" min="0" step="1" value={quoteFields.precioManual}
                               onChange={(e) => handleQuoteFieldChange('precioManual', e.target.value)}
                               placeholder={quotePrice ? String(quotePrice.precioBase) : '0'} />
                           </div>
