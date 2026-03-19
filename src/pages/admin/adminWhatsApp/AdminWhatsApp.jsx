@@ -46,24 +46,34 @@ const AREAS = ['Área 1: Ciencias Físico-Matemáticas y de las Ingenierías', '
 const TIPOS_TRABAJO = ['Tesis', 'Tesina', 'Artículo Científico', 'Ensayo Académico', 'Protocolo de Investigación', 'Proyecto de Titulación', 'Reporte', 'Otro'];
 const NIVELES = ['Licenciatura', 'Maestría', 'Especialidad', 'Doctorado'];
 
+function calcDateISO(daysFromNow) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toISOString().split('T')[0];
+}
+
 function mapLeadToQuoteFields(lead) {
   const tipoServicioRaw = lead.tipo_servicio || '';
   const tipoServicio = SERVICIO_MAP[tipoServicioRaw] || tipoServicioRaw || 'modalidad1';
   const tipoTrabajo = PROYECTO_MAP[lead.tipo_proyecto] || lead.tipo_proyecto || 'Tesis';
   const nivel = NIVEL_MAP[lead.nivel] || lead.nivel || 'Licenciatura';
+  const hoy = new Date().toISOString().split('T')[0];
+  const fechaEntrega3sem = calcDateISO(21); // 3 semanas por defecto
+  const fechaAvanceMid = calcDateISO(11); // ~mitad para pago avance
   return {
     clientName: lead.nombre || '',
     clientPhone: lead.wa_id || '',
     tipoServicio,
     tipoTrabajo,
+    tituloTrabajo: lead.tema || '',
     nivelAcademico: nivel,
     area: '',
     carrera: lead.carrera || '',
     extensionEstimada: lead.paginas || '',
     fechaEntrega: lead.fecha_entrega || '',
-    fechaEntregaDate: '',
-    fechaPago1: new Date().toISOString().split('T')[0],
-    fechaAvance: '',
+    fechaEntregaDate: fechaEntrega3sem,
+    fechaPago1: hoy,
+    fechaAvance: fechaAvanceMid,
     tema: lead.tema || '',
     precioManual: '',
     descuentoEfectivo: 0,
@@ -338,22 +348,38 @@ const AdminWhatsApp = () => {
     setQuoteGenerating(true);
     try {
       // 1. Generar PDF via backend
+      // Construir fecha entrega legible para el PDF
+      const fechaEntregaLegible = f.fechaEntregaDate
+        ? new Date(f.fechaEntregaDate + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
+        : (f.fechaEntrega || 'Por definir');
+      // Nombre de archivo: Tesipedia-Cotizacion-NombreCliente-DDMM
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const clientShort = (f.clientName || 'Cliente').split(' ')[0];
+      const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
+
       const pdfResp = await fetch(`${API_URL}/quotes/generate-quote-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientName: f.clientName,
+          nombre: f.clientName,
+          tituloTrabajo: f.tituloTrabajo || f.tema || '',
           tipoTrabajo: f.tipoTrabajo || 'Tesis',
           tipoServicio: f.tipoServicio || 'modalidad1',
           extensionEstimada: String(f.extensionEstimada),
           carrera: f.carrera,
-          tiempoEntrega: f.fechaEntrega || 'Por definir',
-          fechaEntregaRaw: f.fechaEntrega || '',
+          tiempoEntrega: fechaEntregaLegible,
+          fechaEntregaRaw: f.fechaEntregaDate || '',
           precioBase,
           descuentoEfectivo: Number(f.descuentoEfectivo) || 0,
           recargoPorcentaje: 0,
           metodoPago: f.metodoPago || 'tarjeta-nu',
           esquemaTipo: f.esquemaTipo || '33-33-34',
+          fechaPago1: f.fechaPago1 || '',
+          fechaAvance: f.fechaAvance || '',
+          pdfFilename,
         }),
       });
       const pdfData = await pdfResp.json();
@@ -370,6 +396,7 @@ const AdminWhatsApp = () => {
         const saveResult = await dispatch(saveGeneratedQuote({
           clientName: f.clientName,
           clientPhone: f.clientPhone,
+          tituloTrabajo: f.tituloTrabajo || f.tema || '',
           tipoTrabajo: f.tipoTrabajo || 'Tesis',
           tipoServicio: f.tipoServicio || 'modalidad1',
           extensionEstimada: String(f.extensionEstimada),
@@ -922,12 +949,10 @@ const AdminWhatsApp = () => {
                           <div className="wq-micro-label">Fecha Entrega</div>
                           <Form.Control size="sm" value={quoteFields.fechaEntrega || ''} onChange={(e) => handleQuoteFieldChange('fechaEntrega', e.target.value)} placeholder="Ej: 15 de mayo" />
                         </Col>
-                        {quoteFields.tema && (
-                          <Col xs={12}>
-                            <div className="wq-micro-label">Tema</div>
-                            <Form.Control size="sm" value={quoteFields.tema || ''} onChange={(e) => handleQuoteFieldChange('tema', e.target.value)} />
-                          </Col>
-                        )}
+                        <Col xs={12}>
+                          <div className="wq-micro-label">Título del Trabajo</div>
+                          <Form.Control size="sm" value={quoteFields.tituloTrabajo || ''} onChange={(e) => handleQuoteFieldChange('tituloTrabajo', e.target.value)} placeholder="Nombre del trabajo" />
+                        </Col>
                       </Row>
                     </div>
                   </Col>
