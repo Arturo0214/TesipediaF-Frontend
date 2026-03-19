@@ -702,23 +702,19 @@ const AdminMessages = () => {
                                             {conversation.senderName?.charAt(0) || 'U'}
                                         </div>
                                         <div className="msg-conv-info">
-                                            <div className="msg-conv-header">
-                                                <div className="msg-conv-name">
-                                                    <span>{conversation.senderName || 'Usuario'}</span>
-                                                    {conversation.isPublic && (
-                                                        <span className="msg-type-badge public">Público</span>
-                                                    )}
-                                                    {conversation.status === 'resolved' && (
-                                                        <span className="msg-type-badge resolved">Resuelto</span>
-                                                    )}
-                                                </div>
-                                                <span className="msg-conv-time">
-                                                    {formatMessageDate(conversation.lastMessageDate)}
-                                                </span>
-                                            </div>
-                                            <div className="msg-conv-preview">
+                                            <div className="msg-conv-row">
+                                                <span className="msg-conv-name-text">{conversation.senderName || 'Usuario'}</span>
+                                                {conversation.isPublic && (
+                                                    <span className="msg-type-badge public">Público</span>
+                                                )}
+                                                {conversation.status === 'resolved' && (
+                                                    <span className="msg-type-badge resolved">Resuelto</span>
+                                                )}
                                                 <span className="msg-conv-last-msg">
                                                     {conversation.lastMessage || 'Sin mensajes'}
+                                                </span>
+                                                <span className="msg-conv-time">
+                                                    {formatMessageDate(conversation.lastMessageDate)}
                                                 </span>
                                                 {hasUnread && (
                                                     <span className="msg-unread-badge">

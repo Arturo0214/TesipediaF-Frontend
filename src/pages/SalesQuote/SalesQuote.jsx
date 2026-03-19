@@ -413,11 +413,14 @@ const SalesQuote = () => {
             if (pdfUrl) console.log('✅ URL pública del PDF (disponible en backend):', pdfUrl);
 
             // ✅ 3. Mostrar éxito — la URL pública está en la respuesta del backend
+            const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             Swal.fire({
                 title: '¡PDF Generado!',
-                text: 'La cotización ha sido descargada y guardada exitosamente.',
+                text: isMobile
+                    ? 'El PDF se abrió en una nueva pestaña. Si no lo ves, revisa tu navegador.'
+                    : 'La cotización ha sido descargada y guardada exitosamente.',
                 icon: 'success',
-                timer: 3000,
+                timer: isMobile ? 5000 : 3000,
                 timerProgressBar: true
             });
         } catch (error) {

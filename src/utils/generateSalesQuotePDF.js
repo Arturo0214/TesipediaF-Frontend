@@ -1009,8 +1009,32 @@ export const generateSalesQuotePDF = async (quoteData) => {
     const fechaHoy = new Date().toISOString().split('T')[0];
     const fileName = `Cotizacion_Tesipedia_${clientNameSafe}_${fechaHoy}.pdf`;
 
-    // 1. Descargar localmente (comportamiento original)
-    doc.save(fileName);
+    // 1. Descargar localmente — con fallback para móvil
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // En móvil, doc.save() falla frecuentemente (el <a download> no se ejecuta).
+        // Creamos un blob URL y lo abrimos en una pestaña nueva para que el navegador
+        // muestre el PDF y el usuario pueda descargarlo desde ahí.
+        try {
+            const pdfBlob = doc.output('blob');
+            const blobUrl = URL.createObjectURL(pdfBlob);
+            const newTab = window.open(blobUrl, '_blank');
+
+            // Si el navegador bloqueó la pestaña, forzamos navegación directa
+            if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+                window.location.href = blobUrl;
+            }
+
+            // Limpiar blob URL después de un rato
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        } catch (mobileErr) {
+            console.warn('⚠️ Fallback móvil falló, intentando doc.save():', mobileErr);
+            doc.save(fileName);
+        }
+    } else {
+        doc.save(fileName);
+    }
 
     // 2. Subir a Cloudinary via backend para obtener URL pública
     let pdfUrl = null;
