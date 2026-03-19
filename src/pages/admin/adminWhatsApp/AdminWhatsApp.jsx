@@ -82,31 +82,35 @@ function mapLeadToQuoteFields(lead) {
   };
 }
 
-/* ── Detectar quién atendió (mensajes [HUMANO]) ── */
+/* ── Colores por admin ── */
 const ADMIN_COLORS = {
-  arturo: { color: '#f59e0b', bg: '#fef3c7', label: 'Arturo' },
-  sandy: { color: '#ec4899', bg: '#fce7f3', label: 'Sandy' },
-  hugo: { color: '#3b82f6', bg: '#dbeafe', label: 'Hugo' },
-  _default: { color: '#6b7280', bg: '#f3f4f6', label: 'Sin atender' },
+  arturo: { color: '#f59e0b', bg: '#fef3c7', label: 'Arturo', border: '#f59e0b' },
+  sandy: { color: '#ec4899', bg: '#fce7f3', label: 'Sandy', border: '#ec4899' },
+  hugo: { color: '#3b82f6', bg: '#dbeafe', label: 'Hugo', border: '#3b82f6' },
+  _attended: { color: '#10b981', bg: '#d1fae5', label: 'Atendido', border: '#10b981' },
+  _default: { color: '#d1d5db', bg: '#f9fafb', label: 'Sin atender', border: '#d1d5db' },
 };
 
 function getLeadAttendedBy(lead) {
+  // Primero checar el campo atendido_por de Supabase (más confiable)
+  if (lead?.atendido_por) return lead.atendido_por.toLowerCase();
+  // Fallback: parsear historial para leads viejos sin el campo
   const hist = parseHistorial(lead?.historial_chat);
-  // Buscar último mensaje [HUMANO] para saber quién atendió
   for (let i = hist.length - 1; i >= 0; i--) {
     const c = hist[i]?.content || '';
-    if (c.startsWith('[HUMANO]')) return 'atendido';
+    // Formato nuevo: [HUMANO:Arturo] mensaje
+    const match = c.match(/^\[HUMANO:(\w+)\]/);
+    if (match) return match[1].toLowerCase();
+    // Formato viejo: [HUMANO] mensaje
+    if (c.startsWith('[HUMANO]')) return '_attended';
   }
   return null;
 }
 
-// Detectar admin logueado del localStorage/cookie — se usará para marcar leads
 function getAttendedColor(lead) {
-  const attended = getLeadAttendedBy(lead);
-  if (!attended) return ADMIN_COLORS._default;
-  // Si el lead fue atendido (tiene mensajes [HUMANO]) pero no sabemos por quién
-  // intentar detectar por modo_humano actual o simplemente marcar como atendido
-  return { color: '#10b981', bg: '#d1fae5', label: 'Atendido' };
+  const who = getLeadAttendedBy(lead);
+  if (!who) return ADMIN_COLORS._default;
+  return ADMIN_COLORS[who] || ADMIN_COLORS._attended;
 }
 
 const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
@@ -470,11 +474,15 @@ const AdminWhatsApp = () => {
       const estado = lead.estado_sofia || 'sin_estado';
       if (estado !== estadoFilter) return false;
     }
-    // Filtro por atendido
+    // Filtro por atendido / admin específico
     if (attendedFilter !== 'all') {
-      const attended = getLeadAttendedBy(lead);
-      if (attendedFilter === 'atendido' && !attended) return false;
-      if (attendedFilter === 'sin_atender' && attended) return false;
+      const who = getLeadAttendedBy(lead);
+      if (attendedFilter === 'atendido' && !who) return false;
+      if (attendedFilter === 'sin_atender' && who) return false;
+      if (!['all', 'atendido', 'sin_atender'].includes(attendedFilter)) {
+        // Filtro por admin específico (arturo, sandy, hugo)
+        if (who !== attendedFilter) return false;
+      }
     }
     // Filtro por búsqueda
     if (!searchQuery.trim()) return true;
@@ -561,9 +569,20 @@ const AdminWhatsApp = () => {
 
     return historial.map((msg, idx) => {
       const isUser = msg.role === 'user';
-      const isHuman = !isUser && msg.content?.startsWith('[HUMANO]');
+      const isHuman = !isUser && (msg.content?.startsWith('[HUMANO]') || msg.content?.startsWith('[HUMANO:'));
       const isBot = !isUser && !isHuman;
-      let content = isHuman ? msg.content.replace('[HUMANO] ', '') : msg.content;
+      // Extraer nombre del admin y limpiar el prefijo
+      let humanName = 'Humano';
+      let content = msg.content;
+      if (isHuman) {
+        const nameMatch = content.match(/^\[HUMANO:(\w+)\]\s*/);
+        if (nameMatch) {
+          humanName = nameMatch[1];
+          content = content.replace(nameMatch[0], '');
+        } else {
+          content = content.replace('[HUMANO] ', '');
+        }
+      }
       let stateData = null;
 
       // Extraer y limpiar [STATE:{...}] si es un mensaje del bot
@@ -597,7 +616,7 @@ const AdminWhatsApp = () => {
           </div>
           <div className="wa-message-bubble">
             <div className="wa-message-sender">
-              {isUser ? (selectedLead.nombre || 'Cliente') : isHuman ? 'Tú (Humano)' : 'Sofía (Bot)'}
+              {isUser ? (selectedLead.nombre || 'Cliente') : isHuman ? `${humanName} (Humano)` : 'Sofía (Bot)'}
             </div>
             
             {/* Si hay archivo/media */}
@@ -730,6 +749,12 @@ const AdminWhatsApp = () => {
               <option value="all">Atención: Todos</option>
               <option value="atendido">Atendidos ({leads.filter(l => getLeadAttendedBy(l)).length})</option>
               <option value="sin_atender">Sin atender ({leads.filter(l => !getLeadAttendedBy(l)).length})</option>
+              {['arturo', 'sandy', 'hugo'].map(admin => {
+                const count = leads.filter(l => getLeadAttendedBy(l) === admin).length;
+                return count > 0 ? (
+                  <option key={admin} value={admin}>{ADMIN_COLORS[admin].label} ({count})</option>
+                ) : null;
+              })}
             </select>
           </div>
 
@@ -778,6 +803,11 @@ const AdminWhatsApp = () => {
                         <Badge bg={getEstadoBadge(lead.estado_sofia)} className="wa-estado-badge">
                           {lead.estado_sofia || 'nuevo'}
                         </Badge>
+                        {attendedInfo.label !== 'Sin atender' && (
+                          <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
+                            {attendedInfo.label}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
