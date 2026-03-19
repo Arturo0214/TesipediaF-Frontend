@@ -63,6 +63,22 @@ export async function updateLeadEstado(waId, estado_sofia) {
 }
 
 /**
+ * Verificar estado de ventana de 24h para un lead
+ */
+export async function getWindowStatus(waId) {
+  const { data } = await axiosWithAuth.get(`${BASE}/leads/${waId}/window-status`);
+  return data;
+}
+
+/**
+ * Enviar solo la plantilla de seguimiento para revivir una conversación
+ */
+export async function sendTemplateMessage(waId) {
+  const { data } = await axiosWithAuth.post(`${BASE}/send-template`, { wa_id: waId });
+  return data;
+}
+
+/**
  * Ya no se necesita appendMessageToHistory — el Backend lo hace en /send
  */
 

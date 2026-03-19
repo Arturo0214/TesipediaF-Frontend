@@ -28,6 +28,8 @@ import {
   updateLeadEstado,
   sendWhatsAppMessage,
   parseHistorial,
+  getWindowStatus,
+  sendTemplateMessage,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -168,6 +170,8 @@ const AdminWhatsApp = () => {
   const [newChatNumber, setNewChatNumber] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('all');
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
+  const [windowExpired, setWindowExpired] = useState(false);
+  const [sendingTemplate, setSendingTemplate] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [quoteFields, setQuoteFields] = useState({});
   const [quotePrice, setQuotePrice] = useState(null);
@@ -247,10 +251,14 @@ const AdminWhatsApp = () => {
   // Seleccionar una conversación
   const handleSelectLead = async (lead) => {
     setSelectedLead(lead);
+    setWindowExpired(false);
     // Refrescar datos del lead seleccionado
     try {
       const fresh = await getLeadByWaId(lead.wa_id);
       if (fresh) setSelectedLead(fresh);
+      // Verificar ventana de 24h
+      const windowInfo = await getWindowStatus(lead.wa_id);
+      setWindowExpired(windowInfo.expired);
     } catch (err) {
       console.error('Error refrescando lead:', err);
     }
@@ -280,8 +288,13 @@ const AdminWhatsApp = () => {
     setSending(true);
     try {
       // Enviar por WhatsApp + guardar en historial (todo vía Backend)
-      await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
-      toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
+      const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
+      if (sendResult?.templateSent) {
+        toast.success('📋 Plantilla de seguimiento + mensaje enviado (ventana 24h expirada)');
+        setWindowExpired(false); // Ya se reactivó la ventana
+      } else {
+        toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
+      }
       setMessage('');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -295,6 +308,25 @@ const AdminWhatsApp = () => {
       toast.error('Error al enviar: ' + err.message);
     } finally {
       setSending(false);
+    }
+  };
+
+  // Enviar solo plantilla para revivir conversación
+  const handleSendTemplate = async () => {
+    if (!selectedLead || sendingTemplate) return;
+    setSendingTemplate(true);
+    try {
+      await sendTemplateMessage(selectedLead.wa_id);
+      toast.success('Plantilla de seguimiento enviada — esperando respuesta del cliente');
+      setWindowExpired(false);
+      // Refrescar
+      const fresh = await getLeadByWaId(selectedLead.wa_id);
+      if (fresh) setSelectedLead(fresh);
+      fetchLeads(true);
+    } catch (err) {
+      toast.error('Error al enviar plantilla: ' + err.message);
+    } finally {
+      setSendingTemplate(false);
     }
   };
 
@@ -596,9 +628,11 @@ const AdminWhatsApp = () => {
     const map = {
       'bienvenida': 'info',
       'recopilando_datos': 'primary',
-      'esperando_aprobacion': 'warning',
-      'cotizacion_confirmada': 'success',
-      'cotizacion_enviada': 'success',
+      'cotizacion_calculada': 'warning',
+      'cotizacion_enviada': 'info',
+      'cliente_acepto': 'success',
+      'pagado': 'success',
+      'modo_humano': 'dark',
     };
     return map[estado] || 'secondary';
   };
@@ -619,11 +653,16 @@ const AdminWhatsApp = () => {
 
     return historial.map((msg, idx) => {
       const isUser = msg.role === 'user';
-      const isHuman = !isUser && (msg.content?.startsWith('[HUMANO]') || msg.content?.startsWith('[HUMANO:'));
-      const isBot = !isUser && !isHuman;
+      const isTemplate = !isUser && (msg.isTemplate || msg.content?.startsWith('[TEMPLATE:'));
+      const isHuman = !isUser && !isTemplate && (msg.content?.startsWith('[HUMANO]') || msg.content?.startsWith('[HUMANO:'));
+      const isBot = !isUser && !isHuman && !isTemplate;
       // Extraer nombre del admin y limpiar el prefijo
       let humanName = '';
       let content = msg.content;
+      // Limpiar prefijo de plantilla
+      if (isTemplate) {
+        content = content.replace(/^\[TEMPLATE:[^\]]*\]\s*/, '');
+      }
       if (isHuman) {
         const nameMatch = content.match(/^\[HUMANO:([^\]]+)\]\s*/);
         if (nameMatch) {
@@ -664,14 +703,14 @@ const AdminWhatsApp = () => {
       return (
         <div
           key={idx}
-          className={`wa-message ${isUser ? 'wa-message-user' : 'wa-message-bot'} ${isHuman ? 'wa-message-human' : ''}`}
+          className={`wa-message ${isUser ? 'wa-message-user' : 'wa-message-bot'} ${isHuman ? 'wa-message-human' : ''} ${isTemplate ? 'wa-message-template' : ''}`}
         >
           <div className="wa-message-avatar">
-            {isUser ? <FaUser /> : isHuman ? <FaUserTie /> : <FaRobot />}
+            {isUser ? <FaUser /> : isTemplate ? <FaWhatsapp /> : isHuman ? <FaUserTie /> : <FaRobot />}
           </div>
           <div className="wa-message-bubble">
             <div className="wa-message-sender">
-              {isUser ? (selectedLead.nombre || 'Cliente') : isHuman ? (humanName ? `${humanName} (Humano)` : 'Humano') : 'Sofía (Bot)'}
+              {isUser ? (selectedLead.nombre || 'Cliente') : isTemplate ? 'Plantilla WhatsApp' : isHuman ? (humanName ? `${humanName} (Humano)` : 'Humano') : 'Sofía (Bot)'}
             </div>
             
             {/* Si hay archivo/media */}
@@ -913,9 +952,9 @@ const AdminWhatsApp = () => {
                     }}>
                     <option value="bienvenida">Bienvenida</option>
                     <option value="recopilando_datos">Recopilando datos</option>
-                    <option value="esperando_aprobacion">Esperando aprobación</option>
+                    <option value="cotizacion_calculada">Cotización calculada</option>
                     <option value="cotizacion_enviada">Cotización enviada</option>
-                    <option value="cotizacion_confirmada">Cotización confirmada</option>
+                    <option value="cliente_acepto">Cliente aceptó</option>
                     <option value="pagado">Pagado</option>
                     <option value="modo_humano">Modo humano</option>
                   </select>
@@ -977,6 +1016,25 @@ const AdminWhatsApp = () => {
                 onChange={handleFileChange}
                 disabled={sending}
               />
+
+              {/* Aviso de ventana 24h expirada + botón para revivir */}
+              {windowExpired && (
+                <div className="wa-window-expired-banner">
+                  <div className="wa-window-expired-text">
+                    <FaClock style={{ marginRight: 6 }} />
+                    Ventana de 24h expirada — envía la plantilla para retomar la conversación
+                  </div>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    className="wa-revive-btn"
+                    onClick={handleSendTemplate}
+                    disabled={sendingTemplate}
+                  >
+                    {sendingTemplate ? <Spinner size="sm" /> : <><FaWhatsapp style={{ marginRight: 4 }} /> Revivir conversación</>}
+                  </Button>
+                </div>
+              )}
 
               {/* Input de mensaje */}
               <form className="wa-message-input-container" onSubmit={handleSend}>
