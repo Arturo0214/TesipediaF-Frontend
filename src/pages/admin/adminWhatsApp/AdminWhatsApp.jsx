@@ -1011,14 +1011,26 @@ const AdminWhatsApp = () => {
                 >
                   <FaPaperclip />
                 </Button>
-                <input
+                <textarea
                   ref={inputRef}
-                  type="text"
                   className="wa-message-input"
                   placeholder={selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    // Auto-resize: crecer hacia arriba
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+                  }}
+                  onKeyDown={(e) => {
+                    // Enter envía, Shift+Enter nueva línea
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (message.trim() || selectedFile) handleSend(e);
+                    }
+                  }}
                   disabled={sending}
+                  rows={1}
                 />
                 <Button
                   type="submit"
