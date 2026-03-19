@@ -263,7 +263,9 @@ const SalesQuote = () => {
 
     useEffect(() => {
         if (isPriceEditable || manualPriceLocked.current) return; // No auto-calcular si el precio está en modo edición manual o fue confirmado manualmente
-        if (!formData.nivelAcademico || !formData.area || !formData.extensionEstimada || parseFloat(formData.extensionEstimada) <= 0) return;
+        if (!formData.nivelAcademico || !formData.extensionEstimada || parseFloat(formData.extensionEstimada) <= 0) return;
+        // Necesita al menos área O carrera (el backend auto-detecta área desde carrera)
+        if (!formData.area && !formData.carrera) return;
 
         // Incrementar ID para invalidar llamadas anteriores
         priceRequestId.current += 1;
@@ -274,7 +276,8 @@ const SalesQuote = () => {
                 const tipoTrabajoFinal = formData.tipoTrabajo === 'Otro' ? formData.customTipoTrabajo : formData.tipoTrabajo;
                 const result = await dispatch(calculateSalesQuotePrice({
                     educationLevel: formData.nivelAcademico,
-                    studyArea: formData.area,
+                    studyArea: formData.area || '',
+                    career: formData.carrera || '',
                     pages: formData.extensionEstimada,
                     serviceType: formData.tipoServicio,
                     taskType: tipoTrabajoFinal
@@ -289,7 +292,7 @@ const SalesQuote = () => {
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [formData.nivelAcademico, formData.area, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo, isPriceEditable]);
+    }, [formData.nivelAcademico, formData.area, formData.carrera, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo, isPriceEditable]);
 
     const calculatePrices = () => {
         const precioBase = parseFloat(formData.precioRegular) || 0;
