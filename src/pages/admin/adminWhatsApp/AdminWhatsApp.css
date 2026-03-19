@@ -796,44 +796,61 @@
     display: flex;
   }
 
-  /* Chat header mobile */
-  .wa-chat-header {
-    padding: 6px 10px;
-    flex-wrap: nowrap;
+  /* Chat rows mobile */
+  .wa-chat-row1 {
+    height: 46px;
+    padding: 0 8px;
     gap: 6px;
   }
 
+  .wa-chat-row2 {
+    height: 32px;
+    padding: 0 8px;
+  }
+
   .wa-chat-header-info {
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
     flex: 1;
   }
 
   .wa-chat-header-name {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .wa-chat-header-phone {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 
   .wa-chat-header-actions {
-    flex-direction: row;
-    align-items: center;
-    flex-shrink: 0;
+    gap: 4px;
   }
 
-  .wa-lead-info-pills {
-    display: none;
+  .wa-quote-btn {
+    font-size: 0.7rem;
+    padding: 5px 10px !important;
+  }
+
+  .wa-estado-select {
+    font-size: 0.7rem;
+    padding: 5px 6px;
+    max-width: 120px;
   }
 
   .wa-human-toggle {
-    font-size: 0.72rem;
-    padding: 4px 8px !important;
-    white-space: nowrap;
+    font-size: 0.7rem !important;
+    padding: 5px 8px !important;
+  }
+
+  .wa-lead-info-pills .badge {
+    font-size: 0.6rem;
+  }
+
+  .wa-lead-info-pills {
+    gap: 3px;
   }
 
   /* Mensajes */
