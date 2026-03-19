@@ -85,7 +85,7 @@ function mapLeadToQuoteFields(lead) {
 /* ── Colores por admin ── */
 const ADMIN_COLORS = {
   arturo: { color: '#f59e0b', bg: '#fef3c7', label: 'Arturo', border: '#f59e0b' },
-  sandy: { color: '#ec4899', bg: '#fce7f3', label: 'Sandy', border: '#ec4899' },
+  sandy: { color: '#9b8afb', bg: '#ede9fe', label: 'Sandy', border: '#9b8afb' },
   hugo: { color: '#3b82f6', bg: '#dbeafe', label: 'Hugo', border: '#3b82f6' },
   _attended: { color: '#10b981', bg: '#d1fae5', label: 'Atendido', border: '#10b981' },
   _default: { color: '#d1d5db', bg: '#f9fafb', label: 'Sin atender', border: '#d1d5db' },
@@ -799,11 +799,19 @@ const AdminWhatsApp = () => {
               <option value="all">Atención: Todos</option>
               <option value="atendido">Atendidos ({leads.filter(l => getLeadAttendedBy(l)).length})</option>
               <option value="sin_atender">Sin atender ({leads.filter(l => !getLeadAttendedBy(l)).length})</option>
+            </select>
+            <select
+              className="wa-filter-select"
+              value={attendedFilter}
+              onChange={(e) => setAttendedFilter(e.target.value)}
+              style={attendedFilter && ADMIN_COLORS[attendedFilter] ? { borderColor: ADMIN_COLORS[attendedFilter].color, color: ADMIN_COLORS[attendedFilter].color, fontWeight: 600 } : {}}
+            >
+              <option value="all">Leads: Todos</option>
               {['arturo', 'sandy', 'hugo'].map(admin => {
                 const count = leads.filter(l => getLeadAttendedBy(l) === admin).length;
-                return count > 0 ? (
+                return (
                   <option key={admin} value={admin}>{ADMIN_COLORS[admin].label} ({count})</option>
-                ) : null;
+                );
               })}
             </select>
           </div>
