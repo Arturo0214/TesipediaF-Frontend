@@ -366,9 +366,9 @@ const AdminWhatsApp = () => {
       try {
         const saveResp = await fetch(`${API_URL}/quotes/generated`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
           },
           body: JSON.stringify({
             clientName: f.clientName,
