@@ -113,6 +113,33 @@ function getAttendedColor(lead) {
   return ADMIN_COLORS[who] || ADMIN_COLORS._attended;
 }
 
+/* ── Formatear labels internos a legibles ── */
+const LABEL_MAP = {
+  servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría',
+  proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro proyecto',
+  nivel_1: 'Licenciatura', nivel_2: 'Maestría', nivel_3: 'Doctorado',
+  avance_1: 'Sí tiene avance', avance_2: 'Desde cero',
+  trabajo_1: 'Corregir + redactar faltante', trabajo_2: 'Solo redactar faltante', trabajo_3: 'Redactar todo + corregir',
+  modalidad1: 'Redacción completa', modalidad2: 'Asesoría', correccion: 'Correcciones',
+};
+const STATE_KEY_LABELS = {
+  etapa: 'Etapa', nombre: 'Nombre', carrera: 'Carrera', nivel: 'Nivel',
+  tipoServicio: 'Servicio', tipoProyecto: 'Proyecto', paginas: 'Páginas',
+  paginasAvance: 'Págs. avance', tipoTrabajo: 'Tipo trabajo',
+  fechaEntrega: 'Entrega', tieneTema: 'Tiene tema', tema: 'Tema',
+  tieneAvance: 'Tiene avance', precio: 'Precio', botones: 'Botones',
+};
+
+function formatLabel(text) {
+  if (!text) return text;
+  // Reemplazar IDs internos completos (cuando el msg ES el label)
+  if (LABEL_MAP[text]) return LABEL_MAP[text];
+  // Reemplazar IDs dentro del texto
+  return text.replace(/\b(servicio_[123]|proyecto_[123]|nivel_[123]|avance_[12]|trabajo_[123]|modalidad[12]|correccion)\b/g,
+    (match) => LABEL_MAP[match] || match
+  );
+}
+
 const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
 const AdminWhatsApp = () => {
@@ -634,18 +661,20 @@ const AdminWhatsApp = () => {
               </div>
             )}
             
-            {content && <div className="wa-message-text">{content}</div>}
+            {content && <div className="wa-message-text">{formatLabel(content)}</div>}
 
             {stateData && (
               <div className="wa-bot-state">
                 <div className="wa-bot-state-title">
-                  <FaTag className="me-1" /> Estado de la Operación
+                  <FaTag className="me-1" /> Datos recopilados
                 </div>
                 <div className="wa-bot-state-grid">
-                  {Object.entries(stateData).filter(([_, v]) => v).map(([k, v]) => (
+                  {Object.entries(stateData)
+                    .filter(([k, v]) => v && k !== 'botones' && k !== 'etapa')
+                    .map(([k, v]) => (
                     <div className="wa-state-item" key={k}>
-                      <span className="wa-state-key">{k}:</span>
-                      <span className="wa-state-value">{v}</span>
+                      <span className="wa-state-key">{STATE_KEY_LABELS[k] || k}:</span>
+                      <span className="wa-state-value">{formatLabel(String(v))}</span>
                     </div>
                   ))}
                 </div>
