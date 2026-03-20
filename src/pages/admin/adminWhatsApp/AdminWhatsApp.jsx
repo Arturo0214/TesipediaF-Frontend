@@ -20,6 +20,12 @@ import {
   FaCalculator,
   FaFilePdf,
   FaDollarSign,
+  FaCheck,
+  FaCheckDouble,
+  FaExclamationTriangle,
+  FaTimesCircle,
+  FaEnvelope,
+  FaEnvelopeOpen,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -176,6 +182,7 @@ const AdminWhatsApp = () => {
   const [quotePrice, setQuotePrice] = useState(null);
   const [quotePriceLoading, setQuotePriceLoading] = useState(false);
   const [quoteGenerating, setQuoteGenerating] = useState(false);
+  const [quotePdfUrl, setQuotePdfUrl] = useState(null);
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
@@ -308,9 +315,13 @@ const AdminWhatsApp = () => {
     try {
       // Enviar por WhatsApp + guardar en historial (todo vía Backend)
       const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
-      if (sendResult?.templateSent) {
+      if (sendResult?.delivery_status === 'failed') {
+        toast.error('⚠️ El mensaje NO se pudo enviar por WhatsApp');
+      } else if (sendResult?.templateSent) {
         toast.success('📋 Plantilla de seguimiento + mensaje enviado (ventana 24h expirada)');
-        setWindowExpired(false); // Ya se reactivó la ventana
+        setWindowExpired(false);
+      } else if (sendResult?.delivery_status === 'sent') {
+        toast.success(selectedFile ? '✓ Archivo enviado por WhatsApp' : '✓ Mensaje enviado por WhatsApp');
       } else {
         toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
       }
@@ -397,6 +408,7 @@ const AdminWhatsApp = () => {
     const fields = mapLeadToQuoteFields(selectedLead);
     setQuoteFields(fields);
     setQuotePrice(null);
+    setQuotePdfUrl(null);
     setShowQuoteModal(true);
     // Auto-calcular precio si hay datos suficientes
     if (fields.nivelAcademico && fields.extensionEstimada && fields.carrera) {
@@ -545,13 +557,22 @@ const AdminWhatsApp = () => {
         await updateLeadEstado(f.clientPhone, 'cotizacion_enviada');
       } catch (e) { console.warn('No se pudo actualizar estado:', e); }
 
-      // 4. Abrir el PDF en nueva pestaña para que el admin lo descargue/envíe manualmente
+      // 4. Abrir el PDF — en mobile usamos un link en vez de window.open (que se bloquea)
       if (pdfUrl) {
-        window.open(pdfUrl, '_blank');
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          // En mobile, window.open dentro de async se bloquea; usamos enlace directo
+          setQuotePdfUrl(pdfUrl);
+          toast.success('PDF generado — toca el botón para verlo');
+        } else {
+          window.open(pdfUrl, '_blank');
+          toast.success('PDF generado y cotización guardada');
+          setShowQuoteModal(false);
+        }
+      } else {
+        toast.success('Cotización guardada (sin PDF)');
+        setShowQuoteModal(false);
       }
-
-      toast.success('PDF generado y cotización guardada');
-      setShowQuoteModal(false);
       fetchLeads(true);
     } catch (err) {
       toast.error('Error: ' + err.message);
@@ -642,18 +663,83 @@ const AdminWhatsApp = () => {
     return count;
   };
 
-  // Color de estado
+  // Color de estado — mejorado con diferenciación de envío
   const getEstadoBadge = (estado) => {
     const map = {
       'bienvenida': 'info',
       'recopilando_datos': 'primary',
+      'cotizando': 'primary',
+      'cotizacion_iniciada': 'warning',
       'cotizacion_calculada': 'warning',
-      'cotizacion_enviada': 'info',
+      'cotizacion_lista': 'warning',
+      'cotizacion_enviada': 'success',
+      'cotizacion_confirmada': 'success',
+      'esperando_aprobacion': 'warning',
       'cliente_acepto': 'success',
       'pagado': 'success',
       'modo_humano': 'dark',
     };
     return map[estado] || 'secondary';
+  };
+
+  // Ícono para cada estado — indica visualmente si se envió algo o no
+  const getEstadoIcon = (estado) => {
+    switch (estado) {
+      case 'cotizacion_enviada': return <FaCheck className="me-1" />;
+      case 'cotizacion_confirmada': return <FaCheckDouble className="me-1" />;
+      case 'cliente_acepto': return <FaCheckDouble className="me-1" />;
+      case 'pagado': return <FaDollarSign className="me-1" />;
+      case 'cotizacion_lista': return <FaExclamationTriangle className="me-1" />;
+      case 'esperando_aprobacion': return <FaClock className="me-1" />;
+      case 'cotizacion_iniciada': return <FaClock className="me-1" />;
+      case 'cotizacion_calculada': return <FaClock className="me-1" />;
+      default: return null;
+    }
+  };
+
+  // Validar si el estado del lead tiene coherencia con lo enviado
+  const getEstadoValidation = (lead) => {
+    const estado = lead.estado_sofia;
+    const hist = parseHistorial(lead.historial_chat);
+
+    // Verificar si hay archivos enviados en el historial (cotizaciones)
+    const hasFileSent = hist.some(m => m.role === 'assistant' && m.mediaUrl);
+    // Verificar si hay mensajes humanos
+    const hasHumanMsg = hist.some(m => m.role === 'assistant' && m.content?.includes('[HUMANO'));
+    // Verificar mensajes con delivery fallido
+    const hasFailedDelivery = hist.some(m => m.delivery_status === 'failed');
+    // Último mensaje saliente
+    const lastOutgoing = [...hist].reverse().find(m => m.role === 'assistant');
+    const lastOutgoingFailed = lastOutgoing?.delivery_status === 'failed';
+
+    const warnings = [];
+
+    // Estado dice "enviada" pero no hay archivo en historial
+    if (estado === 'cotizacion_enviada' && !hasFileSent && !hasHumanMsg) {
+      warnings.push({ type: 'warning', text: 'Estado "enviada" pero no hay mensajes enviados en el chat' });
+    }
+
+    // Estado dice "lista" — recordar enviar
+    if (estado === 'cotizacion_lista') {
+      warnings.push({ type: 'action', text: 'Cotización lista — pendiente de enviar al cliente' });
+    }
+
+    // Estado esperando aprobación — recordar aprobar
+    if (estado === 'esperando_aprobacion') {
+      warnings.push({ type: 'action', text: 'Esperando aprobación del owner para enviar cotización' });
+    }
+
+    // Hay mensajes con delivery fallido
+    if (hasFailedDelivery) {
+      warnings.push({ type: 'error', text: 'Hay mensajes que no se pudieron entregar por WhatsApp' });
+    }
+
+    // El último mensaje saliente falló
+    if (lastOutgoingFailed) {
+      warnings.push({ type: 'error', text: 'El último mensaje NO se entregó al cliente' });
+    }
+
+    return warnings;
   };
 
   // Renderizar mensajes del chat
@@ -769,6 +855,18 @@ const AdminWhatsApp = () => {
 
             <div className="wa-message-time">
                {msgTimestamp ? format(parseUTCDate(msgTimestamp), "HH:mm") : ''}
+               {/* Delivery status para mensajes salientes */}
+               {!isUser && (
+                 msg.delivery_status === 'sent' ? (
+                   <span className="wa-delivery-sent" title="Enviado por WhatsApp"><FaCheck /></span>
+                 ) : msg.delivery_status === 'failed' ? (
+                   <span className="wa-delivery-failed" title="No se pudo enviar"><FaTimesCircle /></span>
+                 ) : msg.delivery_status === 'template_only' ? (
+                   <span className="wa-delivery-template" title="Solo se envió plantilla"><FaExclamationTriangle /></span>
+                 ) : msg.wa_message_id ? (
+                   <span className="wa-delivery-sent" title="Enviado"><FaCheck /></span>
+                 ) : null
+               )}
             </div>
           </div>
         </div>
@@ -916,11 +1014,17 @@ const AdminWhatsApp = () => {
                       </div>
                       <div className="wa-conv-meta">
                         <Badge bg={getEstadoBadge(lead.estado_sofia)} className="wa-estado-badge">
-                          {lead.estado_sofia || 'nuevo'}
+                          {getEstadoIcon(lead.estado_sofia)}{lead.estado_sofia || 'nuevo'}
                         </Badge>
                         {attendedInfo.label !== 'Sin atender' && (
                           <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
                             {attendedInfo.label}
+                          </span>
+                        )}
+                        {/* Indicador de cotización pendiente de envío */}
+                        {lead.estado_sofia === 'cotizacion_lista' && (
+                          <span className="wa-pending-send-tag">
+                            <FaExclamationTriangle className="me-1" />Sin enviar
                           </span>
                         )}
                       </div>
@@ -970,12 +1074,14 @@ const AdminWhatsApp = () => {
                       } catch (err) { toast.error('Error al cambiar estado'); }
                     }}>
                     <option value="bienvenida">Bienvenida</option>
-                    <option value="recopilando_datos">Recopilando datos</option>
-                    <option value="cotizacion_calculada">Cotización calculada</option>
-                    <option value="cotizacion_enviada">Cotización enviada</option>
-                    <option value="cliente_acepto">Cliente aceptó</option>
-                    <option value="pagado">Pagado</option>
-                    <option value="modo_humano">Modo humano</option>
+                    <option value="cotizando">Cotizando</option>
+                    <option value="cotizacion_iniciada">Cotización iniciada</option>
+                    <option value="cotizacion_lista">⚠ Cotización lista (sin enviar)</option>
+                    <option value="cotizacion_enviada">✓ Cotización enviada</option>
+                    <option value="cotizacion_confirmada">✓✓ Cotización confirmada</option>
+                    <option value="esperando_aprobacion">⏳ Esperando aprobación</option>
+                    <option value="cliente_acepto">✓ Cliente aceptó</option>
+                    <option value="pagado">💰 Pagado</option>
                   </select>
                   <Button variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'} size="sm"
                     onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
@@ -990,7 +1096,7 @@ const AdminWhatsApp = () => {
                 <div className="wa-lead-info-pills">
                   {selectedLead.estado_sofia && (
                     <Badge bg={getEstadoBadge(selectedLead.estado_sofia)}>
-                      <FaTag className="me-1" /> {selectedLead.estado_sofia}
+                      {getEstadoIcon(selectedLead.estado_sofia) || <FaTag className="me-1" />} {selectedLead.estado_sofia.replace(/_/g, ' ')}
                     </Badge>
                   )}
                   {selectedLead.tipo_servicio && (
@@ -1001,6 +1107,24 @@ const AdminWhatsApp = () => {
                   )}
                 </div>
               </div>
+
+              {/* Alertas de validación por estado */}
+              {(() => {
+                const validations = getEstadoValidation(selectedLead);
+                if (validations.length === 0) return null;
+                return (
+                  <div className="wa-validation-alerts">
+                    {validations.map((v, i) => (
+                      <div key={i} className={`wa-validation-alert wa-validation-${v.type}`}>
+                        {v.type === 'error' ? <FaTimesCircle className="me-2" /> :
+                         v.type === 'warning' ? <FaExclamationTriangle className="me-2" /> :
+                         <FaClock className="me-2" />}
+                        {v.text}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Mensajes */}
               <div className="wa-messages-container">
@@ -1105,7 +1229,8 @@ const AdminWhatsApp = () => {
 
       {/* ── Modal de Cotización Rápida ── */}
       {showQuoteModal && (
-        <div className="wq-overlay" onClick={() => setShowQuoteModal(false)}>
+        <div className="wq-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowQuoteModal(false); }}
+          onTouchMove={(e) => e.stopPropagation()}>
           <div className="wq-modal" onClick={(e) => e.stopPropagation()}>
             <div className="wq-header">
               <h3><FaCalculator className="me-2" />Cotización Rápida</h3>
@@ -1285,6 +1410,11 @@ const AdminWhatsApp = () => {
                       <Button className="w-100 wq-generate-btn" onClick={handleGenerateQuotePDF} disabled={quoteGenerating}>
                         {quoteGenerating ? (<><Spinner size="sm" className="me-2" />Generando...</>) : (<><FaFilePdf className="me-2" />Generar PDF</>)}
                       </Button>
+                      {quotePdfUrl && (
+                        <a href={quotePdfUrl} target="_blank" rel="noopener noreferrer" className="wq-pdf-link mt-2">
+                          <FaFilePdf /> Ver / Descargar PDF
+                        </a>
+                      )}
                     </div>
                   </Col>
                 </Row>
