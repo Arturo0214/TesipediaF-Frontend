@@ -6,7 +6,8 @@ import {
     FaSearch, FaChevronDown, FaChevronUp, FaSync, FaPlus, FaTimes,
     FaCreditCard, FaMoneyBillWave, FaPercentage, FaTrash,
     FaExclamationTriangle, FaCheckCircle, FaClock, FaFileInvoiceDollar,
-    FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight
+    FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight,
+    FaProjectDiagram
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import './ManagePayments.css';
@@ -14,7 +15,8 @@ import './ManagePayments.css';
 const ITEMS_PER_PAGE = 10;
 
 function ManagePayments() {
-    const { isSuperAdmin } = useSelector((state) => state.auth || {});
+    const { isSuperAdmin, user } = useSelector((state) => state.auth || {});
+    const currentUserName = (user?.name || '').toLowerCase().trim();
     const [view, setView] = useState('dashboard');
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ function ManagePayments() {
         clientName: '', clientEmail: '', clientPhone: '', title: '',
         amount: '', method: 'transferencia', esquemaPago: 'Pago único',
         paymentDate: new Date().toISOString().slice(0, 10), notes: '',
-        dueDate: '', taskType: '',
+        dueDate: '', taskType: '', vendedor: currentUserName || 'arturo',
     });
 
     useEffect(() => { fetchDashboard(); }, []);
@@ -73,6 +75,37 @@ function ManagePayments() {
 
     const [confirmDelete, setConfirmDelete] = useState(null); // { _id, source, clientName }
     const [deleting, setDeleting] = useState(false);
+    const [editingVendedor, setEditingVendedor] = useState(null); // payment _id being edited
+    const [savingVendedor, setSavingVendedor] = useState(false);
+    const [creatingProject, setCreatingProject] = useState(null); // payment _id being processed
+
+    const handleAssignVendedor = async (payment, newVendedor) => {
+        setSavingVendedor(true);
+        try {
+            await axiosWithAuth.put(`/payments/dashboard/${payment._id}/vendedor?source=${payment.source}`, { vendedor: newVendedor });
+            toast.success(`Vendedor asignado: ${newVendedor || 'Sin asignar'}`);
+            setEditingVendedor(null);
+            fetchDashboard();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al asignar vendedor');
+        }
+        setSavingVendedor(false);
+    };
+
+    const handleCreateProject = async (payment) => {
+        setCreatingProject(payment._id);
+        try {
+            const res = await axiosWithAuth.post(
+                `/payments/dashboard/${payment._id}/create-project?source=${payment.source}`,
+                { taskType: 'Tesis' }
+            );
+            toast.success(res.data?.message || 'Proyecto creado');
+            fetchDashboard();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al crear proyecto');
+        }
+        setCreatingProject(null);
+    };
 
     const handleDeletePayment = async (payment) => {
         setDeleting(true);
@@ -205,25 +238,101 @@ function ManagePayments() {
                 </div>
             </div>
 
-            {/* Summary Cards — always visible */}
-            <div className="mp-pay-summary">
-                <div className="mp-pay-card mp-pay-card-green">
-                    <div className="mp-pay-card-icon"><FaDollarSign /></div>
-                    <div><p className="mp-pay-card-label">Ingresos Totales</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalIngresos)}</h2></div>
-                </div>
-                <div className="mp-pay-card mp-pay-card-orange">
-                    <div className="mp-pay-card-icon"><FaPercentage /></div>
-                    <div><p className="mp-pay-card-label">Comisión Ventas (15%)</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2></div>
-                </div>
-                <div className="mp-pay-card mp-pay-card-blue">
-                    <div className="mp-pay-card-icon"><FaChartLine /></div>
-                    <div><p className="mp-pay-card-label">Neto Empresa</p><h2 className="mp-pay-card-value">{formatMoney(summary.netoEmpresa)}</h2></div>
-                </div>
-                <div className="mp-pay-card mp-pay-card-purple">
-                    <div className="mp-pay-card-icon"><FaUsers /></div>
-                    <div><p className="mp-pay-card-label">Total Ventas</p><h2 className="mp-pay-card-value">{summary.totalPagos}</h2></div>
-                </div>
-            </div>
+            {/* Summary Cards — owner sees everything, others see only their own */}
+            {(() => {
+                const isOwner = isSuperAdmin || currentUserName === 'arturo';
+                if (isOwner) {
+                    return (
+                        <div className="mp-pay-summary">
+                            <div className="mp-pay-card mp-pay-card-green">
+                                <div className="mp-pay-card-icon"><FaDollarSign /></div>
+                                <div><p className="mp-pay-card-label">Ingresos Totales</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalIngresos)}</h2></div>
+                            </div>
+                            <div className="mp-pay-card mp-pay-card-orange">
+                                <div className="mp-pay-card-icon"><FaPercentage /></div>
+                                <div><p className="mp-pay-card-label">Comisión Ventas (15%)</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2></div>
+                            </div>
+                            <div className="mp-pay-card mp-pay-card-blue">
+                                <div className="mp-pay-card-icon"><FaChartLine /></div>
+                                <div><p className="mp-pay-card-label">Neto Empresa</p><h2 className="mp-pay-card-value">{formatMoney(summary.netoEmpresa)}</h2></div>
+                            </div>
+                            <div className="mp-pay-card mp-pay-card-purple">
+                                <div className="mp-pay-card-icon"><FaUsers /></div>
+                                <div><p className="mp-pay-card-label">Total Ventas</p><h2 className="mp-pay-card-value">{summary.totalPagos}</h2></div>
+                            </div>
+                        </div>
+                    );
+                }
+                // Non-owner: show only their own sales stats
+                const myPayments = payments.filter(p => (p.vendedor || p.atendidoPor || '').toLowerCase() === currentUserName);
+                const myTotal = myPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const myCommission = myPayments.reduce((sum, p) => sum + (p.commission || 0), 0);
+                return (
+                    <div className="mp-pay-summary">
+                        <div className="mp-pay-card mp-pay-card-green">
+                            <div className="mp-pay-card-icon"><FaDollarSign /></div>
+                            <div><p className="mp-pay-card-label">Mis Ventas Totales</p><h2 className="mp-pay-card-value">{formatMoney(myTotal)}</h2></div>
+                        </div>
+                        <div className="mp-pay-card mp-pay-card-orange">
+                            <div className="mp-pay-card-icon"><FaPercentage /></div>
+                            <div><p className="mp-pay-card-label">Mi Comisión (15%)</p><h2 className="mp-pay-card-value">{formatMoney(myCommission)}</h2></div>
+                        </div>
+                        <div className="mp-pay-card mp-pay-card-purple">
+                            <div className="mp-pay-card-icon"><FaUsers /></div>
+                            <div><p className="mp-pay-card-label">Mis Ventas</p><h2 className="mp-pay-card-value">{myPayments.length}</h2></div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* ===== SALES ATTRIBUTION (COMISIONES POR VENDEDOR) ===== */}
+            {(() => {
+                // Calcular comisiones por vendedor
+                const salesByVendor = {};
+                for (const p of payments) {
+                    const vendedor = (p.vendedor || p.atendidoPor || 'sin_asignar').toLowerCase().trim();
+                    if (!salesByVendor[vendedor]) salesByVendor[vendedor] = { count: 0, total: 0, commission: 0 };
+                    salesByVendor[vendedor].count++;
+                    salesByVendor[vendedor].total += (p.amount || 0);
+                    salesByVendor[vendedor].commission += (p.commission || 0);
+                }
+
+                const vendorNames = { arturo: 'Arturo Suárez', sandy: 'Sandy Alvarado', hugo: 'Hugo Serrano' };
+                const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b' };
+                const isOwner = isSuperAdmin || currentUserName === 'arturo';
+
+                return (
+                    <div className="mp-pay-attribution">
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>
+                            <FaUsers style={{ marginRight: 6 }} />
+                            {isOwner ? 'Comisiones por Vendedor' : 'Mis Comisiones'}
+                        </h3>
+                        <div className="mp-pay-attribution-grid">
+                            {Object.entries(salesByVendor)
+                                .filter(([vendor]) => {
+                                    if (isOwner) return true;
+                                    return vendor === currentUserName;
+                                })
+                                .sort((a, b) => b[1].commission - a[1].commission)
+                                .map(([vendor, data]) => (
+                                    <div key={vendor} className="mp-pay-attribution-card" style={{ borderLeft: `4px solid ${vendorColors[vendor] || '#6b7280'}` }}>
+                                        <div className="mp-pay-attr-name">{vendorNames[vendor] || vendor}</div>
+                                        <div className="mp-pay-attr-stats">
+                                            <span>{data.count} venta{data.count !== 1 ? 's' : ''}</span>
+                                            <span className="mp-pay-attr-total">{formatMoney(data.total)}</span>
+                                        </div>
+                                        <div className="mp-pay-attr-commission">
+                                            Comisión: <strong>{formatMoney(data.commission)}</strong>
+                                        </div>
+                                    </div>
+                                ))}
+                            {Object.keys(salesByVendor).length === 0 && (
+                                <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Sin ventas registradas</p>
+                            )}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* ===== VIEW TOGGLE ===== */}
             <div className="mp-pay-view-toggle">
@@ -432,6 +541,7 @@ function ManagePayments() {
                                     <th>Proyecto</th>
                                     <th>Monto</th>
                                     <th>Esquema</th>
+                                    <th>Vendedor</th>
                                     <th>Comisión</th>
                                     <th>Fuente</th>
                                     <th>Estado</th>
@@ -453,11 +563,47 @@ function ManagePayments() {
                                             <td className="mp-pay-title-cell">{payment.title}</td>
                                             <td className="mp-pay-amount">{formatMoney(payment.amount)}</td>
                                             <td><span className="mp-pay-esquema-badge">{getEsquemaLabel(payment.esquema)}</span></td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                {editingVendedor === payment._id ? (
+                                                    <select
+                                                        className="mp-pay-vendedor-select"
+                                                        defaultValue={payment.vendedor || payment.atendidoPor || ''}
+                                                        autoFocus
+                                                        disabled={savingVendedor}
+                                                        onChange={(e) => handleAssignVendedor(payment, e.target.value)}
+                                                        onBlur={() => setEditingVendedor(null)}
+                                                    >
+                                                        <option value="">Sin asignar</option>
+                                                        <option value="arturo">Arturo</option>
+                                                        <option value="sandy">Sandy</option>
+                                                        <option value="hugo">Hugo</option>
+                                                    </select>
+                                                ) : (
+                                                    <span
+                                                        className={`mp-pay-vendedor-badge ${!(payment.vendedor || payment.atendidoPor) ? 'mp-pay-vendedor-empty' : ''}`}
+                                                        onClick={() => isSuperAdmin && setEditingVendedor(payment._id)}
+                                                        title={isSuperAdmin ? 'Clic para asignar vendedor' : ''}
+                                                        style={isSuperAdmin ? { cursor: 'pointer' } : {}}
+                                                    >
+                                                        {payment.vendedor || payment.atendidoPor || 'Sin asignar'}
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="mp-pay-commission">{formatMoney(payment.commission)}</td>
                                             <td><span className="mp-pay-source-badge">{getSourceIcon(payment.source)} {getSourceLabel(payment.source)}</span></td>
                                             <td>{getStatusBadge(payment.status)}</td>
                                             <td>{formatDate(payment.date)}</td>
                                             <td className="mp-pay-actions-cell">
+                                                {!payment.hasProject && (
+                                                    <button
+                                                        className="mp-pay-create-project-btn"
+                                                        title="Crear proyecto vinculado"
+                                                        disabled={creatingProject === payment._id}
+                                                        onClick={(e) => { e.stopPropagation(); handleCreateProject(payment); }}
+                                                    >
+                                                        <FaProjectDiagram />
+                                                    </button>
+                                                )}
                                                 {isSuperAdmin && (
                                                     <button
                                                         className="mp-pay-delete-btn"
@@ -474,7 +620,7 @@ function ManagePayments() {
                                         </tr>
                                         {expandedPayment === payment._id && payment.schedule?.length > 1 && (
                                             <tr className="mp-pay-schedule-row">
-                                                <td colSpan="9">
+                                                <td colSpan="10">
                                                     <div className="mp-pay-schedule">
                                                         <h4>Calendario de Pagos — {getEsquemaLabel(payment.esquema)}</h4>
                                                         <div className="mp-pay-schedule-grid">
@@ -499,7 +645,7 @@ function ManagePayments() {
                                     </React.Fragment>
                                 ))}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan="9" className="mp-pay-empty">No se encontraron pagos</td></tr>
+                                    <tr><td colSpan="10" className="mp-pay-empty">No se encontraron pagos</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -600,6 +746,14 @@ function ManagePayments() {
                                             <option value="33-33-34">33% - 33% - 34%</option>
                                             <option value="6 quincenas">6 Quincenas</option>
                                             <option value="6 MSI">6 MSI</option>
+                                        </select>
+                                    </div>
+                                    <div className="mp-pay-form-group">
+                                        <label>Vendedor (Atribución) *</label>
+                                        <select value={newPayment.vendedor} onChange={(e) => setNewPayment({ ...newPayment, vendedor: e.target.value })}>
+                                            <option value="arturo">Arturo</option>
+                                            <option value="sandy">Sandy</option>
+                                            <option value="hugo">Hugo</option>
                                         </select>
                                     </div>
                                     <div className="mp-pay-form-group mp-pay-form-full">

@@ -571,6 +571,14 @@
 .mp-pay-actions-cell {
   display: flex; align-items: center; gap: 8px; justify-content: flex-end;
 }
+.mp-pay-create-project-btn {
+  background: none; border: none; color: #3b82f6; cursor: pointer;
+  padding: 6px; border-radius: 6px; font-size: 0.85rem; transition: all 0.2s;
+  display: flex; align-items: center;
+}
+.mp-pay-create-project-btn:hover { color: #2563eb; background: #eff6ff; }
+.mp-pay-create-project-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .mp-pay-delete-btn {
   background: none; border: none; color: #cbd5e1; cursor: pointer;
   padding: 6px; border-radius: 6px; font-size: 0.85rem; transition: all 0.2s;
@@ -592,3 +600,94 @@
 }
 .mp-pay-btn-danger:hover { background: #dc2626; }
 .mp-pay-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Sales Attribution ── */
+.mp-pay-attribution {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.mp-pay-attribution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.mp-pay-attribution-card {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: transform 0.15s;
+}
+
+.mp-pay-attribution-card:hover {
+  transform: translateY(-2px);
+}
+
+.mp-pay-attr-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.mp-pay-attr-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.mp-pay-attr-total {
+  font-weight: 600;
+  color: #059669;
+}
+
+.mp-pay-attr-commission {
+  font-size: 0.85rem;
+  color: #1f2937;
+  padding-top: 6px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.mp-pay-attr-commission strong {
+  color: #d946ef;
+}
+
+.mp-pay-vendedor-badge {
+  text-transform: capitalize;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4b5563;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.mp-pay-vendedor-badge:hover {
+  background: #f3f4f6;
+}
+.mp-pay-vendedor-empty {
+  color: #9ca3af;
+  font-style: italic;
+  background: #fef3c7;
+  border: 1px dashed #f59e0b;
+}
+.mp-pay-vendedor-empty:hover {
+  background: #fde68a;
+}
+.mp-pay-vendedor-select {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 2px solid #3b82f6;
+  background: #eff6ff;
+  color: #1e40af;
+  cursor: pointer;
+  outline: none;
+  text-transform: capitalize;
+}

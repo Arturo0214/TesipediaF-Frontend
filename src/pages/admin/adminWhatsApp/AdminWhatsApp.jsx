@@ -177,6 +177,7 @@ const AdminWhatsApp = () => {
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
   const [windowExpired, setWindowExpired] = useState(false);
   const [sendingTemplate, setSendingTemplate] = useState(false);
+  const [sendingReengagement, setSendingReengagement] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [quoteFields, setQuoteFields] = useState({});
   const [quotePrice, setQuotePrice] = useState(null);
@@ -233,6 +234,19 @@ const AdminWhatsApp = () => {
       if (!silent) setLoading(false);
     }
   }, []); // sin dependencias — usa ref en vez de state
+
+  const handleReengagement = async () => {
+    if (!window.confirm('¿Enviar plantilla de seguimiento a todos los leads inactivos en bienvenida/cotizando?')) return;
+    setSendingReengagement(true);
+    try {
+      const { data } = await (await import('../../../utils/axioswithAuth')).default.post('/whatsapp/reengagement');
+      toast.success(`Seguimiento enviado a ${data.sent} leads${data.failed ? ` (${data.failed} fallidos)` : ''}`);
+      fetchLeads(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al enviar re-engagement');
+    }
+    setSendingReengagement(false);
+  };
 
   // Polling para actualizaciones en tiempo real
   useEffect(() => {
@@ -317,8 +331,12 @@ const AdminWhatsApp = () => {
       const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
       if (sendResult?.delivery_status === 'failed') {
         toast.error('⚠️ El mensaje NO se pudo enviar por WhatsApp');
-      } else if (sendResult?.templateSent) {
-        toast.success('📋 Plantilla de seguimiento + mensaje enviado (ventana 24h expirada)');
+      } else if (sendResult?.pendingMessage) {
+        toast('📋 Plantilla enviada. Tu mensaje se enviará automáticamente cuando el cliente responda.', {
+          icon: '⏳',
+          duration: 6000,
+          style: { background: '#fef3c7', color: '#92400e', fontWeight: 500 },
+        });
         setWindowExpired(false);
       } else if (sendResult?.delivery_status === 'sent') {
         toast.success(selectedFile ? '✓ Archivo enviado por WhatsApp' : '✓ Mensaje enviado por WhatsApp');
@@ -362,7 +380,6 @@ const AdminWhatsApp = () => {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      // Validar tamaño u otro detalle si se quiere
       setSelectedFile(e.target.files[0]);
     }
   };
@@ -371,6 +388,45 @@ const AdminWhatsApp = () => {
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // ── Drag & Drop para documentos ──
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setSelectedFile(e.dataTransfer.files[0]);
+      toast.success(`📎 Archivo "${e.dataTransfer.files[0].name}" listo para enviar`);
+      e.dataTransfer.clearData();
+    }
+  }, []);
 
   // Iniciar nueva conversación con un número
   const handleNewChat = async () => {
@@ -480,43 +536,63 @@ const AdminWhatsApp = () => {
     }
     setQuoteGenerating(true);
     try {
-      // 1. Generar PDF via backend
-      // Construir fecha entrega legible para el PDF
+      // 1. Generar PDF via backend (con retry automático)
       const fechaEntregaLegible = f.fechaEntregaDate
         ? new Date(f.fechaEntregaDate + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
         : (f.fechaEntrega || 'Por definir');
-      // Nombre de archivo: Tesipedia-Cotizacion-NombreCliente-DDMM
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const clientShort = (f.clientName || 'Cliente').split(' ')[0];
       const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
 
-      const pdfResp = await fetch(`${API_URL}/quotes/generate-quote-pdf`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientName: f.clientName,
-          nombre: f.clientName,
-          tituloTrabajo: f.tituloTrabajo || f.tema || '',
-          tipoTrabajo: f.tipoTrabajo || 'Tesis',
-          tipoServicio: f.tipoServicio || 'modalidad1',
-          extensionEstimada: String(f.extensionEstimada),
-          carrera: f.carrera,
-          tiempoEntrega: fechaEntregaLegible,
-          fechaEntregaRaw: f.fechaEntregaDate || '',
-          precioBase,
-          descuentoEfectivo: Number(f.descuentoEfectivo) || 0,
-          recargoPorcentaje: 0,
-          metodoPago: f.metodoPago || 'tarjeta-nu',
-          esquemaTipo: f.esquemaTipo || '33-33-34',
-          fechaPago1: f.fechaPago1 || '',
-          fechaAvance: f.fechaAvance || '',
-          pdfFilename,
-        }),
+      const pdfBody = JSON.stringify({
+        clientName: f.clientName,
+        nombre: f.clientName,
+        tituloTrabajo: f.tituloTrabajo || f.tema || '',
+        tipoTrabajo: f.tipoTrabajo || 'Tesis',
+        tipoServicio: f.tipoServicio || 'modalidad1',
+        extensionEstimada: String(f.extensionEstimada || '0'),
+        carrera: f.carrera || '',
+        tiempoEntrega: fechaEntregaLegible,
+        fechaEntregaRaw: f.fechaEntregaDate || '',
+        precioBase: Number(precioBase) || 0,
+        descuentoEfectivo: Number(f.descuentoEfectivo) || 0,
+        recargoPorcentaje: 0,
+        metodoPago: f.metodoPago || 'tarjeta-nu',
+        esquemaTipo: f.esquemaTipo || '33-33-34',
+        fechaPago1: f.fechaPago1 || '',
+        fechaAvance: f.fechaAvance || '',
+        pdfFilename,
       });
-      const pdfData = await pdfResp.json();
-      if (!pdfData.success) throw new Error(pdfData.message || 'Error generando PDF');
+
+      // Intentar hasta 2 veces (el servidor puede tardar en cold start)
+      let pdfData = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const pdfResp = await fetch(`${API_URL}/quotes/generate-quote-pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: pdfBody,
+          });
+          pdfData = await pdfResp.json();
+          if (pdfData.success) break;
+          if (attempt < 2) {
+            console.warn(`[QuotePDF] Intento ${attempt} falló (${pdfData.step || 'unknown'}), reintentando...`);
+            toast('Reintentando generar PDF...', { icon: '🔄' });
+            await new Promise(r => setTimeout(r, 2000));
+          }
+        } catch (fetchErr) {
+          if (attempt < 2) {
+            console.warn(`[QuotePDF] Intento ${attempt} error de red, reintentando...`);
+            toast('Error de conexión, reintentando...', { icon: '🔄' });
+            await new Promise(r => setTimeout(r, 3000));
+          } else {
+            throw new Error('No se pudo conectar al servidor para generar el PDF. Verifica tu conexión.');
+          }
+        }
+      }
+      if (!pdfData?.success) throw new Error(pdfData?.message || 'Error generando PDF después de 2 intentos');
 
       const pdfUrl = pdfData.pdfUrl || pdfData.fallbackUrl;
       const pdfPublicId = pdfData.publicId || '';
@@ -861,6 +937,8 @@ const AdminWhatsApp = () => {
                    <span className="wa-delivery-sent" title="Enviado por WhatsApp"><FaCheck /></span>
                  ) : msg.delivery_status === 'failed' ? (
                    <span className="wa-delivery-failed" title="No se pudo enviar"><FaTimesCircle /></span>
+                 ) : msg.delivery_status === 'pending' ? (
+                   <span className="wa-delivery-pending" title="Pendiente — se enviará cuando el cliente responda"><FaClock /></span>
                  ) : msg.delivery_status === 'template_only' ? (
                    <span className="wa-delivery-template" title="Solo se envió plantilla"><FaExclamationTriangle /></span>
                  ) : msg.wa_message_id ? (
@@ -898,7 +976,17 @@ const AdminWhatsApp = () => {
           <div className="wa-left-header">
             <FaWhatsapp style={{ fontSize: '1.1rem' }} />
             <span className="wa-left-header-title">WhatsApp</span>
-            <Button variant="outline-light" size="sm" className="ms-auto wa-refresh-btn" onClick={() => fetchLeads()}>
+            <Button
+              variant="outline-warning"
+              size="sm"
+              className="ms-auto wa-reengagement-btn"
+              onClick={handleReengagement}
+              disabled={sendingReengagement}
+              title="Reactivar leads inactivos (bienvenida/cotizando)"
+            >
+              {sendingReengagement ? <FaSync className="fa-spin" /> : '📣'}
+            </Button>
+            <Button variant="outline-light" size="sm" className="wa-refresh-btn ms-1" onClick={() => fetchLeads()}>
               <FaSync className={loading ? 'fa-spin' : ''} />
             </Button>
           </div>
@@ -1037,7 +1125,13 @@ const AdminWhatsApp = () => {
         </div>
 
         {/* Panel de chat */}
-        <div className={`wa-chat-col ${selectedLead ? 'wa-chat-active' : ''}`}>
+        <div
+          className={`wa-chat-col ${selectedLead ? 'wa-chat-active' : ''} ${isDragging ? 'wa-dragging' : ''}`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           {!selectedLead ? (
             <div className="wa-no-chat-selected">
               <FaWhatsapp size={64} />
@@ -1137,6 +1231,16 @@ const AdminWhatsApp = () => {
                 {renderMessages()}
                 <div ref={messagesEndRef} />
               </div>
+
+              {/* Overlay de drag & drop */}
+              {isDragging && (
+                <div className="wa-drop-overlay">
+                  <div className="wa-drop-content">
+                    <FaPaperclip size={40} />
+                    <p>Suelta el archivo aquí</p>
+                  </div>
+                </div>
+              )}
 
               {/* Preview de archivo seleccionado */}
               {selectedFile && (
