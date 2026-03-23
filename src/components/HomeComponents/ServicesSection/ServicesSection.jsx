@@ -64,13 +64,14 @@ const ServicesSection = ({ onOpenChat }) => {
             <Container>
                 {/* ── What we do ── */}
                 <div className="section-header">
-                    <h2 className="section-subtitle">NUESTROS SERVICIOS</h2>
-                    <h3 className="section-title">
-                        Todo lo que necesitas para{' '}<span className="highlight">titularte</span>
-                    </h3>
+                    <span className="section-subtitle">SERVICIOS DE TESIS PROFESIONAL EN MÉXICO</span>
+                    <h2 className="section-title">
+                        Todo lo que necesitas para{' '}<span className="highlight">hacer tu tesis y titularte</span>
+                    </h2>
                     <p className="section-description">
-                        Ofrecemos un servicio integral de desarrollo de tesis profesional con los más altos
-                        estándares académicos. Cada proyecto es único y recibe atención personalizada.
+                        ¿No sabes por dónde empezar tu tesis? Ofrecemos un servicio integral de desarrollo de tesis profesional
+                        para licenciatura, maestría y doctorado. Cada proyecto es único, 100% original y recibe asesoría personalizada.
+                        Incluye antiplagio Turnitin y detección anti-IA.
                     </p>
                 </div>
 
@@ -95,10 +96,10 @@ const ServicesSection = ({ onOpenChat }) => {
 
                 {/* ── How it works (process) ── */}
                 <div className="section-header" style={{ marginTop: '5rem' }}>
-                    <h2 className="section-subtitle">PROCESO</h2>
-                    <h3 className="section-title">
-                        ¿Cómo funciona{' '}<span className="highlight">Tesipedia</span>?
-                    </h3>
+                    <span className="section-subtitle">PROCESO PASO A PASO</span>
+                    <h2 className="section-title">
+                        ¿Cómo funciona el servicio de tesis de{' '}<span className="highlight">Tesipedia</span>?
+                    </h2>
                 </div>
 
                 <div className="process-strip">

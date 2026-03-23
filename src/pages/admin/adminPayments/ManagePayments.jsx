@@ -285,9 +285,8 @@ function ManagePayments() {
                 );
             })()}
 
-            {/* ===== SALES ATTRIBUTION (COMISIONES POR VENDEDOR) ===== */}
+            {/* ===== GANANCIAS POR VENDEDOR ===== */}
             {(() => {
-                // Calcular comisiones por vendedor + guardar pagos asociados
                 const salesByVendor = {};
                 for (const p of payments) {
                     const vendedor = (p.vendedor || p.atendidoPor || 'sin_asignar').toLowerCase().trim();
@@ -299,10 +298,11 @@ function ManagePayments() {
                 }
 
                 const vendorNames = { arturo: 'Arturo Suárez', sandy: 'Sandy Alvarado', hugo: 'Hugo Serrano' };
-                const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b' };
+                const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b', sin_asignar: '#6b7280' };
+                const vendorEmojis = { arturo: '👔', sandy: '💜', hugo: '🧡', sin_asignar: '❓' };
                 const isOwner = isSuperAdmin || currentUserName === 'arturo';
+                const totalGlobal = payments.reduce((s, p) => s + (p.amount || 0), 0);
 
-                // Asignar todos los pagos de una tarjeta a un vendedor
                 const handleBulkAssign = async (vendorPayments, newVendedor) => {
                     setSavingVendedor(true);
                     let ok = 0, fail = 0;
@@ -312,34 +312,57 @@ function ManagePayments() {
                             ok++;
                         } catch { fail++; }
                     }
-                    if (ok > 0) toast.success(`${ok} pago${ok > 1 ? 's' : ''} asignado${ok > 1 ? 's' : ''} a ${newVendedor}`);
-                    if (fail > 0) toast.error(`${fail} pago${fail > 1 ? 's' : ''} fallaron`);
+                    if (ok > 0) toast.success(`${ok} pago${ok > 1 ? 's' : ''} asignado${ok > 1 ? 's' : ''} a ${vendorNames[newVendedor] || newVendedor}`);
+                    if (fail > 0) toast.error(`${fail} fallaron`);
                     setSavingVendedor(false);
                     fetchDashboard();
                 };
 
+                const entries = Object.entries(salesByVendor)
+                    .filter(([v]) => isOwner ? true : v === currentUserName)
+                    .sort((a, b) => b[1].total - a[1].total);
+
                 return (
-                    <div className="mp-pay-attribution">
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>
-                            <FaUsers style={{ marginRight: 6 }} />
-                            {isOwner ? 'Comisiones por Vendedor' : 'Mis Comisiones'}
+                    <div style={{ background: '#fff', borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: 16 }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <FaUsers style={{ color: '#6366f1' }} />
+                            {isOwner ? 'Ganancias por Vendedor' : 'Mis Ganancias'}
                         </h3>
-                        <div className="mp-pay-attribution-grid">
-                            {Object.entries(salesByVendor)
-                                .filter(([vendor]) => {
-                                    if (isOwner) return true;
-                                    return vendor === currentUserName;
-                                })
-                                .sort((a, b) => b[1].commission - a[1].commission)
-                                .map(([vendor, data]) => (
-                                    <div key={vendor} className="mp-pay-attribution-card" style={{ borderLeft: `4px solid ${vendorColors[vendor] || '#6b7280'}` }}>
-                                        <div className="mp-pay-attr-name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <span>{vendorNames[vendor] || vendor}</span>
+
+                        {entries.length === 0 && (
+                            <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Sin ventas registradas</p>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {entries.map(([vendor, data]) => {
+                                const pct = totalGlobal > 0 ? Math.round((data.total / totalGlobal) * 100) : 0;
+                                const color = vendorColors[vendor] || '#6b7280';
+
+                                return (
+                                    <div key={vendor} style={{
+                                        border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 18px',
+                                        borderLeft: `5px solid ${color}`, background: '#fafbfc',
+                                    }}>
+                                        {/* Row 1: Name + assign */}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <span style={{ fontSize: '1.1rem' }}>{vendorEmojis[vendor] || '👤'}</span>
+                                                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1f2937' }}>
+                                                    {vendorNames[vendor] || vendor}
+                                                </span>
+                                                <span style={{
+                                                    background: color + '18', color: color, fontSize: '0.65rem',
+                                                    fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                                                }}>
+                                                    {data.count} venta{data.count !== 1 ? 's' : ''}
+                                                </span>
+                                            </div>
                                             {vendor === 'sin_asignar' && isOwner && (
                                                 <select
                                                     style={{
-                                                        fontSize: '0.7rem', padding: '2px 6px', borderRadius: 6,
+                                                        fontSize: '0.75rem', padding: '3px 8px', borderRadius: 6,
                                                         border: '1px solid #d1d5db', cursor: 'pointer', background: '#fff',
+                                                        fontWeight: 600, color: '#6366f1',
                                                     }}
                                                     defaultValue=""
                                                     disabled={savingVendedor}
@@ -357,18 +380,38 @@ function ManagePayments() {
                                                 </select>
                                             )}
                                         </div>
-                                        <div className="mp-pay-attr-stats">
-                                            <span>{data.count} venta{data.count !== 1 ? 's' : ''}</span>
-                                            <span className="mp-pay-attr-total">{formatMoney(data.total)}</span>
+
+                                        {/* Row 2: Progress bar */}
+                                        <div style={{ background: '#e5e7eb', borderRadius: 6, height: 8, marginBottom: 10, overflow: 'hidden' }}>
+                                            <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 6, transition: 'width 0.5s ease' }} />
                                         </div>
-                                        <div className="mp-pay-attr-commission">
-                                            Comisión: <strong>{formatMoney(data.commission)}</strong>
+
+                                        {/* Row 3: Stats */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', gap: 20 }}>
+                                                <div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vendido</div>
+                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1f2937' }}>{formatMoney(data.total)}</div>
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comisión (15%)</div>
+                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f59e0b' }}>{formatMoney(data.commission)}</div>
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Neto Empresa</div>
+                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>{formatMoney(data.total - data.commission)}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{
+                                                background: color + '15', color: color, fontWeight: 800,
+                                                fontSize: '0.85rem', padding: '4px 12px', borderRadius: 8,
+                                            }}>
+                                                {pct}%
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
-                            {Object.keys(salesByVendor).length === 0 && (
-                                <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Sin ventas registradas</p>
-                            )}
+                                );
+                            })}
                         </div>
                     </div>
                 );

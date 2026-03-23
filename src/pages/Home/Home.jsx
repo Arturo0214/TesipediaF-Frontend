@@ -77,44 +77,128 @@ function Home() {
     setIsChatOpen(false);
   };
 
+  // Schema.org structured data
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Tesipedia",
+    "url": "https://tesipedia.com",
+    "logo": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
+    "description": "Servicio profesional #1 en México para desarrollo de tesis de licenciatura, maestría y doctorado. 100% original, libre de plagio e IA.",
+    "telephone": "+52-56-7007-1517",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Ciudad de México",
+      "addressRegion": "CDMX",
+      "addressCountry": "MX"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "3000",
+      "bestRating": "5"
+    },
+    "priceRange": "$$"
+  };
+
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Desarrollo de Tesis Profesional",
+    "provider": {
+      "@type": "ProfessionalService",
+      "name": "Tesipedia",
+      "url": "https://tesipedia.com"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "México"
+    },
+    "description": "Servicio integral de desarrollo de tesis: elaboración completa, acompañamiento o corrección. Incluye antiplagio Turnitin, detección anti-IA y asesoría personalizada.",
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "MXN",
+      "lowPrice": "6300",
+      "highPrice": "22000",
+      "offerCount": "3"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Modalidades de Servicio",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Desarrollo Completo de Tesis (Hacemos Todo)",
+            "description": "Elaboramos tu tesis de inicio a fin. Incluye escáner antiplagio, anti-IA, correcciones y asesoría 1:1."
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Acompañamiento de Tesis",
+            "description": "Trabajo conjunto con el estudiante. Incluye escáner antiplagio, anti-IA y acompañamiento continuo."
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Corrección de Tesis",
+            "description": "Revisión y corrección de trabajo existente. Incluye escáner antiplagio y anti-IA."
+          }
+        }
+      ]
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://tesipedia.com/"
+      }
+    ]
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Tesipedia",
+    "url": "https://tesipedia.com",
+    "description": "Servicio profesional de desarrollo de tesis en México",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://tesipedia.com/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <>
       <Helmet>
-        <title>Tesipedia — Desarrollo de Tesis Profesional en México | +3,000 Titulados</title>
-        <meta name="description" content="Servicio #1 en México para desarrollo de tesis de licenciatura, maestría y doctorado. 100% original, libre de plagio e IA. Entrega desde 3 semanas. Más de 3,000 estudiantes titulados. Garantía de aprobación." />
-        <meta name="keywords" content="tesis profesional México, desarrollo de tesis, hacer mi tesis, tesis licenciatura, tesis maestría, tesis doctorado, asesoría de tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, tesina, trabajo de investigación, titulación, Tesipedia" />
-        <meta property="og:title" content="Tesipedia — Desarrollo de Tesis Profesional | Garantía de Aprobación" />
-        <meta property="og:description" content="Más de 3,000 estudiantes titulados confían en Tesipedia. Desarrollo de tesis 100% original con asesoría personalizada y entrega puntual." />
+        <title>Tesipedia — ¿Necesitas ayuda con tu tesis? Servicio #1 en México | +3,000 Titulados</title>
+        <meta name="description" content="¿No sabes cómo hacer tu tesis? Tesipedia es el servicio #1 en México para desarrollo de tesis de licenciatura, maestría y doctorado. 100% original, sin plagio ni IA. Entrega desde 3 semanas. +3,000 estudiantes titulados. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="hacer mi tesis, ayuda con mi tesis, quién me hace mi tesis México, cuánto cuesta una tesis, desarrollo de tesis profesional, tesis licenciatura, tesis maestría, tesis doctorado, asesoría de tesis CDMX, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, tesina, trabajo de investigación, titulación universitaria, corrección de tesis, antiplagio Turnitin, Tesipedia" />
+        <meta property="og:title" content="Tesipedia — ¿Necesitas ayuda con tu tesis? Servicio #1 en México" />
+        <meta property="og:description" content="Más de 3,000 estudiantes titulados confían en Tesipedia. Desarrollo de tesis 100% original con asesoría personalizada. Cotiza gratis." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tesipedia.com" />
+        <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+        <meta property="og:locale" content="es_MX" />
         <link rel="canonical" href="https://tesipedia.com" />
 
-        {/* Schema.org structured data for SEO */}
-        <script type="application/ld+json">{`
-          {
-            "@context": "https://schema.org",
-            "@type": "EducationalOrganization",
-            "name": "Tesipedia",
-            "url": "https://tesipedia.com",
-            "description": "Servicio profesional de desarrollo de tesis en México. Más de 3,000 estudiantes titulados.",
-            "address": {
-              "@type": "PostalAddress",
-              "addressCountry": "MX"
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "5",
-              "reviewCount": "3000",
-              "bestRating": "5"
-            },
-            "contactPoint": {
-              "@type": "ContactPoint",
-              "telephone": "+52-55-8335-2096",
-              "contactType": "customer service",
-              "availableLanguage": "Spanish"
-            }
-          }
-        `}</script>
+        {/* Schema.org structured data */}
+        <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
       </Helmet>
 
       <HeroSection

@@ -10,10 +10,10 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
         <Row className="align-items-center min-vh-100">
           <Col lg={6} className="hero-section-text" data-aos="fade-right">
             <h1 className="display-4 fw-bold mb-4" style={{ color: 'white' }}>
-              ¡Tu Título Profesional en Tiempo Récord!
+              ¿Necesitas ayuda con tu tesis? Te ayudamos a titularte
             </h1>
             <p className="lead mb-4">
-              Más de 3,000 estudiantes titulados confían en nuestra metodología profesional y asesoría especializada.
+              Desarrollo profesional de tesis de licenciatura, maestría y doctorado en México. 100% original, sin plagio ni IA. Más de 3,000 estudiantes ya se titularon con Tesipedia. Entrega desde 3 semanas.
             </p>
             <div className="hero-section-features mb-4">
               <div className="hero-section-feature-item">

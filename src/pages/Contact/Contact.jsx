@@ -5,14 +5,64 @@ import {
   FaWhatsapp, FaGraduationCap, FaShieldAlt, FaCheckCircle,
   FaPaperPlane
 } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async';
 import ChatPanel from '../../components/chat/ChatPanel';
 import './Contact.css';
 
 function Contact() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Tesipedia",
+    "url": "https://tesipedia.com/contacto",
+    "telephone": "+52-56-7007-1517",
+    "email": "tesipediaoficial@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Ciudad de México",
+      "addressRegion": "CDMX",
+      "addressCountry": "MX"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "18:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "09:00",
+        "closes": "14:00"
+      }
+    ]
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Contacto", "item": "https://tesipedia.com/contacto" }
+    ]
+  };
+
   return (
     <div className="ct-page">
+      <Helmet>
+        <title>Contacto | ¿Necesitas ayuda con tu tesis? Escríbenos | Tesipedia México</title>
+        <meta name="description" content="Contacta a Tesipedia por WhatsApp o chat en línea. Respuesta en menos de 5 minutos. Cotiza tu tesis gratis. Teléfono: +52 56 7007 1517. Atención personalizada en Ciudad de México." />
+        <meta name="keywords" content="contacto Tesipedia, WhatsApp tesis, cotizar tesis México, asesoría tesis CDMX, ayuda con mi tesis teléfono, servicio de tesis contacto" />
+        <meta property="og:title" content="Contacto Tesipedia | Cotiza tu tesis gratis" />
+        <meta property="og:description" content="Escríbenos por WhatsApp o chat. Respuesta en menos de 5 minutos." />
+        <meta property="og:url" content="https://tesipedia.com/contacto" />
+        <link rel="canonical" href="https://tesipedia.com/contacto" />
+        <script type="application/ld+json">{JSON.stringify(localBusinessSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+      </Helmet>
       {/* ── Main Content ── */}
       <Container className="ct-main">
         <Row className="g-4 align-items-stretch">

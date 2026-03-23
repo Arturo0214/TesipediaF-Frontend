@@ -1,5 +1,21 @@
+# Tesipedia - Robots.txt
 User-agent: *
 Allow: /
+Allow: /sobre-nosotros
+Allow: /contacto
+Allow: /preguntas-frecuentes
+Allow: /register
+
+# Bloquear páginas privadas y de admin
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /dashboard
+Disallow: /mi-proyecto
+Disallow: /panel-redactor
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /auth/
+Disallow: /payment/
 
 # Sitemap
-Sitemap: https://tesipedia.com/sitemap.xml 
+Sitemap: https://tesipedia.com/sitemap.xml
