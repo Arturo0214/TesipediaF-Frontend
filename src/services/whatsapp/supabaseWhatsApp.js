@@ -83,6 +83,18 @@ export async function sendTemplateMessage(waId) {
  */
 
 /**
+ * Reclamar un lead (asignar atendido_por).
+ * Solo se asigna si el lead NO tiene dueño aún.
+ * El backend decide si acepta o rechaza.
+ */
+export async function claimLead(waId, adminName) {
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/claim`, {
+    atendido_por: adminName,
+  });
+  return data;
+}
+
+/**
  * Parsear historial_chat que puede venir como string JSON o array
  */
 export function parseHistorial(historialRaw) {

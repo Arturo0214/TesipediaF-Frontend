@@ -26,6 +26,7 @@ import {
   FaTimesCircle,
   FaEnvelope,
   FaEnvelopeOpen,
+  FaLock,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -35,11 +36,12 @@ import {
   sendWhatsAppMessage,
   parseHistorial,
   sendTemplateMessage,
+  claimLead,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { saveGeneratedQuote } from '../../../features/quotes/quoteSlice';
 import './AdminWhatsApp.css';
 
@@ -162,6 +164,8 @@ const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth?.user);
+  const currentAdminKey = normalizeAdminName(authUser?.name || authUser?.nombre || '');
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
   const [message, setMessage] = useState('');
@@ -304,9 +308,28 @@ const AdminWhatsApp = () => {
     }
   };
 
+  // Verificar si el lead tiene dueño y si es otro admin
+  const isOwnedByOther = (lead) => {
+    if (!lead) return false;
+    const owner = getLeadAttendedBy(lead);
+    if (!owner || owner === '_attended') return false; // sin dueño conocido
+    return currentAdminKey && owner !== currentAdminKey;
+  };
+
+  const getOwnerLabel = (lead) => {
+    const owner = getLeadAttendedBy(lead);
+    if (!owner) return null;
+    return ADMIN_COLORS[owner]?.label || owner;
+  };
+
   // Toggle modo humano
   const handleToggleHuman = async () => {
     if (!selectedLead || togglingHuman) return;
+    // Bloquear si el lead ya tiene dueño diferente
+    if (isOwnedByOther(selectedLead)) {
+      toast.error(`Este lead pertenece a ${getOwnerLabel(selectedLead)}. No puedes cambiar el modo.`);
+      return;
+    }
     setTogglingHuman(true);
     try {
       const nuevoModo = !selectedLead.modo_humano;
@@ -325,28 +348,45 @@ const AdminWhatsApp = () => {
   const handleSend = async (e) => {
     e.preventDefault();
     if ((!message.trim() && !selectedFile) || !selectedLead || sending) return;
+
+    // Bloquear si el lead ya tiene dueño diferente
+    if (isOwnedByOther(selectedLead)) {
+      toast.error(`Este lead pertenece a ${getOwnerLabel(selectedLead)}. No puedes enviar mensajes.`);
+      return;
+    }
+
     setSending(true);
     try {
+      // Auto-reclamar lead si no tiene dueño
+      const currentOwner = getLeadAttendedBy(selectedLead);
+      if (!currentOwner && currentAdminKey) {
+        try {
+          await claimLead(selectedLead.wa_id, authUser?.name || authUser?.nombre || currentAdminKey);
+        } catch (claimErr) {
+          console.warn('No se pudo reclamar lead (endpoint pendiente?):', claimErr.message);
+        }
+      }
+
       // Enviar por WhatsApp + guardar en historial (todo vía Backend)
       const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
       if (sendResult?.delivery_status === 'failed') {
-        toast.error('⚠️ El mensaje NO se pudo enviar por WhatsApp');
+        toast.error('El mensaje NO se pudo enviar por WhatsApp');
       } else if (sendResult?.pendingMessage) {
-        toast('📋 Plantilla enviada. Tu mensaje se enviará automáticamente cuando el cliente responda.', {
+        toast('Plantilla enviada. Tu mensaje se enviará automáticamente cuando el cliente responda.', {
           icon: '⏳',
           duration: 6000,
           style: { background: '#fef3c7', color: '#92400e', fontWeight: 500 },
         });
         setWindowExpired(false);
       } else if (sendResult?.delivery_status === 'sent') {
-        toast.success(selectedFile ? '✓ Archivo enviado por WhatsApp' : '✓ Mensaje enviado por WhatsApp');
+        toast.success(selectedFile ? 'Archivo enviado por WhatsApp' : 'Mensaje enviado por WhatsApp');
       } else {
         toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
       }
       setMessage('');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      
+
       // 3. Refrescar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
@@ -1106,6 +1146,7 @@ const AdminWhatsApp = () => {
                         </Badge>
                         {attendedInfo.label !== 'Sin atender' && (
                           <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
+                            <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
                             {attendedInfo.label}
                           </span>
                         )}
@@ -1178,8 +1219,8 @@ const AdminWhatsApp = () => {
                     <option value="pagado">💰 Pagado</option>
                   </select>
                   <Button variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'} size="sm"
-                    onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
-                    title={selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
+                    onClick={handleToggleHuman} disabled={togglingHuman || isOwnedByOther(selectedLead)} className="wa-human-toggle"
+                    title={isOwnedByOther(selectedLead) ? `Lead de ${getOwnerLabel(selectedLead)}` : selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
                     {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano ? <><FaToggleOn className="me-1" /> Humano</> : <><FaToggleOff className="me-1" /> Bot</>}
                   </Button>
                 </div>
@@ -1222,6 +1263,16 @@ const AdminWhatsApp = () => {
 
               {/* Mensajes */}
               <div className="wa-messages-container">
+                {isOwnedByOther(selectedLead) && (
+                  <div className="wa-ownership-banner" style={{
+                    background: '#fef2f2', color: '#991b1b', padding: '8px 16px',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid #fecaca'
+                  }}>
+                    <FaLock />
+                    Este lead pertenece a {getOwnerLabel(selectedLead)} — solo lectura
+                  </div>
+                )}
                 {selectedLead.modo_humano && (
                   <div className="wa-human-mode-banner">
                     <FaUserTie className="me-2" />
@@ -1289,7 +1340,7 @@ const AdminWhatsApp = () => {
                   variant="light"
                   className="wa-attach-btn"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={sending}
+                  disabled={sending || isOwnedByOther(selectedLead)}
                   title="Adjuntar archivo o imagen"
                 >
                   <FaPaperclip />
@@ -1297,7 +1348,7 @@ const AdminWhatsApp = () => {
                 <textarea
                   ref={inputRef}
                   className="wa-message-input"
-                  placeholder={selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
+                  placeholder={isOwnedByOther(selectedLead) ? `Lead asignado a ${getOwnerLabel(selectedLead)} — solo lectura` : selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
                   value={message}
                   onChange={(e) => {
                     setMessage(e.target.value);
@@ -1314,14 +1365,14 @@ const AdminWhatsApp = () => {
                       if (message.trim() || selectedFile) handleSend(e);
                     }
                   }}
-                  disabled={sending}
+                  disabled={sending || isOwnedByOther(selectedLead)}
                   rows={1}
                 />
                 <Button
                   type="submit"
                   variant="success"
                   className="wa-send-btn"
-                  disabled={(!message.trim() && !selectedFile) || sending}
+                  disabled={(!message.trim() && !selectedFile) || sending || isOwnedByOther(selectedLead)}
                 >
                   {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
                 </Button>
