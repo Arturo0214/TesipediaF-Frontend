@@ -17,13 +17,13 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
             </p>
             <div className="hero-section-features mb-4">
               <div className="hero-section-feature-item">
-                <FaCheck className="hero-section-feature-icon" /> Garantía de Aprobación Total
+                <FaCheck className="hero-section-feature-icon" aria-hidden="true" /> Garantía de Aprobación Total
               </div>
               <div className="hero-section-feature-item">
-                <FaClock className="hero-section-feature-icon" /> Ahorra Meses de Trabajo
+                <FaClock className="hero-section-feature-icon" aria-hidden="true" /> Ahorra Meses de Trabajo
               </div>
               <div className="hero-section-feature-item">
-                <FaShieldAlt className="hero-section-feature-icon" /> 100% Confidencial
+                <FaShieldAlt className="hero-section-feature-icon" aria-hidden="true" /> 100% Confidencial
               </div>
             </div>
             <div className="d-flex gap-3 justify-content-center">
@@ -40,7 +40,7 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
                 onClick={onOpenChat}
                 className="btn-outline-gradient"
               >
-                <FaComments style={{ position: 'relative', zIndex: 2 }} />
+                <FaComments style={{ position: 'relative', zIndex: 2 }} aria-hidden="true" />
                 <span>Chat en Línea</span>
               </Button>
             </div>
@@ -78,7 +78,7 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
                   onClick={onOpenChat}
                   className="contact-btn-new contact-btn-chat-new"
                 >
-                  <FaComments className="contact-btn-icon-new" />
+                  <FaComments className="contact-btn-icon-new" aria-hidden="true" />
                   <div className="contact-btn-content-new">
                     <span className="contact-btn-text-new">Chatear en la Página</span>
                     <span className="contact-btn-subtext-new">Respuesta inmediata</span>
@@ -90,8 +90,9 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="contact-btn-new contact-btn-whatsapp-new"
+                  aria-label="Contactar por WhatsApp"
                 >
-                  <FaWhatsapp className="contact-btn-icon-new" />
+                  <FaWhatsapp className="contact-btn-icon-new" aria-hidden="true" />
                   <div className="contact-btn-content-new">
                     <span className="contact-btn-text-new">Contactar por WhatsApp</span>
                     <span className="contact-btn-subtext-new">Asesoría 24/7</span>

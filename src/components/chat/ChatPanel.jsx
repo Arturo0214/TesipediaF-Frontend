@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { FaPaperPlane, FaPaperclip, FaSpinner, FaTimes } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -9,92 +9,101 @@ import {
     addMessage,
     clearMessages,
 } from '../../features/chat/chatSlice';
-import { connectSocket, disconnectSocket, onSocketEvent, emitSocketEvent } from '../../services/chat/chatSocket';
+import { connectSocket, disconnectSocket, onSocketEvent, emitSocketEvent, isSocketConnected } from '../../services/chat/chatSocket';
 import './ChatPanel.css';
 
 const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = false }) => {
     const dispatch = useDispatch();
     const messagesEndRef = useRef(null);
+    const initializedRef = useRef(false);
     const [newMessage, setNewMessage] = useState('');
     const [attachment, setAttachment] = useState(null);
 
     const { messages, loading, isConnected, publicId } = useSelector((state) => state.chat);
 
     // 👉 Scroll automático
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    }, []);
 
-    // 👉 Inicializar Chat
+    // 👉 Inicializar Chat — publicId removed from deps to prevent infinite loop
     useEffect(() => {
         if (!isOpen) return;
+        if (initializedRef.current) return;
+
+        let cancelled = false;
 
         const initializeChat = async () => {
             try {
-                console.log('Inicializando chat con:', { isOpen, orderId, userId, isPublic, publicId });
-
                 let socketUserId = userId;
                 let currentPublicId = publicId;
 
                 if (isPublic) {
                     if (!currentPublicId) {
-                        console.log('Generando publicId...');
                         const response = await dispatch(generatePublicId()).unwrap();
+                        if (cancelled) return;
                         currentPublicId = response;
-                        console.log('PublicId generado:', currentPublicId);
                     }
 
-                    // Ensure we have a valid publicId before proceeding
                     if (!currentPublicId) {
                         console.error('No se pudo generar un publicId válido');
                         return;
                     }
 
                     socketUserId = currentPublicId;
-
-                    // Obtener mensajes solo después de tener un publicId válido
-                    console.log('Obteniendo mensajes públicos para:', currentPublicId);
                     await dispatch(getMessagesByOrder({ orderId: null, publicId: currentPublicId })).unwrap();
                 } else if (orderId) {
-                    console.log('Obteniendo mensajes para orden:', orderId);
                     await dispatch(getMessagesByOrder(orderId)).unwrap();
                 }
 
-                // Ensure we have a valid socketUserId before connecting
+                if (cancelled) return;
+
                 if (!socketUserId) {
                     console.error('No se pudo obtener un userId válido para la conexión del socket');
                     return;
                 }
 
-                // Obtener el token si el usuario está autenticado
                 const token = !isPublic ? localStorage.getItem('token') : null;
-                console.log('Conectando socket con userId:', socketUserId);
-
                 const socket = connectSocket(socketUserId, isPublic, token);
 
+                if (!socket) {
+                    console.error('No se pudo crear la conexión del socket');
+                    return;
+                }
+
+                // Register event listeners
                 onSocketEvent('connect', () => {
-                    console.log('Socket conectado, actualizando estado...');
+                    if (cancelled) return;
                     dispatch(setConnectionStatus(true));
                     if (isPublic && currentPublicId) {
-                        console.log('Uniéndose a la sala pública:', currentPublicId);
                         emitSocketEvent('joinPublicChat', currentPublicId);
                     } else if (orderId) {
-                        console.log('Uniéndose a la sala de chat:', orderId);
                         emitSocketEvent('joinOrderChat', orderId);
                     }
                 });
 
                 onSocketEvent('disconnect', () => {
-                    console.log('Socket desconectado, actualizando estado...');
+                    if (cancelled) return;
                     dispatch(setConnectionStatus(false));
                 });
 
                 onSocketEvent('message', (message) => {
-                    console.log('Nuevo mensaje recibido:', message);
+                    if (cancelled) return;
                     dispatch(addMessage(message));
                     scrollToBottom();
                 });
 
+                // If socket already connected (autoConnect race), fire manually
+                if (isSocketConnected()) {
+                    dispatch(setConnectionStatus(true));
+                    if (isPublic && currentPublicId) {
+                        emitSocketEvent('joinPublicChat', currentPublicId);
+                    } else if (orderId) {
+                        emitSocketEvent('joinOrderChat', orderId);
+                    }
+                }
+
+                initializedRef.current = true;
             } catch (error) {
                 console.error('Error inicializando chat:', error);
             }
@@ -103,11 +112,12 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
         initializeChat();
 
         return () => {
-            console.log('Limpiando chat...');
+            cancelled = true;
+            initializedRef.current = false;
             dispatch(clearMessages());
             disconnectSocket();
         };
-    }, [dispatch, isOpen, orderId, userId, isPublic, publicId]);
+    }, [dispatch, isOpen, orderId, userId, isPublic, scrollToBottom]);
 
     useEffect(() => {
         scrollToBottom();

@@ -1,0 +1,1 @@
+import{j as t}from"./vendor-bootstrap-9U14VRQU.js";import{a as e,O as s}from"./vendor-react-BGKqUM8u.js";function r(){return e.useEffect(()=>(document.body.classList.add("client-page"),()=>{document.body.classList.remove("client-page")}),[]),t.jsx("div",{className:"client-root-layout",children:t.jsx(s,{})})}export{r as default};

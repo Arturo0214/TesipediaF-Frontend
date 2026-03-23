@@ -36,9 +36,19 @@
     /* Añadir transición para el hover */
 }
 
-.fixed-buttons a.chat-button {
+.fixed-buttons a.chat-button,
+.fixed-buttons button.chat-button {
     background-color: #007bff;
-    /* Color de fondo para el chat */
+    border: none;
+    cursor: pointer;
+}
+
+/* Focus indicators for accessibility */
+.fixed-buttons a:focus-visible,
+.fixed-buttons button:focus-visible {
+    outline: 3px solid #FFD700;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.3);
 }
 
 .fixed-buttons a:hover {
@@ -48,9 +58,8 @@
     /* Efecto de elevación al pasar el mouse */
 }
 
-.fixed-buttons a.chat-button:hover {
+.fixed-buttons a.chat-button:hover,
+.fixed-buttons button.chat-button:hover {
     background-color: #0056b3;
-    /* Color de fondo al pasar el mouse para el chat */
     transform: translateY(-2px);
-    /* Efecto de elevación al pasar el mouse */
 }

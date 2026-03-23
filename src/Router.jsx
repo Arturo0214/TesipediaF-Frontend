@@ -1,28 +1,49 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { useSelector } from 'react-redux';
 import MainLayout from './components/layout/MainLayout';
-import AdminLayout from './components/layout/AdminLayout';
-import ClientLayout from './components/layout/ClientLayout';
-import ProtectedRoute from './components/common/ProtectedRoute';
 
-import Home from './pages/Home/Home';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import Contact from './pages/Contact/Contact';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
-import AboutUs from './pages/AboutUs/AboutUs';
-import FAQ from './pages/FAQ/FAQ';
-import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
-import PaymentCancel from './pages/PaymentCancel/PaymentCancel';
+// Lazy load all pages for code splitting
+const Home = lazy(() => import('./pages/Home/Home'));
 
-import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy';
+// Redirect authenticated users to their dashboard, show Home for visitors
+const HomeOrDashboard = () => {
+  const { user } = useSelector((state) => state.auth);
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Home />;
+};
+const Login = lazy(() => import('./pages/auth/Login'));
+const Register = lazy(() => import('./pages/auth/Register'));
+const Contact = lazy(() => import('./pages/Contact/Contact'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
+const AboutUs = lazy(() => import('./pages/AboutUs/AboutUs'));
+const FAQ = lazy(() => import('./pages/FAQ/FAQ'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess/PaymentSuccess'));
+const PaymentCancel = lazy(() => import('./pages/PaymentCancel/PaymentCancel'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy/PrivacyPolicy'));
 
-import ClientPanel from './pages/Client/ClientPanel';
-import WriterPanel from './pages/Writer/WriterPanel';
-import RoleDashboard from './components/common/RoleDashboard';
+// Lazy load protected layouts and pages (not needed on initial load)
+const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
+const ClientLayout = lazy(() => import('./components/layout/ClientLayout'));
+const ProtectedRoute = lazy(() => import('./components/common/ProtectedRoute'));
+const ClientPanel = lazy(() => import('./pages/Client/ClientPanel'));
+const WriterPanel = lazy(() => import('./pages/Writer/WriterPanel'));
+const RoleDashboard = lazy(() => import('./components/common/RoleDashboard'));
+const AdminPanel = lazy(() => import('./pages/admin/adminPanel/AdminPanel'));
 
-// Admin Pages
-import AdminPanel from './pages/admin/adminPanel/AdminPanel';
+// Minimal loading fallback
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <div style={{ width: 40, height: 40, border: '3px solid #e5e7eb', borderTopColor: '#4F46E5', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+  </div>
+);
+
+// Wrapper for lazy components
+const LazyPage = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>{children}</Suspense>
+);
 
 const router = createBrowserRouter(
   [
@@ -30,30 +51,30 @@ const router = createBrowserRouter(
       path: '/',
       element: <MainLayout />, // Público
       children: [
-        { index: true, element: <Home /> },
-        { path: 'login', element: <Login /> },
-        { path: 'register', element: <Register /> },
-        { path: 'contacto', element: <Contact /> },
-        { path: 'forgot-password', element: <ForgotPassword /> },
-        { path: 'auth/reset-password/:token', element: <ResetPassword /> },
-        { path: 'sobre-nosotros', element: <AboutUs /> },
-        { path: 'politica-de-privacidad', element: <PrivacyPolicy /> },
-        { path: 'preguntas-frecuentes', element: <FAQ /> },
-        { path: 'payment/success', element: <PaymentSuccess /> },
-        { path: 'payment/cancel', element: <PaymentCancel /> },
+        { index: true, element: <LazyPage><HomeOrDashboard /></LazyPage> },
+        { path: 'login', element: <LazyPage><Login /></LazyPage> },
+        { path: 'register', element: <LazyPage><Register /></LazyPage> },
+        { path: 'contacto', element: <LazyPage><Contact /></LazyPage> },
+        { path: 'forgot-password', element: <LazyPage><ForgotPassword /></LazyPage> },
+        { path: 'auth/reset-password/:token', element: <LazyPage><ResetPassword /></LazyPage> },
+        { path: 'sobre-nosotros', element: <LazyPage><AboutUs /></LazyPage> },
+        { path: 'politica-de-privacidad', element: <LazyPage><PrivacyPolicy /></LazyPage> },
+        { path: 'preguntas-frecuentes', element: <LazyPage><FAQ /></LazyPage> },
+        { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
+        { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },
       ],
     },
 
-    // Panel de Cliente/Redactor — layout propio sin navbar público (como AdminPanel)
+    // Panel de Cliente/Redactor — layout propio sin navbar público
     {
-      element: <ProtectedRoute />,
+      element: <LazyPage><ProtectedRoute /></LazyPage>,
       children: [
         {
-          element: <ClientLayout />,
+          element: <LazyPage><ClientLayout /></LazyPage>,
           children: [
-            { path: 'dashboard', element: <RoleDashboard /> },
-            { path: 'mi-proyecto', element: <ClientPanel /> },
-            { path: 'panel-redactor', element: <WriterPanel /> },
+            { path: 'dashboard', element: <LazyPage><RoleDashboard /></LazyPage> },
+            { path: 'mi-proyecto', element: <LazyPage><ClientPanel /></LazyPage> },
+            { path: 'panel-redactor', element: <LazyPage><WriterPanel /></LazyPage> },
           ],
         },
       ],
@@ -61,24 +82,24 @@ const router = createBrowserRouter(
 
     // Panel de Admin — layout propio
     {
-      element: <ProtectedRoute requireAdmin />,
+      element: <LazyPage><ProtectedRoute requireAdmin /></LazyPage>,
       children: [
         {
-          element: <AdminLayout />,
+          element: <LazyPage><AdminLayout /></LazyPage>,
           children: [
-            { path: 'admin', element: <AdminPanel /> },
-            { path: 'admin/cotizaciones', element: <AdminPanel /> },
-            { path: 'admin/proyectos', element: <AdminPanel /> },
-            { path: 'admin/pagos', element: <AdminPanel /> },
-            { path: 'admin/pedidos', element: <AdminPanel /> },
-            { path: 'admin/urgentes', element: <AdminPanel /> },
-            { path: 'admin/whatsapp', element: <AdminPanel /> },
-            { path: 'admin/mensajes', element: <AdminPanel /> },
-            { path: 'admin/usuarios', element: <AdminPanel /> },
-            { path: 'admin/escritores', element: <AdminPanel /> },
-            { path: 'admin/servicios', element: <AdminPanel /> },
-            { path: 'admin/visitas', element: <AdminPanel /> },
-            { path: 'admin/*', element: <AdminPanel /> },
+            { path: 'admin', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/cotizaciones', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/proyectos', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/pagos', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/pedidos', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/urgentes', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/whatsapp', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/mensajes', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/usuarios', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/escritores', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/servicios', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/visitas', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/*', element: <LazyPage><AdminPanel /></LazyPage> },
           ],
         },
       ],

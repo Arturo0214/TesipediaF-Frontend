@@ -17,4 +17,26 @@ export default defineConfig({
             '@store': path.resolve(__dirname, './src/store'),
         },
     },
+    build: {
+        // Performance: Chunk splitting for better caching
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    // Vendor chunks - cached separately
+                    'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+                    'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
+                    'vendor-bootstrap': ['react-bootstrap'],
+                    'vendor-motion': ['framer-motion'],
+                },
+            },
+        },
+        // Increase chunk size warning limit
+        chunkSizeWarningLimit: 600,
+        // Enable CSS code splitting
+        cssCodeSplit: true,
+        // Minification with esbuild (built-in, fastest)
+        minify: 'esbuild',
+        // Generate source maps for debugging (optional)
+        sourcemap: false,
+    },
 });

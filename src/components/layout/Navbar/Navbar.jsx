@@ -14,7 +14,8 @@ function MainNavbar() {
     const [showRegister, setShowRegister] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [expanded, setExpanded] = useState(false);
-    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
+    // Optimized: WebP format, auto quality, resized to 200px width for navbar
+    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/f_auto,q_auto,w_200/v1743713944/Tesipedia-logo_n1liaw.png';
 
     useEffect(() => {
         const handleScroll = () => {
@@ -84,8 +85,12 @@ function MainNavbar() {
                     <Navbar.Brand as={Link} to="/" className="brand-container" onClick={closeNavbar}>
                         <motion.img
                             src={TesipediaLogo}
-                            alt="Tesipedia"
+                            alt="Tesipedia - Servicio profesional de tesis en México"
                             className="brand-logo"
+                            width="150"
+                            height="40"
+                            loading="eager"
+                            fetchPriority="high"
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                         />

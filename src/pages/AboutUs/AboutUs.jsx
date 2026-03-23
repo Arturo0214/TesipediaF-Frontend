@@ -14,7 +14,7 @@ import { Helmet } from 'react-helmet-async';
 import './AboutUs.css';
 
 function AboutUs() {
-    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
+    const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/f_auto,q_auto,w_300/v1743713944/Tesipedia-logo_n1liaw.png';
 
     const aboutSchema = {
         "@context": "https://schema.org",

@@ -13,15 +13,15 @@ export function Footer() {
                             Desarrollamos tesis profesionales con metodología y asesoría personalizada.
                             Más de 3,000 estudiantes titulados confían en nosotros.
                         </p>
-                        <div className="social-links">
-                            <a href="https://www.facebook.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light">
-                                <FaFacebookF />
+                        <div className="social-links" role="navigation" aria-label="Redes sociales">
+                            <a href="https://www.facebook.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light" aria-label="Síguenos en Facebook">
+                                <FaFacebookF aria-hidden="true" />
                             </a>
-                            <a href="https://www.instagram.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light">
-                                <FaInstagram />
+                            <a href="https://www.instagram.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light" aria-label="Síguenos en Instagram">
+                                <FaInstagram aria-hidden="true" />
                             </a>
-                            <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="text-light">
-                                <FaWhatsapp />
+                            <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="text-light" aria-label="Contáctanos por WhatsApp">
+                                <FaWhatsapp aria-hidden="true" />
                             </a>
                         </div>
                     </Col>
@@ -58,11 +58,11 @@ export function Footer() {
                         <h5 className="mb-3">Contacto</h5>
                         <ul className="list-unstyled">
                             <li className="mb-2">
-                                <FaEnvelope className="me-2" />
-                                tesipediaoficial@gmail.com
+                                <FaEnvelope className="me-2" aria-hidden="true" />
+                                <a href="mailto:tesipediaoficial@gmail.com" className="text-light text-decoration-none">tesipediaoficial@gmail.com</a>
                             </li>
                             <li className="mb-2">
-                                <FaWhatsapp className="me-2" />
+                                <FaWhatsapp className="me-2" aria-hidden="true" />
                                 <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none">
                                     +52 56 7007 1517
                                 </a>

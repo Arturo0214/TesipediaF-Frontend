@@ -1,30 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import {
   FaUserGraduate,
   FaGraduationCap,
   FaAward,
   FaHandshake
 } from 'react-icons/fa';
-import 'aos/dist/aos.css';
-import AOS from 'aos';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { Helmet } from 'react-helmet-async';
 
-// Importaciones de componentes
+// Critical above-the-fold component loaded eagerly
 import HeroSection from '../../components/HomeComponents/HeroSection/HeroSection';
-import TestimonialsSection from '../../components/HomeComponents/TestimonialsSection/TestimonialsSection';
-import ServicesSection from '../../components/HomeComponents/ServicesSection/ServicesSection';
-import GuaranteeSection from '../../components/HomeComponents/GuaranteeSection/GuaranteeSection';
-import SuccessCasesSection from '../../components/HomeComponents/SuccessCasesSection/SuccessCasesSection';
-import ChatPanel from '../../components/chat/ChatPanel';
+
+// Lazy load below-the-fold components for performance
+const TestimonialsSection = lazy(() => import('../../components/HomeComponents/TestimonialsSection/TestimonialsSection'));
+const ServicesSection = lazy(() => import('../../components/HomeComponents/ServicesSection/ServicesSection'));
+const GuaranteeSection = lazy(() => import('../../components/HomeComponents/GuaranteeSection/GuaranteeSection'));
+const SuccessCasesSection = lazy(() => import('../../components/HomeComponents/SuccessCasesSection/SuccessCasesSection'));
 
 import './Home.css';
 
 function Home() {
   const dispatch = useDispatch();
   const [currentStat, setCurrentStat] = useState(0);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  // Chat state is managed by FixedButtons via custom event
 
   const stats = [
     {
@@ -50,9 +49,21 @@ function Home() {
   ];
 
   useEffect(() => {
-    AOS.init({
-      duration: 500,
-      once: true
+    // Lazy load AOS after initial render for performance
+    const loadAOS = async () => {
+      const [AOS, aosCSS] = await Promise.all([
+        import('aos'),
+        import('aos/dist/aos.css')
+      ]);
+      AOS.default.init({
+        duration: 500,
+        once: true,
+        disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      });
+    };
+    // Defer AOS initialization
+    requestAnimationFrame(() => {
+      loadAOS();
     });
 
     const interval = setInterval(() => {
@@ -70,11 +81,7 @@ function Home() {
   }, [dispatch]);
 
   const handleOpenChat = () => {
-    setIsChatOpen(true);
-  };
-
-  const handleCloseChat = () => {
-    setIsChatOpen(false);
+    window.dispatchEvent(new Event('tesipedia:open-chat'));
   };
 
   // Schema.org structured data
@@ -206,16 +213,12 @@ function Home() {
         currentStat={currentStat}
         onOpenChat={handleOpenChat}
       />
-      <SuccessCasesSection />
-      <TestimonialsSection />
-      <ServicesSection onOpenChat={handleOpenChat} />
-      <GuaranteeSection />
-      <ChatPanel
-        isOpen={isChatOpen}
-        onClose={handleCloseChat}
-        orderId="public-chat"
-        isPublic={true}
-      />
+      <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
+        <SuccessCasesSection />
+        <TestimonialsSection />
+        <ServicesSection onOpenChat={handleOpenChat} />
+        <GuaranteeSection />
+      </Suspense>
     </>
   );
 }

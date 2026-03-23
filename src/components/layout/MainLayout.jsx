@@ -7,7 +7,6 @@ import Navbar from "./Navbar/Navbar";
 import { Footer } from "./Footer";
 import ScrollToTop from "../common/ScrollToTop";
 import FixedButtons from "../sections/FixedButtons";
-import ChatPanel from "../chat/ChatPanel";
 
 function MainLayout() {
     const { user, isAuthenticated } = useSelector(state => state.auth);
@@ -27,16 +26,15 @@ function MainLayout() {
                 <Navbar />
             )}
 
-            <main className="flex-fill main-content">
+            <main id="main-content" className="flex-fill main-content" role="main">
                 <Outlet />
             </main>
 
             <Footer />
             <ScrollToTop />
 
-            {/* ✅ Botones flotantes y componente de chat */}
+            {/* Botones flotantes con chat lazy-loaded */}
             <FixedButtons onChatClick={handleChatClick} />
-            {isChatVisible && <ChatPanel />}
         </div>
     );
 }

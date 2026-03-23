@@ -1,6 +1,6 @@
 /* Estilos específicos para el HeroSection */
 .hero-section-container {
-    min-height: 100vh;
+    min-height: 100svh; /* Use svh for mobile address bar support */
     display: flex;
     align-items: center;
     background: linear-gradient(135deg,
@@ -50,15 +50,15 @@
     align-items: center;
     gap: 1rem;
     font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
     transition: all 0.3s ease;
     padding: 0.5rem 1rem;
     border-radius: 8px;
 }
 
 .hero-section-feature-item:hover {
-    color: #3b82f6;
-    background: rgba(255, 255, 255, 0.1);
+    color: #93c5fd;
+    background: rgba(255, 255, 255, 0.15);
     transform: translateX(5px);
 }
 
@@ -369,7 +369,7 @@
 
 .hero-section-stat-text-highlight {
     font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
     display: block;
 }
 
@@ -706,7 +706,7 @@
 
 .contact-btn-sub {
     font-size: 0.8rem;
-    opacity: 0.9;
+    color: #e2e8f0;
 }
 
 @media (max-width: 992px) {
@@ -856,7 +856,7 @@
 
 .contact-btn-subtext-new {
     font-size: 0.8rem;
-    opacity: 0.9;
+    color: #e2e8f0;
 }
 
 @media (max-width: 1200px) {
@@ -949,7 +949,7 @@
 }
 
 .contact-btn-subtext {
-    color: rgba(255, 255, 255, 0.8);
+    color: #e2e8f0;
     font-size: 0.85rem;
     display: flex;
     align-items: center;
