@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import './Prices.css';
 import { useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 function Prices() {
     const visaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743714159/visa-svgrepo-com_lpwqqd.svg';
@@ -48,7 +49,53 @@ function Prices() {
         };
     }, []);
 
+    const pricingSchema = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "Servicio de Tesis Profesional — Tesipedia",
+        "description": "Planes de desarrollo de tesis profesional en México con precios desde $6,300 MXN. Incluye antiplagio Turnitin y detección anti-IA.",
+        "brand": { "@type": "Brand", "name": "Tesipedia" },
+        "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "MXN",
+            "lowPrice": "6300",
+            "highPrice": "22000",
+            "offerCount": "3",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "3000",
+            "bestRating": "5"
+        }
+    };
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com" },
+            { "@type": "ListItem", "position": 2, "name": "Precios", "item": "https://tesipedia.com/precios" }
+        ]
+    };
+
     return (
+        <>
+        <Helmet>
+            <title>Precios de Tesis en México 2025 | Planes desde $6,300 MXN — Tesipedia</title>
+            <meta name="description" content="Conoce los precios de nuestros servicios de tesis profesional en México. Planes desde $6,300 MXN: elaboración completa, acompañamiento y corrección. Pagos a meses sin intereses. Incluye Turnitin y anti-IA." />
+            <meta name="keywords" content="precios tesis México, cuánto cuesta una tesis, costos asesoría de tesis, precio elaboración tesis, tesis barata México, planes de tesis, pagar tesis a meses" />
+            <meta property="og:title" content="Precios de Tesis Profesional — Tesipedia | Desde $6,300 MXN" />
+            <meta property="og:description" content="Planes accesibles para tu tesis profesional. Desde $6,300 MXN con pagos a meses sin intereses." />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="https://tesipedia.com/precios" />
+            <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+            <meta property="og:locale" content="es_MX" />
+            <link rel="canonical" href="https://tesipedia.com/precios" />
+            <script type="application/ld+json">{JSON.stringify(pricingSchema)}</script>
+            <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        </Helmet>
         <Container className="py-3">
             <div className="text-center mb-4">
                 <h2 className="prices-title">
@@ -303,9 +350,9 @@ function Prices() {
                                     <p>Pago seguro con tarjetas principales</p>
                                 </div>
                                 <div className="payment-card-logos">
-                                    <img src={visaLogo} alt="Visa" className="card-logo" />
-                                    <img src={mastercardLogo} alt="Mastercard" className="card-logo" />
-                                    <img src={amexLogo} alt="American Express" className="card-logo" />
+                                    <img src={visaLogo} alt="Visa" className="card-logo" loading="lazy" />
+                                    <img src={mastercardLogo} alt="Mastercard" className="card-logo" loading="lazy" />
+                                    <img src={amexLogo} alt="American Express" className="card-logo" loading="lazy" />
                                 </div>
                             </div>
 
@@ -315,7 +362,7 @@ function Prices() {
                                     <p>Pago seguro online</p>
                                 </div>
                                 <div className="payment-card-logos single-logo">
-                                    <img src={paypalLogo} alt="PayPal" className="payment-logo" />
+                                    <img src={paypalLogo} alt="PayPal" className="payment-logo" loading="lazy" />
                                 </div>
                             </div>
 
@@ -326,7 +373,7 @@ function Prices() {
                                     <p>Transferencia SPEI o depósito directo</p>
                                 </div>
                                 <div className="payment-card-logos single-logo">
-                                    <img src={bankTransferLogo} alt="Transferencia" className="payment-logo" />
+                                    <img src={bankTransferLogo} alt="Transferencia" className="payment-logo" loading="lazy" />
                                 </div>
                             </div>
 
@@ -337,7 +384,7 @@ function Prices() {
                                     <p>Pago con código QR o referencia</p>
                                 </div>
                                 <div className="payment-card-logos single-logo">
-                                    <img src={qrCodeLogo} alt="Retiro sin Tarjeta" className="payment-logo" />
+                                    <img src={qrCodeLogo} alt="Retiro sin Tarjeta" className="payment-logo" loading="lazy" />
                                 </div>
                             </div>
                         </div>
@@ -404,6 +451,7 @@ function Prices() {
                 </Row>
             </div>
         </Container>
+        </>
     );
 }
 

@@ -1,6 +1,7 @@
 import { Container, Row, Col, Card, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import './Blog.css';
 
 function Blog() {
@@ -307,7 +308,52 @@ Factores a considerar:
     });
   };
 
+  const blogSchema = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "Blog Académico — Tesipedia",
+    "description": "Recursos, consejos y guías profesionales para estudiantes universitarios. Aprende a estructurar tu tesis, defender tu proyecto y dominar métodos de investigación.",
+    "url": "https://tesipedia.com/blog",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Tesipedia",
+      "url": "https://tesipedia.com"
+    },
+    "blogPost": blogPosts.map(post => ({
+      "@type": "BlogPosting",
+      "headline": post.title,
+      "description": post.excerpt,
+      "datePublished": post.date,
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "image": post.image
+    }))
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://tesipedia.com/blog" }
+    ]
+  };
+
   return (
+    <>
+    <Helmet>
+      <title>Blog Académico | Guías y Consejos para tu Tesis — Tesipedia</title>
+      <meta name="description" content="Blog con recursos, guías y consejos profesionales para tu tesis universitaria. Aprende a estructurar tu tesis, preparar tu defensa y dominar métodos de investigación. Por los expertos de Tesipedia." />
+      <meta name="keywords" content="blog tesis, consejos para tesis, guía tesis profesional, cómo estructurar tesis, cómo defender tesis, métodos de investigación, tips tesis universitaria, recursos académicos" />
+      <meta property="og:title" content="Blog Académico — Tesipedia | Guías y Consejos para tu Tesis" />
+      <meta property="og:description" content="Recursos gratuitos y guías profesionales para que tu tesis sea un éxito. Por los expertos de Tesipedia." />
+      <meta property="og:type" content="blog" />
+      <meta property="og:url" content="https://tesipedia.com/blog" />
+      <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+      <meta property="og:locale" content="es_MX" />
+      <link rel="canonical" href="https://tesipedia.com/blog" />
+      <script type="application/ld+json">{JSON.stringify(blogSchema)}</script>
+      <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+    </Helmet>
     <div className="blog-page">
       <Container className="blog-container">
         <div className="blog-header">
@@ -322,7 +368,7 @@ Factores a considerar:
             <Col key={post.id} md={6} lg={4}>
               <Card className="blog-card">
                 <div className="blog-image-container">
-                  <Card.Img variant="top" src={post.image} className="blog-image" />
+                  <Card.Img variant="top" src={post.image} className="blog-image" loading="lazy" />
                 </div>
                 <Card.Body>
                   <Card.Title>{post.title}</Card.Title>
@@ -369,7 +415,7 @@ Factores a considerar:
             </Modal.Header>
             <Modal.Body>
               <div className="modal-image-container">
-                <img src={selectedPost.image} alt={selectedPost.title} className="modal-image" />
+                <img src={selectedPost.image} alt={selectedPost.title} className="modal-image" loading="lazy" />
               </div>
               <div className="modal-content-wrapper">
                 <div className="modal-content">
@@ -396,6 +442,7 @@ Factores a considerar:
         )}
       </Modal>
     </div>
+    </>
   );
 }
 

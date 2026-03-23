@@ -534,7 +534,9 @@ function Quote() {
 
         const currentQuote = quote;
         if (!currentQuote || (!currentQuote._id && !currentQuote.publicId)) {
-            console.error("Error: No hay una cotización válida para proceder al pago", quote);
+            if (import.meta.env.MODE !== 'production') {
+                console.error("Error: No hay una cotización válida para proceder al pago");
+            }
             Swal.fire({
                 title: 'Error',
                 text: 'Error al cargar los datos de la cotización para el pago. Intenta recargar o crea una nueva cotización.',
@@ -584,19 +586,24 @@ function Quote() {
                 throw new Error('El precio de la cotización no es válido');
             }
 
-            console.log('Iniciando sesión de pago para la cotización:', quote.publicId || quote._id);
             const response = await dispatch(createPaymentSession({
                 publicId: quote.publicId || quote._id
             })).unwrap();
 
             if (response && response.sessionUrl) {
-                console.log('URL de sesión de pago recibida:', response.sessionUrl);
-                window.location.href = response.sessionUrl;
+                const url = response.sessionUrl;
+                if (url && url.startsWith('https://checkout.stripe.com/')) {
+                    window.location.href = url;
+                } else {
+                    throw new Error('Error: URL de pago inválida');
+                }
             } else {
                 throw new Error('No se recibió la URL de pago');
             }
         } catch (error) {
-            console.error('Error al procesar el pago:', error);
+            if (import.meta.env.MODE !== 'production') {
+                console.error('Error al procesar el pago');
+            }
             Swal.fire({
                 title: 'Error',
                 text: error.message || 'Error al procesar el pago',
@@ -1192,9 +1199,9 @@ function Quote() {
                                                                     <h5>Tarjeta de Crédito/Débito</h5>
                                                                     <p>Pago seguro procesado por Stripe</p>
                                                                     <div className="card-logos-tesipedia">
-                                                                        <img src={visaLogo} alt="Visa" className="card-logo-tesipedia" />
-                                                                        <img src={mastercardLogo} alt="Mastercard" className="card-logo-tesipedia" />
-                                                                        <img src={amexLogo} alt="American Express" className="card-logo-tesipedia" />
+                                                                        <img src={visaLogo} alt="Visa" className="card-logo-tesipedia" loading="lazy" />
+                                                                        <img src={mastercardLogo} alt="Mastercard" className="card-logo-tesipedia" loading="lazy" />
+                                                                        <img src={amexLogo} alt="American Express" className="card-logo-tesipedia" loading="lazy" />
                                                                     </div>
                                                                 </div>
                                                             </div>

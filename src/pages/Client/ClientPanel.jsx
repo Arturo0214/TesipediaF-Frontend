@@ -441,7 +441,7 @@ const ClientPanel = () => {
 
       {/* Topbar */}
       <div className="cp-topbar">
-        <img src={TesipediaLogo} alt="Tesipedia" className="cp-topbar-logo" />
+        <img src={TesipediaLogo} alt="Tesipedia" className="cp-topbar-logo" loading="lazy" />
         <span className="cp-topbar-label">Panel de Cliente</span>
         <span className="cp-topbar-user"><FaUser /> {user?.name}</span>
       </div>

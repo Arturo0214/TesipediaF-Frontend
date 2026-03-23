@@ -1,65 +1,256 @@
+/* ─── Container ──────────────────────────────────────────── */
+.fixed-buttons-container {
+  position: fixed;
+  bottom: 20px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* ─── Buttons row ────────────────────────────────────────── */
 .fixed-buttons {
-    position: fixed;
-    bottom: 20px;
-    /* Ajusta la posición vertical */
-    right:10px;
-    /* Mueve los botones un poco a la izquierda */
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    z-index: 1000;
-    /* Asegúrate de que estén por encima de otros elementos */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
 }
 
-.fixed-buttons a {
-    background-color: #25D366;
-    /* Color de fondo para WhatsApp */
-    color: white;
-    border-radius: 50%;
-    /* Hacer los botones circulares */
-    width: 60px;
-    /* Ancho del botón */
-    height: 60px;
-    /* Alto del botón */
-    display: flex;
-    /* Flex para centrar el icono */
-    align-items: center;
-    /* Centrar verticalmente */
-    justify-content: center;
-    /* Centrar horizontalmente */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    /* Sombra más sutil */
-    text-align: center;
-    font-size: 24px;
-    /* Ajusta el tamaño de la fuente */
-    transition: background-color 0.3s, transform 0.3s;
-    /* Añadir transición para el hover */
+/* ─── WhatsApp button ────────────────────────────────────── */
+.whatsapp-button {
+  background-color: #25D366;
+  color: white;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+  font-size: 26px;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.fixed-buttons a.chat-button,
-.fixed-buttons button.chat-button {
-    background-color: #007bff;
-    border: none;
-    cursor: pointer;
+.whatsapp-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
+  background-color: #22c55e;
 }
 
-/* Focus indicators for accessibility */
+/* ─── Chat bot trigger button ────────────────────────────── */
+.chat-bot-trigger {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s ease;
+  font-size: 24px;
+}
+
+.chat-bot-trigger:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 28px rgba(79, 70, 229, 0.5);
+}
+
+.chat-bot-trigger.active {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  transform: rotate(0deg);
+}
+
+/* Notification badge */
+.chat-bot-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  background: #EF4444;
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* ─── Greeting popup bubble ──────────────────────────────── */
+.chat-greeting {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 14px 40px 14px 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 280px;
+  cursor: pointer;
+  animation: greetingSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chat-greeting:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Speech bubble tail */
+.chat-greeting::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 28px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  transform: rotate(45deg);
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
+}
+
+.chat-greeting-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 50%;
+  transition: color 0.2s, background 0.2s;
+}
+
+.chat-greeting-close:hover {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
+.chat-greeting-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-greeting-avatar img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.chat-greeting-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-greeting-content strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.chat-greeting-content p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+@keyframes greetingSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Focus indicators for accessibility ─────────────────── */
 .fixed-buttons a:focus-visible,
-.fixed-buttons button:focus-visible {
-    outline: 3px solid #FFD700;
-    outline-offset: 3px;
-    box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.3);
+.fixed-buttons button:focus-visible,
+.chat-bot-trigger:focus-visible {
+  outline: 3px solid #FFD700;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.3);
 }
 
-.fixed-buttons a:hover {
-    background-color: #128C7E;
-    /* Color de fondo al pasar el mouse para WhatsApp */
-    transform: translateY(-2px);
-    /* Efecto de elevación al pasar el mouse */
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .fixed-buttons-container {
+    bottom: 12px;
+    right: 10px;
+  }
+
+  .whatsapp-button {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+
+  .chat-bot-trigger {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
+  }
+
+  .chat-greeting {
+    max-width: 240px;
+    padding: 12px 36px 12px 12px;
+  }
+
+  .chat-greeting-content strong {
+    font-size: 0.78rem;
+  }
+
+  .chat-greeting-content p {
+    font-size: 0.75rem;
+  }
 }
 
-.fixed-buttons a.chat-button:hover,
-.fixed-buttons button.chat-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
+/* ─── Reduced motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .chat-greeting {
+    animation: none;
+  }
+
+  .chat-bot-badge {
+    animation: none;
+  }
+
+  .chat-bot-trigger,
+  .whatsapp-button,
+  .chat-greeting {
+    transition: none;
+  }
 }

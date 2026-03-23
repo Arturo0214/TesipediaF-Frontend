@@ -37,9 +37,7 @@ const GuestPaymentModal = ({ show, onHide, quoteData }) => {
     }, [dispatch]);
 
     useEffect(() => {
-        console.log("🔍 sessionUrl cambió:", sessionUrl);
-        if (sessionUrl && sessionUrl.startsWith('https://checkout.stripe.com')) {
-            console.log("🚀 Redirigiendo a Stripe:", sessionUrl);
+        if (sessionUrl && sessionUrl.startsWith('https://checkout.stripe.com/')) {
             window.open(sessionUrl, '_blank');
             onHide(); // Cierra el modal después de abrir la nueva pestaña
         }
@@ -94,15 +92,12 @@ const GuestPaymentModal = ({ show, onHide, quoteData }) => {
 
         try {
             const result = await dispatch(processGuestPayment(paymentData)).unwrap();
-            console.log("✅ Respuesta del proceso de pago:", JSON.stringify(result, null, 2));
 
             // Solución directa y robusta para la redirección
             const stripeUrl = result.url || result.sessionUrl;
             setStripeUrl(stripeUrl); // Guardar la URL en el estado
 
-            if (stripeUrl && stripeUrl.startsWith('https://checkout.stripe.com')) {
-                console.log("🚀 Redirección directa a Stripe:", stripeUrl);
-
+            if (stripeUrl && stripeUrl.startsWith('https://checkout.stripe.com/')) {
                 // Intentar múltiples métodos de redirección
                 try {
                     // Método 1: window.open
@@ -110,14 +105,15 @@ const GuestPaymentModal = ({ show, onHide, quoteData }) => {
 
                     // Si window.open falla (devuelve null), intentar otro método
                     if (!newWindow) {
-                        console.log("⚠️ window.open falló, intentando location.href");
                         window.location.href = stripeUrl;
                     }
 
                     // Cerrar el modal después de intentar la redirección
                     onHide();
                 } catch (redirectError) {
-                    console.error("❌ Error al redirigir:", redirectError);
+                    if (import.meta.env.MODE !== 'production') {
+                        console.error("Error al redirigir:", redirectError);
+                    }
 
                     // Método de respaldo: mostrar un botón para que el usuario haga clic
                     setValidationError(
@@ -130,10 +126,12 @@ const GuestPaymentModal = ({ show, onHide, quoteData }) => {
                     );
                 }
             } else {
-                setValidationError("No se pudo generar la URL de pago correctamente.");
+                setValidationError("Error: URL de pago inválida");
             }
         } catch (error) {
-            console.error("Error en el pago:", error);
+            if (import.meta.env.MODE !== 'production') {
+                console.error("Error en el pago:", error);
+            }
             setValidationError(error.message || "Ocurrió un error al procesar el pago.");
         }
     };
@@ -145,9 +143,11 @@ const GuestPaymentModal = ({ show, onHide, quoteData }) => {
 
     // Función para manejar la redirección manual
     const handleManualRedirect = () => {
-        if (stripeUrl) {
+        if (stripeUrl && stripeUrl.startsWith('https://checkout.stripe.com/')) {
             window.open(stripeUrl, '_blank');
             onHide();
+        } else {
+            setValidationError("URL de pago inválida");
         }
     };
 

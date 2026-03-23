@@ -8,7 +8,33 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Páginas públicas de servicio (las que Google DEBE indexar) -->
+  <!-- Páginas de servicio y conversión (ALTA PRIORIDAD SEO) -->
+  <url>
+    <loc>https://tesipedia.com/servicios</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://tesipedia.com/precios</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://tesipedia.com/como-funciona</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://tesipedia.com/cotizar</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Páginas informativas -->
   <url>
     <loc>https://tesipedia.com/sobre-nosotros</loc>
     <lastmod>2026-03-23</lastmod>
@@ -27,11 +53,13 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Blog y contenido SEO -->
   <url>
-    <loc>https://tesipedia.com/politica-de-privacidad</loc>
+    <loc>https://tesipedia.com/blog</loc>
     <lastmod>2026-03-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <!-- Páginas de conversión -->
@@ -42,19 +70,11 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- Blog / Contenido SEO (agregar conforme se publiquen) -->
-  <!--
+  <!-- Legal -->
   <url>
-    <loc>https://tesipedia.com/blog/como-hacer-una-tesis-paso-a-paso</loc>
+    <loc>https://tesipedia.com/politica-de-privacidad</loc>
     <lastmod>2026-03-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
-  <url>
-    <loc>https://tesipedia.com/blog/cuanto-cuesta-una-tesis-en-mexico</loc>
-    <lastmod>2026-03-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  -->
 </urlset>

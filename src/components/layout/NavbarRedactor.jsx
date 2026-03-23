@@ -20,7 +20,7 @@ function NavbarRedactor() {
         <Navbar bg="white" variant="light" expand="lg" fixed="top" className="shadow-sm">
             <Container>
                 <Navbar.Brand as={Link} to="/dashboard">
-                    <img src={TesipediaLogo} alt="Tesipedia" style={{ height: 36 }} />
+                    <img src={TesipediaLogo} alt="Tesipedia" style={{ height: 36 }} loading="lazy" />
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="writer-navbar-nav" />
                 <Navbar.Collapse id="writer-navbar-nav">

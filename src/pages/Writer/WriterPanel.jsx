@@ -166,7 +166,7 @@ const WriterPanel = () => {
     return (
       <div className="wp">
         <div className="wp-topbar">
-          <img src={TesipediaLogo} alt="Tesipedia" className="wp-topbar-logo" />
+          <img src={TesipediaLogo} alt="Tesipedia" className="wp-topbar-logo" loading="lazy" />
           <span className="wp-topbar-label">Panel de Redactor</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, color: '#64748b' }}>
@@ -180,7 +180,7 @@ const WriterPanel = () => {
     <div className="wp">
       {/* ── Topbar ── */}
       <div className="wp-topbar">
-        <img src={TesipediaLogo} alt="Tesipedia" className="wp-topbar-logo" />
+        <img src={TesipediaLogo} alt="Tesipedia" className="wp-topbar-logo" loading="lazy" />
         <span className="wp-topbar-label">Panel de Redactor</span>
         <div className="wp-topbar-actions">
           <span className="wp-topbar-user"><FaUser /> {user?.name}</span>

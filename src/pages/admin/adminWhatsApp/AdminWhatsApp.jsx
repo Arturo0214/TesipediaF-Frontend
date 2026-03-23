@@ -979,7 +979,7 @@ const AdminWhatsApp = () => {
               <div className="wa-message-media mt-2 mb-2">
                 {msg.mimetype?.startsWith('image/') || msg.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
-                    <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" />
+                    <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" loading="lazy" />
                   </a>
                 ) : (
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">

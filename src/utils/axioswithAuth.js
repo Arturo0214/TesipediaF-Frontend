@@ -11,7 +11,7 @@ const axiosWithAuth = axios.create({
 
 const getAuthToken = () => {
   try {
-    // 1. Intentar desde cookie
+    // Obtener token desde cookie (httpOnly en el servidor)
     const cookies = document.cookie.split(';').reduce((cookiesObj, cookie) => {
       if (!cookie) return cookiesObj;
       const [name, value] = cookie.trim().split('=').map(c => c.trim());
@@ -25,31 +25,11 @@ const getAuthToken = () => {
       return cookies.jwt;
     }
 
-    // 2. Fallback: localStorage (móviles pueden borrar cookies)
-    try {
-      const stored = localStorage.getItem('jwt_backup');
-      if (stored) {
-        // Re-establecer cookie desde localStorage
-        const isSecure = window.location.protocol === 'https:';
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        let cookieConfig = 'path=/';
-        if (isLocalhost) {
-          cookieConfig += '; samesite=lax';
-        } else {
-          cookieConfig += '; samesite=none';
-          if (isSecure) cookieConfig += '; secure';
-        }
-        document.cookie = `jwt=${stored}; max-age=${365 * 24 * 60 * 60}; ${cookieConfig}`;
-        console.log('[Auth] Token restaurado desde localStorage en interceptor');
-        return stored;
-      }
-    } catch (e) {
-      // localStorage no disponible
-    }
-
     return '';
   } catch (error) {
-    console.error('Error extracting JWT token:', error);
+    if (import.meta.env.MODE !== 'production') {
+      console.error('Error extracting JWT token:', error);
+    }
     return '';
   }
 };
@@ -83,7 +63,7 @@ axiosWithAuth.interceptors.request.use((config) => {
     }
 
     if (import.meta.env.MODE !== 'production') {
-      console.log('Request:', config.method?.toUpperCase(), config.url);
+      console.log('Request:', config.method?.toUpperCase(), config.url.replace(/jwt[^&]*/g, 'jwt=***'));
     }
 
     return config;
@@ -99,18 +79,20 @@ axiosWithAuth.interceptors.request.use((config) => {
 axiosWithAuth.interceptors.response.use(
   (response) => {
     if (import.meta.env.MODE !== 'production') {
-      console.log('Response:', response.status, response.config.url);
+      console.log('Response:', response.status, response.config.url.replace(/jwt[^&]*/g, 'jwt=***'));
     }
     return response;
   },
   async (error) => {
-    console.error('Axios error:', {
-      status: error.response?.status,
-      url: error.config?.url,
-      method: error.config?.method,
-      message: error.message,
-      data: error.response?.data
-    });
+    if (import.meta.env.MODE !== 'production') {
+      console.error('Axios error:', {
+        status: error.response?.status,
+        url: error.config?.url.replace(/jwt[^&]*/g, 'jwt=***'),
+        method: error.config?.method,
+        message: error.message,
+        data: error.response?.data
+      });
+    }
 
     if (error.response) {
       switch (error.response.status) {

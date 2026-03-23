@@ -189,7 +189,7 @@ const ExploreSectionsModal = () => {
                     <div className="step12-payment-grid">
                         {paymentMethods.map((method, index) => (
                             <div key={index} className="step12-payment-method">
-                                <img src={method.logo} alt={method.title} className="step12-payment-method-logo" />
+                                <img src={method.logo} alt={method.title} className="step12-payment-method-logo" loading="lazy" />
                                 <span className="step12-payment-method-title">{method.title}</span>
                                 {method.hasDiscount && (
                                     <span className="step12-payment-discount-tag">-10%</span>

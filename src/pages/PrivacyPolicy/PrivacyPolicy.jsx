@@ -2,10 +2,33 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Container } from 'react-bootstrap';
 import { FaShieldAlt, FaKey, FaHandHoldingHeart, FaUserLock, FaEnvelopeOpenText } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async';
 import './PrivacyPolicy.css';
 
 const PrivacyPolicy = () => {
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com" },
+            { "@type": "ListItem", "position": 2, "name": "Privacidad", "item": "https://tesipedia.com/privacidad" }
+        ]
+    };
+
     return (
+        <>
+        <Helmet>
+            <title>Política de Privacidad y Confidencialidad — Tesipedia</title>
+            <meta name="description" content="Conoce nuestra política de privacidad y confidencialidad. En Tesipedia protegemos tu información personal y académica con los más altos estándares de seguridad. 100% confidencial." />
+            <meta name="keywords" content="política de privacidad Tesipedia, confidencialidad tesis, protección de datos académicos, seguridad información tesis" />
+            <meta property="og:title" content="Política de Privacidad — Tesipedia" />
+            <meta property="og:description" content="Tu información está segura con nosotros. Conoce cómo protegemos tus datos personales y académicos." />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="https://tesipedia.com/privacidad" />
+            <meta property="og:locale" content="es_MX" />
+            <link rel="canonical" href="https://tesipedia.com/privacidad" />
+            <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        </Helmet>
         <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -56,6 +79,7 @@ const PrivacyPolicy = () => {
                 </div>
             </Container>
         </motion.div>
+        </>
     );
 };
 

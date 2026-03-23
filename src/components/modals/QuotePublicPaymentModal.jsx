@@ -14,7 +14,11 @@ const QuotePublicPaymentModal = ({ show, onHide, quoteData, onGuestPayment }) =>
 
     useEffect(() => {
         if (sessionUrl) {
-            window.location.href = sessionUrl;
+            if (sessionUrl.startsWith('https://checkout.stripe.com/')) {
+                window.location.href = sessionUrl;
+            } else {
+                console.error('URL de pago inválida detectada');
+            }
         }
     }, [sessionUrl]);
 

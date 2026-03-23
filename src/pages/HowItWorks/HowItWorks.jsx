@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import Hero from './components/Hero';
 import StepsList from './components/StepsList';
+import { Helmet } from 'react-helmet-async';
 import './styles/main.css';
 import './styles/button.css';
 import './styles/steps.css';
@@ -147,7 +148,45 @@ function HowItWorks() {
     setActiveModal(null);
   };
 
+  const howItWorksSchema = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo Funciona el Servicio de Tesis de Tesipedia",
+    "description": "Guía paso a paso del proceso para obtener tu tesis profesional con Tesipedia, desde la cotización hasta la entrega final.",
+    "step": [
+      { "@type": "HowToStep", "position": 1, "name": "Solicita tu Cotización", "text": "Envíanos los detalles de tu tesis y recibe una cotización personalizada sin compromiso." },
+      { "@type": "HowToStep", "position": 2, "name": "Realiza tu Pago", "text": "Elige tu plan y método de pago. Aceptamos tarjetas, PayPal y transferencia bancaria." },
+      { "@type": "HowToStep", "position": 3, "name": "Asignamos tu Asesor", "text": "Te asignamos un asesor experto en tu área de estudio para desarrollar tu tesis." },
+      { "@type": "HowToStep", "position": 4, "name": "Desarrollo y Entregas", "text": "Recibe avances parciales y comunícate directamente con tu asesor." },
+      { "@type": "HowToStep", "position": 5, "name": "Entrega Final", "text": "Recibe tu tesis completa con certificado antiplagio Turnitin y detección anti-IA." }
+    ]
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com" },
+      { "@type": "ListItem", "position": 2, "name": "Cómo Funciona", "item": "https://tesipedia.com/como-funciona" }
+    ]
+  };
+
   return (
+    <>
+    <Helmet>
+      <title>¿Cómo Funciona Nuestro Servicio de Tesis? | Paso a Paso — Tesipedia</title>
+      <meta name="description" content="Conoce el proceso paso a paso para obtener tu tesis profesional con Tesipedia. Desde la cotización hasta la entrega final con certificado antiplagio Turnitin. Proceso 100% en línea, seguro y confidencial." />
+      <meta name="keywords" content="cómo funciona servicio de tesis, proceso elaboración tesis, pasos para hacer tesis, asesoría tesis en línea, cómo pedir tesis México, servicio tesis paso a paso" />
+      <meta property="og:title" content="¿Cómo Funciona? — Tesipedia | Servicio de Tesis #1 en México" />
+      <meta property="og:description" content="Proceso simple y transparente: cotiza, paga, recibe tu tesis. 100% en línea con asesor dedicado." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://tesipedia.com/como-funciona" />
+      <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+      <meta property="og:locale" content="es_MX" />
+      <link rel="canonical" href="https://tesipedia.com/como-funciona" />
+      <script type="application/ld+json">{JSON.stringify(howItWorksSchema)}</script>
+      <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+    </Helmet>
     <div className="how-it-works-container">
       <div className="how-it-works-content">
         <Hero showSteps={showSteps} onToggleSteps={handleToggleSteps} />
@@ -163,6 +202,7 @@ function HowItWorks() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

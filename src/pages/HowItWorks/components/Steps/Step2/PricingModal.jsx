@@ -106,34 +106,34 @@ const PricingModal = () => {
                 <div className="payment-grid">
                     {/* Primera fila */}
                     <div className="payment-method">
-                        <img src={visaLogo} alt="Visa" className="payment-method-logo" />
+                        <img src={visaLogo} alt="Visa" className="payment-method-logo" loading="lazy" />
                         <span className="payment-method-title">Visa</span>
                     </div>
 
                     <div className="payment-method">
-                        <img src={mastercardLogo} alt="Mastercard" className="payment-method-logo" />
+                        <img src={mastercardLogo} alt="Mastercard" className="payment-method-logo" loading="lazy" />
                         <span className="payment-method-title">Mastercard</span>
                     </div>
 
                     <div className="payment-method">
-                        <img src={amexLogo} alt="American Express" className="payment-method-logo" />
+                        <img src={amexLogo} alt="American Express" className="payment-method-logo" loading="lazy" />
                         <span className="payment-method-title">Amex</span>
                     </div>
 
                     {/* Segunda fila */}
                     <div className="payment-method">
-                        <img src={paypalLogo} alt="PayPal" className="payment-method-logo" />
+                        <img src={paypalLogo} alt="PayPal" className="payment-method-logo" loading="lazy" />
                         <span className="payment-method-title">PayPal</span>
                     </div>
 
                     <div className="payment-method">
-                        <img src={bankTransferLogo} alt="Transferencia" className="payment-method-logo" />
+                        <img src={bankTransferLogo} alt="Transferencia" className="payment-method-logo" loading="lazy" />
                         <span className="payment-method-title">SPEI</span>
                         <span className="payment-discount-tag">-10%</span>
                     </div>
 
                     <div className="payment-method">
-                        <img src={qrCodeLogo} alt="QR" className="payment-method-logo" />
+                        <img src={qrCodeLogo} alt="QR" className="payment-method-logo" loading="lazy" />
                         <span className="payment-method-title">QR</span>
                         <span className="payment-discount-tag">-10%</span>
                     </div>

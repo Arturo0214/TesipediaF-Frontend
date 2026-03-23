@@ -1,10 +1,16 @@
 # Tesipedia - Robots.txt
 User-agent: *
 Allow: /
+Allow: /servicios
+Allow: /precios
+Allow: /como-funciona
+Allow: /cotizar
+Allow: /blog
 Allow: /sobre-nosotros
 Allow: /contacto
 Allow: /preguntas-frecuentes
 Allow: /register
+Allow: /politica-de-privacidad
 
 # Bloquear páginas privadas y de admin
 Disallow: /admin

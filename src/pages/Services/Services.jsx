@@ -2,6 +2,7 @@ import { Container, Row, Col, ListGroup, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FaGraduationCap, FaUserTie, FaClipboardCheck, FaChartLine, FaCheckCircle, FaArrowRight, FaTimes } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import './Services.css';
 
 function Services() {
@@ -238,7 +239,53 @@ function Services() {
     }
   ];
 
+  const servicePageSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Asesoría y Desarrollo de Tesis Profesional",
+    "provider": {
+      "@type": "ProfessionalService",
+      "name": "Tesipedia",
+      "url": "https://tesipedia.com"
+    },
+    "areaServed": { "@type": "Country", "name": "México" },
+    "description": "Servicios profesionales de asesoría, elaboración y corrección de tesis de licenciatura, maestría y doctorado en México. Incluye antiplagio Turnitin y detección anti-IA.",
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Servicios de Tesis",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Elaboración Completa de Tesis" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Asesoría y Acompañamiento de Tesis" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Corrección y Revisión de Tesis" } }
+      ]
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com" },
+      { "@type": "ListItem", "position": 2, "name": "Servicios", "item": "https://tesipedia.com/servicios" }
+    ]
+  };
+
   return (
+    <>
+    <Helmet>
+      <title>Servicios de Tesis Profesional en México | Asesoría, Elaboración y Corrección — Tesipedia</title>
+      <meta name="description" content="Servicios profesionales de asesoría de tesis en México: elaboración completa, acompañamiento personalizado y corrección de tesis de licenciatura, maestría y doctorado. Incluye antiplagio Turnitin y detección anti-IA. +3,000 titulados." />
+      <meta name="keywords" content="servicios de tesis, asesoría de tesis México, elaboración de tesis, corrección de tesis, ayuda con tesis profesional, tesis licenciatura, tesis maestría, tesis doctorado, servicio de tesis CDMX, asesor de tesis" />
+      <meta property="og:title" content="Servicios de Tesis Profesional — Tesipedia | #1 en México" />
+      <meta property="og:description" content="Asesoría, elaboración y corrección de tesis profesional. Más de 3,000 estudiantes titulados confían en Tesipedia." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://tesipedia.com/servicios" />
+      <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+      <meta property="og:locale" content="es_MX" />
+      <link rel="canonical" href="https://tesipedia.com/servicios" />
+      <script type="application/ld+json">{JSON.stringify(servicePageSchema)}</script>
+      <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+    </Helmet>
     <Container fluid className='tesi-services-page'>
       <div className="tesi-services-header">
         <h2 className="tesi-services-title">
@@ -328,6 +375,7 @@ function Services() {
         </Link>
       </div>
     </Container>
+    </>
   );
 }
 

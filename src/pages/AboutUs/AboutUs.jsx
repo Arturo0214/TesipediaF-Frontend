@@ -55,7 +55,7 @@ function AboutUs() {
                     <Row className="page-aboutUs__heroRow">
                         <Col lg={4} className="page-aboutUs__logoColumn">
                             <div className="page-aboutUs__logoContainer">
-                                <img src={TesipediaLogo} alt="Tesipedia" className="page-aboutUs__logo" />
+                                <img src={TesipediaLogo} alt="Tesipedia" className="page-aboutUs__logo" loading="lazy" />
                             </div>
                         </Col>
                         <Col lg={8} className="page-aboutUs__contentColumn">

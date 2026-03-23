@@ -4,8 +4,9 @@ import './TesipediaBot.css';
 
 // ─── Configuration ───────────────────────────────────────────
 const WHATSAPP_NUMBER = '525670071517';
-const TYPING_DELAY = 800; // ms before bot "types"
+const TYPING_DELAY = 800;
 const BOT_NAME = 'Sofia';
+const API_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 
 // ─── Conversation Flow (state-machine) ──────────────────────
 const STEPS = {
@@ -192,6 +193,28 @@ const STEPS = {
   },
 };
 
+// ─── Helper: generate a 32-char hex public ID ────────────────
+const generateLocalPublicId = () => {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+};
+
+// ─── Helper: send message to backend chat system (fire-and-forget) ──
+const sendChatMessage = (publicId, text, senderName) => {
+  const formData = new FormData();
+  formData.append('publicId', publicId);
+  formData.append('text', text);
+  formData.append('name', senderName || 'Visitante Web');
+
+  fetch(`${API_URL}/api/chat/send`, {
+    method: 'POST',
+    body: formData,
+  }).catch(() => {
+    // Best-effort — don't break the chatbot if backend is down
+  });
+};
+
 // ─── Component ───────────────────────────────────────────────
 const TesipediaBot = ({ isOpen, onClose }) => {
   const [chatMessages, setChatMessages] = useState([]);
@@ -202,6 +225,22 @@ const TesipediaBot = ({ isOpen, onClose }) => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const initializedRef = useRef(false);
+  const publicIdRef = useRef(null);
+
+  // Generate or retrieve publicId on first open
+  useEffect(() => {
+    if (isOpen && !publicIdRef.current) {
+      // Try to get from sessionStorage so same visitor keeps same conversation
+      const stored = sessionStorage.getItem('tesipedia_chat_pid');
+      if (stored) {
+        publicIdRef.current = stored;
+      } else {
+        const pid = generateLocalPublicId();
+        publicIdRef.current = pid;
+        sessionStorage.setItem('tesipedia_chat_pid', pid);
+      }
+    }
+  }, [isOpen]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -265,11 +304,16 @@ const TesipediaBot = ({ isOpen, onClose }) => {
 
   // Handle option click
   const handleOptionClick = useCallback((option) => {
-    // Add user message
+    // Add user message to UI
     setChatMessages((prev) => [
       ...prev,
       { id: Date.now(), text: option.label, sender: 'user' },
     ]);
+
+    // Send to backend chat system
+    if (publicIdRef.current) {
+      sendChatMessage(publicIdRef.current, option.label, userData.name);
+    }
 
     if (option.action === 'whatsapp') {
       const text = encodeURIComponent(
@@ -299,6 +343,11 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     ]);
     setInputValue('');
 
+    // Send to backend chat system
+    if (publicIdRef.current) {
+      sendChatMessage(publicIdRef.current, value, userData.name);
+    }
+
     const field = step.input;
 
     if (field === 'freetext') {
@@ -315,7 +364,7 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     } else if (field === 'email') {
       setTimeout(() => goToStep('contacto_telefono', newData), 300);
     } else if (field === 'phone') {
-      // All contact data collected — could send to backend here
+      // All contact data collected — send lead + navigate
       sendLeadToBackend(newData);
       setTimeout(() => goToStep('resumen', newData), 300);
     }
@@ -323,7 +372,6 @@ const TesipediaBot = ({ isOpen, onClose }) => {
 
   // Send lead data to backend (fire-and-forget)
   const sendLeadToBackend = (data) => {
-    const API_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
     try {
       fetch(`${API_URL}/api/leads/chatbot`, {
         method: 'POST',
@@ -335,9 +383,7 @@ const TesipediaBot = ({ isOpen, onClose }) => {
           source: 'chatbot_web',
           answers: data,
         }),
-      }).catch(() => {
-        // Silently fail — lead capture is best-effort
-      });
+      }).catch(() => {});
     } catch {
       // Silently fail
     }
@@ -350,6 +396,10 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     setCurrentStep(null);
     setInputValue('');
     initializedRef.current = false;
+    // Generate a new publicId for the new conversation
+    const pid = generateLocalPublicId();
+    publicIdRef.current = pid;
+    sessionStorage.setItem('tesipedia_chat_pid', pid);
     setTimeout(() => {
       initializedRef.current = true;
       goToStep('welcome');
