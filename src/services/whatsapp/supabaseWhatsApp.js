@@ -95,6 +95,15 @@ export async function claimLead(waId, adminName) {
 }
 
 /**
+ * Enviar recordatorios de Sofia a leads estancados.
+ * @param {number} hours — ventana de tiempo en horas (default 24)
+ */
+export async function sendSofiaReminders(hours = 24) {
+  const { data } = await axiosWithAuth.post(`${BASE}/reengagement`, { hours });
+  return data;
+}
+
+/**
  * Parsear historial_chat que puede venir como string JSON o array
  */
 export function parseHistorial(historialRaw) {

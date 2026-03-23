@@ -571,7 +571,7 @@ function ManagePayments() {
                                                         autoFocus
                                                         disabled={savingVendedor}
                                                         onChange={(e) => handleAssignVendedor(payment, e.target.value)}
-                                                        onBlur={() => setEditingVendedor(null)}
+                                                        onBlur={() => setTimeout(() => setEditingVendedor(null), 250)}
                                                     >
                                                         <option value="">Sin asignar</option>
                                                         <option value="arturo">Arturo</option>

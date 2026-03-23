@@ -37,6 +37,7 @@ import {
   parseHistorial,
   sendTemplateMessage,
   claimLead,
+  sendSofiaReminders,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -164,7 +165,7 @@ const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();
-  const authUser = useSelector((state) => state.auth?.user);
+  const { user: authUser, isSuperAdmin } = useSelector((state) => state.auth || {});
   const currentAdminKey = normalizeAdminName(authUser?.name || authUser?.nombre || '');
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -240,14 +241,24 @@ const AdminWhatsApp = () => {
   }, []); // sin dependencias — usa ref en vez de state
 
   const handleReengagement = async () => {
-    if (!window.confirm('¿Enviar plantilla de seguimiento a todos los leads inactivos en bienvenida/cotizando?')) return;
+    const hoursStr = window.prompt(
+      'Sofia enviara recordatorios personalizados a los leads estancados.\n\n¿De cuantas horas atras quieres incluir leads?\n(Ejemplo: 24 = ultimas 24h, 2 = ultimas 2h)',
+      '24'
+    );
+    if (!hoursStr) return;
+    const hours = Number(hoursStr) || 24;
+
     setSendingReengagement(true);
     try {
-      const { data } = await (await import('../../../utils/axioswithAuth')).default.post('/whatsapp/reengagement');
-      toast.success(`Seguimiento enviado a ${data.sent} leads${data.failed ? ` (${data.failed} fallidos)` : ''}`);
+      const result = await sendSofiaReminders(hours);
+      if (result.total === 0) {
+        toast('No se encontraron leads para enviar recordatorio', { icon: 'ℹ️' });
+      } else {
+        toast.success(`Sofia envio recordatorio a ${result.sent} de ${result.total} leads${result.failed ? ` (${result.failed} fallidos)` : ''}`);
+      }
       fetchLeads(true);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error al enviar re-engagement');
+      toast.error(err.response?.data?.message || 'Error al enviar recordatorios de Sofia');
     }
     setSendingReengagement(false);
   };
@@ -308,13 +319,9 @@ const AdminWhatsApp = () => {
     }
   };
 
-  // Verificar si el lead tiene dueño y si es otro admin
-  const isOwnedByOther = (lead) => {
-    if (!lead) return false;
-    const owner = getLeadAttendedBy(lead);
-    if (!owner || owner === '_attended') return false; // sin dueño conocido
-    return currentAdminKey && owner !== currentAdminKey;
-  };
+  // La propiedad del lead es solo para comisiones — NO bloquea acceso.
+  // Cualquier admin puede ver y contestar cualquier conversación.
+  const isOwnedByOther = () => false;
 
   const getOwnerLabel = (lead) => {
     const owner = getLeadAttendedBy(lead);
@@ -325,11 +332,6 @@ const AdminWhatsApp = () => {
   // Toggle modo humano
   const handleToggleHuman = async () => {
     if (!selectedLead || togglingHuman) return;
-    // Bloquear si el lead ya tiene dueño diferente
-    if (isOwnedByOther(selectedLead)) {
-      toast.error(`Este lead pertenece a ${getOwnerLabel(selectedLead)}. No puedes cambiar el modo.`);
-      return;
-    }
     setTogglingHuman(true);
     try {
       const nuevoModo = !selectedLead.modo_humano;
@@ -348,13 +350,6 @@ const AdminWhatsApp = () => {
   const handleSend = async (e) => {
     e.preventDefault();
     if ((!message.trim() && !selectedFile) || !selectedLead || sending) return;
-
-    // Bloquear si el lead ya tiene dueño diferente
-    if (isOwnedByOther(selectedLead)) {
-      toast.error(`Este lead pertenece a ${getOwnerLabel(selectedLead)}. No puedes enviar mensajes.`);
-      return;
-    }
-
     setSending(true);
     try {
       // Auto-reclamar lead si no tiene dueño
@@ -1022,7 +1017,7 @@ const AdminWhatsApp = () => {
               className="ms-auto wa-reengagement-btn"
               onClick={handleReengagement}
               disabled={sendingReengagement}
-              title="Reactivar leads inactivos (bienvenida/cotizando)"
+              title="Sofia: enviar recordatorios a leads estancados"
             >
               {sendingReengagement ? <FaSync className="fa-spin" /> : '📣'}
             </Button>
@@ -1219,8 +1214,8 @@ const AdminWhatsApp = () => {
                     <option value="pagado">💰 Pagado</option>
                   </select>
                   <Button variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'} size="sm"
-                    onClick={handleToggleHuman} disabled={togglingHuman || isOwnedByOther(selectedLead)} className="wa-human-toggle"
-                    title={isOwnedByOther(selectedLead) ? `Lead de ${getOwnerLabel(selectedLead)}` : selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
+                    onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
+                    title={selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
                     {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano ? <><FaToggleOn className="me-1" /> Humano</> : <><FaToggleOff className="me-1" /> Bot</>}
                   </Button>
                 </div>
@@ -1239,6 +1234,31 @@ const AdminWhatsApp = () => {
                   )}
                   {selectedLead.precio && (
                     <Badge bg="outline-success" className="wa-pill">${selectedLead.precio}</Badge>
+                  )}
+                  {/* SuperAdmin: reasignar dueño del lead */}
+                  {isSuperAdmin && (
+                    <select
+                      className="wa-reassign-select"
+                      style={{ fontSize: '0.75rem', padding: '2px 6px', borderRadius: 6, border: '1px solid #d1d5db', marginLeft: 8, cursor: 'pointer' }}
+                      value={getLeadAttendedBy(selectedLead) || ''}
+                      onChange={async (e) => {
+                        const newOwner = e.target.value;
+                        try {
+                          await claimLead(selectedLead.wa_id, newOwner || '');
+                          const fresh = await getLeadByWaId(selectedLead.wa_id);
+                          if (fresh) setSelectedLead(fresh);
+                          fetchLeads(true);
+                          toast.success(newOwner ? `Lead reasignado a ${newOwner}` : 'Lead desasignado');
+                        } catch (err) {
+                          toast.error('Error al reasignar: ' + err.message);
+                        }
+                      }}
+                    >
+                      <option value="">Sin asignar</option>
+                      <option value="arturo">Arturo</option>
+                      <option value="sandy">Sandy</option>
+                      <option value="hugo">Hugo</option>
+                    </select>
                   )}
                 </div>
               </div>
@@ -1263,14 +1283,15 @@ const AdminWhatsApp = () => {
 
               {/* Mensajes */}
               <div className="wa-messages-container">
-                {isOwnedByOther(selectedLead) && (
-                  <div className="wa-ownership-banner" style={{
-                    background: '#fef2f2', color: '#991b1b', padding: '8px 16px',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid #fecaca'
+                {/* Info de quién atiende este lead (solo informativo, no bloquea) */}
+                {getLeadAttendedBy(selectedLead) && (
+                  <div style={{
+                    background: '#f0fdf4', color: '#166534', padding: '5px 16px',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: '0.78rem', fontWeight: 500, borderBottom: '1px solid #bbf7d0'
                   }}>
-                    <FaLock />
-                    Este lead pertenece a {getOwnerLabel(selectedLead)} — solo lectura
+                    <FaUserTie style={{ fontSize: '0.65rem' }} />
+                    Comisión: {getOwnerLabel(selectedLead)}
                   </div>
                 )}
                 {selectedLead.modo_humano && (
@@ -1340,7 +1361,7 @@ const AdminWhatsApp = () => {
                   variant="light"
                   className="wa-attach-btn"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={sending || isOwnedByOther(selectedLead)}
+                  disabled={sending}
                   title="Adjuntar archivo o imagen"
                 >
                   <FaPaperclip />
@@ -1348,7 +1369,7 @@ const AdminWhatsApp = () => {
                 <textarea
                   ref={inputRef}
                   className="wa-message-input"
-                  placeholder={isOwnedByOther(selectedLead) ? `Lead asignado a ${getOwnerLabel(selectedLead)} — solo lectura` : selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
+                  placeholder={selectedLead.modo_humano ? "Escribe tu mensaje como humano..." : "Escribe un mensaje (se enviará como humano)..."}
                   value={message}
                   onChange={(e) => {
                     setMessage(e.target.value);
@@ -1365,14 +1386,14 @@ const AdminWhatsApp = () => {
                       if (message.trim() || selectedFile) handleSend(e);
                     }
                   }}
-                  disabled={sending || isOwnedByOther(selectedLead)}
+                  disabled={sending}
                   rows={1}
                 />
                 <Button
                   type="submit"
                   variant="success"
                   className="wa-send-btn"
-                  disabled={(!message.trim() && !selectedFile) || sending || isOwnedByOther(selectedLead)}
+                  disabled={(!message.trim() && !selectedFile) || sending}
                 >
                   {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
                 </Button>
