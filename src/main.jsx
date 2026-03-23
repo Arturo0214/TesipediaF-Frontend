@@ -18,7 +18,8 @@ import 'react-toastify/dist/ReactToastify.css';
 // Inicializar Google Analytics
 initGA();
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root');
+const app = (
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -40,4 +41,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </Provider>
   </React.StrictMode>
 );
+
+// Si la página fue pre-renderizada, hidratar en vez de renderizar desde cero
+// Esto evita el "flash" de contenido y mejora el rendimiento
+if (rootElement.hasChildNodes()) {
+  ReactDOM.hydrateRoot(rootElement, app);
+} else {
+  ReactDOM.createRoot(rootElement).render(app);
+}
 
