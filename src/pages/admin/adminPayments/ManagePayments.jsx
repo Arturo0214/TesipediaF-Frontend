@@ -287,19 +287,36 @@ function ManagePayments() {
 
             {/* ===== SALES ATTRIBUTION (COMISIONES POR VENDEDOR) ===== */}
             {(() => {
-                // Calcular comisiones por vendedor
+                // Calcular comisiones por vendedor + guardar pagos asociados
                 const salesByVendor = {};
                 for (const p of payments) {
                     const vendedor = (p.vendedor || p.atendidoPor || 'sin_asignar').toLowerCase().trim();
-                    if (!salesByVendor[vendedor]) salesByVendor[vendedor] = { count: 0, total: 0, commission: 0 };
+                    if (!salesByVendor[vendedor]) salesByVendor[vendedor] = { count: 0, total: 0, commission: 0, payments: [] };
                     salesByVendor[vendedor].count++;
                     salesByVendor[vendedor].total += (p.amount || 0);
                     salesByVendor[vendedor].commission += (p.commission || 0);
+                    salesByVendor[vendedor].payments.push(p);
                 }
 
                 const vendorNames = { arturo: 'Arturo Suárez', sandy: 'Sandy Alvarado', hugo: 'Hugo Serrano' };
                 const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b' };
                 const isOwner = isSuperAdmin || currentUserName === 'arturo';
+
+                // Asignar todos los pagos de una tarjeta a un vendedor
+                const handleBulkAssign = async (vendorPayments, newVendedor) => {
+                    setSavingVendedor(true);
+                    let ok = 0, fail = 0;
+                    for (const p of vendorPayments) {
+                        try {
+                            await axiosWithAuth.put(`/payments/dashboard/${p._id}/vendedor?source=${p.source}`, { vendedor: newVendedor });
+                            ok++;
+                        } catch { fail++; }
+                    }
+                    if (ok > 0) toast.success(`${ok} pago${ok > 1 ? 's' : ''} asignado${ok > 1 ? 's' : ''} a ${newVendedor}`);
+                    if (fail > 0) toast.error(`${fail} pago${fail > 1 ? 's' : ''} fallaron`);
+                    setSavingVendedor(false);
+                    fetchDashboard();
+                };
 
                 return (
                     <div className="mp-pay-attribution">
@@ -316,7 +333,30 @@ function ManagePayments() {
                                 .sort((a, b) => b[1].commission - a[1].commission)
                                 .map(([vendor, data]) => (
                                     <div key={vendor} className="mp-pay-attribution-card" style={{ borderLeft: `4px solid ${vendorColors[vendor] || '#6b7280'}` }}>
-                                        <div className="mp-pay-attr-name">{vendorNames[vendor] || vendor}</div>
+                                        <div className="mp-pay-attr-name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span>{vendorNames[vendor] || vendor}</span>
+                                            {vendor === 'sin_asignar' && isOwner && (
+                                                <select
+                                                    style={{
+                                                        fontSize: '0.7rem', padding: '2px 6px', borderRadius: 6,
+                                                        border: '1px solid #d1d5db', cursor: 'pointer', background: '#fff',
+                                                    }}
+                                                    defaultValue=""
+                                                    disabled={savingVendedor}
+                                                    onChange={(e) => {
+                                                        if (e.target.value) {
+                                                            handleBulkAssign(data.payments, e.target.value);
+                                                            e.target.value = '';
+                                                        }
+                                                    }}
+                                                >
+                                                    <option value="" disabled>Asignar a...</option>
+                                                    <option value="arturo">Arturo</option>
+                                                    <option value="sandy">Sandy</option>
+                                                    <option value="hugo">Hugo</option>
+                                                </select>
+                                            )}
+                                        </div>
                                         <div className="mp-pay-attr-stats">
                                             <span>{data.count} venta{data.count !== 1 ? 's' : ''}</span>
                                             <span className="mp-pay-attr-total">{formatMoney(data.total)}</span>
