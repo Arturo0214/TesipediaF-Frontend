@@ -38,6 +38,8 @@ import {
   sendTemplateMessage,
   claimLead,
   sendSofiaReminders,
+  getAutoReminderStatus,
+  configAutoReminder,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -195,6 +197,13 @@ const AdminWhatsApp = () => {
   const fileInputRef = useRef(null);
   const selectedLeadRef = useRef(null); // ref para evitar stale closure en polling
   const prevMsgCountRef = useRef(0); // para detectar mensajes nuevos y hacer scroll
+
+  // Auto-reminder Sofia
+  const [showAutoReminder, setShowAutoReminder] = useState(false);
+  const [autoReminderConfig, setAutoReminderConfig] = useState({
+    active: false, intervalMinutes: 360, staleMinutes: 360, maxPerRun: 50, lastRun: null, lastResult: null,
+  });
+  const [autoReminderLoading, setAutoReminderLoading] = useState(false);
   const prevLeadIdRef = useRef(null); // para scroll solo al cambiar de conversación
 
   // Mantener el ref sincronizado con el state
@@ -263,9 +272,45 @@ const AdminWhatsApp = () => {
     setSendingReengagement(false);
   };
 
+  // Auto-reminder: cargar estado inicial
+  const fetchAutoReminderStatus = useCallback(async () => {
+    try {
+      const status = await getAutoReminderStatus();
+      setAutoReminderConfig(status);
+    } catch { /* silencioso si el backend aun no soporta */ }
+  }, []);
+
+  const handleAutoReminderToggle = async () => {
+    setAutoReminderLoading(true);
+    try {
+      const result = await configAutoReminder({
+        ...autoReminderConfig,
+        active: !autoReminderConfig.active,
+      });
+      setAutoReminderConfig(prev => ({ ...prev, ...result }));
+      toast.success(result.active ? 'Auto-recordatorio de Sofia ACTIVADO' : 'Auto-recordatorio de Sofia DESACTIVADO');
+    } catch (err) {
+      toast.error('Error al configurar auto-recordatorio');
+    }
+    setAutoReminderLoading(false);
+  };
+
+  const handleAutoReminderSave = async () => {
+    setAutoReminderLoading(true);
+    try {
+      const result = await configAutoReminder(autoReminderConfig);
+      setAutoReminderConfig(prev => ({ ...prev, ...result }));
+      toast.success('Configuracion guardada');
+    } catch (err) {
+      toast.error('Error al guardar configuracion');
+    }
+    setAutoReminderLoading(false);
+  };
+
   // Polling para actualizaciones en tiempo real
   useEffect(() => {
     fetchLeads();
+    fetchAutoReminderStatus();
     pollRef.current = setInterval(() => fetchLeads(true), POLL_INTERVAL);
     return () => clearInterval(pollRef.current);
   }, [fetchLeads]);
@@ -1021,10 +1066,110 @@ const AdminWhatsApp = () => {
             >
               {sendingReengagement ? <FaSync className="fa-spin" /> : '📣'}
             </Button>
+            <Button
+              variant={autoReminderConfig.active ? 'success' : 'outline-light'}
+              size="sm"
+              className="ms-1"
+              onClick={() => setShowAutoReminder(!showAutoReminder)}
+              title="Configurar auto-recordatorio de Sofia"
+              style={{ fontSize: '0.75rem', padding: '2px 6px', position: 'relative' }}
+            >
+              🤖
+              {autoReminderConfig.active && (
+                <span style={{
+                  position: 'absolute', top: -2, right: -2,
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: '#22c55e', border: '1px solid #fff',
+                }} />
+              )}
+            </Button>
             <Button variant="outline-light" size="sm" className="wa-refresh-btn ms-1" onClick={() => fetchLeads()}>
               <FaSync className={loading ? 'fa-spin' : ''} />
             </Button>
           </div>
+
+          {/* Panel de configuración auto-reminder */}
+          {showAutoReminder && (
+            <div style={{
+              background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8,
+              padding: '12px 14px', margin: '8px 10px', fontSize: '0.8rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <strong style={{ fontSize: '0.85rem' }}>🤖 Auto-recordatorio Sofia</strong>
+                <button
+                  onClick={handleAutoReminderToggle}
+                  disabled={autoReminderLoading}
+                  style={{
+                    background: autoReminderConfig.active ? '#22c55e' : '#94a3b8',
+                    color: '#fff', border: 'none', borderRadius: 12,
+                    padding: '3px 12px', fontSize: '0.75rem', cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  {autoReminderLoading ? '...' : autoReminderConfig.active ? 'ACTIVO' : 'INACTIVO'}
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ color: '#64748b', fontSize: '0.7rem' }}>Intervalo (min)</span>
+                  <input
+                    type="number" min="5" max="180"
+                    value={autoReminderConfig.intervalMinutes}
+                    onChange={e => setAutoReminderConfig(p => ({ ...p, intervalMinutes: Number(e.target.value) }))}
+                    style={{ border: '1px solid #cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ color: '#64748b', fontSize: '0.7rem' }}>Lead inactivo (min)</span>
+                  <input
+                    type="number" min="5" max="1440"
+                    value={autoReminderConfig.staleMinutes}
+                    onChange={e => setAutoReminderConfig(p => ({ ...p, staleMinutes: Number(e.target.value) }))}
+                    style={{ border: '1px solid #cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                  <span style={{ color: '#64748b', fontSize: '0.7rem' }}>Max mensajes por ciclo</span>
+                  <input
+                    type="number" min="1" max="100"
+                    value={autoReminderConfig.maxPerRun}
+                    onChange={e => setAutoReminderConfig(p => ({ ...p, maxPerRun: Number(e.target.value) }))}
+                    style={{ border: '1px solid #cbd5e1', borderRadius: 6, padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
+                  />
+                </label>
+                <button
+                  onClick={handleAutoReminderSave}
+                  disabled={autoReminderLoading}
+                  style={{
+                    background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6,
+                    padding: '6px 14px', fontSize: '0.75rem', cursor: 'pointer',
+                    fontWeight: 600, alignSelf: 'flex-end',
+                  }}
+                >
+                  Guardar
+                </button>
+              </div>
+
+              {autoReminderConfig.lastResult && (
+                <div style={{ color: '#64748b', fontSize: '0.7rem', borderTop: '1px solid #e2e8f0', paddingTop: 6 }}>
+                  Ultimo envio: {autoReminderConfig.lastResult.sent ?? 0} enviados
+                  {autoReminderConfig.lastResult.failed ? `, ${autoReminderConfig.lastResult.failed} fallidos` : ''}
+                  {autoReminderConfig.lastResult.time && (
+                    <> — {new Date(autoReminderConfig.lastResult.time).toLocaleTimeString('es-MX')}</>
+                  )}
+                </div>
+              )}
+
+              <div style={{ color: '#94a3b8', fontSize: '0.65rem', marginTop: 4 }}>
+                Sofia detecta leads en bienvenida/calificando/cotizando que llevan sin actividad mas de los minutos configurados y les manda un mensaje personalizado.
+              </div>
+            </div>
+          )}
+
           <div className="wa-search-box">
             <FaSearch className="wa-search-icon" />
             <input

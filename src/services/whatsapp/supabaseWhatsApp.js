@@ -104,6 +104,23 @@ export async function sendSofiaReminders(hours = 24) {
 }
 
 /**
+ * Obtener estado del auto-reminder de Sofia
+ */
+export async function getAutoReminderStatus() {
+  const { data } = await axiosWithAuth.get(`${BASE}/auto-reminder`);
+  return data;
+}
+
+/**
+ * Configurar / activar / desactivar el auto-reminder de Sofia
+ * @param {{ active?: boolean, intervalMinutes?: number, staleMinutes?: number, maxPerRun?: number }} config
+ */
+export async function configAutoReminder(config) {
+  const { data } = await axiosWithAuth.post(`${BASE}/auto-reminder`, config);
+  return data;
+}
+
+/**
  * Parsear historial_chat que puede venir como string JSON o array
  */
 export function parseHistorial(historialRaw) {
