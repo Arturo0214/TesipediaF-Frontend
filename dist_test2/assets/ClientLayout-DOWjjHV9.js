@@ -1,0 +1,1 @@
+import{j as t}from"./vendor-bootstrap-CfJkYaxi.js";import{a as e,O as s}from"./vendor-react-aKRpef18.js";function r(){return e.useEffect(()=>(document.body.classList.add("client-page"),()=>{document.body.classList.remove("client-page")}),[]),t.jsx("div",{className:"client-root-layout",children:t.jsx(s,{})})}export{r as default};
