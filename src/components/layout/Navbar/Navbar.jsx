@@ -108,6 +108,9 @@ function MainNavbar() {
                                 <Nav.Link as={NavLink} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas Frecuentes</Nav.Link>
                             </motion.div>
                             <motion.div variants={linkVariants} whileHover="hover">
+                                <Nav.Link as={NavLink} to="/blog" onClick={closeNavbar}>Blog</Nav.Link>
+                            </motion.div>
+                            <motion.div variants={linkVariants} whileHover="hover">
                                 <Nav.Link as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</Nav.Link>
                             </motion.div>
                         </Nav>

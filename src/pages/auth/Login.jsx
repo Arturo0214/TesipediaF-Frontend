@@ -6,7 +6,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, reset } from '../../features/auth/authSlice';
-import { linkQuoteToUser } from '../../features/quotes/quoteSlice';
 import Swal from 'sweetalert2';
 
 const Login = () => {
@@ -36,30 +35,13 @@ const Login = () => {
 
     // Si el login es exitoso
     if (isSuccess && user) {
-      // Verificar si hay un publicId en la URL
-      const urlParams = new URLSearchParams(location.search);
-      const publicId = urlParams.get('public_id');
-
-      if (publicId) {
-        // Intentar vincular la cotización al usuario
-        dispatch(linkQuoteToUser(publicId))
-          .unwrap()
-          .then(() => {
-            // Redirigir a /cotizar con el mismo publicId
-            navigate(`/cotizar?public_id=${publicId}`);
-          })
-          .catch((error) => {
-            console.error('Error al vincular cotización:', error);
-            // Si hay error, igual redirigimos a /cotizar
-            navigate('/cotizar');
-          });
-      } else {
-        // Si no hay publicId, redirigir a la ruta original
-        // Admins van al panel de admin por defecto
-        const defaultPath = isAdmin ? '/admin' : '/dashboard';
-        const { from } = location.state || { from: { pathname: defaultPath } };
-        navigate(from.pathname);
-      }
+      const defaultPath = isAdmin ? '/admin' : '/dashboard';
+      // Redirigir a la ruta original o al dashboard según rol
+      const fromState = location.state?.from;
+      const redirectPath = typeof fromState === 'string'
+        ? fromState
+        : fromState?.pathname || defaultPath;
+      navigate(redirectPath);
       dispatch(reset());
     }
   }, [user, isError, isSuccess, isAdmin, message, navigate, dispatch, location]);

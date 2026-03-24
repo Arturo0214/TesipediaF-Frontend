@@ -28,13 +28,13 @@ const ProtectedRoute = ({ requireAdmin }) => {
 
     // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {
-        return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+        return <Navigate to="/login" state={{ from: { pathname: location.pathname } }} replace />;
     }
 
     // Si requiere admin y no es admin, redirigir al dashboard
     if (requireAdmin && !isAdmin) {
         console.error('Acceso denegado: Se requieren privilegios de administrador');
-        return <Navigate to="/dashboard" state={{ from: location.pathname }} replace />;
+        return <Navigate to="/dashboard" state={{ from: { pathname: location.pathname } }} replace />;
     }
 
     // Si todo está bien, mostrar el contenido

@@ -1,6 +1,7 @@
 import axios from '../utils/axioswithAuth';
 
 const API_URL = '/visits';
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 
 const getVisits = async () => {
     const response = await axios.get(`${API_URL}/history`);
@@ -12,9 +13,20 @@ const getVisitById = async (id) => {
     return response.data;
 };
 
+// trackVisit es público — NO usa axiosWithAuth para evitar redirects a /login en 401
 const trackVisit = async (visitData) => {
-    const response = await axios.post(`${API_URL}/track`, visitData);
-    return response.data;
+    try {
+        const url = BASE_URL.endsWith('/') ? `${BASE_URL}visits/track` : `${BASE_URL}/visits/track`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(visitData),
+        });
+        if (!response.ok) return null;
+        return response.json();
+    } catch {
+        return null;
+    }
 };
 
 const updateVisit = async (id, visitData) => {

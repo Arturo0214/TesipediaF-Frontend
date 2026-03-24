@@ -14,7 +14,8 @@
     position: relative;
     overflow: hidden;
     padding: 0;
-    bottom: 50px;
+    margin-top: -76px;
+    padding-top: 76px;
 }
 
 .hero-section-background {

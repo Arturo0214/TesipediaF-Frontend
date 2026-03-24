@@ -163,7 +163,7 @@ function formatLabel(text) {
   );
 }
 
-const POLL_INTERVAL = 3000; // 3 segundos para mejor tiempo real
+const POLL_INTERVAL = 15000; // 15 segundos — optimizado para reducir egress de Supabase
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();

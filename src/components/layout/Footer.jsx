@@ -38,6 +38,9 @@ export function Footer() {
                                 <Link to="/preguntas-frecuentes" className="text-light text-decoration-none">Preguntas Frecuentes</Link>
                             </li>
                             <li className="mb-2">
+                                <Link to="/blog" className="text-light text-decoration-none">Blog</Link>
+                            </li>
+                            <li className="mb-2">
                                 <Link to="/contacto" className="text-light text-decoration-none">Contacto</Link>
                             </li>
                             <li className="mb-2">
