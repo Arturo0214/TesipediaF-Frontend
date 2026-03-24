@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, Form, Button, Spinner, Collapse } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Spinner, Collapse } from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaCreditCard, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Swal from 'sweetalert2';
@@ -435,11 +435,7 @@ const SalesQuote = () => {
 
     return (
         <Container fluid className="sales-quote-container">
-            <Row className="justify-content-center h-100">
-                <Col lg={11} xl={10}>
-                    <Card className="sales-quote-card">
-                        <Card.Body className="p-3">
-                            <div className="text-center mb-2">
+                            <div className="text-center mb-3 sales-quote-header">
                                 <h5 className="mb-1 fw-bold text-primary">
                                     <FaFilePdf className="me-2" />Generador de Cotizaciones
                                 </h5>
@@ -850,10 +846,6 @@ const SalesQuote = () => {
                                     </Col>
                                 </Row>
                             </Form>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
         </Container>
     );
 };

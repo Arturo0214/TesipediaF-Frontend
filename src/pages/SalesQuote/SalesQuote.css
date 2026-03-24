@@ -1,65 +1,23 @@
 .sales-quote-container {
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    padding: 0.5rem;
-    display: flex;
-    align-items: flex-start;
+    padding: 1rem 1.5rem;
+    min-height: 100%;
 }
 
-.sales-quote-container .row {
-    height: 100%;
-}
-
-.sales-quote-card {
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.1);
-    border: none;
-    max-height: calc(100vh - 5rem);
-    height: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-.sales-quote-card .card-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.65rem !important;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Custom Scrollbar */
-.sales-quote-card .card-body::-webkit-scrollbar {
-    width: 4px;
-}
-
-.sales-quote-card .card-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.sales-quote-card .card-body::-webkit-scrollbar-thumb {
-    background: #bdc3c7;
-    border-radius: 2px;
-}
-
-/* Header Ultra Compacto */
-.sales-quote-card .text-center {
-    margin-bottom: 0.4rem !important;
-}
-
-.sales-quote-card .text-center h5 {
-    font-size: 1rem;
+/* Header */
+.sales-quote-header h5 {
+    font-size: 1.15rem;
     margin-bottom: 0 !important;
     font-weight: 700;
 }
 
-/* Form Section - Máxima compactación */
+/* Form Section */
 .form-section {
-    background: #f8fafb;
-    border-radius: 6px;
-    padding: 0.45rem;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0.75rem;
     border: 1px solid #e2e8f0;
-    height: 100%;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.06);
     display: flex;
     flex-direction: column;
 }
@@ -69,9 +27,9 @@
     align-items: center;
     font-weight: 600;
     color: #3498db;
-    font-size: 0.8rem;
-    margin-bottom: 0.35rem;
-    padding-bottom: 0.25rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -80,13 +38,13 @@
 }
 
 .micro-label {
-    font-size: 0.65rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: #64748b;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.2rem;
     text-transform: uppercase;
-    letter-spacing: 0.2px;
-    line-height: 1;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
 }
 
 /* Form Controls - Ultra compactos */
@@ -105,10 +63,10 @@
 
 .form-control.form-control-sm,
 .form-select.form-select-sm {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    height: calc(1.4em + 0.5rem + 2px);
-    line-height: 1.4;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.55rem;
+    height: calc(1.5em + 0.6rem + 2px);
+    line-height: 1.5;
 }
 
 .form-control::placeholder {
@@ -135,12 +93,12 @@
     height: calc(1.4em + 0.5rem + 2px);
 }
 
-/* Price Summary - Ultra Compacto */
+/* Price Summary */
 .price-summary {
     background: linear-gradient(135deg, #ebf5fb 0%, #d6eaf8 100%);
     border: 1px solid #85c1e9;
-    border-radius: 6px;
-    padding: 0.45rem;
+    border-radius: 8px;
+    padding: 0.65rem;
 }
 
 .price-summary .border-top {
@@ -213,55 +171,22 @@
     font-size: 0.75rem;
 }
 
-/* Espaciado ultra reducido */
-.g-1 {
-    --bs-gutter-y: 0.25rem;
-    --bs-gutter-x: 0.25rem;
-}
-
-.g-2 {
-    --bs-gutter-y: 0.35rem;
+/* Spacing overrides scoped to sales-quote */
+.sales-quote-container .g-2 {
+    --bs-gutter-y: 0.5rem;
     --bs-gutter-x: 0.5rem;
 }
 
-.g-3 {
-    --bs-gutter-y: 0.45rem;
+.sales-quote-container .g-3 {
+    --bs-gutter-y: 0.65rem;
     --bs-gutter-x: 0.75rem;
 }
 
-/* Márgenes ultra reducidos */
-.mt-2 {
-    margin-top: 0.35rem !important;
-}
-
-.mt-3 {
-    margin-top: 0.5rem !important;
-}
-
-.mb-1 {
-    margin-bottom: 0.2rem !important;
-}
-
-.mb-2 {
-    margin-top: 0.35rem !important;
-}
-
-/* Ajuste de altura para que todo quepa */
-.sales-quote-card form {
-    flex: 1;
+/* Columnas con gap */
+.sales-quote-container form>.row>[class*="col-"] {
     display: flex;
     flex-direction: column;
-}
-
-.sales-quote-card form>.row {
-    flex: 1;
-}
-
-/* Columnas con altura completa */
-.sales-quote-card form>.row>[class*="col-"] {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.5rem;
 }
 
 /* Responsive */
@@ -270,19 +195,9 @@
         padding: 0.5rem;
     }
 
-    .sales-quote-card {
-        height: auto;
-        max-height: none;
-    }
-
-    .sales-quote-card .card-body {
-        overflow-y: auto;
-        padding: 0.5rem !important;
-    }
-
     .form-section {
-        padding: 0.4rem;
-        margin-bottom: 0.4rem;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .generate-pdf-btn {
@@ -291,18 +206,18 @@
 }
 
 @media (min-width: 1400px) {
-    .sales-quote-card .card-body {
-        padding: 0.85rem !important;
+    .sales-quote-container {
+        padding: 1.5rem 2rem;
     }
 
     .form-section {
-        padding: 0.6rem;
+        padding: 0.85rem;
     }
 
     .form-control.form-control-sm,
     .form-select.form-select-sm {
-        font-size: 0.8rem;
-        padding: 0.3rem 0.6rem;
+        font-size: 0.85rem;
+        padding: 0.35rem 0.65rem;
     }
 }
 
@@ -389,15 +304,6 @@ div[style*="font-size: 0.9rem"] {
         width: 100%;
         padding: 0.6rem;
         font-size: 0.9rem;
-    }
-
-    .sales-quote-card {
-        height: auto;
-        max-height: none;
-    }
-
-    .sales-quote-card .card-body {
-        overflow-y: auto;
     }
 
     .generate-pdf-btn {
