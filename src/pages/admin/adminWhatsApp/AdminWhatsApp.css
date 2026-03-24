@@ -664,23 +664,61 @@
 .wa-file-preview {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: #f0f0f0;
-  padding: 8px 16px;
-  border-top: 1px solid #d0d0d0;
+  gap: 10px;
+  background: #e8f5e9;
+  padding: 8px 14px;
+  border-top: 1px solid #c8e6c9;
+  flex-shrink: 0;
+}
+
+.wa-file-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #c8e6c9;
+  flex-shrink: 0;
+}
+
+.wa-file-icon-box {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #c8e6c9;
+  font-size: 1.4rem;
+  color: #075e54;
   flex-shrink: 0;
 }
 
 .wa-file-info {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.wa-file-name {
   font-size: 0.85rem;
+  font-weight: 600;
+  color: #1b5e20;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-file-size {
+  font-size: 0.72rem;
+  color: #4caf50;
   font-weight: 500;
-  color: #333;
 }
 
 .wa-file-remove {
   font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 /* Input de mensaje */
@@ -998,7 +1036,14 @@
     padding: 6px 10px;
   }
 
-  .wa-file-info {
+  .wa-file-thumb,
+  .wa-file-icon-box {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  .wa-file-name {
     font-size: 0.78rem;
   }
 }

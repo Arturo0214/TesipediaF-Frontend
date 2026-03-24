@@ -16,6 +16,8 @@ import {
   FaPaperclip,
   FaTimes,
   FaFile,
+  FaFileWord,
+  FaImage,
   FaArrowLeft,
   FaCalculator,
   FaFilePdf,
@@ -478,6 +480,8 @@ const AdminWhatsApp = () => {
         toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
       }
       setMessage('');
+      if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+      setFilePreviewUrl(null);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
@@ -512,13 +516,25 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const [filePreviewUrl, setFilePreviewUrl] = useState(null);
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      // Generar preview si es imagen
+      if (file.type.startsWith('image/')) {
+        const url = URL.createObjectURL(file);
+        setFilePreviewUrl(url);
+      } else {
+        setFilePreviewUrl(null);
+      }
     }
   };
 
   const clearFile = () => {
+    if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+    setFilePreviewUrl(null);
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -556,8 +572,14 @@ const AdminWhatsApp = () => {
     setIsDragging(false);
     dragCounter.current = 0;
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setSelectedFile(e.dataTransfer.files[0]);
-      toast.success(`📎 Archivo "${e.dataTransfer.files[0].name}" listo para enviar`);
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+      if (file.type.startsWith('image/')) {
+        setFilePreviewUrl(URL.createObjectURL(file));
+      } else {
+        setFilePreviewUrl(null);
+      }
+      toast.success(`Archivo "${file.name}" listo para enviar`);
       e.dataTransfer.clearData();
     }
   }, []);
@@ -1586,9 +1608,18 @@ const AdminWhatsApp = () => {
               {/* Preview de archivo seleccionado */}
               {selectedFile && (
                 <div className="wa-file-preview">
+                  {filePreviewUrl ? (
+                    <img src={filePreviewUrl} alt="Preview" className="wa-file-thumb" />
+                  ) : (
+                    <div className="wa-file-icon-box">
+                      {selectedFile.type === 'application/pdf' ? <FaFilePdf /> :
+                       selectedFile.type?.includes('word') || selectedFile.name?.endsWith('.docx') ? <FaFileWord /> :
+                       selectedFile.type?.startsWith('image/') ? <FaImage /> : <FaFile />}
+                    </div>
+                  )}
                   <div className="wa-file-info">
-                    <FaFile className="me-2 text-primary" />
-                    <span>{selectedFile.name}</span>
+                    <span className="wa-file-name">{selectedFile.name}</span>
+                    <span className="wa-file-size">{(selectedFile.size / 1024).toFixed(0)} KB</span>
                   </div>
                   <Button variant="link" className="wa-file-remove p-0 text-danger" onClick={clearFile} disabled={sending}>
                     <FaTimes />
