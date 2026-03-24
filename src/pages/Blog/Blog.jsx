@@ -7,20 +7,29 @@ import './Blog.css';
 function Blog() {
   const [showModal, setShowModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('Todos');
 
-  const estructuraTesis = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713698/Estructurar-tesis_t6kiop.png';
-  const defensaTesis = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743799333/ChatGPT_Image_4_abr_2025_02_41_53_p.m._hjnfrc.png';
-  const metodosInvestigacion = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743800151/WhatsApp_Image_2025-04-04_at_14.55.22_hmlo1d.jpg';
+  // Imágenes únicas y profesionales para cada post
+  const images = {
+    guiaTesis: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80',
+    comprarTesis: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80',
+    elegirServicio: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80',
+    preciosTesis: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
+    estructuraTesis: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80',
+    defensaTesis: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&q=80',
+    metodosInvestigacion: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&q=80',
+  };
 
   const blogPosts = [
     {
       id: 4,
       title: '¿Dónde Hacer Tu Tesis en México? Guía Completa 2026',
       excerpt: '¿Necesitas hacer tu tesis y no sabes por dónde empezar? Descubre las mejores opciones para hacer tu tesis de licenciatura, maestría o doctorado en México de forma profesional y confiable.',
-      image: estructuraTesis,
+      image: images.guiaTesis,
       date: '2026-03-20',
       category: 'Guía',
       readTime: '8 min',
+      featured: true,
       content: `¿Necesitas hacer tu tesis y no sabes por dónde empezar? Miles de estudiantes en México buscan cada año quién les ayude a hacer su tesis de licenciatura, maestría o doctorado. En esta guía completa te explicamos todo lo que necesitas saber para hacer tu tesis de forma profesional.
 
 📌 ¿Por Qué Hacer Tu Tesis con un Servicio Profesional?
@@ -37,12 +46,12 @@ Hacer una tesis es un proceso complejo que puede tomar meses o incluso años. Mu
 
 En Tesipedia te hacemos tu tesis de principio a fin. Nuestro proceso es simple:
 
-1. Cotización gratuita: Nos contactas por WhatsApp y nos cuentas tu proyecto
-2. Asignación de experto: Te asignamos un asesor especializado en tu área
-3. Desarrollo: Elaboramos tu tesis con estructura metodológica profesional
-4. Revisión antiplagio: Pasamos tu tesis por Turnitin y escáner anti-IA
-5. Correcciones: Incluimos correcciones de tu asesor y sinodales
-6. Aprobación: Te acompañamos hasta tu titulación
+• Cotización gratuita: Nos contactas por WhatsApp y nos cuentas tu proyecto
+• Asignación de experto: Te asignamos un asesor especializado en tu área
+• Desarrollo: Elaboramos tu tesis con estructura metodológica profesional
+• Revisión antiplagio: Pasamos tu tesis por Turnitin y escáner anti-IA
+• Correcciones: Incluimos correcciones de tu asesor y sinodales
+• Aprobación: Te acompañamos hasta tu titulación
 
 📊 ¿Cuánto Cuesta Hacer una Tesis en México?
 
@@ -78,7 +87,7 @@ Hemos ayudado a hacer tesis a estudiantes de las principales universidades de M�
       id: 5,
       title: '¿Es Seguro Comprar Tesis en México? Lo Que Debes Saber',
       excerpt: '¿Estás pensando en comprar tu tesis? Te explicamos cómo funciona el servicio de elaboración de tesis por encargo, qué garantías pedir y cómo asegurarte de recibir un trabajo de calidad.',
-      image: defensaTesis,
+      image: images.comprarTesis,
       date: '2026-03-18',
       category: 'Consejos',
       readTime: '7 min',
@@ -126,7 +135,7 @@ La elaboración de tesis por encargo es un servicio de asesoría académica prof
       id: 6,
       title: 'Hacemos Tu Tesis: ¿Cómo Elegir el Mejor Servicio de Tesis en México?',
       excerpt: '¿Buscas quién te haga tu tesis? Compara los servicios de elaboración de tesis disponibles en México y aprende a elegir el mejor para tu proyecto académico.',
-      image: metodosInvestigacion,
+      image: images.elegirServicio,
       date: '2026-03-15',
       category: 'Guía',
       readTime: '6 min',
@@ -147,11 +156,11 @@ No todos los servicios de tesis son iguales. Estos son los criterios más import
 
 Al comparar servicios para hacer tu tesis, considera:
 
-1. ¿Incluyen Turnitin? Muchos servicios usan software antiplagio gratuito que no es aceptado por universidades
-2. ¿Tienen escáner anti-IA? En 2026 esto es fundamental
-3. ¿Ofrecen correcciones? Tu asesor universitario pedirá cambios, deben estar incluidos
-4. ¿Cuál es su índice de aprobación? Un buen servicio tiene >90%
-5. ¿Tienen testimonios verificables? Busca reseñas reales
+• ¿Incluyen Turnitin? Muchos servicios usan software antiplagio gratuito que no es aceptado por universidades
+• ¿Tienen escáner anti-IA? En 2026 esto es fundamental
+• ¿Ofrecen correcciones? Tu asesor universitario pedirá cambios, deben estar incluidos
+• ¿Cuál es su índice de aprobación? Un buen servicio tiene >90%
+• ¿Tienen testimonios verificables? Busca reseñas reales
 
 🔬 ¿Por Qué Tesipedia es Diferente?
 
@@ -177,7 +186,7 @@ Más de 3,000 estudiantes han confiado en Tesipedia para hacer su tesis. Desde e
       id: 7,
       title: 'Tesis por Encargo en México: Precios, Tiempos y Todo Lo Que Necesitas Saber',
       excerpt: '¿Cuánto cuesta encargar una tesis en México? ¿Cuánto tiempo tarda? Resolvemos todas tus dudas sobre el servicio de tesis por encargo más confiable del país.',
-      image: estructuraTesis,
+      image: images.preciosTesis,
       date: '2026-03-10',
       category: 'Precios',
       readTime: '7 min',
@@ -246,7 +255,7 @@ Aceptamos múltiples formas de pago para tu comodidad:
       id: 1,
       title: 'Cómo Estructurar tu Tesis Correctamente',
       excerpt: 'Aprende los elementos fundamentales que debe contener una tesis profesional y cómo organizarlos de manera efectiva para maximizar el impacto de tu investigación.',
-      image: estructuraTesis,
+      image: images.estructuraTesis,
       date: '2024-01-15',
       category: 'Metodología',
       readTime: '5 min',
@@ -312,7 +321,7 @@ Aceptamos múltiples formas de pago para tu comodidad:
       id: 2,
       title: 'Tips para Defender tu Tesis con Éxito',
       excerpt: 'Descubre las estrategias clave y consejos prácticos para preparar y realizar una defensa de tesis exitosa que impresione a tu comité evaluador.',
-      image: defensaTesis,
+      image: images.defensaTesis,
       date: '2024-01-10',
       category: 'Consejos',
       readTime: '4 min',
@@ -327,25 +336,10 @@ Aceptamos múltiples formas de pago para tu comodidad:
 
 📊 Estructura de la Presentación
 
-1. Introducción (2-3 minutos)
-   • Presenta el tema y su relevancia
-   • Establece el contexto de tu investigación
-   • Menciona brevemente tu motivación
-
-2. Metodología (4-5 minutos)
-   • Explica tu enfoque de investigación
-   • Describe los métodos utilizados
-   • Justifica tus decisiones metodológicas
-
-3. Resultados Principales (5-6 minutos)
-   • Presenta los hallazgos más importantes
-   • Utiliza visualizaciones efectivas
-   • Conecta con tus objetivos iniciales
-
-4. Conclusiones (2-3 minutos)
-   • Resume los puntos clave
-   • Discute implicaciones
-   • Sugiere investigaciones futuras
+• Introducción (2-3 minutos): Presenta el tema y su relevancia
+• Metodología (4-5 minutos): Explica tu enfoque de investigación
+• Resultados Principales (5-6 minutos): Presenta los hallazgos más importantes
+• Conclusiones (2-3 minutos): Resume los puntos clave
 
 🎤 Durante la Defensa
 
@@ -380,7 +374,7 @@ Aceptamos múltiples formas de pago para tu comodidad:
       id: 3,
       title: 'Métodos de Investigación: Guía Completa',
       excerpt: 'Explora los diferentes métodos de investigación académica y aprende a elegir el más adecuado para tu proyecto de tesis.',
-      image: metodosInvestigacion,
+      image: images.metodosInvestigacion,
       date: '2024-01-20',
       category: 'Investigación',
       readTime: '6 min',
@@ -388,96 +382,53 @@ Aceptamos múltiples formas de pago para tu comodidad:
 
 🔬 Métodos Cuantitativos
 
-1. Investigación Experimental
-   • Control de variables
-   • Grupos de control y experimental
-   • Medición precisa de resultados
-   • Análisis estadístico riguroso
-
-2. Investigación No Experimental
-   • Estudios descriptivos
-   • Investigación correlacional
-   • Estudios longitudinales
-   • Encuestas y cuestionarios
+• Investigación Experimental: Control de variables y análisis estadístico riguroso
+• Investigación No Experimental: Estudios descriptivos y correlacionales
+• Encuestas y Cuestionarios: Recolección de datos a gran escala
+• Estudios Longitudinales: Seguimiento de variables en el tiempo
 
 📊 Análisis Cuantitativo
-   • Estadística descriptiva
-   • Pruebas de hipótesis
-   • Análisis de regresión
-   • Modelado estadístico
+
+• Estadística descriptiva
+• Pruebas de hipótesis
+• Análisis de regresión
+• Modelado estadístico
 
 👥 Métodos Cualitativos
 
-1. Etnografía
-   • Observación participante
-   • Notas de campo
-   • Entrevistas en profundidad
-   • Análisis cultural
-
-2. Estudio de Caso
-   • Análisis detallado
-   • Múltiples fuentes de datos
-   • Contexto específico
-   • Narrativa rica
-
-3. Investigación Fenomenológica
-   • Experiencias vividas
-   • Interpretación subjetiva
-   • Entrevistas semi-estructuradas
-   • Análisis temático
+• Etnografía: Observación participante y análisis cultural
+• Estudio de Caso: Análisis detallado con múltiples fuentes de datos
+• Investigación Fenomenológica: Experiencias vividas e interpretación subjetiva
+• Teoría Fundamentada: Desarrollo de teoría a partir de datos
 
 📝 Análisis Cualitativo
-   • Codificación de datos
-   • Análisis temático
-   • Triangulación
-   • Saturación teórica
+
+• Codificación de datos
+• Análisis temático
+• Triangulación
+• Saturación teórica
 
 🔄 Métodos Mixtos
 
-1. Diseño Secuencial
-   • Fase cuantitativa seguida de cualitativa
-   • Fase cualitativa seguida de cuantitativa
-   • Integración de resultados
-
-2. Diseño Convergente
-   • Recolección simultánea
-   • Análisis paralelo
-   • Integración de hallazgos
+• Diseño Secuencial: Fase cuantitativa seguida de cualitativa o viceversa
+• Diseño Convergente: Recolección simultánea y análisis paralelo
+• Integración de hallazgos de ambos enfoques
 
 🛠 Herramientas y Software
 
-• Análisis Cuantitativo
-  - SPSS
-  - R
-  - Excel
-  - Stata
-
-• Análisis Cualitativo
-  - NVivo
-  - Atlas.ti
-  - MAXQDA
-  - Dedoose
+• Análisis Cuantitativo: SPSS, R, Excel, Stata
+• Análisis Cualitativo: NVivo, Atlas.ti, MAXQDA, Dedoose
 
 📈 Validez y Confiabilidad
 
-• Validez Interna
-  - Control de variables
-  - Diseño apropiado
-  - Instrumentos calibrados
-
-• Validez Externa
-  - Generalización
-  - Representatividad
-  - Replicabilidad
-
-• Confiabilidad
-  - Consistencia
-  - Estabilidad
-  - Reproducibilidad
+• Validez Interna: Control de variables y diseño apropiado
+• Validez Externa: Generalización y representatividad
+• Confiabilidad: Consistencia, estabilidad y reproducibilidad
 
 🎯 Selección del Método
 
 Factores a considerar:
+
 • Objetivos de investigación
 • Naturaleza del problema
 • Recursos disponibles
@@ -487,15 +438,35 @@ Factores a considerar:
     }
   ];
 
+  const categories = ['Todos', ...new Set(blogPosts.map(p => p.category))];
+
+  const filteredPosts = activeCategory === 'Todos'
+    ? blogPosts
+    : blogPosts.filter(p => p.category === activeCategory);
+
+  const featuredPost = filteredPosts[0];
+  const remainingPosts = filteredPosts.slice(1);
+
   const getCategoryColor = (category) => {
     const colors = {
-      'Metodología': '#4CAF50',
-      'Consejos': '#2196F3',
-      'Investigación': '#9C27B0',
-      'Guía': '#FF9800',
-      'Precios': '#E91E63'
+      'Metodología': '#059669',
+      'Consejos': '#2563EB',
+      'Investigación': '#7C3AED',
+      'Guía': '#EA580C',
+      'Precios': '#DC2626'
     };
-    return colors[category] || '#757575';
+    return colors[category] || '#6B7280';
+  };
+
+  const getCategoryBg = (category) => {
+    const colors = {
+      'Metodología': 'rgba(5, 150, 105, 0.1)',
+      'Consejos': 'rgba(37, 99, 235, 0.1)',
+      'Investigación': 'rgba(124, 58, 237, 0.1)',
+      'Guía': 'rgba(234, 88, 12, 0.1)',
+      'Precios': 'rgba(220, 38, 38, 0.1)'
+    };
+    return colors[category] || 'rgba(107, 114, 128, 0.1)';
   };
 
   const handleReadMore = (post) => {
@@ -503,27 +474,19 @@ Factores a considerar:
     setShowModal(true);
   };
 
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   const formatContent = (content) => {
     return content.split('\n\n').map((paragraph, index) => {
-      if (paragraph.startsWith('📌') ||
-        paragraph.startsWith('🎯') ||
-        paragraph.startsWith('📚') ||
-        paragraph.startsWith('🔬') ||
-        paragraph.startsWith('📊') ||
-        paragraph.startsWith('✅') ||
-        paragraph.startsWith('📝') ||
-        paragraph.startsWith('🔍') ||
-        paragraph.startsWith('🎤') ||
-        paragraph.startsWith('💡') ||
-        paragraph.startsWith('🎯') ||
-        paragraph.startsWith('⚡') ||
-        paragraph.startsWith('👥') ||
-        paragraph.startsWith('🔄') ||
-        paragraph.startsWith('🛠') ||
-        paragraph.startsWith('📈')) {
+      if (/^[📌🎯📚🔬📊✅📝🔍🎤💡⚡👥🔄🛠📈]/.test(paragraph)) {
         return <h3 key={index} className="modal-subtitle">{paragraph}</h3>;
       }
-
       if (paragraph.includes('•')) {
         const items = paragraph.split('•').filter(item => item.trim());
         return (
@@ -534,7 +497,6 @@ Factores a considerar:
           </ul>
         );
       }
-
       return <p key={index}>{paragraph}</p>;
     });
   };
@@ -586,89 +548,134 @@ Factores a considerar:
       <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
     </Helmet>
     <div className="blog-page">
+      {/* Hero header */}
+      <div className="blog-hero">
+        <Container>
+          <div className="blog-hero-content">
+            <span className="blog-hero-badge">Blog Tesipedia</span>
+            <h1 className="blog-hero-title">Guías y Recursos para tu Tesis</h1>
+            <p className="blog-hero-subtitle">
+              Precios actualizados, consejos de expertos y todo lo que necesitas para tu tesis de licenciatura, maestría o doctorado
+            </p>
+          </div>
+        </Container>
+      </div>
+
       <Container className="blog-container">
-        <div className="blog-header">
-          <h1 className="gradient-title">Blog: Todo Sobre Hacer Tu Tesis en México</h1>
-          <p className="blog-subtitle">
-            Guías completas, precios actualizados y consejos de expertos para hacer tu tesis de licenciatura, maestría o doctorado
-          </p>
+        {/* Category pills */}
+        <div className="blog-categories">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              className={`blog-cat-pill ${activeCategory === cat ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat)}
+              style={activeCategory === cat ? {
+                backgroundColor: cat === 'Todos' ? '#1E3A5F' : getCategoryColor(cat),
+                color: 'white'
+              } : {}}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
-        <Row className="g-4">
-          {blogPosts.map(post => (
+        {/* Featured post */}
+        {featuredPost && (
+          <div className="blog-featured" onClick={() => handleReadMore(featuredPost)}>
+            <div className="blog-featured-image">
+              <img src={featuredPost.image} alt={featuredPost.title} loading="lazy" />
+              <div className="blog-featured-overlay" />
+            </div>
+            <div className="blog-featured-content">
+              <span
+                className="blog-tag"
+                style={{
+                  color: getCategoryColor(featuredPost.category),
+                  backgroundColor: getCategoryBg(featuredPost.category)
+                }}
+              >
+                {featuredPost.category}
+              </span>
+              <h2 className="blog-featured-title">{featuredPost.title}</h2>
+              <p className="blog-featured-excerpt">{featuredPost.excerpt}</p>
+              <div className="blog-featured-meta">
+                <span>{formatDate(featuredPost.date)}</span>
+                <span className="blog-meta-dot" />
+                <span>{featuredPost.readTime} de lectura</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Grid de posts */}
+        <Row className="g-4 blog-grid">
+          {remainingPosts.map(post => (
             <Col key={post.id} md={6} lg={4}>
-              <Card className="blog-card">
-                <div className="blog-image-container">
-                  <Card.Img variant="top" src={post.image} className="blog-image" loading="lazy" />
+              <article className="blog-card" onClick={() => handleReadMore(post)}>
+                <div className="blog-card-image">
+                  <img src={post.image} alt={post.title} loading="lazy" />
+                  <div className="blog-card-image-overlay" />
                 </div>
-                <Card.Body>
-                  <Card.Title>{post.title}</Card.Title>
+                <div className="blog-card-body">
                   <span
-                    className="blog-category"
-                    style={{ backgroundColor: getCategoryColor(post.category) }}
+                    className="blog-tag"
+                    style={{
+                      color: getCategoryColor(post.category),
+                      backgroundColor: getCategoryBg(post.category)
+                    }}
                   >
                     {post.category}
                   </span>
-                  <Card.Text>{post.excerpt}</Card.Text>
-                  <div className="blog-meta">
-                    <span className="blog-date">
-                      <i className="far fa-calendar-alt"></i>
-                      {new Date(post.date).toLocaleDateString()}
-                    </span>
-                    <span className="blog-read-time">
-                      <i className="far fa-clock"></i>
-                      {post.readTime}
-                    </span>
+                  <h3 className="blog-card-title">{post.title}</h3>
+                  <p className="blog-card-excerpt">{post.excerpt}</p>
+                  <div className="blog-card-footer">
+                    <span className="blog-card-date">{formatDate(post.date)}</span>
+                    <span className="blog-card-read">{post.readTime}</span>
                   </div>
-                  <button
-                    onClick={() => handleReadMore(post)}
-                    className="blog-button"
-                  >
-                    Leer más
-                  </button>
-                </Card.Body>
-              </Card>
+                </div>
+              </article>
             </Col>
           ))}
         </Row>
       </Container>
 
+      {/* Modal de lectura */}
       <Modal
         show={showModal}
         onHide={() => setShowModal(false)}
         size="lg"
         className="blog-modal"
+        centered
       >
         {selectedPost && (
           <>
             <Modal.Header closeButton>
-              <Modal.Title>{selectedPost.title}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <div className="modal-image-container">
-                <img src={selectedPost.image} alt={selectedPost.title} className="modal-image" loading="lazy" />
-              </div>
-              <div className="modal-content-wrapper">
-                <div className="modal-content">
-                  {formatContent(selectedPost.content)}
-                </div>
-              </div>
-            </Modal.Body>
-            <Modal.Footer>
-              <div className="modal-meta">
-                <span className="modal-category" style={{ backgroundColor: getCategoryColor(selectedPost.category) }}>
+              <div className="modal-header-inner">
+                <span
+                  className="blog-tag"
+                  style={{
+                    color: getCategoryColor(selectedPost.category),
+                    backgroundColor: getCategoryBg(selectedPost.category)
+                  }}
+                >
                   {selectedPost.category}
                 </span>
-                <span className="modal-date">
-                  <i className="far fa-calendar-alt"></i>
-                  {new Date(selectedPost.date).toLocaleDateString()}
-                </span>
-                <span className="modal-read-time">
-                  <i className="far fa-clock"></i>
-                  {selectedPost.readTime}
-                </span>
+                <Modal.Title>{selectedPost.title}</Modal.Title>
+                <div className="modal-header-meta">
+                  <span>{formatDate(selectedPost.date)}</span>
+                  <span className="blog-meta-dot" />
+                  <span>{selectedPost.readTime} de lectura</span>
+                </div>
               </div>
-            </Modal.Footer>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="modal-hero-image">
+                <img src={selectedPost.image} alt={selectedPost.title} loading="lazy" />
+              </div>
+              <div className="modal-article">
+                {formatContent(selectedPost.content)}
+              </div>
+            </Modal.Body>
           </>
         )}
       </Modal>
