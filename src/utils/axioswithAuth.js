@@ -97,20 +97,12 @@ axiosWithAuth.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401: {
-          // Solo cerrar sesión si NO estamos en login y NO hay token válido
-          // Evitar logout en errores temporales de red
-          const currentToken = getAuthToken();
-          const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+          // NOTA: La cookie JWT es httpOnly, así que getAuthToken() NO puede leerla.
+          // NO hacer hard redirect (window.location.href) porque borra el estado de Redux.
+          // ProtectedRoute se encarga de redirigir al login cuando getProfile() falla.
           const isAuthRoute = error.config?.url?.includes('/auth/');
-
-          if (!isLoginPage && !isAuthRoute && !currentToken) {
-            // No hay token — redirigir al login
-            console.warn('Sin token de autenticación, redirigiendo a login');
-            window.location.href = '/login';
-          } else if (!isLoginPage && !isAuthRoute) {
-            // Token existe pero el server lo rechazó — puede ser expirado
-            // Intentar refrescar silenciosamente en vez de sacar al usuario
-            console.warn('Token rechazado por el servidor (401) — sesión posiblemente expirada');
+          if (!isAuthRoute) {
+            console.warn('401 — sesión posiblemente expirada. ProtectedRoute manejará la redirección.');
           }
           break;
         }

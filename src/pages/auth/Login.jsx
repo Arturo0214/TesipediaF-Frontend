@@ -20,9 +20,21 @@ const Login = () => {
 
   const { email, password } = formData;
 
-  const { user, isLoading, isError, isSuccess, isAdmin, message } = useSelector(
+  const { user, isAuthenticated, isLoading, isError, isSuccess, isAdmin, message } = useSelector(
     (state) => state.auth
   );
+
+  // Si el usuario ya está autenticado (ej. cookie válida), redirigir fuera de /login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const defaultPath = isAdmin ? '/admin' : '/dashboard';
+      const fromState = location.state?.from;
+      const redirectPath = typeof fromState === 'string'
+        ? fromState
+        : fromState?.pathname || defaultPath;
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, user, isAdmin, navigate, location]);
 
   useEffect(() => {
     if (isError) {
