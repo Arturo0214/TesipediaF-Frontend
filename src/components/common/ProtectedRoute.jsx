@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getProfile, checkAdminStatus } from '../../features/auth/authSlice';
@@ -7,27 +7,28 @@ const ProtectedRoute = ({ requireAdmin }) => {
     const dispatch = useDispatch();
     const location = useLocation();
     const { user, isAuthenticated, isAdmin, isLoading } = useSelector(state => state.auth);
-    // Controla si ya se intentó verificar la sesión (getProfile).
-    // Mientras no se haya verificado, mostramos loading en vez de redirigir.
-    const [authChecked, setAuthChecked] = useState(isAuthenticated);
+    const [authChecked, setAuthChecked] = useState(false);
+    const hasVerified = useRef(false);
 
     useEffect(() => {
-        const checkAuth = async () => {
-            if (!isAuthenticated && !isLoading) {
-                try {
-                    await dispatch(getProfile()).unwrap();
-                } catch (error) {
-                    // getProfile falló — el usuario NO tiene sesión válida
-                    console.error('Error al obtener el perfil:', error);
-                }
+        // SIEMPRE verificar con el servidor al montar, sin importar qué diga Redux.
+        // redux-persist puede tener isAuthenticated=true con una cookie expirada.
+        if (hasVerified.current) return;
+        hasVerified.current = true;
+
+        const verifySession = async () => {
+            try {
+                await dispatch(getProfile()).unwrap();
+            } catch (error) {
+                // getProfile falló — cookie expirada o inexistente
+                console.warn('Sesión no válida, redirigiendo a login');
             }
             setAuthChecked(true);
         };
-        checkAuth();
-    }, [dispatch, isAuthenticated, isLoading]);
+        verifySession();
+    }, [dispatch]);
 
-    // Mostrar loading mientras se verifica la autenticación
-    // IMPORTANTE: No redirigir hasta que authChecked sea true
+    // Mostrar loading mientras se verifica con el servidor
     if (!authChecked || isLoading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -37,18 +38,16 @@ const ProtectedRoute = ({ requireAdmin }) => {
         );
     }
 
-    // Si no está autenticado DESPUÉS de verificar, redirigir al login
+    // Si no está autenticado DESPUÉS de verificar con el servidor, redirigir al login
     if (!isAuthenticated) {
         return <Navigate to="/login" state={{ from: { pathname: location.pathname } }} replace />;
     }
 
     // Si requiere admin y no es admin, redirigir al dashboard
     if (requireAdmin && !isAdmin) {
-        console.error('Acceso denegado: Se requieren privilegios de administrador');
         return <Navigate to="/dashboard" state={{ from: { pathname: location.pathname } }} replace />;
     }
 
-    // Si todo está bien, mostrar el contenido
     return <Outlet />;
 };
 
