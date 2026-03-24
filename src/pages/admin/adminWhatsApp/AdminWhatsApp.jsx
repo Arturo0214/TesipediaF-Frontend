@@ -219,13 +219,6 @@ const AdminWhatsApp = () => {
   // Mantener el ref sincronizado con el state
   useEffect(() => {
     selectedLeadRef.current = selectedLead;
-    // Solo scroll al seleccionar un lead DIFERENTE, no en cada refresh de polling
-    if (selectedLead && selectedLead.wa_id !== prevLeadIdRef.current) {
-      prevLeadIdRef.current = selectedLead.wa_id;
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    } else if (!selectedLead) {
-      prevLeadIdRef.current = null;
-    }
   }, [selectedLead]);
 
   // Cargar leads — usa el ref para siempre tener el selectedLead actual
@@ -325,16 +318,30 @@ const AdminWhatsApp = () => {
     return () => clearInterval(pollRef.current);
   }, [fetchLeads]);
 
-  // Scroll automático cuando llegan mensajes nuevos
+  // Scroll inteligente: al cambiar de lead, al cargar historial completo, o al llegar mensajes nuevos
   useEffect(() => {
-    if (selectedLead) {
-      const hist = parseHistorial(selectedLead.historial_chat);
-      if (hist.length > prevMsgCountRef.current) {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
-      prevMsgCountRef.current = hist.length;
-    } else {
+    if (!selectedLead) {
+      prevLeadIdRef.current = null;
       prevMsgCountRef.current = 0;
+      return;
+    }
+
+    const hist = parseHistorial(selectedLead.historial_chat);
+    const msgCount = hist.length;
+    const isNewLead = selectedLead.wa_id !== prevLeadIdRef.current;
+    // Detectar cuando el historial completo llega (salta de ≤3 a muchos más)
+    const fullHistoryJustLoaded = msgCount > 3 && prevMsgCountRef.current <= 3 && !isNewLead;
+    // Detectar mensajes nuevos durante polling
+    const newMessagesArrived = !isNewLead && !fullHistoryJustLoaded && msgCount > prevMsgCountRef.current;
+
+    prevLeadIdRef.current = selectedLead.wa_id;
+    prevMsgCountRef.current = msgCount;
+
+    if (isNewLead || fullHistoryJustLoaded || newMessagesArrived) {
+      // Usar timeout para dar tiempo a React de pintar todos los mensajes en el DOM
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: isNewLead ? 'smooth' : 'auto' });
+      }, 100);
     }
   }, [selectedLead]);
 
@@ -391,7 +398,7 @@ const AdminWhatsApp = () => {
 
   // Seleccionar una conversación
   const handleSelectLead = async (lead) => {
-    setSelectedLead(lead);
+    setSelectedLead(lead); // Mostrar inmediatamente con datos del listado (últimos 3 msgs)
     setWindowExpired(false);
     setShowNotes(false);
     setNotes([]);
@@ -402,12 +409,7 @@ const AdminWhatsApp = () => {
       const fresh = await getLeadByWaId(lead.wa_id);
       if (fresh) {
         setSelectedLead(fresh);
-        // Calcular ventana localmente (no depender del endpoint del backend)
         setWindowExpired(calcWindowExpired(fresh));
-        // Scroll al fondo después de cargar el historial completo
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
       } else {
         setWindowExpired(calcWindowExpired(lead));
       }
