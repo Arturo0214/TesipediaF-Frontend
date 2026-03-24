@@ -7,6 +7,14 @@ export default defineConfig({
     plugins: [react()],
     server: {
         port: 5173,
+        proxy: {
+            '/api': {
+                target: 'https://tesipedia-backend-service-production.up.railway.app',
+                changeOrigin: true,
+                secure: true,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
     },
     resolve: {
         alias: {
