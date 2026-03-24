@@ -13,6 +13,13 @@ import userReducer from '../features/auth/userSlice';
 import projectReducer from '../features/projects/projectSlice';
 import hubspotReducer from '../features/hubspot/hubspotSlice';
 
+// Auth: no persistir flags transitorios que pueden quedar stuck
+const authPersistConfig = {
+    key: 'auth',
+    storage,
+    blacklist: ['isLoading', 'isError', 'isSuccess', 'message'],
+};
+
 // Especialmente para el chat
 const chatPersistConfig = {
     key: 'chat',
@@ -22,7 +29,7 @@ const chatPersistConfig = {
 
 // Reducers combinados
 const rootReducer = combineReducers({
-    auth: authReducer,
+    auth: persistReducer(authPersistConfig, authReducer),
     payments: paymentReducer,
     guestPayments: guestPaymentReducer,
     quotes: quoteReducer,
@@ -38,7 +45,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
     key: 'root',
     storage,
-    blacklist: ['chat'], // 🔥 Evitamos persistir dos veces el chat
+    blacklist: ['chat', 'auth'], // 🔥 Evitamos persistir dos veces el chat y auth
 };
 
 // Reducer principal persistido

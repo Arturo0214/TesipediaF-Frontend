@@ -24,6 +24,11 @@ const Login = () => {
     (state) => state.auth
   );
 
+  // Limpiar flags transitorios al montar (por si redux-persist guardó isLoading=true)
+  useEffect(() => {
+    dispatch(reset());
+  }, [dispatch]);
+
   // Si el usuario ya está autenticado (ej. cookie válida), redirigir fuera de /login
   useEffect(() => {
     if (isAuthenticated && user) {
