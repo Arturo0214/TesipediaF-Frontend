@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:seo": "vite build && node scripts/prerender.js",
-    "prerender": "node scripts/prerender.js",
+    "build:seo": "vite build && node scripts/prerender-seo.js",
+    "build:seo:full": "vite build && node scripts/prerender.js",
+    "prerender": "node scripts/prerender-seo.js",
+    "prerender:full": "node scripts/prerender.js",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
