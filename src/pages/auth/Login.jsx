@@ -29,9 +29,11 @@ const Login = () => {
     dispatch(reset());
   }, [dispatch]);
 
-  // Si el usuario ya está autenticado (ej. cookie válida), redirigir fuera de /login
+  // Solo redirigir si el login ACABA de ser exitoso (isSuccess=true),
+  // NO si Redux persist tiene datos viejos (isAuthenticated=true pero sesión expirada)
+  // Esto evita el loop infinito: login → redirect → getProfile 401 → login → ...
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isSuccess && isAuthenticated && user) {
       const defaultPath = isAdmin ? '/admin' : '/dashboard';
       const fromState = location.state?.from;
       const redirectPath = typeof fromState === 'string'
@@ -39,7 +41,7 @@ const Login = () => {
         : fromState?.pathname || defaultPath;
       navigate(redirectPath, { replace: true });
     }
-  }, [isAuthenticated, user, isAdmin, navigate, location]);
+  }, [isSuccess, isAuthenticated, user, isAdmin, navigate, location]);
 
   useEffect(() => {
     if (isError) {
@@ -48,20 +50,9 @@ const Login = () => {
         title: 'Error',
         text: message
       });
-    }
-
-    // Si el login es exitoso
-    if (isSuccess && user) {
-      const defaultPath = isAdmin ? '/admin' : '/dashboard';
-      // Redirigir a la ruta original o al dashboard según rol
-      const fromState = location.state?.from;
-      const redirectPath = typeof fromState === 'string'
-        ? fromState
-        : fromState?.pathname || defaultPath;
-      navigate(redirectPath);
       dispatch(reset());
     }
-  }, [user, isError, isSuccess, isAdmin, message, navigate, dispatch, location]);
+  }, [isError, message, dispatch]);
 
   const onChange = (e) => {
     setFormData((prevState) => ({
