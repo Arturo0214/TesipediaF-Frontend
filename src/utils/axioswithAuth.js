@@ -11,19 +11,25 @@ const axiosWithAuth = axios.create({
 
 const getAuthToken = () => {
   try {
-    // Obtener token desde cookie (httpOnly en el servidor)
-    const cookies = document.cookie.split(';').reduce((cookiesObj, cookie) => {
-      if (!cookie) return cookiesObj;
-      const [name, value] = cookie.trim().split('=').map(c => c.trim());
-      if (name && value) {
-        cookiesObj[name] = value;
-      }
-      return cookiesObj;
-    }, {});
-
-    if (cookies.jwt) {
-      return cookies.jwt;
+    // 1. Intentar desde cookie (funciona si NO es httpOnly)
+    const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+    if (match && match[1]) {
+      return decodeURIComponent(match[1]);
     }
+
+    // 2. Intentar desde Redux persist (el login guarda token en user)
+    const persistAuth = localStorage.getItem('persist:auth');
+    if (persistAuth) {
+      const parsed = JSON.parse(persistAuth);
+      if (parsed.user) {
+        const user = JSON.parse(parsed.user);
+        if (user?.token) return user.token;
+      }
+    }
+
+    // 3. Fallback: jwt_backup en localStorage
+    const backup = localStorage.getItem('jwt_backup');
+    if (backup) return backup;
 
     return '';
   } catch (error) {
