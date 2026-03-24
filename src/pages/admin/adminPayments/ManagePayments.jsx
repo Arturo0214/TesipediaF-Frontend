@@ -453,7 +453,7 @@ function ManagePayments() {
                                         <div key={getChartKey(item)} className="mp-pay-bar-col">
                                             <div className="mp-pay-bar-wrapper">
                                                 <div className="mp-pay-bar ingreso" style={{ height: `${Math.max(pct, 4)}%` }}>
-                                                    <span className="mp-pay-bar-tooltip">{formatMoney(item.ingresos)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
+                                                    <span className="mp-pay-bar-tooltip">{formatMoney(item.ingresos)}<br />{item.count || 0} venta{(item.count || 0) !== 1 ? 's' : ''}</span>
                                                 </div>
                                             </div>
                                             <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>
@@ -479,7 +479,7 @@ function ManagePayments() {
                                         <div key={getChartKey(item)} className="mp-pay-bar-col">
                                             <div className="mp-pay-bar-wrapper">
                                                 <div className="mp-pay-bar comision" style={{ height: `${Math.max(pct, 4)}%` }}>
-                                                    <span className="mp-pay-bar-tooltip">{formatMoney(item.comisiones)}<br />{item.count} venta{item.count !== 1 ? 's' : ''}</span>
+                                                    <span className="mp-pay-bar-tooltip">{formatMoney(item.comisiones)}<br />{item.count || 0} venta{(item.count || 0) !== 1 ? 's' : ''}</span>
                                                 </div>
                                             </div>
                                             <span className="mp-pay-bar-label">{formatChartLabel(item)}</span>

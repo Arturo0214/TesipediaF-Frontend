@@ -127,8 +127,10 @@ function Home() {
     "offers": {
       "@type": "AggregateOffer",
       "priceCurrency": "MXN",
-      "lowPrice": "6300",
-      "highPrice": "22000",
+      "lowPrice": "60",
+      "highPrice": "120",
+      "priceCurrency": "MXN",
+      "unitText": "por página",
       "offerCount": "3"
     },
     "hasOfferCatalog": {

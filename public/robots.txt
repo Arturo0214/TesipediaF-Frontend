@@ -2,6 +2,7 @@
 User-agent: *
 Allow: /
 Allow: /blog
+Allow: /blog/
 Allow: /sobre-nosotros
 Allow: /contacto
 Allow: /preguntas-frecuentes
@@ -18,10 +19,7 @@ Disallow: /login
 Disallow: /forgot-password
 Disallow: /auth/
 Disallow: /payment/
-Disallow: /servicios
-Disallow: /precios
-Disallow: /como-funciona
-Disallow: /cotizar
+Disallow: /cotizacion/
 
 # Sitemap
 Sitemap: https://tesipedia.com/sitemap.xml

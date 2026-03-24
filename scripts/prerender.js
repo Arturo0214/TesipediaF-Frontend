@@ -20,15 +20,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
 const distDir = resolve(rootDir, 'dist');
 
-// Rutas públicas a pre-renderizar
-const routes = [
-  '/',
-  '/contacto',
-  '/sobre-nosotros',
-  '/preguntas-frecuentes',
-  '/register',
-  '/politica-de-privacidad',
-];
+// Importar rutas desde configuración centralizada
+import { prerenderRoutes } from '../prerender.config.js';
+const routes = prerenderRoutes;
 
 const PORT = 4173;
 

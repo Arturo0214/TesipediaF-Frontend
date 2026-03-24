@@ -7,7 +7,8 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
     <section className="hero-section-container text-white position-relative overflow-hidden">
       <div className="hero-section-background"></div>
       <Container>
-        <Row className="align-items-center min-vh-100">
+        <Row className="hero-section-row align-items-start">
+          {/* LEFT COLUMN — Text + Features + CTA */}
           <Col lg={6} className="hero-section-text" data-aos="fade-right">
             <h1 className="display-5 fw-bold mb-3" style={{ color: 'white' }}>
               ¿Necesitas hacer tu tesis? Te ayudamos a titularte
@@ -45,7 +46,9 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
               </Button>
             </div>
           </Col>
-          <Col lg={6} className="hero-section-stats position-relative" data-aos="fade-left">
+
+          {/* RIGHT COLUMN — Stat cards + Contact buttons below */}
+          <Col lg={6} className="hero-section-right" data-aos="fade-left">
             <div className="hero-section-stats-showcase">
               {stats.map((stat, index) => (
                 <div

@@ -1,8 +1,13 @@
 [build]
   base = "/"
   publish = "dist"
-  command = "npm run build"
+  command = "npm run build:seo"
 
+[build.environment]
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
+
+# Pre-rendered pages are served as static files automatically.
+# This catch-all only fires for routes without a static HTML file.
 [[redirects]]
   from = "/*"
   to = "/index.html"

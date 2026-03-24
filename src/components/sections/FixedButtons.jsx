@@ -76,7 +76,7 @@ const FixedButtons = () => {
             </div>
             <div className="chat-greeting-content">
               <strong>Sofia de Tesipedia</strong>
-              <p>¡Hola! ¿Necesitas ayuda con tu tesis? Estoy aquí para orientarte.</p>
+              <span>¡Hola! ¿Necesitas ayuda con tu tesis? Estoy aquí para orientarte.</span>
             </div>
           </div>
         )}

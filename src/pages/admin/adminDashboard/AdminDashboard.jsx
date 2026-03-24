@@ -181,7 +181,8 @@ const AdminDashboard = () => {
   const hubspotPipeline = useMemo(() => {
     if (!hubspot?.deals?.byStage) return [];
     const stages = Object.entries(hubspot.deals.byStage)
-      .map(([id, data]) => ({ id, ...data }))
+      .filter(([, data]) => data != null && typeof data === 'object')
+      .map(([id, data]) => ({ id, count: 0, amount: 0, label: id, ...data }))
       .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
     return stages;
   }, [hubspot]);
@@ -431,7 +432,7 @@ const AdminDashboard = () => {
                 {hubspotPipeline.map((stage, idx) => (
                   <div key={stage.id} className="adm-hs-stage">
                     <div className="adm-hs-stage-bar" style={{ background: stageColors[idx % stageColors.length] }}>
-                      <span className="adm-hs-stage-count">{stage.count}</span>
+                      <span className="adm-hs-stage-count">{stage.count || 0}</span>
                     </div>
                     <span className="adm-hs-stage-label">{stage.label}</span>
                     <span className="adm-hs-stage-amount">{formatCurrency(stage.amount)}</span>

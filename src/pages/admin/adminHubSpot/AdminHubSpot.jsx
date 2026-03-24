@@ -450,16 +450,17 @@ const AdminHubSpot = () => {
               <h4 className="hs-chart-title">Pipeline de Deals</h4>
               <div className="hs-funnel">
                 {Object.entries(dealData.byStage)
-                  .sort(([, a], [, b]) => (b.amount || 0) - (a.amount || 0))
+                  .filter(([, d]) => d != null && typeof d === 'object')
+                  .sort(([, a], [, b]) => ((b && b.amount) || 0) - ((a && a.amount) || 0))
                   .map(([stageId, data]) => {
-                    const pct = kpis.totalRevenue > 0 ? Math.round((data.amount / kpis.totalRevenue) * 100) : 0;
+                    const pct = kpis.totalRevenue > 0 ? Math.round(((data?.amount || 0) / kpis.totalRevenue) * 100) : 0;
                     return (
                       <div key={stageId} className="hs-funnel-row">
-                        <span className="hs-funnel-label">{data.label || stageId}</span>
+                        <span className="hs-funnel-label">{data?.label || stageId}</span>
                         <div className="hs-funnel-bar-bg">
                           <div className="hs-funnel-bar-fill" style={{ width: `${pct}%`, background: '#ff7a59' }} />
                         </div>
-                        <span className="hs-funnel-count">{data.count} · {fmt(data.amount)}</span>
+                        <span className="hs-funnel-count">{data?.count || 0} · {fmt(data?.amount)}</span>
                       </div>
                     );
                   })}

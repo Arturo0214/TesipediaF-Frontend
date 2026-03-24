@@ -7,7 +7,7 @@
  *
  * USO:
  *   npm run build       (build normal)
- *   npm run prerender   (build + genera HTML estático)
+ *   npm run build:seo   (build + genera HTML estático)
  *
  * REQUISITO:
  *   npm install puppeteer --save-dev
@@ -18,6 +18,14 @@ export const prerenderRoutes = [
   '/contacto',
   '/sobre-nosotros',
   '/preguntas-frecuentes',
+  '/blog',
+  '/blog/donde-hacer-tu-tesis-en-mexico-guia-completa-2026',
+  '/blog/es-seguro-comprar-tesis-en-mexico-lo-que-debes-saber',
+  '/blog/hacemos-tu-tesis-como-elegir-el-mejor-servicio-de-tesis-en-mexico',
+  '/blog/tesis-por-encargo-en-mexico-precios-tiempos-y-todo-lo-que-necesitas-saber',
+  '/blog/como-estructurar-tu-tesis-correctamente',
+  '/blog/tips-para-defender-tu-tesis-con-exito',
+  '/blog/metodos-de-investigacion-guia-completa',
   '/register',
   '/politica-de-privacidad',
 ];

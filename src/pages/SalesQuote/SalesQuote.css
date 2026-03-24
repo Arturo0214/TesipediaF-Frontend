@@ -1,14 +1,8 @@
 .sales-quote-container {
-    min-height: calc(100vh - 60px);
-    /* Ajuste para navbar */
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    padding: 1rem 0.5rem;
-    /* Padding superior reducido a 1rem */
+    padding: 0.5rem;
     display: flex;
     align-items: flex-start;
-    /* Alinear al inicio (arriba), no al centro */
-    padding-top: 0.5rem !important;
-    /* Forzar posición superior */
 }
 
 .sales-quote-container .row {
@@ -20,7 +14,8 @@
     border-radius: 10px;
     box-shadow: 0 6px 20px rgba(52, 152, 219, 0.1);
     border: none;
-    height: calc(100vh - 1rem);
+    max-height: calc(100vh - 5rem);
+    height: auto;
     display: flex;
     flex-direction: column;
 }

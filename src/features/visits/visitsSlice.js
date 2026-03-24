@@ -22,7 +22,9 @@ export const getVisits = createAsyncThunk(
             if (!auth.isAdmin) {
                 return thunkAPI.rejectWithValue('Permission denied: Admin access required');
             }
-            return await visitService.getVisits();
+            const data = await visitService.getVisits();
+            // Ensure we always return an array (API may wrap in object)
+            return Array.isArray(data) ? data : (data?.visits || data?.data || []);
         } catch (error) {
             return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
         }
