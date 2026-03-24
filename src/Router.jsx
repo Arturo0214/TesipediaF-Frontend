@@ -22,11 +22,7 @@ const FAQ = lazy(() => import('./pages/FAQ/FAQ'));
 const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('./pages/PaymentCancel/PaymentCancel'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy/PrivacyPolicy'));
-const Services = lazy(() => import('./pages/Services/Services'));
-const Prices = lazy(() => import('./pages/Prices/Prices'));
-const HowItWorks = lazy(() => import('./pages/HowItWorks/HowItWorks'));
 const Blog = lazy(() => import('./pages/Blog/Blog'));
-const Quote = lazy(() => import('./pages/Quote/Quote'));
 const SalesQuote = lazy(() => import('./pages/SalesQuote/SalesQuote'));
 
 // Lazy load protected layouts and pages (not needed on initial load)
@@ -66,11 +62,7 @@ const router = createBrowserRouter(
         { path: 'sobre-nosotros', element: <LazyPage><AboutUs /></LazyPage> },
         { path: 'politica-de-privacidad', element: <LazyPage><PrivacyPolicy /></LazyPage> },
         { path: 'preguntas-frecuentes', element: <LazyPage><FAQ /></LazyPage> },
-        { path: 'servicios', element: <LazyPage><Services /></LazyPage> },
-        { path: 'precios', element: <LazyPage><Prices /></LazyPage> },
-        { path: 'como-funciona', element: <LazyPage><HowItWorks /></LazyPage> },
         { path: 'blog', element: <LazyPage><Blog /></LazyPage> },
-        { path: 'cotizar', element: <LazyPage><Quote /></LazyPage> },
         { path: 'cotizacion/:id', element: <LazyPage><SalesQuote /></LazyPage> },
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },

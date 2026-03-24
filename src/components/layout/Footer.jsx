@@ -38,30 +38,10 @@ export function Footer() {
                                 <Link to="/preguntas-frecuentes" className="text-light text-decoration-none">Preguntas Frecuentes</Link>
                             </li>
                             <li className="mb-2">
-                                <Link to="/blog" className="text-light text-decoration-none">Blog Académico</Link>
-                            </li>
-                            <li className="mb-2">
                                 <Link to="/contacto" className="text-light text-decoration-none">Contacto</Link>
                             </li>
                             <li className="mb-2">
                                 <Link to="/politica-de-privacidad" className="text-light text-decoration-none">Política de Privacidad</Link>
-                            </li>
-                        </ul>
-                    </Col>
-                    <Col md={2}>
-                        <h5 className="mb-3">Servicios</h5>
-                        <ul className="list-unstyled">
-                            <li className="mb-2">
-                                <Link to="/servicios" className="text-light text-decoration-none">Nuestros Servicios</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/precios" className="text-light text-decoration-none">Precios y Planes</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/como-funciona" className="text-light text-decoration-none">Cómo Funciona</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link to="/cotizar" className="text-light text-decoration-none">Cotizar Proyecto</Link>
                             </li>
                         </ul>
                     </Col>
