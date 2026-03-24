@@ -27,6 +27,8 @@ import {
   FaEnvelope,
   FaEnvelopeOpen,
   FaLock,
+  FaStickyNote,
+  FaTrash,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -40,6 +42,9 @@ import {
   sendSofiaReminders,
   getAutoReminderStatus,
   configAutoReminder,
+  getLeadNotes,
+  createLeadNote,
+  deleteLeadNote,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -191,6 +196,11 @@ const AdminWhatsApp = () => {
   const [quotePriceLoading, setQuotePriceLoading] = useState(false);
   const [quoteGenerating, setQuoteGenerating] = useState(false);
   const [quotePdfUrl, setQuotePdfUrl] = useState(null);
+  // Notas del lead
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState('');
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
@@ -345,17 +355,59 @@ const AdminWhatsApp = () => {
     return true;
   };
 
+  // Cargar notas de un lead
+  const fetchNotes = async (waId) => {
+    try {
+      setNotesLoading(true);
+      const data = await getLeadNotes(waId);
+      setNotes(data);
+    } catch (err) {
+      console.error('Error cargando notas:', err);
+      setNotes([]);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !selectedLead) return;
+    try {
+      const note = await createLeadNote(selectedLead.wa_id, newNote.trim());
+      setNotes(prev => [note, ...prev]);
+      setNewNote('');
+    } catch (err) {
+      toast.error('Error al guardar nota');
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await deleteLeadNote(noteId);
+      setNotes(prev => prev.filter(n => n._id !== noteId));
+    } catch (err) {
+      toast.error('Error al eliminar nota');
+    }
+  };
+
   // Seleccionar una conversación
   const handleSelectLead = async (lead) => {
     setSelectedLead(lead);
     setWindowExpired(false);
-    // Refrescar datos del lead seleccionado
+    setShowNotes(false);
+    setNotes([]);
+    // Cargar notas en paralelo
+    fetchNotes(lead.wa_id);
+    // Refrescar datos del lead seleccionado (obtener historial COMPLETO)
     try {
       const fresh = await getLeadByWaId(lead.wa_id);
       if (fresh) {
         setSelectedLead(fresh);
         // Calcular ventana localmente (no depender del endpoint del backend)
         setWindowExpired(calcWindowExpired(fresh));
+        // Scroll al fondo después de cargar el historial completo
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       } else {
         setWindowExpired(calcWindowExpired(lead));
       }
@@ -1366,7 +1418,7 @@ const AdminWhatsApp = () => {
                 </div>
               </div>
 
-              {/* Row 2: Etiquetas del lead a la derecha */}
+              {/* Row 2: Etiquetas del lead */}
               <div className="wa-chat-row2">
                 <div className="wa-lead-info-pills">
                   {selectedLead.estado_sofia && (
@@ -1405,8 +1457,78 @@ const AdminWhatsApp = () => {
                       <option value="hugo">Hugo</option>
                     </select>
                   )}
+                  <Button
+                    variant={showNotes ? 'warning' : 'outline-secondary'}
+                    size="sm"
+                    className="wa-notes-toggle-btn"
+                    onClick={() => setShowNotes(!showNotes)}
+                    title="Notas del lead"
+                  >
+                    <FaStickyNote className="me-1" />
+                    Notas {notes.length > 0 && `(${notes.length})`}
+                  </Button>
                 </div>
               </div>
+
+              {/* Panel de notas colapsable */}
+              {showNotes && (
+                <div className="wa-notes-panel">
+                  <div className="wa-notes-header">
+                    <span><FaStickyNote className="me-1" /> Notas internas</span>
+                    <button className="wa-notes-close" onClick={() => setShowNotes(false)}>&times;</button>
+                  </div>
+                  <div className="wa-notes-add">
+                    <textarea
+                      className="wa-notes-input"
+                      placeholder="Escribe una nota interna..."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      rows={2}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAddNote();
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="warning"
+                      size="sm"
+                      onClick={handleAddNote}
+                      disabled={!newNote.trim()}
+                      className="wa-notes-add-btn"
+                    >
+                      Agregar
+                    </Button>
+                  </div>
+                  <div className="wa-notes-list">
+                    {notesLoading ? (
+                      <div className="wa-notes-loading"><Spinner size="sm" /> Cargando notas...</div>
+                    ) : notes.length === 0 ? (
+                      <div className="wa-notes-empty">No hay notas para este lead</div>
+                    ) : (
+                      notes.map((note) => (
+                        <div key={note._id} className="wa-note-item">
+                          <div className="wa-note-header">
+                            <span className="wa-note-author">{note.author}</span>
+                            <span className="wa-note-date">
+                              {note.createdAt ? format(new Date(note.createdAt), "d MMM HH:mm", { locale: es }) : ''}
+                            </span>
+                            <button
+                              className="wa-note-delete"
+                              onClick={() => handleDeleteNote(note._id)}
+                              title="Eliminar nota"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                          <div className="wa-note-content">{note.content}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Alertas de validación por estado */}
               {(() => {

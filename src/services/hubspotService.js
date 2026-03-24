@@ -1,25 +1,27 @@
 import axiosWithAuth from '../utils/axioswithAuth';
 
-const BASE_URL = (import.meta.env.VITE_BASE_URL || '').replace(/\/+$/, '');
+// axiosWithAuth ya tiene baseURL = VITE_BASE_URL (/api/)
+// Las rutas deben ser relativas al baseURL, NO incluir /api/ de nuevo
+const BASE = '/api/v1/hubspot';
 
 const hubspotService = {
   getSummary: async () => {
-    const response = await axiosWithAuth.get(`${BASE_URL}/api/v1/hubspot/summary`);
+    const response = await axiosWithAuth.get(`${BASE}/summary`);
     return response.data;
   },
 
   getDeals: async (params = {}) => {
-    const response = await axiosWithAuth.get(`${BASE_URL}/api/v1/hubspot/deals`, { params });
+    const response = await axiosWithAuth.get(`${BASE}/deals`, { params });
     return response.data;
   },
 
   getContacts: async (params = {}) => {
-    const response = await axiosWithAuth.get(`${BASE_URL}/api/v1/hubspot/contacts`, { params });
+    const response = await axiosWithAuth.get(`${BASE}/contacts`, { params });
     return response.data;
   },
 
   getPipelines: async () => {
-    const response = await axiosWithAuth.get(`${BASE_URL}/api/v1/hubspot/pipelines`);
+    const response = await axiosWithAuth.get(`${BASE}/pipelines`);
     return response.data;
   },
 };

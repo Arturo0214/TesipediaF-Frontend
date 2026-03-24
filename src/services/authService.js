@@ -22,13 +22,30 @@ const getCookieConfig = () => {
 };
 
 
-// Obtener token de las cookies
+// Obtener token — intenta cookie, luego Redux persist, luego jwt_backup
 export const getToken = () => {
-    // Obtener token desde cookie (httpOnly en el servidor)
+    // 1. Intentar desde cookie (funciona si NO es httpOnly)
     const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
     if (match && match[1]) {
         return decodeURIComponent(match[1]);
     }
+
+    // 2. Intentar desde Redux persist (el login guarda token en user)
+    try {
+        const persistAuth = localStorage.getItem('persist:auth');
+        if (persistAuth) {
+            const parsed = JSON.parse(persistAuth);
+            if (parsed.user) {
+                const user = JSON.parse(parsed.user);
+                if (user?.token) return user.token;
+            }
+        }
+    } catch (e) { /* silencioso */ }
+
+    // 3. Fallback: jwt_backup en localStorage
+    const backup = localStorage.getItem('jwt_backup');
+    if (backup) return backup;
+
     return null;
 };
 

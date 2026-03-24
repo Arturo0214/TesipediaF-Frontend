@@ -1,7 +1,10 @@
 import { io } from 'socket.io-client';
 import { getToken } from '../authService';
 
-const VITE_BASE_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
+// Socket.IO needs a direct URL (not a Vite proxy path like /api/)
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL
+  || (import.meta.env.VITE_BASE_URL?.startsWith('http') ? import.meta.env.VITE_BASE_URL : null)
+  || 'https://tesipedia-backend-service-production.up.railway.app';
 
 let socket = null;
 // Track custom listeners so we can clean them up properly
@@ -21,11 +24,13 @@ export const connectSocket = (userId, isPublic = false) => {
     socket.disconnect();
   }
 
+  const token = getToken();
   const socketOptions = {
     auth: isPublic
       ? { userId, isPublic: true }
-      : { userId, token: getToken(), isPublic: false },
-    transports: ['websocket', 'polling'],
+      : { userId, token: token || undefined, isPublic: false },
+    transports: ['polling', 'websocket'], // polling first so httpOnly cookies are sent
+    withCredentials: true, // send cookies (httpOnly JWT) with handshake
     reconnectionAttempts: 10,
     reconnectionDelay: 1000,
     timeout: 10000,
@@ -39,7 +44,7 @@ export const connectSocket = (userId, isPublic = false) => {
   };
 
   try {
-    socket = io(VITE_BASE_URL, socketOptions);
+    socket = io(SOCKET_URL, socketOptions);
   } catch (error) {
     console.error('Error al crear la conexión del socket:', error);
     return null;

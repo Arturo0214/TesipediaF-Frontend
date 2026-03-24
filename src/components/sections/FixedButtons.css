@@ -93,9 +93,11 @@
   50% { transform: scale(1.15); }
 }
 
-/* ─── Greeting popup bubble ──────────────────────────────── */
+/* ─── Greeting popup bubble (positioned to the LEFT of buttons) ── */
 .chat-greeting {
-  position: relative;
+  position: absolute;
+  right: 72px;
+  bottom: 10px;
   background: white;
   border-radius: 16px;
   padding: 14px 40px 14px 14px;
@@ -107,6 +109,7 @@
   cursor: pointer;
   animation: greetingSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition: transform 0.2s, box-shadow 0.2s;
+  white-space: normal;
 }
 
 .chat-greeting:hover {
@@ -114,17 +117,17 @@
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Speech bubble tail */
+/* Speech bubble tail — points RIGHT toward the buttons */
 .chat-greeting::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  right: 28px;
+  bottom: 20px;
+  right: -8px;
   width: 16px;
   height: 16px;
   background: white;
   transform: rotate(45deg);
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 4px -2px 8px rgba(0, 0, 0, 0.06);
   border-radius: 2px;
 }
 
@@ -188,11 +191,11 @@
 @keyframes greetingSlideIn {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.95);
+    transform: translateX(20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -225,8 +228,10 @@
   }
 
   .chat-greeting {
-    max-width: 240px;
+    max-width: 220px;
     padding: 12px 36px 12px 12px;
+    right: 62px;
+    bottom: 6px;
   }
 
   .chat-greeting-content strong {

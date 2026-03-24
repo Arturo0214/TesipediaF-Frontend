@@ -9,15 +9,15 @@ function Blog() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [activeCategory, setActiveCategory] = useState('Todos');
 
-  // Imágenes únicas y profesionales para cada post
+  // Imágenes para cada post — Cloudinary (propias) + Picsum (placeholder profesional)
   const images = {
-    guiaTesis: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80',
-    comprarTesis: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80',
-    elegirServicio: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80',
-    preciosTesis: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
-    estructuraTesis: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80',
-    defensaTesis: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&q=80',
-    metodosInvestigacion: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&q=80',
+    guiaTesis: 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713698/Estructurar-tesis_t6kiop.png',
+    comprarTesis: 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743799333/ChatGPT_Image_4_abr_2025_02_41_53_p.m._hjnfrc.png',
+    elegirServicio: 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743800151/WhatsApp_Image_2025-04-04_at_14.55.22_hmlo1d.jpg',
+    preciosTesis: 'https://picsum.photos/id/180/800/450',
+    estructuraTesis: 'https://picsum.photos/id/24/800/450',
+    defensaTesis: 'https://picsum.photos/id/306/800/450',
+    metodosInvestigacion: 'https://picsum.photos/id/367/800/450',
   };
 
   const blogPosts = [

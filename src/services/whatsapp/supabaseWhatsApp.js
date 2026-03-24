@@ -120,6 +120,25 @@ export async function configAutoReminder(config) {
   return data;
 }
 
+// ─── Lead Notes ───────────────────────────────────────────────
+
+const NOTES_BASE = '/api/v1/lead-notes';
+
+export async function getLeadNotes(waId) {
+  const { data } = await axiosWithAuth.get(`${NOTES_BASE}/${waId}`);
+  return data;
+}
+
+export async function createLeadNote(waId, content) {
+  const { data } = await axiosWithAuth.post(`${NOTES_BASE}/${waId}`, { content });
+  return data;
+}
+
+export async function deleteLeadNote(noteId) {
+  const { data } = await axiosWithAuth.delete(`${NOTES_BASE}/${noteId}`);
+  return data;
+}
+
 /**
  * Parsear historial_chat que puede venir como string JSON o array
  */

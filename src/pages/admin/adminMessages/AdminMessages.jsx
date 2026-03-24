@@ -273,15 +273,11 @@ const AdminMessages = () => {
 
     // ── Socket initialization ───────────────────────────────
     useEffect(() => {
-        if (!isAuthenticated || !isAdmin) return;
+        if (!isAuthenticated || !isAdmin || !user?._id) return;
 
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('jwt='))
-            ?.split('=')[1];
-        if (!token) return;
-
-        const newSocket = connectSocket(user._id, false, token);
+        // No need to extract token from document.cookie — JWT is httpOnly.
+        // chatSocket.js sends cookies via withCredentials; backend extracts JWT from cookie header.
+        const newSocket = connectSocket(user._id, false);
         socketRef.current = newSocket;
 
         if (newSocket) {
@@ -297,10 +293,11 @@ const AdminMessages = () => {
             });
 
             onSocketEvent('connect_error', (error) => {
-                if (error.message?.includes('Authentication')) {
+                console.warn('Socket connect_error:', error.message);
+                if (error.message?.includes('Authentication') || error.message?.includes('Token')) {
                     disconnectSocket();
                     setTimeout(() => {
-                        const retry = connectSocket(user._id, false, token);
+                        const retry = connectSocket(user._id, false);
                         socketRef.current = retry;
                     }, 2000);
                 }
