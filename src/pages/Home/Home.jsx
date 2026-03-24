@@ -91,7 +91,8 @@ function Home() {
     "name": "Tesipedia",
     "url": "https://tesipedia.com",
     "logo": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
-    "description": "Servicio profesional #1 en México para desarrollo de tesis de licenciatura, maestría y doctorado. 100% original, libre de plagio e IA.",
+    "description": "¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. Compra tu tesis 100% original, libre de plagio e IA. +3,000 titulados.",
+    "alternateName": "Hacemos Tesis - Tesipedia",
     "telephone": "+52-56-7007-1517",
     "address": {
       "@type": "PostalAddress",
@@ -111,7 +112,8 @@ function Home() {
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "serviceType": "Desarrollo de Tesis Profesional",
+    "serviceType": "Hacer Tesis Profesional",
+    "name": "Te Hacemos Tu Tesis — Servicio de Elaboración de Tesis en México",
     "provider": {
       "@type": "ProfessionalService",
       "name": "Tesipedia",
@@ -190,11 +192,11 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>Tesipedia — ¿Necesitas ayuda con tu tesis? Servicio #1 en México | +3,000 Titulados</title>
-        <meta name="description" content="¿No sabes cómo hacer tu tesis? Tesipedia es el servicio #1 en México para desarrollo de tesis de licenciatura, maestría y doctorado. 100% original, sin plagio ni IA. Entrega desde 3 semanas. +3,000 estudiantes titulados. Cotiza gratis por WhatsApp." />
-        <meta name="keywords" content="hacer mi tesis, ayuda con mi tesis, quién me hace mi tesis México, cuánto cuesta una tesis, desarrollo de tesis profesional, tesis licenciatura, tesis maestría, tesis doctorado, asesoría de tesis CDMX, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, tesina, trabajo de investigación, titulación universitaria, corrección de tesis, antiplagio Turnitin, Tesipedia" />
-        <meta property="og:title" content="Tesipedia — ¿Necesitas ayuda con tu tesis? Servicio #1 en México" />
-        <meta property="og:description" content="Más de 3,000 estudiantes titulados confían en Tesipedia. Desarrollo de tesis 100% original con asesoría personalizada. Cotiza gratis." />
+        <title>Hacer Tesis en México | Tesipedia — Te Hacemos Tu Tesis de Licenciatura, Maestría y Doctorado</title>
+        <meta name="description" content="¿Necesitas hacer tu tesis? En Tesipedia te hacemos tu tesis de licenciatura, maestría o doctorado. Compra tu tesis 100% original, sin plagio ni IA. +3,000 titulados en México. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="hacer tesis, comprar tesis, hacer mi tesis, te hacemos tu tesis, hacemos tesis, quien me hace mi tesis, comprar tesis México, hacer tesis licenciatura, hacer tesis maestría, hacer tesis doctorado, tesis por encargo, encargar tesis, elaboración de tesis, desarrollo de tesis México, asesoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
+        <meta property="og:title" content="Hacer Tesis en México | Tesipedia — Te Hacemos Tu Tesis 100% Original" />
+        <meta property="og:description" content="¿Necesitas hacer tu tesis? +3,000 estudiantes ya se titularon con Tesipedia. Te hacemos tu tesis 100% original. Cotiza gratis." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tesipedia.com" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />

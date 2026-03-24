@@ -10,10 +10,10 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
         <Row className="align-items-center min-vh-100">
           <Col lg={6} className="hero-section-text" data-aos="fade-right">
             <h1 className="display-4 fw-bold mb-4" style={{ color: 'white' }}>
-              ¿Necesitas ayuda con tu tesis? Te ayudamos a titularte
+              ¿Necesitas hacer tu tesis? Te hacemos tu tesis y te ayudamos a titularte
             </h1>
             <p className="lead mb-4">
-              Desarrollo profesional de tesis de licenciatura, maestría y doctorado en México. 100% original, sin plagio ni IA. Más de 3,000 estudiantes ya se titularon con Tesipedia. Entrega desde 3 semanas.
+              En Tesipedia hacemos tu tesis de licenciatura, maestría y doctorado en México. Compra tu tesis 100% original, sin plagio ni IA. Más de 3,000 estudiantes ya se titularon con nosotros. Entrega desde 3 semanas.
             </p>
             <div className="hero-section-features mb-4">
               <div className="hero-section-feature-item">

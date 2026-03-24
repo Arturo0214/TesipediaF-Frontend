@@ -113,10 +113,42 @@ const ServicesSection = ({ onOpenChat }) => {
                     ))}
                 </div>
 
+                {/* ── SEO Content Section ── */}
+                <div className="seo-content-section" style={{ marginTop: '4rem', textAlign: 'left', maxWidth: '900px', marginLeft: 'auto', marginRight: 'auto' }}>
+                    <h2 className="section-title" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                        <span className="highlight">Hacer Tesis en México</span> — El Servicio #1 del País
+                    </h2>
+                    <div style={{ color: '#666', lineHeight: '1.8', fontSize: '1rem' }}>
+                        <p>
+                            <strong>¿Necesitas hacer tu tesis?</strong> En Tesipedia somos el servicio líder en México para hacer tesis de licenciatura, maestría y doctorado.
+                            Con más de 3,000 estudiantes titulados y un 98% de índice de aprobación, te hacemos tu tesis con la calidad que tu universidad exige.
+                        </p>
+                        <p>
+                            Nuestro equipo de más de 50 asesores expertos cubre todas las áreas del conocimiento: derecho, administración, ingeniería, psicología,
+                            educación, medicina, contaduría, arquitectura, ciencias sociales, humanidades y más. Hacemos tesis para estudiantes de la UNAM, IPN, ITESM,
+                            UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL y todas las universidades públicas y privadas de México.
+                        </p>
+                        <p>
+                            <strong>¿Por qué comprar tu tesis con Tesipedia?</strong> A diferencia de otros servicios, cada tesis que hacemos es 100% original,
+                            elaborada por investigadores humanos y verificada con Turnitin y escáner anti-IA. No usamos plantillas ni reciclamos trabajos.
+                            Tu tesis se desarrolla desde cero siguiendo los lineamientos específicos de tu universidad.
+                        </p>
+                        <p>
+                            Ofrecemos tres modalidades: <strong>Desarrollo Completo</strong> (te hacemos toda tu tesis de inicio a fin),
+                            <strong> Acompañamiento</strong> (trabajo conjunto con tu asesor asignado) y <strong>Corrección</strong> (revisión profesional de tu trabajo existente).
+                            Todas incluyen escáner antiplagio Turnitin, detección anti-IA y correcciones de tu asesor universitario.
+                        </p>
+                        <p>
+                            Los precios para hacer tu tesis van desde $6,300 MXN para artículos científicos hasta $19,800 MXN para tesis de licenciatura completas.
+                            Aceptamos tarjetas de crédito, débito, transferencias, PayPal y OXXO. También manejamos pagos en parcialidades para tu comodidad.
+                        </p>
+                    </div>
+                </div>
+
                 {/* ── CTA ── */}
                 <div className="services-cta">
-                    <h3 className="services-cta-title">¿Listo para empezar tu tesis?</h3>
-                    <p className="services-cta-desc">Contáctanos hoy y recibe un plan personalizado sin compromiso</p>
+                    <h3 className="services-cta-title">¿Listo para hacer tu tesis?</h3>
+                    <p className="services-cta-desc">Te hacemos tu tesis con garantía de aprobación. Cotiza gratis hoy.</p>
                     <div className="services-cta-buttons">
                         <a
                             href="https://wa.me/525670071517?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"

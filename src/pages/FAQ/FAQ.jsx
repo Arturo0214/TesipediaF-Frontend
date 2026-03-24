@@ -39,8 +39,8 @@ const faqCategories = [
 const faqItems = [
   {
     category: 'servicio',
-    question: '¿Cómo funciona el servicio de desarrollo de tesis?',
-    answer: 'Nuestro servicio de desarrollo de tesis es un proceso personalizado que comienza con una consulta inicial gratuita para entender tus necesidades específicas. Asignamos un asesor especializado en tu área de estudio quien te guiará durante todo el proceso, desde la conceptualización hasta la entrega final. Ofrecemos 3 modalidades: Desarrollo Completo (hacemos todo), Acompañamiento (trabajo conjunto) y Corrección (revisión de tu trabajo existente). Cada modalidad incluye escáner antiplagio Turnitin y detección anti-IA.',
+    question: '¿Cómo funciona el servicio para hacer mi tesis?',
+    answer: 'Nuestro servicio para hacer tu tesis es un proceso personalizado que comienza con una consulta inicial gratuita para entender tus necesidades específicas. Asignamos un asesor especializado en tu área de estudio quien te guiará durante todo el proceso, desde la conceptualización hasta la entrega final. Ofrecemos 3 modalidades: Desarrollo Completo (te hacemos toda tu tesis), Acompañamiento (trabajo conjunto) y Corrección (revisión de tu trabajo existente). Cada modalidad incluye escáner antiplagio Turnitin y detección anti-IA.',
     icon: <FaFileAlt />,
   },
   {
@@ -97,6 +97,36 @@ const faqItems = [
     answer: 'Sí, ofrecemos planes de pago flexibles adaptados a tus necesidades. Puedes hacer un anticipo para iniciar y liquidar conforme avanza tu proyecto. Aceptamos tarjetas de crédito y débito (con opción de meses sin intereses según tu banco), PayPal, transferencias bancarias SPEI, y pagos en efectivo en OXXO. Además, ofrecemos 10% de descuento por pago completo en efectivo.',
     icon: <FaCreditCard />,
   },
+  {
+    category: 'servicio',
+    question: '¿Dónde puedo comprar mi tesis en México de forma segura?',
+    answer: 'Tesipedia es el servicio más confiable para comprar tu tesis en México. Con más de 3,000 estudiantes titulados y 98% de aprobación, ofrecemos tesis 100% originales verificadas con Turnitin y escáner anti-IA. Cada tesis se elabora desde cero por investigadores con maestría y doctorado. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517. Operamos de forma legal como servicio de asesoría académica profesional.',
+    icon: <FaFileAlt />,
+  },
+  {
+    category: 'servicio',
+    question: '¿Hacen tesis para cualquier universidad de México?',
+    answer: 'Sí, en Tesipedia hacemos tesis para estudiantes de cualquier universidad pública o privada de México. Hemos ayudado a titularse a estudiantes de la UNAM, IPN, ITESM (Tec de Monterrey), UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL, y muchas más. Conocemos los lineamientos y formatos específicos de cada institución para que tu tesis cumpla al 100% con los requisitos.',
+    icon: <FaGraduationCap />,
+  },
+  {
+    category: 'servicio',
+    question: '¿Pueden hacer mi tesis aunque ya tenga avances?',
+    answer: 'Por supuesto. Si ya tienes avances en tu tesis, podemos continuar desde donde te quedaste. Ofrecemos la modalidad de Acompañamiento donde trabajamos contigo sobre tus avances existentes, y también la modalidad de Corrección si solo necesitas una revisión profesional. Evaluamos tu trabajo actual de forma gratuita y te damos un plan personalizado para terminar tu tesis lo más rápido posible.',
+    icon: <FaFileAlt />,
+  },
+  {
+    category: 'calidad',
+    question: '¿La tesis pasa los detectores de IA de las universidades?',
+    answer: 'Sí, todas las tesis que hacemos en Tesipedia son escritas 100% por investigadores humanos. Además, antes de entregar tu tesis la verificamos con los escáneres anti-IA más exigentes del mercado para garantizar que no sea detectada como contenido artificial. En 2026, las universidades mexicanas están implementando detectores de IA cada vez más sofisticados, y nuestras tesis pasan todas estas verificaciones sin problema.',
+    icon: <FaShieldAlt />,
+  },
+  {
+    category: 'tiempos',
+    question: '¿Pueden hacer mi tesis urgente o express?',
+    answer: 'Sí, ofrecemos servicio express para tesis urgentes con entregas aceleradas. Si necesitas tu tesis en menos de 3 semanas, contáctanos para evaluar tu caso. El costo puede variar según la urgencia y complejidad, pero garantizamos la misma calidad y rigurosidad que en nuestro servicio estándar. Muchos estudiantes nos contactan con plazos ajustados y hemos logrado entregar exitosamente en cada caso.',
+    icon: <FaClock />,
+  },
 ];
 
 // Generar FAQPage Schema para Google Rich Snippets
@@ -143,9 +173,9 @@ function FAQ() {
   return (
     <div className="fq-page">
       <Helmet>
-        <title>Preguntas Frecuentes sobre Tesis | ¿Cuánto cuesta? ¿Cómo funciona? | Tesipedia</title>
-        <meta name="description" content="Respuestas a las preguntas más comunes: ¿Cuánto cuesta que me hagan una tesis en México? ¿Cuánto tardan? ¿Es original? ¿Garantizan aprobación? Todo sobre el servicio de Tesipedia." />
-        <meta name="keywords" content="preguntas frecuentes tesis, cuánto cuesta una tesis México, cuánto tardan en hacer una tesis, tesis sin plagio, garantía aprobación tesis, pagar tesis a meses, servicio de tesis confidencial, Tesipedia FAQ" />
+        <title>Preguntas Frecuentes | ¿Cuánto cuesta hacer una tesis? ¿Cómo comprar tesis? | Tesipedia</title>
+        <meta name="description" content="Respuestas a las preguntas más comunes: ¿Cuánto cuesta hacer una tesis en México? ¿Dónde comprar tesis? ¿Cuánto tardan? ¿Es original? Te hacemos tu tesis con garantía de aprobación." />
+        <meta name="keywords" content="hacer tesis, comprar tesis, cuánto cuesta hacer una tesis, cuánto cuesta una tesis México, dónde comprar tesis, quién me hace mi tesis, hacer tesis rápido, tesis sin plagio, garantía aprobación tesis, pagar tesis a meses, Tesipedia FAQ" />
         <meta property="og:title" content="Preguntas Frecuentes | ¿Cuánto cuesta una tesis? | Tesipedia" />
         <meta property="og:description" content="Todas las respuestas sobre nuestro servicio de tesis: precios, tiempos, calidad y garantías." />
         <meta property="og:url" content="https://tesipedia.com/preguntas-frecuentes" />
