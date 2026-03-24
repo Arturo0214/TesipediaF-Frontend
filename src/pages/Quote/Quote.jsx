@@ -77,7 +77,7 @@ function Quote() {
     const [hasInitialized, setHasInitialized] = useState(false);
 
     const tiposTesis = ['Tesis', 'Tesina', 'Artículo', 'Ensayo', 'Proyecto de Investigación', 'Otros'];
-    const nivelesAcademicos = ['Licenciatura', 'Maestría', 'Doctorado'];
+    const nivelesAcademicos = ['Preparatoria', 'Licenciatura', 'Maestría', 'Especialidad', 'Diplomado', 'Doctorado'];
     const areasEstudio = [
         'Área 1: Ciencias Físico-Matemáticas y de las Ingenierías',
         'Área 2: Ciencias Biológicas, Químicas y de la Salud',

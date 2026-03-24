@@ -80,7 +80,7 @@ const SalesQuote = () => {
         'Otro'
     ];
 
-    const nivelesAcademicos = ['Licenciatura', 'Maestría', 'Especialidad', 'Doctorado'];
+    const nivelesAcademicos = ['Preparatoria', 'Licenciatura', 'Maestría', 'Especialidad', 'Diplomado', 'Doctorado'];
 
     const calcularDiasEntrega = () => {
         if (!formData.fechaEntrega) return 21;

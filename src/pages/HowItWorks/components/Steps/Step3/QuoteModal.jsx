@@ -12,7 +12,7 @@ const QuoteModal = () => {
                     <div className="requirement-number">1</div>
                     <div className="requirement-content">
                         <h4>Nivel académico</h4>
-                        <p>Licenciatura, Maestría o Doctorado</p>
+                        <p>Preparatoria, Licenciatura, Maestría, Especialidad, Diplomado o Doctorado</p>
                     </div>
                 </div>
 

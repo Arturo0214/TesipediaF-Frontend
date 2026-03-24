@@ -54,10 +54,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://tesipedia-backend-servi
 const SERVICIO_MAP = { servicio_1: 'modalidad1', servicio_2: 'correccion', servicio_3: 'modalidad2' };
 const SERVICIO_LABEL = { servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría', modalidad1: 'Redacción completa', correccion: 'Correcciones', modalidad2: 'Asesoría' };
 const PROYECTO_MAP = { proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro' };
-const NIVEL_MAP = { nivel_1: 'Licenciatura', nivel_2: 'Maestría', nivel_3: 'Doctorado' };
+const NIVEL_MAP = { nivel_1: 'Preparatoria', nivel_2: 'Licenciatura', nivel_3: 'Maestría', nivel_4: 'Especialidad', nivel_5: 'Diplomado', nivel_6: 'Doctorado' };
 const AREAS = ['Área 1: Ciencias Físico-Matemáticas y de las Ingenierías', 'Área 2: Ciencias Biológicas, Químicas y de la Salud', 'Área 3: Ciencias Sociales', 'Área 4: Humanidades y Artes'];
 const TIPOS_TRABAJO = ['Tesis', 'Tesina', 'Artículo Científico', 'Ensayo Académico', 'Protocolo de Investigación', 'Proyecto de Titulación', 'Reporte', 'Otro'];
-const NIVELES = ['Licenciatura', 'Maestría', 'Especialidad', 'Doctorado'];
+const NIVELES = ['Preparatoria', 'Licenciatura', 'Maestría', 'Especialidad', 'Diplomado', 'Doctorado'];
 
 function calcDateISO(daysFromNow) {
   const d = new Date();
@@ -140,7 +140,7 @@ function getAttendedColor(lead) {
 const LABEL_MAP = {
   servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría',
   proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro proyecto',
-  nivel_1: 'Licenciatura', nivel_2: 'Maestría', nivel_3: 'Doctorado',
+  nivel_1: 'Preparatoria', nivel_2: 'Licenciatura', nivel_3: 'Maestría', nivel_4: 'Especialidad', nivel_5: 'Diplomado', nivel_6: 'Doctorado',
   avance_1: 'Sí tiene avance', avance_2: 'Desde cero',
   trabajo_1: 'Corregir + redactar faltante', trabajo_2: 'Solo redactar faltante', trabajo_3: 'Redactar todo + corregir',
   modalidad1: 'Redacción completa', modalidad2: 'Asesoría', correccion: 'Correcciones',
