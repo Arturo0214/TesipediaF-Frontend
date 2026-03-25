@@ -189,6 +189,7 @@ function ManagePayments() {
     }
 
     const { payments = [], summary = {} } = dashboardData || {};
+    const isOwner = isSuperAdmin || currentUserName === 'arturo';
 
     // Filters
     const filtered = payments.filter((p) => {
@@ -240,7 +241,6 @@ function ManagePayments() {
 
             {/* Summary Cards — owner sees everything, others see only their own */}
             {(() => {
-                const isOwner = isSuperAdmin || currentUserName === 'arturo';
                 if (isOwner) {
                     return (
                         <div className="mp-pay-summary">
@@ -300,7 +300,6 @@ function ManagePayments() {
                 const vendorNames = { arturo: 'Arturo Suárez', sandy: 'Sandy Alvarado', hugo: 'Hugo Serrano' };
                 const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b', sin_asignar: '#6b7280' };
                 const vendorEmojis = { arturo: '👔', sandy: '💜', hugo: '🧡', sin_asignar: '❓' };
-                const isOwner = isSuperAdmin || currentUserName === 'arturo';
                 const totalGlobal = payments.reduce((s, p) => s + (p.amount || 0), 0);
 
                 const handleBulkAssign = async (vendorPayments, newVendedor) => {
@@ -664,9 +663,9 @@ function ManagePayments() {
                                                 ) : (
                                                     <span
                                                         className={`mp-pay-vendedor-badge ${!(payment.vendedor || payment.atendidoPor) ? 'mp-pay-vendedor-empty' : ''}`}
-                                                        onClick={() => isSuperAdmin && setEditingVendedor(payment._id)}
-                                                        title={isSuperAdmin ? 'Clic para asignar vendedor' : ''}
-                                                        style={isSuperAdmin ? { cursor: 'pointer' } : {}}
+                                                        onClick={() => isOwner && setEditingVendedor(payment._id)}
+                                                        title={isOwner ? 'Clic para asignar vendedor' : ''}
+                                                        style={isOwner ? { cursor: 'pointer' } : {}}
                                                     >
                                                         {payment.vendedor || payment.atendidoPor || 'Sin asignar'}
                                                     </span>
