@@ -234,14 +234,29 @@ const AdminWhatsApp = () => {
       if (currentSelected) {
         const updated = data.find(l => l.wa_id === currentSelected.wa_id);
         if (updated) {
-          // Solo actualizar si los datos realmente cambiaron (evita re-renders y scrolls innecesarios)
-          const chatChanged = JSON.stringify(updated.historial_chat) !== JSON.stringify(currentSelected.historial_chat);
-          const metaChanged = updated.updated_at !== currentSelected.updated_at
-            || updated.estado_sofia !== currentSelected.estado_sofia
+          // getLeads solo trae últimos 3 mensajes → NUNCA sobrescribir historial completo.
+          const metaChanged = updated.estado_sofia !== currentSelected.estado_sofia
             || updated.modo_humano !== currentSelected.modo_humano
-            || updated.precio !== currentSelected.precio;
-          if (chatChanged || metaChanged) {
-            setSelectedLead(updated);
+            || updated.precio !== currentSelected.precio
+            || updated.nombre !== currentSelected.nombre
+            || updated.attended_by !== currentSelected.attended_by;
+          const hasNewMessages = updated.updated_at !== currentSelected.updated_at;
+
+          if (hasNewMessages) {
+            // Hay mensajes nuevos → traer historial completo de getLeadByWaId
+            try {
+              const fresh = await getLeadByWaId(currentSelected.wa_id);
+              if (fresh) setSelectedLead(fresh);
+            } catch (e) {
+              console.warn('Error refrescando historial completo:', e);
+            }
+          } else if (metaChanged) {
+            // Solo metadata cambió → preservar historial completo
+            setSelectedLead(prev => ({
+              ...prev,
+              ...updated,
+              historial_chat: prev.historial_chat,
+            }));
           }
         }
       }
@@ -485,10 +500,11 @@ const AdminWhatsApp = () => {
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
-      // 3. Refrescar
+      // 3. Refrescar — traer historial completo, luego actualizar sidebar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
-      fetchLeads(true);
+      // Actualizar sidebar sin tocar selectedLead (fetchLeads ya no sobrescribe historial)
+      try { const data = await getLeads(); setLeads(data); } catch (_) {}
       inputRef.current?.focus();
     } catch (err) {
       toast.error('Error al enviar: ' + err.message);
@@ -505,10 +521,10 @@ const AdminWhatsApp = () => {
       await sendTemplateMessage(selectedLead.wa_id);
       toast.success('Plantilla de seguimiento enviada — esperando respuesta del cliente');
       setWindowExpired(false);
-      // Refrescar
+      // Refrescar historial completo + sidebar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
-      fetchLeads(true);
+      try { const data = await getLeads(); setLeads(data); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar plantilla: ' + err.message);
     } finally {
