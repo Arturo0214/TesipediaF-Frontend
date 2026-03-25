@@ -294,6 +294,7 @@
   flex-direction: column;
   background: #e5ddd5;
   min-width: 0;
+  position: relative;
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9c3ba' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   max-height: 100%;
 }
@@ -660,65 +661,175 @@
   color: #054c44;
 }
 
-/* Preview de archivo antes de enviar */
-.wa-file-preview {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #e8f5e9;
-  padding: 8px 14px;
-  border-top: 1px solid #c8e6c9;
-  flex-shrink: 0;
-}
-
-.wa-file-thumb {
-  width: 56px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #c8e6c9;
-  flex-shrink: 0;
-}
-
-.wa-file-icon-box {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border-radius: 6px;
-  border: 1px solid #c8e6c9;
-  font-size: 1.4rem;
-  color: #075e54;
-  flex-shrink: 0;
-}
-
-.wa-file-info {
+/* ── Image Preview Overlay (estilo WhatsApp) ── */
+.wa-img-preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: #1b2b34;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  flex: 1;
 }
 
-.wa-file-name {
+.wa-img-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #1e2d36;
+  flex-shrink: 0;
+}
+
+.wa-img-preview-close {
+  background: none;
+  border: none;
+  color: #aebac1;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+.wa-img-preview-close:hover {
+  color: #fff;
+}
+
+.wa-img-preview-filename {
+  color: #aebac1;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #1b5e20;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.wa-file-size {
-  font-size: 0.72rem;
-  color: #4caf50;
-  font-weight: 500;
+.wa-img-preview-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
 }
 
-.wa-file-remove {
-  font-size: 1.1rem;
+.wa-img-preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.wa-img-preview-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #1e2d36;
   flex-shrink: 0;
+}
+
+.wa-img-preview-caption {
+  flex: 1;
+  background: #2a3942;
+  border: none;
+  border-radius: 20px;
+  color: #e9edef;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.4;
+}
+.wa-img-preview-caption::placeholder {
+  color: #8696a0;
+}
+
+.wa-img-preview-send {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #00a884;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.wa-img-preview-send:hover {
+  background: #06cf9c;
+}
+.wa-img-preview-send:disabled {
+  background: #3b5249;
+  cursor: not-allowed;
+}
+
+/* ── Document Preview Bar (estilo WhatsApp) ── */
+.wa-doc-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f0f2f5;
+  padding: 10px 16px;
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.wa-doc-preview-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #dfe5e7;
+  font-size: 1.4rem;
+  color: #667781;
+  flex-shrink: 0;
+}
+
+.wa-doc-preview-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.wa-doc-preview-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #111b21;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-doc-preview-meta {
+  font-size: 0.72rem;
+  color: #667781;
+}
+
+.wa-doc-preview-close {
+  background: none;
+  border: none;
+  color: #8696a0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.wa-doc-preview-close:hover {
+  color: #3b4a54;
 }
 
 /* Input de mensaje */
@@ -1031,20 +1142,31 @@
     font-size: 0.72rem;
   }
 
-  /* File preview */
-  .wa-file-preview {
-    padding: 6px 10px;
+  /* Document preview responsive */
+  .wa-doc-preview {
+    padding: 8px 10px;
+    gap: 8px;
   }
 
-  .wa-file-thumb,
-  .wa-file-icon-box {
-    width: 44px;
-    height: 44px;
+  .wa-doc-preview-icon {
+    width: 40px;
+    height: 40px;
     font-size: 1.1rem;
   }
 
-  .wa-file-name {
+  .wa-doc-preview-name {
     font-size: 0.78rem;
+  }
+
+  /* Image preview responsive */
+  .wa-img-preview-caption {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+
+  .wa-img-preview-send {
+    width: 38px;
+    height: 38px;
   }
 }
 

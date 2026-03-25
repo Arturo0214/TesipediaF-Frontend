@@ -1605,25 +1605,57 @@ const AdminWhatsApp = () => {
                 </div>
               )}
 
-              {/* Preview de archivo seleccionado */}
-              {selectedFile && (
-                <div className="wa-file-preview">
-                  {filePreviewUrl ? (
-                    <img src={filePreviewUrl} alt="Preview" className="wa-file-thumb" />
-                  ) : (
-                    <div className="wa-file-icon-box">
-                      {selectedFile.type === 'application/pdf' ? <FaFilePdf /> :
-                       selectedFile.type?.includes('word') || selectedFile.name?.endsWith('.docx') ? <FaFileWord /> :
-                       selectedFile.type?.startsWith('image/') ? <FaImage /> : <FaFile />}
-                    </div>
-                  )}
-                  <div className="wa-file-info">
-                    <span className="wa-file-name">{selectedFile.name}</span>
-                    <span className="wa-file-size">{(selectedFile.size / 1024).toFixed(0)} KB</span>
+              {/* Preview de archivo seleccionado — estilo WhatsApp */}
+              {selectedFile && filePreviewUrl && (
+                <div className="wa-img-preview-overlay">
+                  <div className="wa-img-preview-header">
+                    <button className="wa-img-preview-close" onClick={clearFile} disabled={sending}>
+                      <FaTimes />
+                    </button>
+                    <span className="wa-img-preview-filename">{selectedFile.name}</span>
                   </div>
-                  <Button variant="link" className="wa-file-remove p-0 text-danger" onClick={clearFile} disabled={sending}>
+                  <div className="wa-img-preview-body">
+                    <img src={filePreviewUrl} alt="Preview" className="wa-img-preview-image" />
+                  </div>
+                  <div className="wa-img-preview-footer">
+                    <textarea
+                      ref={inputRef}
+                      className="wa-img-preview-caption"
+                      placeholder="Agregar comentario..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend(e);
+                        }
+                      }}
+                      disabled={sending}
+                      rows={1}
+                    />
+                    <button className="wa-img-preview-send" onClick={handleSend} disabled={sending}>
+                      {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedFile && !filePreviewUrl && (
+                <div className="wa-doc-preview">
+                  <div className="wa-doc-preview-icon">
+                    {selectedFile.type === 'application/pdf' ? <FaFilePdf /> :
+                     selectedFile.type?.includes('word') || selectedFile.name?.endsWith('.docx') ? <FaFileWord /> :
+                     selectedFile.type?.startsWith('image/') ? <FaImage /> : <FaFile />}
+                  </div>
+                  <div className="wa-doc-preview-info">
+                    <span className="wa-doc-preview-name">{selectedFile.name}</span>
+                    <span className="wa-doc-preview-meta">
+                      {selectedFile.type?.split('/').pop()?.toUpperCase() || 'FILE'} · {(selectedFile.size / 1024).toFixed(0)} KB
+                    </span>
+                  </div>
+                  <button className="wa-doc-preview-close" onClick={clearFile} disabled={sending}>
                     <FaTimes />
-                  </Button>
+                  </button>
                 </div>
               )}
 
