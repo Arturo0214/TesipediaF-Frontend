@@ -926,6 +926,8 @@ const AdminWhatsApp = () => {
       'cliente_acepto': 'success',
       'pagado': 'success',
       'modo_humano': 'dark',
+      'descartado': 'danger',
+      'no_interesado': 'danger',
     };
     return map[estado] || 'secondary';
   };
@@ -941,6 +943,8 @@ const AdminWhatsApp = () => {
       case 'esperando_aprobacion': return <FaClock className="me-1" />;
       case 'cotizacion_iniciada': return <FaClock className="me-1" />;
       case 'cotizacion_calculada': return <FaClock className="me-1" />;
+      case 'descartado': return <FaTimes className="me-1" />;
+      case 'no_interesado': return <FaTimes className="me-1" />;
       default: return null;
     }
   };
@@ -1449,6 +1453,8 @@ const AdminWhatsApp = () => {
                     <option value="esperando_aprobacion">⏳ Esperando aprobación</option>
                     <option value="cliente_acepto">✓ Cliente aceptó</option>
                     <option value="pagado">💰 Pagado</option>
+                    <option value="descartado">❌ Descartado</option>
+                    <option value="no_interesado">🚫 No interesado</option>
                   </select>
                   <Button variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'} size="sm"
                     onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
