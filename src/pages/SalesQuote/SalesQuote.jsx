@@ -24,6 +24,7 @@ const SalesQuote = () => {
         tipoTrabajo: '',
         customTipoTrabajo: '',
         tipoServicio: 'modalidad1', // modalidad1 (100%), modalidad2 (75%), correccion (50%)
+        modalidadCaptacion: 'tesipedia', // tesipedia (100%) o manychat (50%)
         nivelAcademico: '',
         tituloTrabajo: '',
         area: '',
@@ -280,7 +281,8 @@ const SalesQuote = () => {
                     career: formData.carrera || '',
                     pages: formData.extensionEstimada,
                     serviceType: formData.tipoServicio,
-                    taskType: tipoTrabajoFinal
+                    taskType: tipoTrabajoFinal,
+                    modalidadCaptacion: formData.modalidadCaptacion
                 })).unwrap();
                 // Solo actualizar si esta es la petición más reciente
                 if (currentRequestId === priceRequestId.current && result.success && result.pricing) {
@@ -292,7 +294,7 @@ const SalesQuote = () => {
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [formData.nivelAcademico, formData.area, formData.carrera, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo, isPriceEditable]);
+    }, [formData.nivelAcademico, formData.area, formData.carrera, formData.extensionEstimada, formData.tipoServicio, formData.tipoTrabajo, formData.customTipoTrabajo, formData.modalidadCaptacion, isPriceEditable]);
 
     const calculatePrices = () => {
         const precioBase = parseFloat(formData.precioRegular) || 0;
@@ -384,7 +386,8 @@ const SalesQuote = () => {
                 acompañamientoContinuo: formData.acompañamientoContinuo,
                 asesoria: formData.asesoria,
                 notaAcompañamiento: formData.notaAcompañamiento,
-                metodoPago: metodoPago
+                metodoPago: metodoPago,
+                modalidadCaptacion: formData.modalidadCaptacion
             };
 
             // 💾 1. Guardar primero en backend para obtener el ID (necesario para vincular el PDF)
@@ -549,6 +552,13 @@ const SalesQuote = () => {
                                                         <option value="modalidad1">Modalidad 1 - Hacemos todo (100%)</option>
                                                         <option value="modalidad2">Modalidad 2 - Acompañamiento (75%)</option>
                                                         <option value="correccion">Solo Corrección (50%)</option>
+                                                    </Form.Select>
+                                                </Col>
+                                                <Col xs={6}>
+                                                    <div className="micro-label">Modalidad de Captación</div>
+                                                    <Form.Select size="sm" value={formData.modalidadCaptacion} onChange={(e) => handleInputChange('modalidadCaptacion', e.target.value)}>
+                                                        <option value="tesipedia">Tesipedia (100%)</option>
+                                                        <option value="manychat">ManyChat (50%)</option>
                                                     </Form.Select>
                                                 </Col>
                                                 {formData.tipoTrabajo === 'Otro' && (
