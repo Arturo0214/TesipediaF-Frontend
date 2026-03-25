@@ -2,8 +2,7 @@ import ReactGA from 'react-ga4';
 
 // Inicializar Google Analytics
 export const initGA = () => {
-    // Reemplaza 'G-XXXXXXXXXX' con tu ID de Google Analytics
-    ReactGA.initialize('G-XXXXXXXXXX');
+    ReactGA.initialize('G-PEVR4Y8WZN');
 };
 
 // Enviar evento de página vista

@@ -246,12 +246,30 @@ function generateSchemaScript(route) {
   return `\n    <script type="application/ld+json">${JSON.stringify(route.schema)}</script>`;
 }
 
-function generateNoscriptContent(route) {
-  // Provide meaningful content for crawlers in <noscript>
-  let content = `<h1>${route.title.split(' — ')[0]}</h1>`;
-  content += `<p>${route.description}</p>`;
-  content += `<p>Visita <a href="${SITE_URL}">Tesipedia</a> — Hacemos tu tesis en México.</p>`;
-  content += `<p>WhatsApp: <a href="https://wa.me/525670071517">${PHONE}</a></p>`;
+function generateCrawlerContent(route) {
+  // Provide meaningful HTML content for crawlers BEFORE React hydrates
+  // This content is visible to Googlebot on first fetch (before JS rendering queue)
+  // React will replace it when it mounts into #root
+  const url = `${SITE_URL}${route.path}`;
+  let content = `
+    <div data-prerendered="true" style="font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:20px;">
+      <h1>${route.title.split(' — ')[0]}</h1>
+      <p>${route.description}</p>`;
+
+  if (route.datePublished) {
+    content += `\n      <time datetime="${route.datePublished}">${route.datePublished}</time>`;
+  }
+
+  content += `
+      <nav>
+        <a href="${SITE_URL}/">Inicio</a> |
+        <a href="${SITE_URL}/blog">Blog</a> |
+        <a href="${SITE_URL}/sobre-nosotros">Sobre Nosotros</a> |
+        <a href="${SITE_URL}/contacto">Contacto</a> |
+        <a href="${SITE_URL}/preguntas-frecuentes">Preguntas Frecuentes</a>
+      </nav>
+      <p>Tesipedia — Hacemos tu tesis en México. <a href="https://wa.me/525670071517">WhatsApp: ${PHONE}</a></p>
+    </div>`;
   return content;
 }
 
@@ -294,11 +312,12 @@ async function prerender() {
         `${metaTags}${schemaScript}${prerenderedMeta}\n  </head>`
       );
 
-      // Add noscript content inside <div id="root"> for crawlers
-      const noscriptContent = generateNoscriptContent(route);
+      // Add visible HTML content inside <div id="root"> for crawlers
+      // React will hydrate over this content when JS loads
+      const crawlerContent = generateCrawlerContent(route);
       html = html.replace(
         '<div id="root"></div>',
-        `<div id="root"><noscript>${noscriptContent}</noscript></div>`
+        `<div id="root">${crawlerContent}</div>`
       );
 
       // Determine output path
