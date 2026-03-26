@@ -247,12 +247,13 @@ function generateSchemaScript(route) {
 }
 
 function generateCrawlerContent(route) {
-  // Provide meaningful HTML content for crawlers BEFORE React hydrates
-  // This content is visible to Googlebot on first fetch (before JS rendering queue)
-  // React will replace it when it mounts into #root
+  // SEO content for crawlers — hidden visually but readable by Googlebot's HTML parser.
+  // Googlebot reads the raw HTML BEFORE executing JS, so these semantic elements
+  // help it understand the page content. React replaces #root on mount.
+  // Using aria-hidden + hidden attribute so it never flashes on real users.
   const url = `${SITE_URL}${route.path}`;
   let content = `
-    <div data-prerendered="true" style="font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:20px;">
+    <div data-prerendered="true" hidden aria-hidden="true" style="display:none!important">
       <h1>${route.title.split(' — ')[0]}</h1>
       <p>${route.description}</p>`;
 
