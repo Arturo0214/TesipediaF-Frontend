@@ -1,4 +1,4 @@
-import { Container, Row, Col, Card, Modal } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -17,7 +17,7 @@ const gradientFallbacks = [
 ];
 
 /** Image component with graceful fallback to gradient + emoji */
-const BlogImage = ({ src, alt, index = 0, className = '' }) => {
+const BlogImage = ({ src, alt, index = 0 }) => {
   const [failed, setFailed] = useState(false);
 
   const handleError = useCallback(() => setFailed(true), []);
@@ -25,7 +25,7 @@ const BlogImage = ({ src, alt, index = 0, className = '' }) => {
   if (failed) {
     return (
       <div
-        className={`blog-img-fallback ${className}`}
+        className="blog-img-fallback"
         style={{ background: gradientFallbacks[index % gradientFallbacks.length] }}
         aria-label={alt}
       >
@@ -35,12 +35,10 @@ const BlogImage = ({ src, alt, index = 0, className = '' }) => {
     );
   }
 
-  return <img src={src} alt={alt} loading="lazy" className={className} onError={handleError} />;
+  return <img src={src} alt={alt} loading="lazy" onError={handleError} />;
 };
 
 function Blog() {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
   const [activeCategory, setActiveCategory] = useState('Todos');
 
   const categories = ['Todos', ...new Set(blogPosts.map(p => p.category))];
@@ -74,56 +72,11 @@ function Blog() {
     return colors[category] || 'rgba(107, 114, 128, 0.1)';
   };
 
-  const handleReadMore = (post) => {
-    setSelectedPost(post);
-    setShowModal(true);
-  };
-
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    });
-  };
-
-  const formatContent = (content) => {
-    return content.split('\n\n').map((paragraph, index) => {
-      // Section headings (emoji prefix)
-      if (/^[📌🎯📚🔬📊✅📝🔍🎤💡⚡👥🔄🛠📈💰🏆🎓]/.test(paragraph)) {
-        return <h3 key={index} className="modal-subtitle">{paragraph}</h3>;
-      }
-      // Bullet lists
-      if (paragraph.includes('•')) {
-        const items = paragraph.split('•').filter(item => item.trim());
-        return (
-          <ul key={index} className="modal-list">
-            {items.map((item, i) => (
-              <li key={i}>{item.trim()}</li>
-            ))}
-          </ul>
-        );
-      }
-      // CTA blocks (WhatsApp number present)
-      if (paragraph.includes('+52 56 7007 1517') || paragraph.includes('wa.me')) {
-        return (
-          <div key={index} className="modal-cta-block">
-            <p>{paragraph.replace(/Cotiza gratis por WhatsApp al \+52 56 7007 1517\.?|Contáctanos por WhatsApp al \+52 56 7007 1517[^.]*\.?|WhatsApp al \+52 56 7007 1517[^.]*\.?/g, '').trim()}</p>
-            <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer">
-              Cotizar por WhatsApp
-            </a>
-          </div>
-        );
-      }
-      // Highlight boxes (for price info)
-      if (paragraph.includes('$') && paragraph.includes('MXN') && paragraph.split('$').length >= 3) {
-        return (
-          <div key={index} className="modal-highlight-box">
-            <p>{paragraph}</p>
-          </div>
-        );
-      }
-      return <p key={index}>{paragraph}</p>;
     });
   };
 
@@ -175,137 +128,107 @@ function Blog() {
       <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
     </Helmet>
     <div className="blog-page">
-      {/* Hero header */}
-      <div className="blog-hero">
+      {/* Clean minimal header */}
+      <div className="blog-header">
         <Container>
-          <div className="blog-hero-content">
-            <span className="blog-hero-badge">Blog Tesipedia</span>
-            <h1 className="blog-hero-title">Guías y Recursos para tu Tesis</h1>
-            <p className="blog-hero-subtitle">
-              Precios actualizados, consejos de expertos y todo lo que necesitas para tu tesis de licenciatura, maestría o doctorado
-            </p>
+          <div className="blog-header-inner">
+            <div>
+              <h1 className="blog-title">Blog</h1>
+              <p className="blog-description">
+                Guías, recursos y consejos profesionales para tu tesis
+              </p>
+            </div>
           </div>
         </Container>
       </div>
 
       <Container className="blog-container">
-        {/* Category pills */}
-        <div className="blog-categories">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              className={`blog-cat-pill ${activeCategory === cat ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
-              style={activeCategory === cat ? {
-                backgroundColor: cat === 'Todos' ? '#1E3A5F' : getCategoryColor(cat),
-                color: 'white'
-              } : {}}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Featured post — uses Link for SEO crawlability */}
-        {featuredPost && (
-          <Link to={`/blog/${featuredPost.slug}`} className="blog-featured">
-            <div className="blog-featured-image">
-              <BlogImage src={featuredPost.image} alt={featuredPost.title} index={0} />
-              <div className="blog-featured-overlay" />
-            </div>
-            <div className="blog-featured-content">
-              <span
-                className="blog-tag"
-                style={{
-                  color: getCategoryColor(featuredPost.category),
-                  backgroundColor: getCategoryBg(featuredPost.category)
-                }}
-              >
-                {featuredPost.category}
-              </span>
-              <h2 className="blog-featured-title">{featuredPost.title}</h2>
-              <p className="blog-featured-excerpt">{featuredPost.excerpt}</p>
-              <div className="blog-featured-meta">
-                <span>{formatDate(featuredPost.date)}</span>
-                <span className="blog-meta-dot" />
-                <span>{featuredPost.readTime} de lectura</span>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* Grid de posts */}
-        <Row className="g-4 blog-grid">
-          {remainingPosts.map(post => (
-            <Col key={post.id} md={6} lg={4}>
-              <Link to={`/blog/${post.slug}`} className="blog-card">
-                <div className="blog-card-image">
-                  <BlogImage src={post.image} alt={post.title} index={post.id} />
-                  <div className="blog-card-image-overlay" />
-                </div>
-                <div className="blog-card-body">
-                  <span
-                    className="blog-tag"
-                    style={{
-                      color: getCategoryColor(post.category),
-                      backgroundColor: getCategoryBg(post.category)
-                    }}
+        <div className="blog-layout">
+          {/* Sidebar with category filters */}
+          <aside className="blog-sidebar">
+            <div className="blog-sidebar-sticky">
+              <h3 className="blog-sidebar-title">Categorías</h3>
+              <nav className="blog-categories">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    className={`blog-cat-button ${activeCategory === cat ? 'active' : ''}`}
+                    onClick={() => setActiveCategory(cat)}
                   >
-                    {post.category}
-                  </span>
-                  <h3 className="blog-card-title">{post.title}</h3>
-                  <p className="blog-card-excerpt">{post.excerpt}</p>
-                  <div className="blog-card-footer">
-                    <span className="blog-card-date">{formatDate(post.date)}</span>
-                    <span className="blog-card-read">{post.readTime}</span>
+                    <span className="cat-button-text">{cat}</span>
+                    {activeCategory === cat && <span className="cat-button-indicator" />}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
+
+          {/* Main content area */}
+          <main className="blog-main">
+            {/* Featured post */}
+            {featuredPost && (
+              <Link to={`/blog/${featuredPost.slug}`} className="blog-featured">
+                <div className="blog-featured-image-wrapper">
+                  <BlogImage src={featuredPost.image} alt={featuredPost.title} index={0} />
+                  <div className="blog-featured-overlay" />
+                </div>
+                <div className="blog-featured-content">
+                  <div className="blog-featured-top">
+                    <span
+                      className="blog-tag"
+                      style={{
+                        color: getCategoryColor(featuredPost.category),
+                        backgroundColor: getCategoryBg(featuredPost.category)
+                      }}
+                    >
+                      {featuredPost.category}
+                    </span>
+                  </div>
+                  <h2 className="blog-featured-title">{featuredPost.title}</h2>
+                  <p className="blog-featured-excerpt">{featuredPost.excerpt}</p>
+                  <div className="blog-featured-meta">
+                    <span>{formatDate(featuredPost.date)}</span>
+                    <span className="blog-meta-sep">•</span>
+                    <span>{featuredPost.readTime}</span>
                   </div>
                 </div>
               </Link>
-            </Col>
-          ))}
-        </Row>
-      </Container>
+            )}
 
-      {/* Modal de lectura */}
-      <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        size="lg"
-        className="blog-modal"
-        centered
-      >
-        {selectedPost && (
-          <>
-            <Modal.Header closeButton>
-              <div className="modal-header-inner">
-                <span
-                  className="blog-tag"
-                  style={{
-                    color: getCategoryColor(selectedPost.category),
-                    backgroundColor: getCategoryBg(selectedPost.category)
-                  }}
-                >
-                  {selectedPost.category}
-                </span>
-                <Modal.Title>{selectedPost.title}</Modal.Title>
-                <div className="modal-header-meta">
-                  <span>{formatDate(selectedPost.date)}</span>
-                  <span className="blog-meta-dot" />
-                  <span>{selectedPost.readTime} de lectura</span>
-                </div>
-              </div>
-            </Modal.Header>
-            <Modal.Body>
-              <div className="modal-hero-image">
-                <BlogImage src={selectedPost.image} alt={selectedPost.title} index={selectedPost.id} />
-              </div>
-              <div className="modal-article">
-                {formatContent(selectedPost.content)}
-              </div>
-            </Modal.Body>
-          </>
-        )}
-      </Modal>
+            {/* Grid of posts */}
+            <div className="blog-grid">
+              {remainingPosts.map(post => (
+                <Link key={post.id} to={`/blog/${post.slug}`} className="blog-card">
+                  <div className="blog-card-image-wrapper">
+                    <BlogImage src={post.image} alt={post.title} index={post.id} />
+                    <div className="blog-card-image-overlay" />
+                  </div>
+                  <div className="blog-card-content">
+                    <div className="blog-card-top">
+                      <span
+                        className="blog-tag"
+                        style={{
+                          color: getCategoryColor(post.category),
+                          backgroundColor: getCategoryBg(post.category)
+                        }}
+                      >
+                        {post.category}
+                      </span>
+                    </div>
+                    <h3 className="blog-card-title">{post.title}</h3>
+                    <p className="blog-card-excerpt">{post.excerpt}</p>
+                    <div className="blog-card-meta">
+                      <span>{formatDate(post.date)}</span>
+                      <span className="blog-meta-sep">•</span>
+                      <span>{post.readTime}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </main>
+        </div>
+      </Container>
     </div>
     </>
   );

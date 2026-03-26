@@ -47,6 +47,7 @@ import AdminMessages from '../adminMessages/AdminMessages.jsx';
 import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp.jsx';
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 import SalesQuote from '../../SalesQuote/SalesQuote.jsx';
+import VentasPorVendedor from '../adminSalesByVendedor/VentasPorVendedor.jsx';
 
 // Error boundary component
 class ErrorBoundary extends React.Component {
@@ -98,6 +99,7 @@ const AdminPanel = () => {
         if (path.includes('/mensajes')) return 'mensajes';
         if (path.includes('/cotizaciones')) return 'cotizaciones';
         if (path.includes('/proyectos')) return 'proyectos';
+        if (path.includes('/vendedor')) return 'vendedor';
         if (path.includes('/pagos')) return 'pagos';
         if (path.includes('/visitas')) return 'visitas';
         if (path.includes('/hubspot')) return 'hubspot';
@@ -114,6 +116,7 @@ const AdminPanel = () => {
         { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones' },
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
+        { key: 'vendedor', icon: FaChartLine, label: 'Ventas por Vendedor', section: 'estadisticas', path: '/admin/vendedor' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
@@ -243,6 +246,7 @@ const AdminPanel = () => {
         cotizaciones: ManageQuotes,
         proyectos: ManageProjects,
         pagos: ManagePayments,
+        vendedor: VentasPorVendedor,
         visitas: ManageVisits,
         usuarios: ManageUsers,
         hubspot: AdminHubSpot,

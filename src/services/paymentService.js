@@ -146,6 +146,19 @@ export const createGuestPaymentSession = async (quoteId) => {
     }
 };
 
+// Get sales performance by vendedor
+export const getSalesByVendedor = async (period = 'all') => {
+    try {
+        const response = await axiosWithAuth.get('/payments/vendedor-sales', {
+            params: { period }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error en getSalesByVendedor:', error);
+        throw error.response?.data || { message: 'Error al obtener ventas por vendedor' };
+    }
+};
+
 const paymentService = {
     checkPaymentStatus,
     checkGuestPaymentStatus,
@@ -153,7 +166,8 @@ const paymentService = {
     createGuestPaymentSession,
     getQuoteDetails,
     linkQuoteToUser,
-    createOrderFromQuote
+    createOrderFromQuote,
+    getSalesByVendedor
 };
 
 export default paymentService;
