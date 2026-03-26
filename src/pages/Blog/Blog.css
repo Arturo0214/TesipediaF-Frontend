@@ -2,44 +2,29 @@
 .blog-page {
   min-height: 100vh;
   background: #FAFBFC;
-  margin-top: -70px;
-  padding-top: 70px;
-}
-
-/* ===== Clean Minimal Header ===== */
-.blog-header {
-  background: white;
-  padding: 3rem 0;
-  border-bottom: 1px solid #E5E7EB;
-}
-
-.blog-header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
-.blog-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #0F172A;
-  line-height: 1.2;
-  margin: 0 0 0.5rem;
-  letter-spacing: -0.02em;
-}
-
-.blog-description {
-  font-size: 1rem;
-  color: #6B7280;
-  line-height: 1.6;
-  margin: 0;
 }
 
 /* ===== Container & Layout ===== */
 .blog-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 3rem 1.5rem 4rem;
+}
+
+/* ===== Sidebar Heading ===== */
+.blog-sidebar-heading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.blog-sidebar-desc {
+  font-size: 0.82rem;
+  color: #9CA3AF;
+  line-height: 1.5;
+  margin: 0 0 2rem;
 }
 
 .blog-layout {
@@ -224,8 +209,8 @@
 /* ===== Blog Grid ===== */
 .blog-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
 }
 
 /* ===== Blog Card ===== */
@@ -361,7 +346,7 @@
   }
 
   .blog-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .blog-featured {
@@ -382,16 +367,13 @@
 }
 
 @media (max-width: 768px) {
-  .blog-header {
-    padding: 2rem 0;
+  .blog-sidebar-heading {
+    font-size: 1.3rem;
   }
 
-  .blog-title {
-    font-size: 1.85rem;
-  }
-
-  .blog-description {
-    font-size: 0.95rem;
+  .blog-sidebar-desc {
+    font-size: 0.78rem;
+    margin: 0 0 1.5rem;
   }
 
   .blog-container {
@@ -482,16 +464,13 @@
 }
 
 @media (max-width: 480px) {
-  .blog-header {
-    padding: 1.5rem 0;
+  .blog-sidebar-heading {
+    font-size: 1.15rem;
   }
 
-  .blog-title {
-    font-size: 1.5rem;
-  }
-
-  .blog-description {
-    font-size: 0.9rem;
+  .blog-sidebar-desc {
+    font-size: 0.75rem;
+    margin: 0 0 1rem;
   }
 
   .blog-container {

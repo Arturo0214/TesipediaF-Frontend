@@ -304,6 +304,159 @@ const routesMeta = [
       "author": { "@type": "Organization", "name": "Tesipedia" },
       "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
     }
+  },
+  {
+    path: '/blog/como-detectan-plagio-las-universidades-en-mexico-lo-que-debes-saber-en-2026',
+    title: '¿Cómo Detectan Plagio las Universidades en México? — Tesipedia',
+    description: 'Las universidades mexicanas usan Turnitin, iThenticate y detectores de IA. Descubre cómo funcionan y cómo garantizar originalidad en tu tesis.',
+    keywords: 'detectar plagio tesis, Turnitin México, detector IA tesis, originalidad tesis, plagio universidades',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-20',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "¿Cómo Detectan Plagio las Universidades en México? Lo que Debes Saber en 2026",
+      "datePublished": "2026-03-20",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/tesis-de-maestria-vs-licenciatura-diferencias-clave-y-que-esperar',
+    title: 'Tesis de Maestría vs Licenciatura: Diferencias Clave — Tesipedia',
+    description: 'Conoce las diferencias fundamentales entre una tesis de maestría y una de licenciatura: extensión, profundidad, metodología y nivel de exigencia.',
+    keywords: 'tesis maestría vs licenciatura, diferencias tesis, tesis maestría México, requisitos tesis maestría',
+    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-18',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Tesis de Maestría vs Licenciatura: Diferencias Clave y Qué Esperar",
+      "datePublished": "2026-03-18",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/como-formular-una-hipotesis-de-investigacion-correctamente',
+    title: 'Cómo Formular una Hipótesis de Investigación — Tesipedia',
+    description: 'Aprende a redactar hipótesis de investigación claras y verificables. Tipos de hipótesis, ejemplos prácticos y errores comunes.',
+    keywords: 'hipótesis investigación, cómo hacer hipótesis tesis, tipos hipótesis, ejemplo hipótesis',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-15',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Cómo Formular una Hipótesis de Investigación Correctamente",
+      "datePublished": "2026-03-15",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/revision-de-literatura-como-buscar-y-organizar-fuentes-academicas',
+    title: 'Revisión de Literatura: Cómo Buscar y Organizar Fuentes — Tesipedia',
+    description: 'Domina la revisión de literatura para tu tesis. Bases de datos académicas, gestores bibliográficos y tips para escribir tu estado del arte.',
+    keywords: 'revisión de literatura, fuentes académicas, estado del arte tesis, bases datos académicas México',
+    image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-12',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Revisión de Literatura: Cómo Buscar y Organizar Fuentes Académicas",
+      "datePublished": "2026-03-12",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/analisis-de-datos-en-tu-tesis-spss-r-y-excel-explicados',
+    title: 'Análisis de Datos: SPSS, R y Excel para tu Tesis — Tesipedia',
+    description: 'Guía práctica para elegir la herramienta de análisis estadístico correcta. Comparamos SPSS, R y Excel: cuándo usar cada uno.',
+    keywords: 'análisis datos tesis, SPSS tesis, R estadística, Excel análisis, herramientas estadísticas tesis',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-08',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Análisis de Datos en tu Tesis: SPSS, R y Excel Explicados",
+      "datePublished": "2026-03-08",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/comprar-tesis-en-linea-en-mexico-como-elegir-un-servicio-confiable',
+    title: 'Comprar Tesis en Línea en México: Cómo Elegir un Servicio Confiable — Tesipedia',
+    description: 'Guía honesta para evaluar servicios de tesis en línea en México. Señales de alerta, qué preguntar y cómo proteger tu inversión.',
+    keywords: 'comprar tesis en línea, servicio tesis confiable, tesis por encargo México, elegir servicio tesis',
+    image: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-05',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Comprar Tesis en Línea en México: Cómo Elegir un Servicio Confiable",
+      "datePublished": "2026-03-05",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/opciones-de-titulacion-en-mexico-2026-tesis-egel-tesina-y-mas',
+    title: 'Opciones de Titulación en México 2026: Tesis, EGEL, Tesina y Más — Tesipedia',
+    description: 'Conoce todas las opciones de titulación en México: tesis, tesina, EGEL-CENEVAL, diplomado y experiencia profesional. Costos y tiempos.',
+    keywords: 'opciones titulación México, EGEL CENEVAL, tesina, titulación sin tesis, cómo titularse México 2026',
+    image: 'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-01',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Opciones de Titulación en México 2026: Tesis, EGEL, Tesina y Más",
+      "datePublished": "2026-03-01",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/como-usar-chatgpt-para-tu-tesis-sin-que-te-detecten-y-sin-hacer-trampa',
+    title: 'Cómo Usar ChatGPT para tu Tesis Sin Hacer Trampa — Tesipedia',
+    description: 'Guía ética para usar IA como ChatGPT en tu tesis. Qué sí puedes hacer, qué no, y cómo las universidades detectan contenido generado por IA.',
+    keywords: 'ChatGPT tesis, IA tesis, detector IA universidad, usar ChatGPT académico, tesis con inteligencia artificial',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-02-25',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Cómo Usar ChatGPT para tu Tesis Sin que Te Detecten (y Sin Hacer Trampa)",
+      "datePublished": "2026-02-25",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
+  },
+  {
+    path: '/blog/cuanto-cobran-por-hacer-una-tesis-en-mexico-comparativa-de-precios-2026',
+    title: '¿Cuánto Cobran por Hacer una Tesis en México? Comparativa 2026 — Tesipedia',
+    description: 'Comparamos precios de servicios de tesis en México: freelancers, agencias y profesionales. Descubre qué incluye cada opción.',
+    keywords: 'cuánto cobran tesis México, comparar precios tesis, freelancer tesis, agencia tesis, precio tesis 2026',
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-02-20',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "¿Cuánto Cobran por Hacer una Tesis en México? Comparativa de Precios 2026",
+      "datePublished": "2026-02-20",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } }
+    }
   }
 ];
 

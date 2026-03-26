@@ -99,7 +99,6 @@ const router = createBrowserRouter(
             { path: 'admin/cotizaciones', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/proyectos', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/pagos', element: <LazyPage><AdminPanel /></LazyPage> },
-            { path: 'admin/vendedor', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/pedidos', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/urgentes', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/whatsapp', element: <LazyPage><AdminPanel /></LazyPage> },

@@ -128,25 +128,13 @@ function Blog() {
       <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
     </Helmet>
     <div className="blog-page">
-      {/* Clean minimal header */}
-      <div className="blog-header">
-        <Container>
-          <div className="blog-header-inner">
-            <div>
-              <h1 className="blog-title">Blog</h1>
-              <p className="blog-description">
-                Guías, recursos y consejos profesionales para tu tesis
-              </p>
-            </div>
-          </div>
-        </Container>
-      </div>
-
       <Container className="blog-container">
         <div className="blog-layout">
-          {/* Sidebar with category filters */}
+          {/* Sidebar: title + category filters */}
           <aside className="blog-sidebar">
             <div className="blog-sidebar-sticky">
+              <h1 className="blog-sidebar-heading">Blog</h1>
+              <p className="blog-sidebar-desc">Guías y recursos para tu tesis</p>
               <h3 className="blog-sidebar-title">Categorías</h3>
               <nav className="blog-categories">
                 {categories.map(cat => (

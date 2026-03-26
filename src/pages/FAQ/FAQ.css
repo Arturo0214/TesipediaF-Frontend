@@ -1,7 +1,7 @@
 /* ============================================
    FAQ Page — Modern Design
    ============================================ */
-.fq-page { background: #f8fafc; min-height: 100vh; }
+.fq-page { background: #f8fafc; min-height: 100vh; padding-top: 2rem; }
 
 /* ── Main Content ── */
 .fq-main { padding: 0.5rem 0 3rem; position: relative; z-index: 3; }

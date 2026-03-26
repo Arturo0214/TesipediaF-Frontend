@@ -10,6 +10,7 @@ import {
     FaProjectDiagram
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import VentasPorVendedor from '../adminSalesByVendedor/VentasPorVendedor';
 import './ManagePayments.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -426,6 +427,9 @@ function ManagePayments() {
                 </button>
                 <button className={`mp-pay-view-btn ${view === 'register' ? 'active' : ''}`} onClick={() => setView('register')}>
                     <FaMoneyBillWave /> Registro
+                </button>
+                <button className={`mp-pay-view-btn ${view === 'vendedores' ? 'active' : ''}`} onClick={() => setView('vendedores')}>
+                    <FaUsers /> Vendedores
                 </button>
             </div>
 
@@ -858,6 +862,11 @@ function ManagePayments() {
                     </div>
                 </div>
             )}
+            {/* ===== VENDEDORES VIEW ===== */}
+            {view === 'vendedores' && (
+                <VentasPorVendedor />
+            )}
+
             {/* ===== DELETE CONFIRMATION MODAL ===== */}
             {confirmDelete && (
                 <div className="mp-pay-modal-overlay" onClick={() => setConfirmDelete(null)}>

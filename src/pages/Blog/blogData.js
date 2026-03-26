@@ -12,6 +12,14 @@ export const images = {
   formatoAPA: 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?w=800&h=450&fit=crop&q=80',
   marcoTeorico: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=450&fit=crop&q=80',
   tesisRapida: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=450&fit=crop&q=80',
+  plagioDeteccion: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop&q=80',
+  tesisMaestria: 'https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=800&h=450&fit=crop&q=80',
+  hipotesis: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=450&fit=crop&q=80',
+  revisarLiteratura: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&h=450&fit=crop&q=80',
+  datosEstadisticos: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=450&fit=crop&q=80',
+  tesisEnLinea: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=800&h=450&fit=crop&q=80',
+  titulacion: 'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=800&h=450&fit=crop&q=80',
+  herramientasIA: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=450&fit=crop&q=80',
 };
 
 // Helper function to create URL-friendly slugs
@@ -549,6 +557,382 @@ Las preguntas son la parte que más asusta, pero también la oportunidad de demo
 ⚡ El día de la defensa
 
 Descansa bien la noche anterior (en serio, no te desveles repasando). Llega al menos 30 minutos antes para probar el proyector y tu USB. Viste profesionalmente — primera impresión importa. Y ten agua cerca; hablar 20 minutos seguidos seca la garganta.`
+  },
+  {
+    id: 13,
+    title: '¿Cómo Detectan Plagio las Universidades en México? Lo que Debes Saber en 2026',
+    excerpt: 'Las universidades mexicanas usan Turnitin, iThenticate y detectores de IA. Descubre cómo funcionan, qué porcentaje es aceptable y cómo garantizar originalidad en tu tesis.',
+    image: images.plagioDeteccion,
+    date: '2026-03-20',
+    category: 'Investigación',
+    readTime: '8 min',
+    featured: false,
+    slug: createSlug('Cómo Detectan Plagio las Universidades en México Lo que Debes Saber en 2026'),
+    content: `En 2026, las universidades mexicanas han intensificado sus métodos de detección de plagio y contenido generado por inteligencia artificial. Si estás por entregar tu tesis, necesitas entender cómo funcionan estas herramientas para asegurarte de que tu trabajo pase sin problemas.
+
+🔍 Turnitin: el estándar en México
+
+Turnitin es la herramienta más utilizada por universidades como UNAM, IPN, ITESM, UdeG, UAM y la mayoría de instituciones privadas. Funciona comparando tu documento contra una base de datos masiva que incluye millones de trabajos académicos, libros, páginas web y tesis previamente entregadas.
+
+El sistema genera un "índice de similitud" expresado en porcentaje. Un porcentaje bajo no significa automáticamente que no haya plagio — Turnitin detecta paráfrasis cercanas y reorganización de texto. La mayoría de universidades en México aceptan entre 10-20% de similitud, dependiendo de la institución y el programa.
+
+🤖 Detectores de IA: la nueva barrera
+
+Desde 2024, muchas universidades han incorporado detectores de contenido generado por IA. Herramientas como GPTZero, Originality.ai y el propio detector de Turnitin analizan patrones de escritura que son típicos de modelos de lenguaje como ChatGPT.
+
+Estos detectores buscan uniformidad excesiva en el estilo, falta de errores naturales, patrones repetitivos de estructura y vocabulario demasiado "pulido". Las consecuencias de entregar un trabajo detectado como IA van desde la reprobación hasta la baja definitiva del programa.
+
+📊 iThenticate: para posgrado y publicaciones
+
+Si estás en maestría o doctorado, es probable que tu universidad use iThenticate además de Turnitin. Esta herramienta está diseñada específicamente para investigación académica avanzada y compara contra bases de datos de revistas científicas indexadas, lo que la hace más rigurosa para tesis de posgrado.
+
+✅ Cómo garantizar originalidad
+
+La clave para pasar todas las herramientas de detección es simple: investigación original con redacción propia. Cita correctamente todas tus fuentes, parafrasea con tus propias palabras (no solo cambiando sinónimos), y asegúrate de que tu voz como investigador se note en el texto.
+
+En Tesipedia, cada trabajo pasa por Turnitin y escáner anti-IA antes de ser entregado. Garantizamos que tu tesis tenga originalidad verificable y lista para cualquier revisión institucional.`
+  },
+  {
+    id: 14,
+    title: 'Tesis de Maestría vs Licenciatura: Diferencias Clave y Qué Esperar',
+    excerpt: 'Conoce las diferencias fundamentales entre una tesis de maestría y una de licenciatura: extensión, profundidad, metodología y nivel de exigencia en universidades mexicanas.',
+    image: images.tesisMaestria,
+    date: '2026-03-18',
+    category: 'Guía',
+    readTime: '7 min',
+    featured: false,
+    slug: createSlug('Tesis de Maestría vs Licenciatura Diferencias Clave y Qué Esperar'),
+    content: `Si estás por iniciar tu tesis de maestría pensando que será "igual que la de licenciatura pero más larga", necesitas ajustar tus expectativas. Las diferencias son sustanciales y entenderlas desde el principio te ahorrará meses de frustración.
+
+📏 Extensión y profundidad
+
+Una tesis de licenciatura típica en México tiene entre 60-100 páginas, mientras que una de maestría oscila entre 80-150 páginas. Pero la diferencia real no está en el número de páginas, sino en la profundidad del análisis. En licenciatura puedes describir un fenómeno; en maestría debes analizarlo críticamente y aportar algo nuevo al campo de estudio.
+
+📚 Marco teórico: otro nivel de exigencia
+
+En licenciatura, el marco teórico suele ser una revisión de los conceptos principales. En maestría, se espera que demuestres dominio del estado del arte, identifiques vacíos en la literatura existente y posiciones tu investigación como respuesta a esos vacíos. Esto implica revisar artículos científicos recientes (últimos 5 años) en bases como Scopus, Web of Science y CONRICYT.
+
+🔬 Metodología más rigurosa
+
+La metodología en maestría debe ser mucho más sólida. Se espera que justifiques cada decisión metodológica, que uses técnicas de análisis más sofisticadas (análisis multivariado, modelos econométricos, análisis de discurso avanzado) y que demuestres validez y confiabilidad de tus instrumentos.
+
+👨‍🏫 El comité evaluador
+
+En licenciatura, generalmente tienes un asesor y dos sinodales. En maestría, el comité puede incluir evaluadores externos a tu institución, expertos en tu área específica que harán preguntas mucho más puntuales. La defensa de maestría es más exigente y puede durar hasta 90 minutos.
+
+💰 ¿Cuánto cuesta la asesoría profesional?
+
+Dado el nivel de exigencia, los servicios profesionales para tesis de maestría cuestan más que los de licenciatura. En Tesipedia, las tesis de maestría parten desde $15,000 MXN e incluyen toda la complejidad metodológica y analítica que tu programa exige.
+
+🎯 Recomendación final
+
+Si estás en maestría, empieza tu tesis desde el primer semestre. Define tu tema temprano, revisa literatura constantemente y mantén comunicación frecuente con tu asesor. La tesis de maestría no es algo que puedas dejar para los últimos meses.`
+  },
+  {
+    id: 15,
+    title: 'Cómo Formular una Hipótesis de Investigación Correctamente',
+    excerpt: 'Aprende a redactar hipótesis de investigación claras y verificables. Tipos de hipótesis, ejemplos prácticos y errores comunes que debes evitar en tu tesis.',
+    image: images.hipotesis,
+    date: '2026-03-15',
+    category: 'Metodología',
+    readTime: '7 min',
+    featured: false,
+    slug: createSlug('Cómo Formular una Hipótesis de Investigación Correctamente'),
+    content: `La hipótesis es el corazón de tu investigación — es la afirmación que tu tesis va a confirmar o refutar. Sin embargo, muchos estudiantes la redactan mal, lo que genera problemas en toda la estructura del trabajo. Aquí te explicamos cómo hacerlo bien.
+
+📌 ¿Qué es exactamente una hipótesis?
+
+Una hipótesis es una respuesta tentativa y verificable a tu pregunta de investigación. No es una opinión ni una suposición vaga — es una afirmación específica que puedes probar con datos. Debe ser clara, medible y directamente relacionada con tus variables de estudio.
+
+📋 Tipos de hipótesis
+
+Existen varios tipos que debes conocer:
+
+• Hipótesis de investigación (Hi): La afirmación principal que propones. Ejemplo: "El uso de tecnología educativa mejora el rendimiento académico en estudiantes de preparatoria"
+• Hipótesis nula (H0): La negación de tu hipótesis. Ejemplo: "El uso de tecnología educativa NO mejora el rendimiento académico"
+• Hipótesis alternativa (Ha): Propone una relación diferente. Ejemplo: "El uso de tecnología educativa disminuye el rendimiento académico"
+• Hipótesis direccional: Especifica la dirección del efecto ("mejora", "aumenta", "disminuye")
+• Hipótesis no direccional: Solo afirma que hay un efecto sin especificar dirección ("existe una relación entre X y Y")
+
+✍️ Fórmula para redactar hipótesis
+
+Una estructura que funciona siempre: "Si [variable independiente], entonces [efecto en variable dependiente], en [población de estudio]."
+
+Ejemplo: "Si se implementa un programa de tutorías entre pares, entonces el índice de reprobación disminuirá en al menos 15% en los estudiantes de primer semestre de la Facultad de Ingeniería de la UNAM."
+
+⚠️ Errores comunes
+
+Los errores más frecuentes que vemos en Tesipedia son: hipótesis demasiado amplias ("la educación mejora la sociedad"), hipótesis que no son verificables ("los estudiantes se sienten mejor"), y confundir hipótesis con objetivos de investigación.
+
+🎯 Consejo profesional
+
+Tu hipótesis debe poder probarse con los datos y métodos que tienes disponibles. No propongas algo que requiera un estudio de 10 años si tienes 6 meses para tu tesis. Sé realista y específico — los comités evaluadores aprecian la precisión sobre la ambición.`
+  },
+  {
+    id: 16,
+    title: 'Revisión de Literatura: Cómo Buscar y Organizar Fuentes Académicas',
+    excerpt: 'Domina la revisión de literatura para tu tesis. Bases de datos académicas, criterios de selección, organización con gestores bibliográficos y tips para escribir tu estado del arte.',
+    image: images.revisarLiteratura,
+    date: '2026-03-12',
+    category: 'Investigación',
+    readTime: '9 min',
+    featured: false,
+    slug: createSlug('Revisión de Literatura Cómo Buscar y Organizar Fuentes Académicas'),
+    content: `La revisión de literatura es probablemente la parte más laboriosa de tu tesis, pero también la que demuestra que realmente conoces tu tema. No se trata de copiar y pegar resúmenes de artículos — se trata de construir un argumento sólido que justifique tu investigación.
+
+🔎 Dónde buscar fuentes académicas en México
+
+Olvídate de Google genérico. Para una tesis seria, estas son las bases de datos que debes usar:
+
+• Google Scholar: Buen punto de partida, pero filtra por fecha y relevancia
+• CONRICYT / CONAHCyT: Acceso gratuito para estudiantes mexicanos a miles de revistas indexadas
+• Scopus y Web of Science: Las bases más prestigiosas. Muchas universidades mexicanas tienen acceso institucional
+• Redalyc y SciELO: Ideales para investigación latinoamericana en español
+• Dialnet: Excelente para artículos en español de universidades iberoamericanas
+• TESIUNAM y repositorios institucionales: Para consultar tesis previas en tu área
+
+📊 Criterios de selección de fuentes
+
+No todas las fuentes valen igual. Prioriza artículos de revistas indexadas (JCR, Scopus), libros de editoriales académicas reconocidas y tesis de posgrado. Evita blogs, páginas web sin respaldo académico y artículos de revistas predatorias. Para tu marco teórico, intenta que al menos el 60% de tus fuentes sean de los últimos 5 años.
+
+📁 Organización con gestores bibliográficos
+
+Gestionar 50-100 fuentes manualmente es un caos. Usa herramientas como:
+
+• Mendeley (gratuito): Perfecto para organizar PDFs y generar bibliografías automáticas
+• Zotero (gratuito y open source): Integración con Word y extensión para navegador
+• EndNote: Más robusto pero de pago. Ideal si tu universidad tiene licencia
+
+Estos gestores te permiten organizar por temas, anotar PDFs y generar tu bibliografía en formato APA, Vancouver o el que necesites con un clic.
+
+✍️ Cómo escribir tu estado del arte
+
+El error más común es hacer una lista de resúmenes ("Autor X dice esto, Autor Y dice aquello"). En cambio, organiza tu revisión por temas o conceptos, compara posiciones de diferentes autores, identifica tendencias y señala los vacíos que tu investigación va a llenar. Eso es lo que buscan los evaluadores.
+
+💡 Tip de Tesipedia
+
+Crea una tabla de Excel antes de empezar a escribir: columnas para autor, año, metodología, hallazgos principales y cómo se relaciona con tu tema. Esto te dará un mapa visual que hace mucho más fácil la redacción posterior.`
+  },
+  {
+    id: 17,
+    title: 'Análisis de Datos en tu Tesis: SPSS, R y Excel Explicados',
+    excerpt: 'Guía práctica para elegir la herramienta correcta de análisis estadístico para tu tesis. Comparamos SPSS, R y Excel: cuándo usar cada uno y qué pruebas aplicar.',
+    image: images.datosEstadisticos,
+    date: '2026-03-08',
+    category: 'Investigación',
+    readTime: '8 min',
+    featured: false,
+    slug: createSlug('Análisis de Datos en tu Tesis SPSS R y Excel Explicados'),
+    content: `Llegaste a la parte que más asusta a los estudiantes: el análisis de datos. No importa si tu tesis es cuantitativa, cualitativa o mixta — vas a necesitar procesar información, y elegir la herramienta correcta hace toda la diferencia.
+
+📊 Excel: para lo básico (y más de lo que crees)
+
+Excel no es solo para tablas. Para análisis descriptivo básico (medias, medianas, desviación estándar, frecuencias), Excel es perfectamente válido. También puedes hacer gráficos profesionales, tablas cruzadas y hasta pruebas t-Student con el complemento de análisis de datos.
+
+Úsalo si: tu muestra es pequeña (menos de 100 datos), necesitas estadística descriptiva básica, o tu tesis es de áreas como administración o contabilidad donde no se requiere análisis avanzado.
+
+📈 SPSS: el favorito de ciencias sociales
+
+SPSS (Statistical Package for the Social Sciences) es el programa más usado en universidades mexicanas para análisis cuantitativo. Su interfaz visual lo hace accesible aunque no sepas programar. Con SPSS puedes hacer:
+
+• Análisis descriptivo completo
+• Pruebas de hipótesis (chi-cuadrada, t-Student, ANOVA)
+• Correlaciones y regresiones
+• Análisis factorial
+• Pruebas no paramétricas
+
+El inconveniente es que la licencia es cara. Muchas universidades ofrecen acceso institucional — pregunta en tu biblioteca o centro de cómputo. También existe la versión gratuita PSPP como alternativa.
+
+💻 R: poder y flexibilidad (gratis)
+
+R es un lenguaje de programación estadística gratuito y open source. Es más poderoso que SPSS pero tiene una curva de aprendizaje más pronunciada. Si necesitas análisis avanzado como modelos de ecuaciones estructurales, machine learning, o visualizaciones complejas, R es tu mejor opción.
+
+Paquetes esenciales: ggplot2 para gráficos, dplyr para manipulación de datos, lavaan para modelos estructurales, y psych para análisis psicométrico. RStudio hace que la experiencia sea mucho más amigable.
+
+🎯 ¿Cuál elijo?
+
+La respuesta depende de tu tesis: si es descriptiva y con muestra pequeña, Excel basta. Si necesitas pruebas de hipótesis estándar en ciencias sociales, SPSS. Si necesitas análisis avanzado o reproducibilidad, R. Y si no sabes por dónde empezar, en Tesipedia nuestros analistas manejan las tres herramientas y te ayudamos a elegir la más adecuada para tu proyecto.`
+  },
+  {
+    id: 18,
+    title: 'Comprar Tesis en Línea en México: Cómo Elegir un Servicio Confiable',
+    excerpt: 'Guía honesta para evaluar servicios de tesis en línea en México. Señales de alerta, qué preguntar antes de contratar, y cómo proteger tu inversión académica.',
+    image: images.tesisEnLinea,
+    date: '2026-03-05',
+    category: 'Consejos',
+    readTime: '8 min',
+    featured: false,
+    slug: createSlug('Comprar Tesis en Línea en México Cómo Elegir un Servicio Confiable'),
+    content: `Cada vez más estudiantes en México buscan ayuda profesional para su tesis, y la oferta en línea ha crecido enormemente. Pero no todos los servicios son iguales, y elegir mal puede costarte mucho más que dinero — puede costarte tu título. Aquí te explicamos cómo tomar una decisión informada.
+
+⚠️ Señales de alerta (red flags)
+
+Antes de contratar, identifica estas señales que indican un servicio poco confiable:
+
+• Precios demasiado bajos: Si ofrecen una tesis completa por $2,000-$3,000 MXN, probablemente recibirás un trabajo reciclado, con plagio o generado por IA sin revisión
+• Sin contrato ni factura: Un servicio legítimo debe darte un contrato de prestación de servicios y factura fiscal
+• Pago completo por adelantado: Los servicios serios trabajan con pagos parciales conforme avanzan las entregas
+• Sin muestras ni portafolio: Si no pueden mostrarte ejemplos de trabajos anteriores (anonimizados), desconfía
+• Promesas de "tesis en 3 días": La investigación seria toma tiempo. Desconfía de plazos irreales
+• Solo contacto por WhatsApp sin página web: La informalidad excesiva es mala señal
+
+✅ Qué preguntar antes de contratar
+
+Haz estas preguntas específicas antes de pagar:
+
+• ¿Incluyen reporte de Turnitin? ¿Y escáner anti-IA?
+• ¿Cuántas correcciones incluyen después de la entrega?
+• ¿Quién redacta mi tesis? ¿Qué formación tiene?
+• ¿Tienen política de garantía si mi tesis no es aprobada?
+• ¿Puedo ver avances parciales antes de la entrega final?
+• ¿Ofrecen preparación para la defensa oral?
+
+📋 Cómo funciona un buen servicio
+
+Un servicio profesional como Tesipedia sigue un proceso estructurado: diagnóstico inicial de tu proyecto, asignación de un especialista en tu área, entregas parciales con tu retroalimentación, revisiones ilimitadas hasta tu satisfacción, reporte de Turnitin y anti-IA incluido, y preparación para tu defensa.
+
+💰 Protege tu inversión
+
+Siempre pide un contrato por escrito que detalle alcance, plazos, número de correcciones y política de reembolso. Guarda todos los comprobantes de pago y comunicaciones. Un servicio que trabaja con transparencia no tendrá problema en documentar todo.
+
+🎯 La diferencia de Tesipedia
+
+En Tesipedia trabajamos con contratos formales, pagos parciales, entregas verificables con Turnitin, y un equipo de más de 50 especialistas con posgrado. No somos los más baratos porque la calidad cuesta — pero garantizamos que tu inversión se traduzca en un título profesional.`
+  },
+  {
+    id: 19,
+    title: 'Opciones de Titulación en México 2026: Tesis, EGEL, Tesina y Más',
+    excerpt: 'Conoce todas las opciones de titulación disponibles en universidades mexicanas: tesis, tesina, EGEL-CENEVAL, diplomado, experiencia profesional y más.',
+    image: images.titulacion,
+    date: '2026-03-01',
+    category: 'Precios',
+    readTime: '8 min',
+    featured: false,
+    slug: createSlug('Opciones de Titulación en México 2026 Tesis EGEL Tesina y Más'),
+    content: `No todos los caminos para titularte pasan por una tesis tradicional. En México existen múltiples modalidades de titulación, cada una con sus ventajas, desventajas y costos. Aquí te las explicamos todas para que elijas la que mejor se adapte a tu situación.
+
+📝 Tesis profesional: la opción clásica
+
+La tesis sigue siendo la modalidad más reconocida y valorada. Implica una investigación original sobre un tema relevante para tu carrera. Es la más laboriosa pero también la que más peso tiene en tu currículum, especialmente si planeas hacer posgrado.
+
+Tiempo promedio: 3-12 meses. Costo con asesoría profesional: desde $10,000 MXN en Tesipedia.
+
+📄 Tesina: más corta pero no más fácil
+
+La tesina es una versión más corta (40-60 páginas) que generalmente no requiere investigación de campo. Se basa más en revisión bibliográfica y análisis documental. No todas las universidades la aceptan, y algunas la limitan a ciertas carreras.
+
+Tiempo promedio: 2-6 meses. Costo con asesoría: desde $6,000 MXN.
+
+📋 EGEL-CENEVAL: el examen de conocimientos
+
+El Examen General de Egreso de Licenciatura (EGEL) es una prueba estandarizada del CENEVAL que evalúa los conocimientos de tu carrera. Si obtienes un resultado "Sobresaliente" o "Satisfactorio" (según tu universidad), puedes titularte sin tesis.
+
+Ventaja: rápido (un solo examen). Desventaja: requiere dominio amplio de toda tu carrera, y la tasa de reprobación es significativa. Costo del examen: aproximadamente $2,500-$3,500 MXN.
+
+🎓 Diplomado o curso de actualización
+
+Algunas universidades permiten titularte al completar un diplomado (120+ horas) relacionado con tu carrera. Es una buena opción si quieres especializarte en un área específica mientras te titulas.
+
+Costo típico: $8,000-$25,000 MXN dependiendo de la institución y el programa.
+
+💼 Experiencia profesional
+
+Si ya tienes varios años trabajando en tu área, algunas universidades te permiten titularte presentando un informe de experiencia profesional. Requieres comprobar al menos 2-3 años de experiencia relevante.
+
+📊 Comparativa de costos y tiempo
+
+Cada modalidad tiene su balance entre inversión de tiempo, dinero y esfuerzo. La tesis requiere más tiempo pero te da la mayor preparación académica. El EGEL es rápido pero arriesgado. El diplomado combina titulación con actualización pero es costoso.
+
+En Tesipedia te ayudamos con las modalidades que implican redacción académica: tesis, tesina, informes de experiencia profesional y artículos. Cotiza sin compromiso y elige la mejor ruta para tu título.`
+  },
+  {
+    id: 20,
+    title: 'Cómo Usar ChatGPT para tu Tesis Sin que Te Detecten (y Sin Hacer Trampa)',
+    excerpt: 'Guía ética para usar herramientas de IA como ChatGPT en tu proceso de tesis. Aprende qué sí puedes hacer, qué no, y cómo las universidades detectan contenido generado por IA.',
+    image: images.herramientasIA,
+    date: '2026-02-25',
+    category: 'Consejos',
+    readTime: '9 min',
+    featured: false,
+    slug: createSlug('Cómo Usar ChatGPT para tu Tesis Sin que Te Detecten y Sin Hacer Trampa'),
+    content: `La inteligencia artificial llegó para quedarse en el mundo académico, y la pregunta ya no es si puedes usarla, sino cómo usarla correctamente. En 2026, las universidades mexicanas tienen políticas claras sobre IA en trabajos académicos, y los detectores son cada vez más sofisticados. Aquí te explicamos cómo aprovechar estas herramientas sin arriesgar tu título.
+
+✅ Usos legítimos de IA en tu tesis
+
+Estos usos son generalmente aceptados por las universidades:
+
+• Lluvia de ideas: Usar ChatGPT para explorar ángulos de tu tema y generar preguntas de investigación
+• Comprensión de conceptos: Pedir que te explique teorías complejas en términos simples antes de leer las fuentes originales
+• Revisión gramatical: Usar IA para detectar errores ortográficos y gramaticales en tu texto (como Grammarly)
+• Traducción de fuentes: Traducir artículos académicos de otros idiomas como apoyo para tu revisión de literatura
+• Análisis de código: Si tu tesis incluye programación, la IA puede ayudarte a depurar código o entender funciones
+
+❌ Usos que pueden costarte el título
+
+Estos usos son considerados deshonestidad académica:
+
+• Generar capítulos completos con IA y presentarlos como propios
+• Usar IA para crear datos ficticios o resultados inventados
+• Parafrasear texto generado por IA sin agregar análisis propio
+• Hacer que IA escriba tu análisis de resultados o conclusiones
+
+🔍 Cómo detectan las universidades el contenido IA
+
+En 2026, las herramientas de detección han mejorado significativamente. Turnitin ahora incluye un detector de IA integrado. GPTZero y Originality.ai se usan como segunda verificación. Estos sistemas analizan patrones estadísticos del lenguaje: la IA tiende a escribir de forma más uniforme, con menos variación estilística y con ciertos patrones de estructura que los humanos rara vez producen.
+
+La tasa de falsos positivos ha bajado, pero aún existe. Por eso es importante que tu escritura sea genuinamente tuya — con tu estilo, tus muletillas y tu forma natural de expresarte.
+
+📚 La mejor estrategia: IA como asistente, no como autor
+
+Piensa en la IA como un asistente de investigación muy capaz pero que no puede reemplazar tu pensamiento crítico. Úsala para entender, explorar y organizar — pero la redacción, el análisis y las conclusiones deben ser tuyas. Tus sinodales van a hacerte preguntas sobre tu tesis, y si no la escribiste tú, se va a notar.
+
+💡 Consejo de Tesipedia
+
+Si necesitas ayuda profesional con tu tesis, es mejor contratar un servicio donde un especialista humano con posgrado te guíe y redacte contigo, en lugar de depender de IA genérica. En Tesipedia, cada trabajo es redactado por profesionales reales y pasa tanto por Turnitin como por escáneres anti-IA. Tu tesis será original, humana y lista para cualquier evaluación.`
+  },
+  {
+    id: 21,
+    title: '¿Cuánto Cobran por Hacer una Tesis en México? Comparativa de Precios 2026',
+    excerpt: 'Comparamos precios de servicios de tesis en México: freelancers, agencias y servicios profesionales. Descubre qué incluye cada opción y cuál ofrece mejor relación calidad-precio.',
+    image: images.preciosTesis,
+    date: '2026-02-20',
+    category: 'Precios',
+    readTime: '8 min',
+    featured: false,
+    slug: createSlug('Cuánto Cobran por Hacer una Tesis en México Comparativa de Precios 2026'),
+    content: `"¿Cuánto me cobran por hacerme la tesis?" es la pregunta que más recibimos en Tesipedia. Y la respuesta honesta es: depende de dónde contrates. El mercado de servicios de tesis en México es amplio y los precios varían enormemente según el tipo de proveedor.
+
+👤 Freelancers independientes: $3,000 - $12,000 MXN
+
+Los freelancers que encuentras en Facebook, Mercado Libre o foros universitarios suelen ofrecer los precios más bajos. El rango típico es de $3,000 a $12,000 MXN para una tesis de licenciatura.
+
+Ventajas: precio bajo, trato directo. Desventajas: sin garantía formal, sin contrato, calidad muy variable, riesgo de plagio o uso excesivo de IA, y si el freelancer desaparece no tienes recurso legal.
+
+🏢 Agencias de bajo costo: $5,000 - $15,000 MXN
+
+Existen agencias que operan con volumen alto y precios competitivos. Suelen tener página web y atención por WhatsApp, pero trabajan con muchos clientes simultáneamente.
+
+Ventajas: más estructura que un freelancer, precios accesibles. Desventajas: atención despersonalizada, tiempos de respuesta lentos, calidad inconsistente entre trabajos, muchas veces subcontratan a terceros sin supervisión.
+
+⭐ Servicios profesionales especializados: $10,000 - $35,000 MXN
+
+Empresas como Tesipedia que se especializan en asesoría académica profesional. Los precios son más altos pero incluyen garantías reales.
+
+Lo que incluye Tesipedia: especialista con posgrado en tu área asignado, entregas parciales con tu retroalimentación, correcciones ilimitadas hasta aprobación, reporte de Turnitin incluido, escáner anti-IA, preparación para defensa oral, contrato formal y factura fiscal.
+
+💡 El costo real de "ahorrar"
+
+Hemos recibido a muchos clientes que primero contrataron un servicio barato y terminaron pagando el doble: primero al proveedor original, y luego a nosotros para rehacer el trabajo que no pasó las revisiones de su universidad. Una tesis rechazada no solo cuesta dinero extra — cuesta tiempo, estrés y potencialmente un semestre más.
+
+📊 Desglose por nivel académico en Tesipedia
+
+• Tesina (40-60 páginas): Desde $6,000 MXN
+• Tesis de licenciatura (70-100 páginas): Desde $10,000 MXN
+• Tesis de maestría (80-120 páginas): Desde $15,000 MXN
+• Tesis doctoral (150-250 páginas): Desde $30,000 MXN
+• Artículo científico: Desde $8,000 MXN
+
+Todos nuestros precios incluyen asesoría completa, revisiones y herramientas de originalidad. Cotiza tu proyecto sin compromiso en tesipedia.com.`
   },
   {
     id: 3,
