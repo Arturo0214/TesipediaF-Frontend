@@ -7,6 +7,11 @@ export const images = {
   estructuraTesis: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=450&fit=crop&q=80',
   defensaTesis: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&h=450&fit=crop&q=80',
   metodosInvestigacion: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&h=450&fit=crop&q=80',
+  costoTesis: 'https://images.unsplash.com/photo-1554224155-8d4a4b62b4c3?w=800&h=450&fit=crop&q=80',
+  tesisUNAM: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&h=450&fit=crop&q=80',
+  formatoAPA: 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?w=800&h=450&fit=crop&q=80',
+  marcoTeorico: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=450&fit=crop&q=80',
+  tesisRapida: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=450&fit=crop&q=80',
 };
 
 // Helper function to create URL-friendly slugs
@@ -26,6 +31,255 @@ const createSlug = (title) => {
 
 // Blog posts with all fields and generated slugs
 export const blogPosts = [
+  {
+    id: 8,
+    title: '¿Cuánto Cuesta Hacer una Tesis en México en 2026? Precios Reales',
+    excerpt: 'Guía actualizada de precios de tesis en México. Desglosamos cuánto cobran por hacer una tesis de licenciatura, maestría y doctorado según el tipo de servicio, área y urgencia.',
+    image: images.costoTesis,
+    date: '2026-03-24',
+    category: 'Precios',
+    readTime: '9 min',
+    featured: true,
+    slug: 'cuanto-cuesta-hacer-una-tesis-en-mexico-2026-precios-reales',
+    content: `Si estás buscando cuánto cuesta hacer una tesis en México, necesitas números reales, no respuestas vagas. En esta guía te damos un desglose honesto de los precios del mercado en 2026 para que puedas tomar una decisión informada.
+
+📌 El rango de precios en el mercado mexicano
+
+El costo de una tesis en México varía enormemente — desde los $5,000 MXN hasta más de $60,000 MXN. La diferencia depende de factores clave como el nivel académico, la complejidad del tema, la extensión del documento y la urgencia de entrega.
+
+En el mercado actual hay tres tipos de servicios: los económicos (riesgo alto de plagio o IA), los intermedios (calidad variable), y los profesionales como Tesipedia (calidad garantizada con Turnitin y anti-IA).
+
+💰 Precios por nivel académico — Tesipedia 2026
+
+Para que tengas una referencia concreta, estos son nuestros rangos de precios actualizados:
+
+• Tesina o trabajo recepcional (40-60 páginas): Desde $6,000 MXN
+• Tesis de licenciatura (70-100 páginas): Desde $10,000 MXN
+• Tesis de maestría (80-120 páginas): Desde $15,000 MXN
+• Tesis doctoral (150-250 páginas): Desde $30,000 MXN
+• Artículos científicos: Desde $8,000 MXN
+
+Estos precios incluyen todo: desarrollo desde cero, Turnitin, escáner anti-IA, correcciones y preparación para defensa.
+
+📊 ¿Por qué varían tanto los precios?
+
+Varios factores afectan el costo final de tu proyecto:
+
+• Área de estudio: Derecho y administración tienden a ser menos costosas que ingeniería, medicina o áreas que requieren análisis estadístico especializado (SPSS, R, Python)
+• Extensión: Cada página adicional incrementa el costo. Una tesis de 70 páginas no cuesta lo mismo que una de 150
+• Urgencia: Entrega estándar (3-6 semanas) vs. express (1-2 semanas). La urgencia puede incrementar el precio un 30-50%
+• Tipo de servicio: Redacción completa vs. corrección vs. acompañamiento. La corrección cuesta aproximadamente la mitad que la redacción
+
+⚠️ Señales de precios sospechosos
+
+Si alguien te ofrece una tesis de licenciatura completa por $2,000-$3,000 MXN, pregúntate: ¿cómo pueden pagar a un profesional con maestría para escribir 80+ páginas de investigación original por eso? Probablemente estás recibiendo un trabajo reciclado, plagiado o generado íntegramente por ChatGPT sin revisión humana.
+
+En 2026, las universidades ya detectan IA y plagio con herramientas sofisticadas. Un ahorro de $5,000 puede costarte un semestre completo si te rechazan la tesis.
+
+✅ Formas de pago que aceptamos
+
+Aceptamos tarjetas (Visa, Mastercard, AMEX), transferencia SPEI, PayPal, OXXO y pagos en parcialidades. Si pagas de contado, te hacemos un descuento del 10%.
+
+📝 Cotiza tu tesis gratis
+
+Cada proyecto es único, así que la mejor forma de saber el precio exacto es cotizar directamente. Escríbenos por WhatsApp al +52 56 7007 1517 — te respondemos en minutos con un presupuesto detallado y sin compromiso.`
+  },
+  {
+    id: 9,
+    title: 'Tesis UNAM 2026: Requisitos, Formatos y Cómo Titularte Más Rápido',
+    excerpt: 'Todo lo que necesitas saber sobre la tesis en la UNAM: requisitos por facultad, formato oficial, proceso de titulación y cómo acelerar tu graduación con ayuda profesional.',
+    image: images.tesisUNAM,
+    date: '2026-03-23',
+    category: 'Guía',
+    readTime: '10 min',
+    featured: true,
+    slug: 'tesis-unam-2026-requisitos-formatos-como-titularte',
+    content: `La UNAM es la universidad más grande de México y Latinoamérica. Cada año, miles de estudiantes necesitan presentar una tesis para titularse — y cada facultad tiene sus propios requisitos, formatos y procesos. Si eres estudiante de la UNAM y estás por empezar (o ya empezaste y te atoraste), esta guía es para ti.
+
+📌 Modalidades de titulación en la UNAM
+
+La UNAM ofrece varias opciones de titulación, pero la tesis sigue siendo la más común y la más valorada profesionalmente. Las modalidades incluyen tesis individual o grupal, tesina, informe profesional, examen general de conocimientos, seminario de titulación, actividad de investigación, y servicio social (en algunas facultades).
+
+La tesis te da ventaja porque demuestra capacidad de investigación — algo que los empleadores y programas de posgrado valoran enormemente.
+
+🎯 Requisitos generales para la tesis UNAM
+
+Aunque cada facultad tiene particularidades, los requisitos generales son: haber cubierto el 100% de créditos, contar con servicio social liberado, tener un director de tesis asignado (profesor de la UNAM), registrar tu protocolo de investigación, desarrollar el documento completo, obtener votos aprobatorios de tus sinodales, y presentar el examen profesional (defensa).
+
+📚 Formato oficial UNAM
+
+El formato estándar UNAM incluye portada con escudo de la universidad y de la facultad, página de agradecimientos, índice, resumen o abstract, introducción con planteamiento del problema, marco teórico, metodología, resultados, conclusiones, referencias bibliográficas (generalmente APA 7a edición), y anexos.
+
+Tip importante: cada facultad tiene su propia plantilla de portada. No uses una genérica — descárgala directamente del sitio de tu facultad.
+
+⏰ ¿Cuánto tiempo toma el proceso de titulación?
+
+Siendo realistas, el proceso completo desde que empiezas a escribir hasta tu examen profesional toma de 4 a 8 meses. El desarrollo de la tesis toma de 2 a 6 meses, la revisión y correcciones con tu director de 2 a 4 semanas, los trámites administrativos de 2 a 4 semanas, y la asignación de sinodales y programación de examen de 2 a 6 semanas.
+
+🚀 Cómo Tesipedia te ayuda con tu tesis UNAM
+
+Hemos trabajado con estudiantes de prácticamente todas las facultades de la UNAM: Derecho, Contaduría y Administración, Ciencias Políticas, Psicología, Filosofía y Letras, Ingeniería, FES Acatlán, FES Aragón, FES Iztacala, FES Cuautitlán y FES Zaragoza.
+
+Conocemos los lineamientos específicos de cada facultad. Te asignamos un asesor con experiencia en tu área que conoce exactamente qué espera tu comité. Desarrollamos tu tesis desde cero, pasamos todo por Turnitin y escáner anti-IA, e incluimos correcciones de sinodales sin costo extra.
+
+📊 Datos que nos respaldan
+
+Más de 500 de nuestros 3,000+ estudiantes titulados son de la UNAM. Nuestro índice de aprobación es del 98%.
+
+📝 ¿Necesitas ayuda con tu tesis UNAM?
+
+Cotiza gratis por WhatsApp al +52 56 7007 1517. Te decimos precio exacto, tiempo de entrega y te asignamos un asesor especialista en tu área.`
+  },
+  {
+    id: 10,
+    title: 'Formato APA 7a Edición para Tesis: Guía Completa con Ejemplos',
+    excerpt: 'Aprende a aplicar el formato APA 7a edición en tu tesis: citas, referencias, tablas, figuras y formato general. Guía paso a paso con ejemplos prácticos para universidades mexicanas.',
+    image: images.formatoAPA,
+    date: '2026-03-22',
+    category: 'Metodología',
+    readTime: '12 min',
+    featured: false,
+    slug: 'formato-apa-7-edicion-tesis-guia-completa-ejemplos',
+    content: `El formato APA (American Psychological Association) 7a edición es el estándar de citación más utilizado en universidades mexicanas. Si tu tesis necesita ir en APA, esta guía te explica todo lo que necesitas saber con ejemplos prácticos.
+
+📌 Formato general del documento
+
+Tu tesis en APA 7 debe usar fuente Times New Roman 12pt o Calibri 11pt, interlineado doble (aunque muchas universidades mexicanas aceptan 1.5), márgenes de 2.54 cm en todos los lados, sangría de primera línea de 1.27 cm en cada párrafo, texto alineado a la izquierda (no justificado, aunque muchas universidades piden justificado), y numeración de página en la esquina superior derecha.
+
+Tip: siempre verifica con tu universidad, ya que muchas facultades mexicanas tienen variaciones sobre el APA estándar.
+
+📚 Citas en el texto
+
+Las citas son probablemente lo que más dolores de cabeza causa. Hay dos tipos principales:
+
+Cita textual corta (menos de 40 palabras): Se incluye entre comillas dentro del párrafo, seguida de (Apellido, año, p. número).
+
+Cita textual larga (40+ palabras): Se presenta en un bloque aparte con sangría de 1.27 cm, sin comillas, seguida de (Apellido, año, p. número).
+
+Paráfrasis: Cuando pones una idea de otro autor en tus propias palabras, se cita como (Apellido, año).
+
+Con 2 autores se usa "y" entre ellos. Con 3 o más autores, desde la primera cita se usa el formato (Primer autor et al., año).
+
+🔗 Lista de referencias
+
+La lista de referencias va al final, en orden alfabético por apellido del primer autor. Cada tipo de fuente tiene un formato específico:
+
+Libro: Apellido, A. A. (Año). Título del libro en cursiva. Editorial.
+
+Artículo de revista: Apellido, A. A., y Apellido, B. B. (Año). Título del artículo. Nombre de la Revista en Cursiva, volumen(número), páginas. https://doi.org/xxx
+
+Sitio web: Apellido, A. A. (Fecha). Título de la página. Nombre del Sitio. URL
+
+📊 Tablas y figuras
+
+Las tablas llevan título en cursiva arriba de la tabla, numeración consecutiva (Tabla 1, Tabla 2...), y una nota al pie si es necesario.
+
+Las figuras llevan título en cursiva debajo de la figura, numeración consecutiva (Figura 1, Figura 2...), y descripción si aplica.
+
+⚠️ Errores comunes en APA que debes evitar
+
+Los más frecuentes son usar "et al." desde la primera cita con solo 2 autores, no incluir DOI cuando está disponible, inconsistencia entre citas en texto y referencias, olvidar la sangría francesa en la lista de referencias, y no actualizar las fuentes (muchos comités piden fuentes de los últimos 5 años).
+
+🎯 ¿Tu universidad pide APA pero modificado?
+
+Muchas universidades mexicanas usan "APA con modificaciones". Por ejemplo, algunas piden interlineado 1.5 en lugar de doble, justificación completa, márgenes diferentes, o un formato de portada institucional específico. Siempre prioriza las instrucciones de tu universidad sobre las reglas generales de APA.
+
+📝 ¿Necesitas ayuda con el formato de tu tesis?
+
+En Tesipedia todos nuestros trabajos se entregan en el formato que exige tu universidad. Escríbenos por WhatsApp al +52 56 7007 1517 para cotizar tu proyecto.`
+  },
+  {
+    id: 11,
+    title: 'Cómo Hacer un Marco Teórico para Tesis: Guía Paso a Paso',
+    excerpt: 'El marco teórico es el capítulo más extenso y difícil de tu tesis. Te enseñamos cómo construirlo paso a paso, con ejemplos y fuentes, para que tu comité lo apruebe a la primera.',
+    image: images.marcoTeorico,
+    date: '2026-03-21',
+    category: 'Metodología',
+    readTime: '11 min',
+    featured: false,
+    slug: 'como-hacer-marco-teorico-tesis-guia-paso-a-paso',
+    content: `El marco teórico suele ser el capítulo más largo de tu tesis — y también el que más atasca a los estudiantes. No es simplemente "poner definiciones de libros": es construir la base argumentativa que sustenta toda tu investigación. Aquí te explicamos cómo hacerlo bien.
+
+📌 ¿Qué es exactamente el marco teórico?
+
+El marco teórico es la sección donde presentas las teorías, conceptos y estudios previos que fundamentan tu investigación. Su propósito es demostrar que tu problema de investigación tiene bases sólidas, que conoces lo que otros han investigado antes, y que tu estudio aporta algo nuevo o confirma algo existente.
+
+No es un glosario de términos ni una colección de citas random. Es un argumento construido paso a paso que lleva al lector desde lo general hasta lo específico de tu tema.
+
+🎯 Paso 1: Revisión de literatura
+
+Antes de escribir una sola línea, necesitas investigar. Busca en Google Scholar, Redalyc, SciELO, Dialnet, y las bases de datos de tu universidad. Enfócate en artículos de los últimos 5-10 años (salvo autores clásicos fundacionales), estudios realizados en México o Latinoamérica cuando sea posible, investigaciones con metodologías similares a la tuya, y autores que sean referencia obligada en tu campo.
+
+Organiza tus fuentes en un gestor de referencias como Mendeley o Zotero — te ahorrará horas al momento de citar.
+
+📚 Paso 2: Estructura de lo general a lo específico
+
+Un buen marco teórico sigue una lógica de embudo. Empieza con los conceptos amplios de tu tema, luego las teorías que los sustentan, después estudios previos relevantes (antecedentes), y finalmente los conceptos específicos de tu investigación.
+
+Por ejemplo, si tu tesis es sobre "Impacto del home office en la productividad en empresas mexicanas", tu embudo sería: Productividad laboral (concepto general), luego Teorías de motivación y desempeño (Herzberg, Maslow, etc.), después Teletrabajo y home office (definiciones, evolución, legislación mexicana), seguido de Estudios previos sobre productividad y trabajo remoto, y finalmente Variables de tu estudio (tu definición operacional).
+
+🔬 Paso 3: Integración, no copiar y pegar
+
+El error más grave es convertir tu marco teórico en una sucesión de citas sin conexión. Debes interpretar y conectar las ideas. En vez de: "García (2023) dice que..." seguido de "López (2024) afirma que...", escribe: "Diversos autores coinciden en que la productividad en entornos remotos depende de factores como la autonomía del trabajador (García, 2023) y la infraestructura tecnológica disponible (López, 2024), aunque investigaciones recientes en el contexto mexicano sugieren que el factor cultural también es determinante (Hernández y Martínez, 2025)."
+
+📊 Paso 4: Definición de variables
+
+Si tu investigación es cuantitativa, tu marco teórico debe cerrar con la definición conceptual y operacional de cada variable. Variable independiente: qué es, cómo se mide. Variable dependiente: qué es, cómo se mide. Variables de control (si aplica).
+
+⚠️ Errores comunes
+
+Los más frecuentes son marcos teóricos demasiado cortos (menos de 20 páginas en licenciatura) o demasiado largos (relleno sin relevancia), usar fuentes desactualizadas (libros de los 90s cuando hay investigación reciente), no citar correctamente (plagio involuntario), falta de hilo conductor entre secciones, y definir conceptos que no son relevantes para la investigación.
+
+📝 ¿Necesitas ayuda con tu marco teórico?
+
+Es el capítulo donde más estudiantes se atascan. En Tesipedia, nuestros asesores con maestría y doctorado construyen marcos teóricos sólidos con fuentes actualizadas. Cotiza gratis por WhatsApp al +52 56 7007 1517.`
+  },
+  {
+    id: 12,
+    title: '¿Cómo Hacer una Tesis Rápido? 10 Pasos para Titularte en 2026',
+    excerpt: '¿Necesitas terminar tu tesis rápido? Te damos un plan realista de 10 pasos para hacer tu tesis de licenciatura o maestría en el menor tiempo posible sin sacrificar calidad.',
+    image: images.tesisRapida,
+    date: '2026-03-19',
+    category: 'Consejos',
+    readTime: '8 min',
+    featured: false,
+    slug: 'como-hacer-una-tesis-rapido-10-pasos-titularte-2026',
+    content: `Seamos honestos: nadie quiere pasar un año entero en su tesis. Si estás buscando cómo hacer una tesis rápido (pero bien), esta guía te da un plan concreto de 10 pasos para titularte en el menor tiempo posible.
+
+📌 La verdad sobre hacer una tesis rápido
+
+"Rápido" no significa "en 3 días". Una tesis seria, que pase Turnitin, anti-IA y sinodales, toma un mínimo de 3-4 semanas si trabajas de forma intensiva. Lo que sí puedes hacer es eliminar el tiempo perdido: procrastinación, falta de dirección, esperar semanas por retroalimentación de tu asesor, y rehacer capítulos porque no tenías claro el enfoque.
+
+🎯 Los 10 pasos
+
+Paso 1: Define tu tema en máximo 3 días. No busques el tema perfecto — busca uno viable. Debe ser específico (no "la educación en México" sino "impacto de la educación a distancia en el rendimiento académico de estudiantes de preparatoria en CDMX durante 2024-2025"), tener suficientes fuentes disponibles, y ser factible en tu tiempo y presupuesto.
+
+Paso 2: Escribe tu planteamiento del problema (3 días). Incluye la pregunta de investigación, objetivos (general y específicos), justificación e hipótesis. Este es tu mapa — si está claro, todo lo demás fluye.
+
+Paso 3: Construye tu marco teórico (1-2 semanas). Es el capítulo más largo pero no el más difícil si investigas bien. Busca 30-50 fuentes en Google Scholar, Redalyc y SciELO, organiza por temas, y escribe de lo general a lo específico.
+
+Paso 4: Define tu metodología (3-5 días). Tipo de investigación, enfoque, población, muestra, instrumento, y procedimiento. No reinventes la rueda — busca tesis similares y adapta.
+
+Paso 5: Recolecta datos (1-2 semanas). Aplica encuestas, entrevistas, o recopila datos documentales. Usa Google Forms para encuestas — es gratis y te da los datos listos para análisis.
+
+Paso 6: Analiza resultados (1 semana). Si es cuantitativo, usa Excel o SPSS. Si es cualitativo, organiza por categorías. Presenta con tablas y gráficas claras.
+
+Paso 7: Escribe conclusiones (2-3 días). Resume hallazgos, contrasta con tu hipótesis, discute implicaciones, reconoce limitaciones.
+
+Paso 8: Formato y estilo (2-3 días). APA 7a edición (o el que pida tu universidad), revisa ortografía, verifica que todas las citas tengan referencia y viceversa.
+
+Paso 9: Turnitin y revisión anti-IA (1-2 días). Esto ya no es opcional en 2026. Verifica que tu índice de similitud sea menor al 20% y que no haya contenido flaggeado como IA.
+
+Paso 10: Prepara tu defensa (3-5 días). Haz tu presentación, ensaya frente a alguien, y prepárate para las preguntas probables.
+
+⏰ Tiempo total realista: 6-8 semanas haciendo todo tú mismo
+
+🚀 La opción más rápida: Tesipedia
+
+Si quieres reducir ese tiempo a 3-4 semanas (o menos con servicio express), nosotros nos encargamos del desarrollo mientras tú te enfocas en lo que necesites. Más de 3,000 estudiantes ya se titularon con nuestra ayuda.
+
+📝 Cotiza tu tesis ahora: WhatsApp +52 56 7007 1517. Cotización gratuita en minutos.`
+  },
   {
     id: 4,
     title: '¿Dónde Hacer Tu Tesis en México? Guía Completa 2026',

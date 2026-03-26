@@ -49,6 +49,28 @@ export function Footer() {
                         </ul>
                     </Col>
                     <Col md={3}>
+                        <h5 className="mb-3">Artículos Populares</h5>
+                        <ul className="list-unstyled">
+                            <li className="mb-2">
+                                <Link to="/blog/cuanto-cuesta-hacer-una-tesis-en-mexico-2026-precios-reales" className="text-light text-decoration-none">¿Cuánto Cuesta una Tesis?</Link>
+                            </li>
+                            <li className="mb-2">
+                                <Link to="/blog/formato-apa-7-edicion-tesis-guia-completa-ejemplos" className="text-light text-decoration-none">Formato APA 7a Edición</Link>
+                            </li>
+                            <li className="mb-2">
+                                <Link to="/blog/como-hacer-marco-teorico-tesis-guia-paso-a-paso" className="text-light text-decoration-none">Cómo Hacer un Marco Teórico</Link>
+                            </li>
+                            <li className="mb-2">
+                                <Link to="/blog/como-hacer-una-tesis-rapido-10-pasos-titularte-2026" className="text-light text-decoration-none">Cómo Hacer una Tesis Rápido</Link>
+                            </li>
+                            <li className="mb-2">
+                                <Link to="/blog/tesis-unam-2026-requisitos-formatos-como-titularte" className="text-light text-decoration-none">Tesis UNAM 2026</Link>
+                            </li>
+                        </ul>
+                    </Col>
+                </Row>
+                <Row className="g-4 mt-2">
+                    <Col md={3}>
                         <h5 className="mb-3">Contacto</h5>
                         <ul className="list-unstyled">
                             <li className="mb-2">

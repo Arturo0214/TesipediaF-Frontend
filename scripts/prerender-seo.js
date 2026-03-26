@@ -62,7 +62,18 @@ const routesMeta = [
     path: '/preguntas-frecuentes',
     title: 'Preguntas Frecuentes — Tesipedia | Todo Sobre Nuestro Servicio de Tesis',
     description: '¿Cuánto cuesta una tesis? ¿Cuánto tarda? ¿Es seguro? Resolvemos todas tus dudas sobre el servicio de elaboración de tesis de Tesipedia.',
-    keywords: 'preguntas frecuentes tesis, cuánto cuesta una tesis, servicio de tesis preguntas, FAQ Tesipedia'
+    keywords: 'preguntas frecuentes tesis, cuánto cuesta una tesis, servicio de tesis preguntas, FAQ Tesipedia',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "¿Cuánto cuesta hacer una tesis en México?", "acceptedAnswer": { "@type": "Answer", "text": "Para una tesis de licenciatura de 100 páginas, desde $9,900 MXN (corrección) hasta $19,800 MXN (desarrollo completo). Cotización gratuita disponible." } },
+        { "@type": "Question", "name": "¿Cuánto tiempo tardan en hacer una tesis?", "acceptedAnswer": { "@type": "Answer", "text": "3 a 4 semanas para licenciatura, 4 a 8 semanas para maestría y doctorado. Servicio express disponible." } },
+        { "@type": "Question", "name": "¿La tesis es original y sin plagio?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, cada tesis se verifica con Turnitin y escáneres anti-IA. Elaborada 100% por investigadores humanos." } },
+        { "@type": "Question", "name": "¿Dónde comprar tesis en México de forma segura?", "acceptedAnswer": { "@type": "Answer", "text": "Tesipedia: +3,000 titulados, 98% aprobación, tesis 100% originales. WhatsApp: +52 56 7007 1517." } },
+        { "@type": "Question", "name": "¿Hacen tesis para cualquier universidad?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, para UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac y todas las universidades de México." } }
+      ]
+    }
   },
   {
     path: '/blog',
@@ -84,6 +95,96 @@ const routesMeta = [
   },
 
   // ─── Blog posts ───────────────────────────────────────────────────────
+  {
+    path: '/blog/cuanto-cuesta-hacer-una-tesis-en-mexico-2026-precios-reales',
+    title: '¿Cuánto Cuesta Hacer una Tesis en México en 2026? Precios Reales — Tesipedia',
+    description: 'Descubre cuánto cuesta hacer una tesis en México en 2026. Precios reales por nivel académico, tipo de tesis y universidad. Compara costos y ahorra.',
+    keywords: 'cuánto cuesta una tesis, precio tesis México 2026, costo tesis licenciatura, precio tesis maestría, hacer tesis precio',
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-25',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "¿Cuánto Cuesta Hacer una Tesis en México en 2026? Precios Reales",
+      "datePublished": "2026-03-25",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } },
+      "description": "Precios reales de tesis en México en 2026 por nivel académico y tipo."
+    }
+  },
+  {
+    path: '/blog/tesis-unam-2026-requisitos-formatos-como-titularte',
+    title: 'Tesis UNAM 2026: Requisitos, Formatos y Cómo Titularte Más Rápido — Tesipedia',
+    description: 'Guía completa para hacer tu tesis en la UNAM en 2026. Requisitos actualizados, formatos oficiales, trámites y cómo titularte más rápido.',
+    keywords: 'tesis UNAM, requisitos tesis UNAM 2026, formato tesis UNAM, titulación UNAM, cómo titularse UNAM',
+    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-25',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Tesis UNAM 2026: Requisitos, Formatos y Cómo Titularte Más Rápido",
+      "datePublished": "2026-03-25",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } },
+      "description": "Guía completa de requisitos y formatos para tesis UNAM 2026."
+    }
+  },
+  {
+    path: '/blog/formato-apa-7-edicion-tesis-guia-completa-ejemplos',
+    title: 'Formato APA 7a Edición para Tesis: Guía Completa con Ejemplos — Tesipedia',
+    description: 'Aprende a aplicar el formato APA 7a edición en tu tesis. Guía paso a paso con ejemplos de citas, referencias, tablas y figuras.',
+    keywords: 'formato APA 7, APA 7 edición tesis, citas APA, referencias APA, normas APA tesis',
+    image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-25',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Formato APA 7a Edición para Tesis: Guía Completa con Ejemplos",
+      "datePublished": "2026-03-25",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } },
+      "description": "Guía completa de formato APA 7a edición para tesis con ejemplos prácticos."
+    }
+  },
+  {
+    path: '/blog/como-hacer-marco-teorico-tesis-guia-paso-a-paso',
+    title: 'Cómo Hacer un Marco Teórico para Tesis: Guía Paso a Paso — Tesipedia',
+    description: 'Aprende a elaborar el marco teórico de tu tesis paso a paso. Estructura, ejemplos, fuentes confiables y errores comunes a evitar.',
+    keywords: 'marco teórico tesis, cómo hacer marco teórico, ejemplo marco teórico, estructura marco teórico',
+    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-25',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Cómo Hacer un Marco Teórico para Tesis: Guía Paso a Paso",
+      "datePublished": "2026-03-25",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } },
+      "description": "Guía paso a paso para elaborar el marco teórico de una tesis."
+    }
+  },
+  {
+    path: '/blog/como-hacer-una-tesis-rapido-10-pasos-titularte-2026',
+    title: '¿Cómo Hacer una Tesis Rápido? 10 Pasos para Titularte en 2026 — Tesipedia',
+    description: '10 pasos probados para hacer tu tesis rápido y titularte en 2026. Organización, herramientas, atajos legítimos y cuándo pedir ayuda profesional.',
+    keywords: 'cómo hacer tesis rápido, tesis rápida, titularse rápido 2026, pasos para hacer tesis, terminar tesis rápido',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=450&fit=crop&q=80',
+    datePublished: '2026-03-25',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "¿Cómo Hacer una Tesis Rápido? 10 Pasos para Titularte en 2026",
+      "datePublished": "2026-03-25",
+      "dateModified": "2026-03-25",
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } },
+      "description": "10 pasos para hacer tu tesis rápido y titularte en 2026."
+    }
+  },
   {
     path: '/blog/donde-hacer-tu-tesis-en-mexico-guia-completa-2026',
     title: '¿Dónde Hacer Tu Tesis en México? Guía Completa 2026 — Tesipedia',

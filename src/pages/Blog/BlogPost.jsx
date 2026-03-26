@@ -115,13 +115,13 @@ function BlogPost() {
   // Find related posts (same category, excluding current)
   const relatedPosts = blogPosts
     .filter(p => p.id !== post.id && p.category === post.category)
-    .slice(0, 2);
+    .slice(0, 3);
 
   // If not enough from same category, fill with recent posts
-  if (relatedPosts.length < 2) {
+  if (relatedPosts.length < 3) {
     const morePosts = blogPosts
       .filter(p => p.id !== post.id && !relatedPosts.find(r => r.id === p.id))
-      .slice(0, 2 - relatedPosts.length);
+      .slice(0, 3 - relatedPosts.length);
     relatedPosts.push(...morePosts);
   }
 
@@ -252,6 +252,38 @@ function BlogPost() {
                 </div>
               </section>
             )}
+
+            {/* Internal linking CTA */}
+            <section className="blogpost-internal-links" style={{
+              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+              borderRadius: '16px',
+              padding: '2rem',
+              margin: '2.5rem 0',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ color: '#1e3a5f', marginBottom: '0.75rem', fontSize: '1.25rem' }}>
+                ¿Necesitas ayuda con tu tesis?
+              </h3>
+              <p style={{ color: '#475569', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                En Tesipedia te hacemos tu tesis 100% original. +3,000 estudiantes titulados en México.
+              </p>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link to="/cotizar" style={{
+                  background: '#2563eb', color: '#fff', padding: '0.6rem 1.5rem',
+                  borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem'
+                }}>Cotiza Gratis</Link>
+                <Link to="/preguntas-frecuentes" style={{
+                  background: '#fff', color: '#2563eb', padding: '0.6rem 1.5rem',
+                  borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
+                  border: '2px solid #2563eb'
+                }}>Preguntas Frecuentes</Link>
+                <Link to="/sobre-nosotros" style={{
+                  background: '#fff', color: '#475569', padding: '0.6rem 1.5rem',
+                  borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
+                  border: '2px solid #e2e8f0'
+                }}>Sobre Nosotros</Link>
+              </div>
+            </section>
 
             {/* Back to blog */}
             <div className="blogpost-back">

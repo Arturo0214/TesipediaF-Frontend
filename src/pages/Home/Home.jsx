@@ -129,7 +129,6 @@ function Home() {
       "priceCurrency": "MXN",
       "lowPrice": "60",
       "highPrice": "120",
-      "priceCurrency": "MXN",
       "unitText": "por página",
       "offerCount": "3"
     },
@@ -178,6 +177,54 @@ function Home() {
     ]
   };
 
+  // FAQ Schema para Homepage - preguntas más buscadas
+  const homeFaqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta hacer una tesis en México?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El costo de una tesis en México varía según el nivel académico y la modalidad. Para una tesis de licenciatura de 100 páginas, los precios van desde $9,900 MXN (corrección) hasta $19,800 MXN (desarrollo completo). Para maestría y doctorado los precios son mayores según la complejidad. En Tesipedia ofrecemos cotización gratuita y planes de pago flexibles."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Dónde puedo comprar una tesis en México de forma segura?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tesipedia es el servicio más confiable para comprar tu tesis en México. Con más de 3,000 estudiantes titulados y 98% de aprobación, ofrecemos tesis 100% originales verificadas con Turnitin y escáner anti-IA. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto tiempo tardan en hacer una tesis?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El tiempo estándar de entrega es de 3 a 4 semanas para una tesis de licenciatura. Para maestría y doctorado, de 4 a 8 semanas según la complejidad. También ofrecemos servicio express para casos urgentes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿La tesis es 100% original y pasa los detectores antiplagio?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, cada tesis se elabora desde cero por investigadores humanos con maestría y doctorado. Verificamos con Turnitin y escáneres anti-IA antes de entregar. Nuestras tesis pasan todos los detectores de plagio e IA de las universidades mexicanas."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Hacen tesis para cualquier universidad de México?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, hacemos tesis para estudiantes de cualquier universidad de México: UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL y más. Conocemos los lineamientos y formatos de cada institución."
+        }
+      }
+    ]
+  };
+
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -210,6 +257,7 @@ function Home() {
         <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(homeFaqSchema)}</script>
       </Helmet>
 
       <HeroSection

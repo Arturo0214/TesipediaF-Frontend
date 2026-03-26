@@ -6,6 +6,7 @@ import {
   FaHeadset, FaGraduationCap, FaFileAlt, FaRedo
 } from 'react-icons/fa';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 import ChatPanel from '../../components/chat/ChatPanel';
 import './FAQ.css';
 
@@ -264,6 +265,49 @@ function FAQ() {
               <span><FaShieldAlt /> 100% confidencial</span>
             </div>
           </div>
+        </div>
+      </Container>
+
+      {/* Internal linking - Related blog articles */}
+      <Container className="fq-main" style={{ paddingTop: 0 }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '16px',
+          padding: '2rem',
+          marginBottom: '3rem'
+        }}>
+          <h3 style={{ color: '#1e3a5f', marginBottom: '1rem', fontSize: '1.2rem', textAlign: 'center' }}>
+            Artículos que pueden ayudarte
+          </h3>
+          <Row className="g-3">
+            <Col md={4}>
+              <Link to="/blog/cuanto-cuesta-hacer-una-tesis-en-mexico-2026-precios-reales" style={{
+                display: 'block', padding: '1rem', background: '#fff', borderRadius: '12px',
+                textDecoration: 'none', color: '#1e3a5f', fontWeight: '600', fontSize: '0.9rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)', transition: 'transform 0.2s'
+              }}>
+                💰 ¿Cuánto Cuesta Hacer una Tesis en México?
+              </Link>
+            </Col>
+            <Col md={4}>
+              <Link to="/blog/como-hacer-una-tesis-rapido-10-pasos-titularte-2026" style={{
+                display: 'block', padding: '1rem', background: '#fff', borderRadius: '12px',
+                textDecoration: 'none', color: '#1e3a5f', fontWeight: '600', fontSize: '0.9rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)', transition: 'transform 0.2s'
+              }}>
+                ⚡ Cómo Hacer una Tesis Rápido: 10 Pasos
+              </Link>
+            </Col>
+            <Col md={4}>
+              <Link to="/blog/formato-apa-7-edicion-tesis-guia-completa-ejemplos" style={{
+                display: 'block', padding: '1rem', background: '#fff', borderRadius: '12px',
+                textDecoration: 'none', color: '#1e3a5f', fontWeight: '600', fontSize: '0.9rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)', transition: 'transform 0.2s'
+              }}>
+                📚 Formato APA 7a Edición: Guía Completa
+              </Link>
+            </Col>
+          </Row>
         </div>
       </Container>
 
