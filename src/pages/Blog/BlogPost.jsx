@@ -1,11 +1,11 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import { Container } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
+import { FaCalendarAlt, FaClock, FaUser, FaArrowLeft, FaWhatsapp } from 'react-icons/fa';
 import { getPostBySlug, blogPosts } from './blogData';
 import './BlogPost.css';
 
-// Gradient fallbacks for when images fail to load
 const gradientFallbacks = [
   'linear-gradient(135deg, #1E3A5F 0%, #3B82F6 100%)',
   'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
@@ -16,24 +16,23 @@ const gradientFallbacks = [
   'linear-gradient(135deg, #0891B2 0%, #6366F1 100%)',
 ];
 
-const BlogPostImage = ({ src, alt, index = 0 }) => {
+const BlogPostImage = ({ src, alt, index = 0, className = '' }) => {
   const [failed, setFailed] = useState(false);
   const handleError = useCallback(() => setFailed(true), []);
 
   if (failed) {
     return (
       <div
-        className="blog-post-hero-fallback"
+        className={`bp-img-fallback ${className}`}
         style={{ background: gradientFallbacks[index % gradientFallbacks.length] }}
         aria-label={alt}
       >
-        <span className="blog-img-fallback-icon">📄</span>
-        <span className="blog-img-fallback-text">{alt}</span>
+        <span className="bp-img-fallback-icon">📄</span>
       </div>
     );
   }
 
-  return <img src={src} alt={alt} loading="eager" onError={handleError} />;
+  return <img src={src} alt={alt} loading="eager" className={className} onError={handleError} />;
 };
 
 const getCategoryColor = (category) => {
@@ -49,13 +48,13 @@ const getCategoryColor = (category) => {
 
 const getCategoryBg = (category) => {
   const colors = {
-    'Metodología': 'rgba(5, 150, 105, 0.1)',
-    'Consejos': 'rgba(37, 99, 235, 0.1)',
-    'Investigación': 'rgba(124, 58, 237, 0.1)',
-    'Guía': 'rgba(234, 88, 12, 0.1)',
-    'Precios': 'rgba(220, 38, 38, 0.1)'
+    'Metodología': 'rgba(5, 150, 105, 0.08)',
+    'Consejos': 'rgba(37, 99, 235, 0.08)',
+    'Investigación': 'rgba(124, 58, 237, 0.08)',
+    'Guía': 'rgba(234, 88, 12, 0.08)',
+    'Precios': 'rgba(220, 38, 38, 0.08)'
   };
-  return colors[category] || 'rgba(107, 114, 128, 0.1)';
+  return colors[category] || 'rgba(107, 114, 128, 0.08)';
 };
 
 const formatDate = (dateStr) => {
@@ -69,12 +68,12 @@ const formatDate = (dateStr) => {
 const formatContent = (content) => {
   return content.split('\n\n').map((paragraph, index) => {
     if (/^[📌🎯📚🔬📊✅📝🔍🎤💡⚡👥🔄🛠📈💰🏆🎓]/.test(paragraph)) {
-      return <h2 key={index} className="blogpost-subtitle">{paragraph}</h2>;
+      return <h2 key={index} className="bp-subtitle">{paragraph}</h2>;
     }
     if (paragraph.includes('•')) {
       const items = paragraph.split('•').filter(item => item.trim());
       return (
-        <ul key={index} className="blogpost-list">
+        <ul key={index} className="bp-list">
           {items.map((item, i) => (
             <li key={i}>{item.trim()}</li>
           ))}
@@ -83,10 +82,10 @@ const formatContent = (content) => {
     }
     if (paragraph.includes('+52 56 7007 1517') || paragraph.includes('wa.me')) {
       return (
-        <div key={index} className="blogpost-cta">
+        <div key={index} className="bp-cta-block">
           <p>{paragraph.replace(/Cotiza gratis por WhatsApp al \+52 56 7007 1517\.?|Contáctanos por WhatsApp al \+52 56 7007 1517[^.]*\.?|Escríbenos por WhatsApp al \+52 56 7007 1517[^.]*\.?|WhatsApp al \+52 56 7007 1517[^.]*\.?/g, '').trim()}</p>
-          <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer">
-            Cotizar por WhatsApp
+          <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="bp-wa-btn">
+            <FaWhatsapp /> Cotizar por WhatsApp
           </a>
         </div>
       );
@@ -97,16 +96,17 @@ const formatContent = (content) => {
 
 function BlogPost() {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const post = getPostBySlug(slug);
 
   if (!post) {
     return (
-      <div className="blog-page">
-        <Container className="blog-container" style={{ textAlign: 'center', paddingTop: '6rem' }}>
-          <h1>Artículo no encontrado</h1>
-          <p style={{ color: '#64748B', margin: '1rem 0 2rem' }}>El artículo que buscas no existe o fue movido.</p>
-          <Link to="/blog" className="blogpost-back-link">← Volver al blog</Link>
+      <div className="bp-page">
+        <Container>
+          <div className="bp-not-found">
+            <h1>Artículo no encontrado</h1>
+            <p>El artículo que buscas no existe o fue movido.</p>
+            <Link to="/blog" className="bp-back-btn"><FaArrowLeft /> Volver al blog</Link>
+          </div>
         </Container>
       </div>
     );
@@ -117,7 +117,6 @@ function BlogPost() {
     .filter(p => p.id !== post.id && p.category === post.category)
     .slice(0, 3);
 
-  // If not enough from same category, fill with recent posts
   if (relatedPosts.length < 3) {
     const morePosts = blogPosts
       .filter(p => p.id !== post.id && !relatedPosts.find(r => r.id === p.id))
@@ -133,23 +132,13 @@ function BlogPost() {
     "image": post.image,
     "datePublished": post.date,
     "dateModified": post.date,
-    "author": {
-      "@type": "Organization",
-      "name": "Tesipedia",
-      "url": "https://tesipedia.com"
-    },
+    "author": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "publisher": {
       "@type": "Organization",
       "name": "Tesipedia",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png"
-      }
+      "logo": { "@type": "ImageObject", "url": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" }
     },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://tesipedia.com/blog/${post.slug}`
-    }
+    "mainEntityOfPage": { "@type": "WebPage", "@id": `https://tesipedia.com/blog/${post.slug}` }
   };
 
   const breadcrumbSchema = {
@@ -185,109 +174,105 @@ function BlogPost() {
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
-      <article className="blogpost-page">
-        {/* Hero Image */}
-        <div className="blogpost-hero-image">
-          <BlogPostImage src={post.image} alt={post.title} index={post.id} />
-          <div className="blogpost-hero-overlay" />
-        </div>
+      <article className="bp-page">
+        {/* ── Header Section ── */}
+        <div className="bp-header-section">
+          <Container>
+            <div className="bp-header-inner">
+              {/* Breadcrumb */}
+              <nav className="bp-breadcrumb" aria-label="Breadcrumb">
+                <Link to="/">Inicio</Link>
+                <span className="bp-breadcrumb-sep">/</span>
+                <Link to="/blog">Blog</Link>
+                <span className="bp-breadcrumb-sep">/</span>
+                <span>{post.category}</span>
+              </nav>
 
-        <Container>
-          <div className="blogpost-content-wrapper">
-            {/* Breadcrumb */}
-            <nav className="blogpost-breadcrumb" aria-label="Breadcrumb">
-              <Link to="/">Inicio</Link>
-              <span>/</span>
-              <Link to="/blog">Blog</Link>
-              <span>/</span>
-              <span>{post.category}</span>
-            </nav>
-
-            {/* Header */}
-            <header className="blogpost-header">
+              {/* Category + Title + Meta */}
               <span
-                className="blog-tag"
-                style={{
-                  color: getCategoryColor(post.category),
-                  backgroundColor: getCategoryBg(post.category)
-                }}
+                className="bp-tag"
+                style={{ color: getCategoryColor(post.category), backgroundColor: getCategoryBg(post.category) }}
               >
                 {post.category}
               </span>
-              <h1 className="blogpost-title">{post.title}</h1>
-              <div className="blogpost-meta">
-                <span>{formatDate(post.date)}</span>
-                <span className="blog-meta-dot" />
-                <span>{post.readTime} de lectura</span>
-                <span className="blog-meta-dot" />
-                <span>Por Tesipedia</span>
-              </div>
-            </header>
+              <h1 className="bp-title">{post.title}</h1>
+              <p className="bp-excerpt">{post.excerpt}</p>
 
-            {/* Article Body */}
-            <div className="blogpost-body">
+              <div className="bp-meta">
+                <div className="bp-meta-item">
+                  <FaCalendarAlt />
+                  <span>{formatDate(post.date)}</span>
+                </div>
+                <div className="bp-meta-item">
+                  <FaClock />
+                  <span>{post.readTime} de lectura</span>
+                </div>
+                <div className="bp-meta-item">
+                  <FaUser />
+                  <span>Tesipedia</span>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </div>
+
+        {/* ── Featured Image ── */}
+        <Container>
+          <div className="bp-featured-image">
+            <BlogPostImage src={post.image} alt={post.title} index={post.id} className="bp-img" />
+          </div>
+        </Container>
+
+        {/* ── Article Body ── */}
+        <Container>
+          <div className="bp-content-wrapper">
+            <div className="bp-body">
               {formatContent(post.content)}
             </div>
 
-            {/* Related Posts */}
+            {/* ── CTA Banner ── */}
+            <div className="bp-cta-banner">
+              <div className="bp-cta-banner-content">
+                <h3>¿Necesitas ayuda con tu tesis?</h3>
+                <p>En Tesipedia te hacemos tu tesis 100% original. +3,000 estudiantes titulados en México.</p>
+              </div>
+              <div className="bp-cta-banner-actions">
+                <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="bp-cta-wa">
+                  <FaWhatsapp /> Cotiza Gratis
+                </a>
+                <Link to="/preguntas-frecuentes" className="bp-cta-faq">Preguntas Frecuentes</Link>
+              </div>
+            </div>
+
+            {/* ── Related Posts ── */}
             {relatedPosts.length > 0 && (
-              <section className="blogpost-related">
-                <h2>Artículos relacionados</h2>
-                <div className="blogpost-related-grid">
+              <section className="bp-related">
+                <h2 className="bp-related-title">Artículos relacionados</h2>
+                <div className="bp-related-grid">
                   {relatedPosts.map(rp => (
-                    <Link key={rp.id} to={`/blog/${rp.slug}`} className="blogpost-related-card">
-                      <span
-                        className="blog-tag"
-                        style={{
-                          color: getCategoryColor(rp.category),
-                          backgroundColor: getCategoryBg(rp.category)
-                        }}
-                      >
-                        {rp.category}
-                      </span>
-                      <h3>{rp.title}</h3>
-                      <span className="blogpost-related-meta">{formatDate(rp.date)} · {rp.readTime}</span>
+                    <Link key={rp.id} to={`/blog/${rp.slug}`} className="bp-related-card">
+                      <div className="bp-related-card-img">
+                        <BlogPostImage src={rp.image} alt={rp.title} index={rp.id} className="bp-related-img" />
+                      </div>
+                      <div className="bp-related-card-body">
+                        <span
+                          className="bp-tag bp-tag-sm"
+                          style={{ color: getCategoryColor(rp.category), backgroundColor: getCategoryBg(rp.category) }}
+                        >
+                          {rp.category}
+                        </span>
+                        <h3>{rp.title}</h3>
+                        <span className="bp-related-card-meta">{formatDate(rp.date)} · {rp.readTime}</span>
+                      </div>
                     </Link>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Internal linking CTA */}
-            <section className="blogpost-internal-links" style={{
-              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-              borderRadius: '16px',
-              padding: '2rem',
-              margin: '2.5rem 0',
-              textAlign: 'center'
-            }}>
-              <h3 style={{ color: '#1e3a5f', marginBottom: '0.75rem', fontSize: '1.25rem' }}>
-                ¿Necesitas ayuda con tu tesis?
-              </h3>
-              <p style={{ color: '#475569', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                En Tesipedia te hacemos tu tesis 100% original. +3,000 estudiantes titulados en México.
-              </p>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Link to="/cotizar" style={{
-                  background: '#2563eb', color: '#fff', padding: '0.6rem 1.5rem',
-                  borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem'
-                }}>Cotiza Gratis</Link>
-                <Link to="/preguntas-frecuentes" style={{
-                  background: '#fff', color: '#2563eb', padding: '0.6rem 1.5rem',
-                  borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
-                  border: '2px solid #2563eb'
-                }}>Preguntas Frecuentes</Link>
-                <Link to="/sobre-nosotros" style={{
-                  background: '#fff', color: '#475569', padding: '0.6rem 1.5rem',
-                  borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
-                  border: '2px solid #e2e8f0'
-                }}>Sobre Nosotros</Link>
-              </div>
-            </section>
-
-            {/* Back to blog */}
-            <div className="blogpost-back">
-              <Link to="/blog" className="blogpost-back-link">← Volver al blog</Link>
+            {/* ── Back ── */}
+            <div className="bp-back">
+              <Link to="/blog" className="bp-back-btn"><FaArrowLeft /> Volver al blog</Link>
             </div>
           </div>
         </Container>
