@@ -76,6 +76,24 @@ const routesMeta = [
     }
   },
   {
+    path: '/como-funciona',
+    title: 'Cómo Funciona Tesipedia — Proceso Paso a Paso para Tu Tesis',
+    description: 'Conoce cómo funciona Tesipedia. 4 pasos simples: cotiza, elige tu plan, recibe avances y obtén tu tesis terminada. Proceso transparente y seguro.',
+    keywords: 'cómo funciona Tesipedia, proceso tesis, pasos para hacer tesis, servicio de tesis paso a paso'
+  },
+  {
+    path: '/servicios',
+    title: 'Servicios de Tesis — Tesipedia | Desarrollo, Asesoría y Corrección',
+    description: 'Servicios profesionales de tesis: desarrollo completo, asesoría personalizada, corrección de estilo, revisión antiplagio Turnitin y detección anti-IA.',
+    keywords: 'servicios tesis, desarrollo de tesis, asesoría tesis, corrección tesis, revisión antiplagio, Tesipedia servicios'
+  },
+  {
+    path: '/precios',
+    title: 'Precios de Tesis en México 2026 — Tesipedia | Cotiza Gratis',
+    description: 'Precios transparentes para tu tesis. Desde $9,900 MXN. Planes de pago flexibles: único, 50-50, quincenas y MSI. Cotización gratuita por WhatsApp.',
+    keywords: 'precios tesis México, cuánto cuesta una tesis, cotizar tesis, precio tesis licenciatura, precio tesis maestría, Tesipedia precios'
+  },
+  {
     path: '/blog',
     title: 'Blog — Tesipedia | Guías, Tips y Recursos para Tu Tesis',
     description: 'Artículos y guías para hacer tu tesis: estructura, métodos de investigación, defensa, precios y más. Recursos gratuitos de Tesipedia.',
@@ -554,8 +572,13 @@ async function prerender() {
       // Generate the SEO-enhanced HTML
       let html = baseHtml;
 
-      // Replace the <title> tag (Vite default)
+      // Remove any existing <title> tag if present (safety cleanup)
       html = html.replace(/<title>[^<]*<\/title>/, '');
+      // Remove any existing canonical, description, or OG tags from base HTML
+      html = html.replace(/<link rel="canonical"[^>]*>/g, '');
+      html = html.replace(/<meta name="description"[^>]*>/g, '');
+      html = html.replace(/<meta property="og:(title|description|url|type|image)"[^>]*>/g, '');
+      html = html.replace(/<meta name="twitter:(title|description|image|card|url)"[^>]*>/g, '');
 
       // Inject meta tags before </head>
       const metaTags = generateMetaTags(route);

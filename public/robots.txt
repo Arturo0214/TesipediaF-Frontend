@@ -6,6 +6,9 @@ Allow: /blog/
 Allow: /sobre-nosotros
 Allow: /contacto
 Allow: /preguntas-frecuentes
+Allow: /como-funciona
+Allow: /servicios
+Allow: /precios
 Allow: /register
 Allow: /politica-de-privacidad
 

@@ -864,7 +864,7 @@ function ManagePayments() {
             )}
             {/* ===== VENDEDORES VIEW ===== */}
             {view === 'vendedores' && (
-                <VentasPorVendedor />
+                <VentasPorVendedor payments={payments} onRefresh={fetchDashboard} />
             )}
 
             {/* ===== DELETE CONFIRMATION MODAL ===== */}

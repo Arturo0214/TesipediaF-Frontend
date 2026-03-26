@@ -1,44 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import {
   FaChartBar, FaUsers, FaDollarSign, FaSync, FaArrowUp, FaArrowDown
 } from 'react-icons/fa';
-import axiosWithAuth from '../../../utils/axioswithAuth';
-import { toast } from 'react-hot-toast';
 import './VentasPorVendedor.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
-const VentasPorVendedor = () => {
-  const [vendedorData, setVendedorData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+/**
+ * VentasPorVendedor — receives `payments` array from parent (ManagePayments dashboard data)
+ * and computes vendedor stats locally, avoiding a separate API call.
+ */
+const VentasPorVendedor = ({ payments = [], onRefresh }) => {
   const [period, setPeriod] = useState('all');
   const [chartType, setChartType] = useState('bar');
 
   // Color palette for charts
   const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
-
-  useEffect(() => {
-    fetchSalesData();
-  }, [period]);
-
-  const fetchSalesData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axiosWithAuth.get('/payments/vendedor-sales', {
-        params: { period }
-      });
-      setVendedorData(response.data);
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Error al cargar datos de vendedores';
-      setError(errorMsg);
-      toast.error(errorMsg);
-    }
-    setLoading(false);
-  };
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-MX', {
@@ -49,41 +28,114 @@ const VentasPorVendedor = () => {
     }).format(value);
   };
 
-  const handleRefresh = () => {
-    fetchSalesData();
-    toast.success('Datos actualizados');
+  // Filter payments by period
+  const filteredPayments = useMemo(() => {
+    if (period === 'all') return payments;
+
+    const now = new Date();
+    let cutoff;
+
+    switch (period) {
+      case 'thisMonth':
+        cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'last30days':
+        cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'last90days':
+        cutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return payments;
+    }
+
+    return payments.filter(p => {
+      const pDate = new Date(p.paymentDate || p.createdAt || p.date);
+      return pDate >= cutoff;
+    });
+  }, [payments, period]);
+
+  // Capitalize vendedor names
+  const capitalizeName = (name) => {
+    if (!name) return name;
+    return name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
   };
 
-  if (loading) {
-    return (
-      <div className="vv-loading">
-        <div className="vv-spinner"></div>
-        <p>Cargando datos de vendedores...</p>
-      </div>
-    );
-  }
+  // Compute vendedor stats from filtered payments
+  const { vendedorStats, summary } = useMemo(() => {
+    const statsMap = {};
 
-  if (error) {
-    return (
-      <div className="vv-error">
-        <p>{error}</p>
-        <button onClick={handleRefresh} className="vv-retry-btn">
-          Reintentar
-        </button>
-      </div>
-    );
-  }
+    for (const p of filteredPayments) {
+      const rawVendedor = (p.vendedor || p.atendidoPor || '').trim();
+      if (!rawVendedor) continue;
+      const key = rawVendedor.toLowerCase();
+      const vendedor = capitalizeName(rawVendedor);
 
-  const chartData = vendedorData?.vendedors || [];
-  const summary = vendedorData?.summary || {};
+      if (!statsMap[key]) {
+        statsMap[key] = {
+          vendedor,
+          totalSales: 0,
+          count: 0,
+          completedCount: 0,
+          completedAmount: 0,
+        };
+      }
+
+      statsMap[key].totalSales += (p.amount || 0);
+      statsMap[key].count += 1;
+
+      const status = (p.status || '').toLowerCase();
+      if (status === 'completed' || status === 'paid') {
+        statsMap[key].completedCount += 1;
+        statsMap[key].completedAmount += (p.amount || 0);
+      }
+    }
+
+    const vendedorStats = Object.values(statsMap)
+      .map(stat => ({
+        ...stat,
+        totalSales: Math.round(stat.totalSales),
+        averageSale: stat.count > 0 ? Math.round(stat.totalSales / stat.count) : 0,
+        conversionRate: stat.count > 0 ? ((stat.completedCount / stat.count) * 100).toFixed(1) : '0',
+      }))
+      .sort((a, b) => b.totalSales - a.totalSales);
+
+    const grandTotal = vendedorStats.reduce((sum, v) => sum + v.totalSales, 0);
+    const totalTransactions = vendedorStats.reduce((sum, v) => sum + v.count, 0);
+
+    return {
+      vendedorStats,
+      summary: {
+        totalSales: grandTotal,
+        totalTransactions,
+        totalVendedors: vendedorStats.length,
+      },
+    };
+  }, [filteredPayments]);
 
   // Prepare data for charts
-  const chartDataFormatted = chartData.map(v => ({
+  const chartDataFormatted = vendedorStats.map(v => ({
     name: v.vendedor,
     ventas: v.totalSales,
     transacciones: v.count,
     promedio: v.averageSale,
   }));
+
+  if (!payments || payments.length === 0) {
+    return (
+      <div className="vv-container">
+        <div className="vv-header">
+          <div>
+            <h1 className="vv-title"><FaChartBar /> Ventas por Vendedor</h1>
+            <p className="vv-subtitle">Análisis de desempeño de vendedores</p>
+          </div>
+        </div>
+        <p className="vv-no-data" style={{ textAlign: 'center', padding: '2rem' }}>
+          No hay datos de pagos disponibles
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="vv-container">
@@ -95,10 +147,12 @@ const VentasPorVendedor = () => {
           </h1>
           <p className="vv-subtitle">Análisis de desempeño de vendedores</p>
         </div>
-        <button onClick={handleRefresh} className="vv-refresh-btn" title="Actualizar datos">
-          <FaSync className={loading ? 'spinning' : ''} />
-          <span>Actualizar</span>
-        </button>
+        {onRefresh && (
+          <button onClick={onRefresh} className="vv-refresh-btn" title="Actualizar datos">
+            <FaSync />
+            <span>Actualizar</span>
+          </button>
+        )}
       </div>
 
       {/* Period Filter */}
@@ -199,8 +253,8 @@ const VentasPorVendedor = () => {
                     {
                       label: 'Ventas (MXN)',
                       data: chartDataFormatted.map(d => d.ventas),
-                      backgroundColor: '#3b82f6',
-                      borderColor: '#1d4ed8',
+                      backgroundColor: COLORS.slice(0, chartDataFormatted.length),
+                      borderColor: COLORS.slice(0, chartDataFormatted.length).map(c => c),
                       borderWidth: 1,
                       borderRadius: 8,
                     }
@@ -295,7 +349,7 @@ const VentasPorVendedor = () => {
       {/* Table Section */}
       <div className="vv-table-card">
         <h3>Detalle por Vendedor</h3>
-        {chartData.length > 0 ? (
+        {vendedorStats.length > 0 ? (
           <div className="vv-table-wrapper">
             <table className="vv-table">
               <thead>
@@ -309,7 +363,7 @@ const VentasPorVendedor = () => {
                 </tr>
               </thead>
               <tbody>
-                {chartData.map((vendedor, idx) => (
+                {vendedorStats.map((vendedor, idx) => (
                   <tr key={idx} className="vv-table-row">
                     <td className="vv-table-cell-name">
                       <span className="vv-color-dot" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
