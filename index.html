@@ -28,9 +28,27 @@
   <link rel="alternate" hreflang="es" href="https://tesipedia.com/" />
   <link rel="alternate" hreflang="x-default" href="https://tesipedia.com/" />
 
-  <!-- OG, Twitter, title, description y canonical son inyectados dinámicamente por react-helmet en cada página -->
+  <!-- OG Meta Tags (respaldo estático para crawlers que no ejecutan JS, como Instagram) -->
   <meta property="og:locale" content="es_MX" />
   <meta property="og:site_name" content="Tesipedia" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://tesipedia.com/" />
+  <meta property="og:title" content="Tesipedia — Hacemos Tu Tesis en México | Licenciatura, Maestría y Doctorado" />
+  <meta property="og:description" content="¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. 100% original, libre de plagio e IA. +3,000 titulados. Cotiza gratis." />
+  <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+  <meta property="og:image:width" content="1024" />
+  <meta property="og:image:height" content="1024" />
+  <meta property="og:image:alt" content="Tesipedia - Asesorías Profesionales para Tesis" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Tesipedia — Hacemos Tu Tesis en México" />
+  <meta name="twitter:description" content="¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. 100% original, libre de plagio e IA." />
+  <meta name="twitter:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+
+  <!-- Título y descripción estáticos de respaldo (react-helmet los sobreescribirá dinámicamente por página) -->
+  <title>Tesipedia — Hacemos Tu Tesis en México | Licenciatura, Maestría y Doctorado</title>
+  <meta name="description" content="¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. 100% original, libre de plagio e IA. +3,000 titulados. Cotiza gratis." />
 
   <!-- Preconnect para velocidad -->
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
