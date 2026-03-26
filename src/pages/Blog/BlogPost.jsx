@@ -27,7 +27,8 @@ const BlogPostImage = ({ src, alt, index = 0, className = '' }) => {
         style={{ background: gradientFallbacks[index % gradientFallbacks.length] }}
         aria-label={alt}
       >
-        <span className="bp-img-fallback-icon">📄</span>
+        <span className="bp-img-fallback-icon">📚</span>
+        <span className="bp-img-fallback-text">Tesipedia Blog</span>
       </div>
     );
   }
