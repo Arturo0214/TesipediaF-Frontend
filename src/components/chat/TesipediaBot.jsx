@@ -207,7 +207,9 @@ const sendChatMessage = (publicId, text, senderName) => {
   formData.append('text', text);
   formData.append('name', senderName || 'Visitante Web');
 
-  fetch(`${API_URL}/api/chat/send`, {
+  // API_URL ya incluye /api/ — no duplicar el prefijo
+  const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+  fetch(`${baseUrl}/chat/send`, {
     method: 'POST',
     body: formData,
   }).catch(() => {
@@ -315,6 +317,17 @@ const TesipediaBot = ({ isOpen, onClose }) => {
       sendChatMessage(publicIdRef.current, option.label, userData.name);
     }
 
+    // Guardar la selección en userData para el resumen del lead
+    const stepToField = {
+      nivel: 'nivel',
+      tipo_trabajo: 'tipo_trabajo',
+      avance: 'avance',
+      urgencia: 'urgencia',
+    };
+    if (currentStep && stepToField[currentStep]) {
+      setUserData(prev => ({ ...prev, [stepToField[currentStep]]: option.label }));
+    }
+
     if (option.action === 'whatsapp') {
       const text = encodeURIComponent(
         `Hola, soy ${userData.name || 'un interesado'}. Me gustaría información sobre el servicio de tesis.`
@@ -326,7 +339,7 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     if (option.next) {
       setTimeout(() => goToStep(option.next), 300);
     }
-  }, [userData, goToStep]);
+  }, [userData, currentStep, goToStep]);
 
   // Handle text input submit
   const handleSubmit = useCallback((e) => {
@@ -334,9 +347,8 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     if (!inputValue.trim()) return;
 
     const step = STEPS[currentStep];
-    if (!step?.input) return;
-
     const value = inputValue.trim();
+
     setChatMessages((prev) => [
       ...prev,
       { id: Date.now(), text: value, sender: 'user' },
@@ -346,6 +358,23 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     // Send to backend chat system
     if (publicIdRef.current) {
       sendChatMessage(publicIdRef.current, value, userData.name);
+    }
+
+    // Si el paso actual NO tiene input (es un paso con botones),
+    // el mensaje se envía al backend pero no avanza el flujo automáticamente
+    if (!step?.input) {
+      // Mensaje libre durante paso con botones — respuesta genérica
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            text: 'Gracias por tu mensaje. Un asesor lo revisará. Mientras tanto, puedes seleccionar una opción arriba o escribir otra consulta.',
+            sender: 'bot',
+          },
+        ]);
+      }, TYPING_DELAY);
+      return;
     }
 
     const field = step.input;
@@ -370,23 +399,21 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     }
   }, [inputValue, currentStep, userData, goToStep]);
 
-  // Send lead data to backend (fire-and-forget)
+  // Send lead data to backend as a chat message summary (fire-and-forget)
   const sendLeadToBackend = (data) => {
-    try {
-      fetch(`${API_URL}/api/leads/chatbot`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          source: 'chatbot_web',
-          answers: data,
-        }),
-      }).catch(() => {});
-    } catch {
-      // Silently fail
-    }
+    if (!publicIdRef.current) return;
+    // Enviar un resumen del lead como mensaje de chat para que aparezca en admin/mensajes
+    const summary = [
+      `--- DATOS DEL LEAD ---`,
+      `Nombre: ${data.name || 'N/A'}`,
+      `Email: ${data.email || 'N/A'}`,
+      `WhatsApp: ${data.phone || 'N/A'}`,
+      `Nivel: ${data.nivel || 'N/A'}`,
+      `Tipo: ${data.tipo_trabajo || 'N/A'}`,
+      `Avance: ${data.avance || 'N/A'}`,
+      `Urgencia: ${data.urgencia || 'N/A'}`,
+    ].join('\n');
+    sendChatMessage(publicIdRef.current, summary, data.name);
   };
 
   // Reset chat
@@ -408,7 +435,6 @@ const TesipediaBot = ({ isOpen, onClose }) => {
 
   const step = currentStep ? STEPS[currentStep] : null;
   const showOptions = step?.options && !isTyping;
-  const showInput = step?.input && !isTyping;
 
   return (
     <div className={`tesipedia-bot ${isOpen ? 'open' : ''}`} role="dialog" aria-label="Chat con asesora virtual Sofia">
@@ -475,32 +501,26 @@ const TesipediaBot = ({ isOpen, onClose }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
-      {showInput ? (
-        <form onSubmit={handleSubmit} className="bot-input-form">
-          <input
-            ref={inputRef}
-            type={step.input === 'email' ? 'email' : step.input === 'phone' ? 'tel' : 'text'}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={
-              step.input === 'name' ? 'Tu nombre...'
-                : step.input === 'email' ? 'Tu correo electrónico...'
-                  : step.input === 'phone' ? 'Tu número de WhatsApp...'
-                    : 'Escribe tu mensaje...'
-            }
-            className="bot-input"
-            autoComplete={step.input === 'email' ? 'email' : step.input === 'phone' ? 'tel' : 'off'}
-          />
-          <button type="submit" className="bot-send-btn" disabled={!inputValue.trim()} aria-label="Enviar mensaje">
-            <FaPaperPlane />
-          </button>
-        </form>
-      ) : (
-        <div className="bot-input-form bot-input-disabled">
-          <span>Selecciona una opción arriba</span>
-        </div>
-      )}
+      {/* Input area — siempre visible para que el usuario pueda escribir libremente */}
+      <form onSubmit={handleSubmit} className="bot-input-form">
+        <input
+          ref={inputRef}
+          type={step?.input === 'email' ? 'email' : step?.input === 'phone' ? 'tel' : 'text'}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={
+            step?.input === 'name' ? 'Tu nombre...'
+              : step?.input === 'email' ? 'Tu correo electrónico...'
+                : step?.input === 'phone' ? 'Tu número de WhatsApp...'
+                  : 'Escribe tu mensaje...'
+          }
+          className="bot-input"
+          autoComplete={step?.input === 'email' ? 'email' : step?.input === 'phone' ? 'tel' : 'off'}
+        />
+        <button type="submit" className="bot-send-btn" disabled={!inputValue.trim()} aria-label="Enviar mensaje">
+          <FaPaperPlane />
+        </button>
+      </form>
     </div>
   );
 };
