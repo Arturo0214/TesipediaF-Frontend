@@ -175,7 +175,7 @@ function formatLabel(text) {
   );
 }
 
-const POLL_INTERVAL = 30000; // 30 segundos — optimizado para reducir egress de Supabase
+const POLL_INTERVAL = 12000; // 12 segundos — balance entre egress y tiempo real
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();
@@ -248,13 +248,15 @@ const AdminWhatsApp = () => {
       if (currentSelected) {
         const updated = data.find(l => l.wa_id === currentSelected.wa_id);
         if (updated) {
-          // getLeads NO trae historial_chat (optimización egress) → preservar historial del lead seleccionado.
+          // getLeads trae historial parcial (optimización egress) → preservar historial del lead seleccionado.
           const metaChanged = updated.estado_sofia !== currentSelected.estado_sofia
             || updated.modo_humano !== currentSelected.modo_humano
             || updated.precio !== currentSelected.precio
             || updated.nombre !== currentSelected.nombre
-            || updated.attended_by !== currentSelected.attended_by;
-          const hasNewMessages = updated.updated_at !== currentSelected.updated_at;
+            || updated.atendido_por !== currentSelected.atendido_por;
+          // Comparar updated_at Y ultimo_mensaje_preview para detectar nuevos mensajes
+          const hasNewMessages = updated.updated_at !== currentSelected.updated_at
+            || (updated.ultimo_mensaje_preview && updated.ultimo_mensaje_preview !== currentSelected.ultimo_mensaje_preview);
 
           if (hasNewMessages) {
             // Hay mensajes nuevos → traer historial completo de getLeadByWaId
@@ -630,6 +632,26 @@ const AdminWhatsApp = () => {
         try { await claimLead(selectedLead.wa_id, authUser?.name || authUser?.nombre || currentAdminKey); } catch (_) {}
       }
 
+      // Optimistic update: mostrar nota de voz inmediatamente
+      const adminName = authUser?.name || authUser?.nombre || 'Admin';
+      setSelectedLead(prev => {
+        if (!prev) return prev;
+        const currentHist = parseHistorial(prev.historial_chat);
+        const optimisticAudio = {
+          role: 'assistant',
+          content: `[HUMANO:${adminName}] (Nota de voz)`,
+          timestamp: new Date().toISOString(),
+          delivery_status: 'sending',
+        };
+        return { ...prev, historial_chat: JSON.stringify([...currentHist, optimisticAudio]), updated_at: new Date().toISOString() };
+      });
+
+      // Limpiar audio inmediatamente
+      setAudioBlob(null);
+      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+      setAudioPreviewUrl(null);
+      setRecordingTime(0);
+
       const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, '', audioFile);
       if (sendResult?.delivery_status === 'sent') {
         toast.success('Nota de voz enviada');
@@ -639,15 +661,13 @@ const AdminWhatsApp = () => {
         toast.success('Nota de voz enviada');
       }
 
-      // Limpiar audio
-      setAudioBlob(null);
-      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
-      setAudioPreviewUrl(null);
-      setRecordingTime(0);
-
-      // Refrescar
-      const fresh = await getLeadByWaId(selectedLead.wa_id);
-      if (fresh) setSelectedLead(fresh);
+      // Refrescar con datos reales
+      try {
+        const fresh = await getLeadByWaId(selectedLead.wa_id);
+        if (fresh) setSelectedLead(fresh);
+      } catch (refreshErr) {
+        console.warn('No se pudo refrescar después de audio:', refreshErr);
+      }
       try { const data = await getLeads(); setLeads(data); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar nota de voz: ' + err.message);
@@ -693,8 +713,33 @@ const AdminWhatsApp = () => {
         }
       }
 
+      // ── ACTUALIZACIÓN OPTIMISTA: mostrar el mensaje inmediatamente en el UI ──
+      const adminName = authUser?.name || authUser?.nombre || 'Admin';
+      const msgText = message.trim();
+      const fileToSend = selectedFile; // Guardar referencia antes de limpiar
+      const optimisticMsg = {
+        role: 'assistant',
+        content: msgText ? `[HUMANO:${adminName}] ${msgText}` : `[HUMANO:${adminName}] (Archivo)`,
+        timestamp: new Date().toISOString(),
+        delivery_status: 'sending',
+      };
+      // Agregar el mensaje optimista al historial local ANTES de enviar
+      setSelectedLead(prev => {
+        if (!prev) return prev;
+        const currentHist = parseHistorial(prev.historial_chat);
+        const updatedHist = [...currentHist, optimisticMsg];
+        return { ...prev, historial_chat: JSON.stringify(updatedHist), updated_at: new Date().toISOString() };
+      });
+
+      // Limpiar inputs inmediatamente para UX fluida
+      setMessage('');
+      if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+      setFilePreviewUrl(null);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+
       // Enviar por WhatsApp + guardar en historial (todo vía Backend)
-      const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, message.trim(), selectedFile);
+      const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, msgText, fileToSend);
       if (sendResult?.delivery_status === 'failed') {
         toast.error('El mensaje NO se pudo enviar por WhatsApp');
       } else if (sendResult?.pendingMessage) {
@@ -705,20 +750,19 @@ const AdminWhatsApp = () => {
         });
         setWindowExpired(false);
       } else if (sendResult?.delivery_status === 'sent') {
-        toast.success(selectedFile ? 'Archivo enviado por WhatsApp' : 'Mensaje enviado por WhatsApp');
+        toast.success(hadFile ? 'Archivo enviado por WhatsApp' : 'Mensaje enviado por WhatsApp');
       } else {
-        toast.success(selectedFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
+        toast.success(hadFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
       }
-      setMessage('');
-      if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
-      setFilePreviewUrl(null);
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
 
-      // 3. Refrescar — traer historial completo, luego actualizar sidebar
-      const fresh = await getLeadByWaId(selectedLead.wa_id);
-      if (fresh) setSelectedLead(fresh);
-      // Actualizar sidebar sin tocar selectedLead (fetchLeads ya no sobrescribe historial)
+      // Refrescar con datos reales del servidor (reemplaza el optimistic)
+      try {
+        const fresh = await getLeadByWaId(selectedLead.wa_id);
+        if (fresh) setSelectedLead(fresh);
+      } catch (refreshErr) {
+        console.warn('No se pudo refrescar después de enviar, mensaje optimista se mantiene:', refreshErr);
+      }
+      // Actualizar sidebar sin tocar selectedLead
       try { const data = await getLeads(); setLeads(data); } catch (_) {}
       inputRef.current?.focus();
     } catch (err) {
