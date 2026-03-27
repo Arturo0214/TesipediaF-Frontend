@@ -45,10 +45,12 @@ export async function sendWhatsAppMessage(waId, mensaje, file = null) {
   if (file) {
     payload = new FormData();
     payload.append('wa_id', waId);
-    if (mensaje) payload.append('mensaje', mensaje);
+    // Siempre enviar mensaje (puede ser vacío para notas de voz)
+    payload.append('mensaje', mensaje || '');
     payload.append('file', file);
-    // Dejar que axios auto-detecte Content-Type: multipart/form-data con boundary
-    config = { headers: { 'Content-Type': undefined } };
+    // NO establecer Content-Type manualmente — axios auto-detecta multipart/form-data con boundary
+    // Si se pone 'multipart/form-data' sin boundary, multer no puede parsear el archivo
+    config = {};
   } else {
     payload = { wa_id: waId, mensaje };
   }
@@ -139,6 +141,18 @@ export async function createLeadNote(waId, content) {
 
 export async function deleteLeadNote(noteId) {
   const { data } = await axiosWithAuth.delete(`${NOTES_BASE}/${noteId}`);
+  return data;
+}
+
+// ─── Bloqueo de contactos ─────────────────────────────────────
+
+/**
+ * Bloquear o desbloquear un contacto
+ * @param {string} waId - WhatsApp ID del lead
+ * @param {boolean} blocked - true para bloquear, false para desbloquear
+ */
+export async function toggleBlockLead(waId, blocked) {
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/block`, { blocked });
   return data;
 }
 

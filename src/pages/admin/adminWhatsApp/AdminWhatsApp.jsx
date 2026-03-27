@@ -31,6 +31,10 @@ import {
   FaLock,
   FaStickyNote,
   FaTrash,
+  FaMicrophone,
+  FaStop,
+  FaBan,
+  FaUnlock,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -47,6 +51,7 @@ import {
   getLeadNotes,
   createLeadNote,
   deleteLeadNote,
+  toggleBlockLead,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -203,6 +208,15 @@ const AdminWhatsApp = () => {
   const [newNote, setNewNote] = useState('');
   const [notesLoading, setNotesLoading] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  // Audio recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
+
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
@@ -463,6 +477,207 @@ const AdminWhatsApp = () => {
   };
 
   // Enviar mensaje
+  // ═══ AUDIO RECORDING ═══
+  const startRecording = async () => {
+    try {
+      // Verificar contexto seguro (HTTPS o localhost)
+      if (!window.isSecureContext) {
+        toast.error('La grabación de audio requiere HTTPS o localhost.');
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error('Tu navegador no soporta grabación de audio.');
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100,
+        }
+      });
+
+      // Verificar que el stream tiene tracks activos
+      const audioTracks = stream.getAudioTracks();
+      if (!audioTracks.length || audioTracks[0].readyState !== 'live') {
+        toast.error('No se detectó un micrófono activo.');
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+      console.log('🎤 Micrófono activo:', audioTracks[0].label);
+
+      // Seleccionar MIME type: preferir ogg/opus, luego webm/opus, luego webm, luego sin especificar
+      let mimeType = '';
+      const candidates = [
+        'audio/ogg; codecs=opus',
+        'audio/webm; codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+      ];
+      for (const candidate of candidates) {
+        if (MediaRecorder.isTypeSupported(candidate)) {
+          mimeType = candidate;
+          break;
+        }
+      }
+      console.log('🎤 MIME type seleccionado:', mimeType || '(default del navegador)');
+
+      const recorderOptions = mimeType ? { mimeType } : {};
+      const recorder = new MediaRecorder(stream, recorderOptions);
+      const finalMime = recorder.mimeType || mimeType || 'audio/webm';
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        if (audioChunksRef.current.length === 0) {
+          console.warn('🎤 No se capturaron datos de audio');
+          toast.error('No se capturó audio. Verifica que tu micrófono funcione correctamente.');
+          setIsRecording(false);
+          clearInterval(recordingTimerRef.current);
+          return;
+        }
+        const blob = new Blob(audioChunksRef.current, { type: finalMime });
+        console.log('🎤 Audio grabado:', blob.size, 'bytes,', audioChunksRef.current.length, 'chunks, tipo:', finalMime);
+        if (blob.size < 100) {
+          toast.error('La grabación está vacía. Verifica los permisos del micrófono.');
+          setIsRecording(false);
+          clearInterval(recordingTimerRef.current);
+          return;
+        }
+        setAudioBlob(blob);
+        setAudioPreviewUrl(URL.createObjectURL(blob));
+        clearInterval(recordingTimerRef.current);
+      };
+
+      recorder.onerror = (event) => {
+        console.error('🎤 MediaRecorder error:', event.error);
+        toast.error('Error durante la grabación: ' + (event.error?.message || 'desconocido'));
+        stream.getTracks().forEach(t => t.stop());
+        setIsRecording(false);
+        clearInterval(recordingTimerRef.current);
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start(500); // Collect data every 500ms
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+      console.log('🎤 Grabación iniciada, estado:', recorder.state);
+    } catch (err) {
+      console.error('🎤 Microphone error:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        toast.error('Permiso de micrófono denegado. Haz clic en el ícono de candado en la barra de dirección y permite el micrófono.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        toast.error('No se encontró micrófono. Conecta uno e intenta de nuevo.');
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        toast.error('El micrófono está en uso por otra aplicación. Ciérrala e intenta de nuevo.');
+      } else {
+        toast.error('No se pudo acceder al micrófono: ' + err.message);
+      }
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      // Pedir los datos restantes antes de detener
+      try { mediaRecorderRef.current.requestData(); } catch (_) {}
+      mediaRecorderRef.current.stop();
+      console.log('🎤 Grabación detenida, chunks acumulados:', audioChunksRef.current.length);
+    }
+    setIsRecording(false);
+    clearInterval(recordingTimerRef.current);
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    setAudioBlob(null);
+    if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+    setAudioPreviewUrl(null);
+    setRecordingTime(0);
+    clearInterval(recordingTimerRef.current);
+  };
+
+  const sendAudioNote = async () => {
+    console.log('🎤 sendAudioNote llamado. audioBlob:', !!audioBlob, 'selectedLead:', !!selectedLead, 'sending:', sending);
+    if (!audioBlob || !selectedLead || sending) {
+      console.warn('🎤 sendAudioNote abortado:', !audioBlob ? 'sin audioBlob' : !selectedLead ? 'sin selectedLead' : 'ya enviando');
+      return;
+    }
+    setSending(true);
+    try {
+      const blobType = audioBlob.type || 'audio/webm';
+      const ext = blobType.includes('ogg') ? 'ogg' : blobType.includes('mp4') ? 'mp4' : 'webm';
+      const audioFile = new File([audioBlob], `nota_de_voz_${Date.now()}.${ext}`, { type: blobType });
+      console.log('🎤 Enviando audio:', audioFile.name, audioFile.size, 'bytes, tipo:', blobType);
+
+      // Auto-reclamar lead si no tiene dueño
+      const currentOwner = getLeadAttendedBy(selectedLead);
+      if (!currentOwner && currentAdminKey) {
+        try { await claimLead(selectedLead.wa_id, authUser?.name || authUser?.nombre || currentAdminKey); } catch (_) {}
+      }
+
+      const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, '', audioFile);
+      if (sendResult?.delivery_status === 'sent') {
+        toast.success('Nota de voz enviada');
+      } else if (sendResult?.pendingMessage) {
+        toast('Plantilla enviada. Tu nota de voz se enviará cuando el cliente responda.', { icon: '⏳', duration: 6000 });
+      } else {
+        toast.success('Nota de voz enviada');
+      }
+
+      // Limpiar audio
+      setAudioBlob(null);
+      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+      setAudioPreviewUrl(null);
+      setRecordingTime(0);
+
+      // Refrescar
+      const fresh = await getLeadByWaId(selectedLead.wa_id);
+      if (fresh) setSelectedLead(fresh);
+      try { const data = await getLeads(); setLeads(data); } catch (_) {}
+    } catch (err) {
+      toast.error('Error al enviar nota de voz: ' + err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const formatRecordingTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  };
+
+  // ═══ BLOCK / UNBLOCK CONTACT ═══
+  const handleBlockToggle = async () => {
+    if (!selectedLead) return;
+    const isBlocked = !!selectedLead.bloqueado;
+    const action = isBlocked ? 'desbloquear' : 'bloquear';
+    if (!window.confirm(`¿Estás seguro de ${action} a ${selectedLead.nombre || selectedLead.wa_id}?`)) return;
+    try {
+      await toggleBlockLead(selectedLead.wa_id, !isBlocked);
+      setSelectedLead(prev => ({ ...prev, bloqueado: !isBlocked }));
+      toast.success(isBlocked ? 'Contacto desbloqueado' : 'Contacto bloqueado');
+      fetchLeads(true);
+    } catch (err) {
+      toast.error(`Error al ${action}: ` + err.message);
+    }
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if ((!message.trim() && !selectedFile) || !selectedLead || sending) return;
@@ -1077,6 +1292,10 @@ const AdminWhatsApp = () => {
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
                     <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" loading="lazy" />
                   </a>
+                ) : msg.mimetype?.startsWith('audio/') || msg.mediaUrl.match(/\.(ogg|mp3|wav|webm|aac|opus|m4a)$/i) ? (
+                  <div className="wa-media-audio">
+                    <audio controls src={msg.mediaUrl} preload="metadata" style={{ width: '100%', maxWidth: '280px' }} />
+                  </div>
                 ) : (
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
                     <FaFile className="me-2" /> {msg.filename || 'Ver documento'}
@@ -1353,7 +1572,7 @@ const AdminWhatsApp = () => {
                 return (
                   <div
                     key={lead.wa_id}
-                    className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''}`}
+                    className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
                     style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
                     onClick={() => handleSelectLead(lead)}
                   >
@@ -1385,6 +1604,11 @@ const AdminWhatsApp = () => {
                             <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
                             {attendedInfo.label}
                           </span>
+                        )}
+                        {lead.bloqueado && (
+                          <Badge bg="danger" className="wa-blocked-badge">
+                            <FaBan className="me-1" />Bloqueado
+                          </Badge>
                         )}
                         {/* Indicador de cotización pendiente de envío */}
                         {lead.estado_sofia === 'cotizacion_lista' && (
@@ -1512,6 +1736,15 @@ const AdminWhatsApp = () => {
                   >
                     <FaStickyNote className="me-1" />
                     Notas {notes.length > 0 && `(${notes.length})`}
+                  </Button>
+                  <Button
+                    variant={selectedLead.bloqueado ? 'danger' : 'outline-danger'}
+                    size="sm"
+                    className="wa-block-toggle-btn"
+                    onClick={handleBlockToggle}
+                    title={selectedLead.bloqueado ? 'Desbloquear contacto' : 'Bloquear contacto'}
+                  >
+                    {selectedLead.bloqueado ? <><FaUnlock className="me-1" /> Desbloquear</> : <><FaBan className="me-1" /> Bloquear</>}
                   </Button>
                 </div>
               </div>
@@ -1709,7 +1942,56 @@ const AdminWhatsApp = () => {
                 </div>
               )}
 
-              {/* Input de mensaje */}
+              {/* Banner de contacto bloqueado */}
+              {selectedLead.bloqueado && (
+                <div className="wa-blocked-banner">
+                  <FaBan className="me-2" />
+                  Este contacto está bloqueado. No puedes enviar ni recibir mensajes.
+                  <Button variant="outline-light" size="sm" className="ms-3" onClick={handleBlockToggle}>
+                    <FaUnlock className="me-1" /> Desbloquear
+                  </Button>
+                </div>
+              )}
+
+              {/* Audio recording UI */}
+              {isRecording && (
+                <div className="wa-recording-bar">
+                  <button className="wa-recording-cancel" onClick={cancelRecording} title="Cancelar">
+                    <FaTrash />
+                  </button>
+                  <div className="wa-recording-indicator">
+                    <span className="wa-recording-dot" />
+                    <span className="wa-recording-time">{formatRecordingTime(recordingTime)}</span>
+                  </div>
+                  <button className="wa-recording-stop" onClick={stopRecording} title="Detener y previsualizar">
+                    <FaStop />
+                  </button>
+                </div>
+              )}
+
+              {/* Audio preview (after recording, before sending) */}
+              {audioBlob && !isRecording && (
+                <div className="wa-audio-preview">
+                  <button type="button" className="wa-audio-preview-cancel" onClick={cancelRecording} title="Descartar">
+                    <FaTrash />
+                  </button>
+                  <div className="wa-audio-player-wrapper">
+                    <audio controls src={audioPreviewUrl} className="wa-audio-player" />
+                  </div>
+                  <button
+                    type="button"
+                    className="wa-audio-preview-send"
+                    onClick={() => sendAudioNote()}
+                    disabled={sending}
+                    title="Enviar nota de voz"
+                  >
+                    {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
+                  </button>
+                </div>
+              )}
+
+              {/* Input de mensaje (oculto si está grabando/previsualizando audio o contacto bloqueado) */}
+              {!isRecording && !audioBlob && !selectedLead.bloqueado && (
               <form className="wa-message-input-container" onSubmit={handleSend}>
                 <Button
                   variant="light"
@@ -1743,15 +2025,30 @@ const AdminWhatsApp = () => {
                   disabled={sending}
                   rows={1}
                 />
-                <Button
-                  type="submit"
-                  variant="success"
-                  className="wa-send-btn"
-                  disabled={(!message.trim() && !selectedFile) || sending}
-                >
-                  {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
-                </Button>
+                {/* Botón de micrófono / enviar */}
+                {message.trim() || selectedFile ? (
+                  <Button
+                    type="submit"
+                    variant="success"
+                    className="wa-send-btn"
+                    disabled={(!message.trim() && !selectedFile) || sending}
+                  >
+                    {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="success"
+                    className="wa-send-btn wa-mic-btn"
+                    onClick={startRecording}
+                    disabled={sending}
+                    title="Grabar nota de voz"
+                  >
+                    <FaMicrophone />
+                  </Button>
+                )}
               </form>
+              )}
             </>
           )}
         </div>

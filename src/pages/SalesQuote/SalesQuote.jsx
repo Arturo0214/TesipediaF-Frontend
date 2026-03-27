@@ -3,7 +3,6 @@ import { Container, Row, Col, Form, Button, Spinner, Collapse } from 'react-boot
 import { useDispatch } from 'react-redux';
 import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaCreditCard, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Swal from 'sweetalert2';
-import { generateSalesQuotePDF } from '../../utils/generateSalesQuotePDF';
 import { calculateSalesQuotePrice, saveGeneratedQuote } from '../../features/quotes/quoteSlice';
 import './SalesQuote.css';
 
@@ -406,17 +405,95 @@ const SalesQuote = () => {
                 });
             }
 
-            // 📄 2. Generar PDF (descarga local) y subir a Cloudinary para URL pública
-            const pdfResult = await generateSalesQuotePDF({
-                ...quoteData,
-                savedQuoteId  // Se pasa para que el PDF se vincule al registro en BD
-            });
+            // 📄 2. Generar PDF via backend (mismo endpoint que WhatsApp)
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const clientShort = (formData.clientName || 'Cliente').split(' ')[0];
+            const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
 
-            const pdfUrl = pdfResult?.pdfUrl || null;
-            if (pdfUrl) console.log('✅ URL pública del PDF (disponible en backend):', pdfUrl);
+            const pdfBody = {
+                clientName: quoteData.clientName,
+                nombre: quoteData.clientName,
+                tituloTrabajo: quoteData.tituloTrabajo || '',
+                tipoTrabajo: quoteData.tipoTrabajo,
+                tipoServicio: quoteData.tipoServicio,
+                extensionEstimada: String(quoteData.extensionEstimada || '0'),
+                carrera: quoteData.carrera || '',
+                area: quoteData.area || '',
+                descripcionServicio: quoteData.descripcionServicio,
+                tiempoEntrega: quoteData.tiempoEntrega,
+                fechaEntrega: quoteData.fechaEntrega,
+                fechaEntregaRaw: formData.fechaEntrega || '',
+                precioBase: Number(quoteData.precioBase) || 0,
+                recargoMonto: Number(quoteData.recargoMonto) || 0,
+                recargoPorcentaje: Number(quoteData.recargoPorcentaje) || 0,
+                precioConDescuento: Number(quoteData.precioConDescuento) || 0,
+                descuentoEfectivo: Number(quoteData.descuentoEfectivo) || 0,
+                descuentoMonto: Number(quoteData.descuentoMonto) || 0,
+                metodoPago: quoteData.metodoPago,
+                esquemaPago: quoteData.esquemaPago,
+                esquemaTipo: formData.esquemaTipo,
+                fechaPago1: formData.fechaPago1 || '',
+                fechaAvance: formData.fechaAvance || '',
+                fechasPagos: formData.fechasPagos || [],
+                serviciosIncluidos: quoteData.serviciosIncluidos,
+                beneficiosAdicionales: quoteData.beneficiosAdicionales,
+                pdfFilename,
+                quoteId: savedQuoteId || undefined,
+            };
 
-            // ✅ 3. Mostrar éxito — la URL pública está en la respuesta del backend
+            // Intentar hasta 2 veces (el servidor puede tardar en cold start)
+            let pdfData = null;
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    const pdfResp = await fetch(`${API_URL}/quotes/generate-quote-pdf`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
+                        },
+                        body: JSON.stringify(pdfBody),
+                    });
+                    pdfData = await pdfResp.json();
+                    if (pdfData.success) break;
+                    if (attempt < 2) {
+                        console.warn(`[QuotePDF] Intento ${attempt} falló (${pdfData.step || 'unknown'}), reintentando...`);
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                } catch (fetchErr) {
+                    if (attempt < 2) {
+                        console.warn(`[QuotePDF] Intento ${attempt} error de red, reintentando...`);
+                        await new Promise(r => setTimeout(r, 3000));
+                    } else {
+                        throw new Error('No se pudo conectar al servidor para generar el PDF. Verifica tu conexión.');
+                    }
+                }
+            }
+            if (!pdfData?.success) throw new Error(pdfData?.message || 'Error generando PDF después de 2 intentos');
+
+            const pdfUrl = pdfData.pdfUrl || pdfData.fallbackUrl;
+            if (pdfUrl) console.log('✅ URL pública del PDF:', pdfUrl);
+
+            // 📥 3. Descargar/abrir el PDF generado
             const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (pdfUrl) {
+                if (isMobile) {
+                    window.open(pdfUrl, '_blank');
+                } else {
+                    // Descargar el PDF usando un link temporal
+                    const link = document.createElement('a');
+                    link.href = pdfUrl;
+                    link.download = `${pdfFilename}.pdf`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+
+            // ✅ 4. Mostrar éxito
             Swal.fire({
                 title: '¡PDF Generado!',
                 text: isMobile

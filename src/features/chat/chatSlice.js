@@ -302,11 +302,21 @@ const chatSlice = createSlice({
         console.log('✅ Mensajes marcados como leídos en slice:', action.payload);
       })
       // getConversations
+      .addCase(getConversations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(getConversations.fulfilled, (state, action) => {
+        state.loading = false;
         const map = new Map();
         action.payload.forEach(conv => map.set(conv.conversationId, conv));
         state.conversations = Array.from(map.values());
         console.log('📊 Actualizando lista de conversaciones en el slice');
+      })
+      .addCase(getConversations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Error al cargar conversaciones';
+        console.error('❌ Error cargando conversaciones:', action.payload);
       })
       // updateConversationStatus
       .addCase(updateConversationStatus.fulfilled, (state, action) => {

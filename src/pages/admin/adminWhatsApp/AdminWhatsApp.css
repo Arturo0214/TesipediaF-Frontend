@@ -1738,3 +1738,222 @@
   word-break: break-word;
   line-height: 1.4;
 }
+
+/* ═══════════════════════════════════════════════════════
+   AUDIO RECORDING
+   ═══════════════════════════════════════════════════════ */
+
+.wa-recording-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fee2e2;
+  border-top: 1px solid #fecaca;
+  animation: wa-recording-fade-in 0.2s ease;
+}
+
+@keyframes wa-recording-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wa-recording-cancel {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.wa-recording-cancel:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.wa-recording-indicator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.wa-recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: wa-pulse 1s infinite;
+}
+
+@keyframes wa-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.wa-recording-time {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #dc2626;
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+}
+
+.wa-recording-stop {
+  background: #dc2626;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 50%;
+  transition: background 0.15s, transform 0.15s;
+}
+.wa-recording-stop:hover {
+  background: #b91c1c;
+  transform: scale(1.05);
+}
+
+/* Audio preview */
+.wa-audio-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #ecfdf5;
+  border-top: 1px solid #a7f3d0;
+}
+
+.wa-audio-player-wrapper {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+.wa-audio-player {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  display: block;
+}
+.wa-audio-player::-webkit-media-controls-panel {
+  background: #d1fae5;
+}
+
+.wa-audio-preview-cancel {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.wa-audio-preview-cancel:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.wa-audio-preview-send {
+  background: #25d366;
+  border: none;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 12px 15px;
+  border-radius: 50%;
+  transition: background 0.15s, transform 0.15s;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+  margin-left: 4px;
+}
+.wa-audio-preview-send:hover:not(:disabled) {
+  background: #1da851;
+  transform: scale(1.05);
+}
+.wa-audio-preview-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Microphone button style */
+.wa-mic-btn {
+  background: #25d366 !important;
+  border-color: #25d366 !important;
+}
+.wa-mic-btn:hover {
+  background: #1da851 !important;
+  border-color: #1da851 !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   BLOCKED CONTACTS
+   ═══════════════════════════════════════════════════════ */
+
+.wa-conversation-item.wa-blocked {
+  opacity: 0.55;
+  position: relative;
+}
+.wa-conversation-item.wa-blocked::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 8px,
+    rgba(220, 38, 38, 0.03) 8px,
+    rgba(220, 38, 38, 0.03) 16px
+  );
+  pointer-events: none;
+}
+
+.wa-blocked-badge {
+  font-size: 0.65rem !important;
+  padding: 2px 6px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.wa-blocked-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background: #dc2626;
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.wa-block-toggle-btn {
+  font-size: 0.72rem !important;
+  padding: 2px 8px !important;
+}
+
+/* Audio messages in chat history */
+.wa-chat-audio {
+  max-width: 260px;
+}
+.wa-chat-audio audio {
+  width: 100%;
+  height: 32px;
+  border-radius: 16px;
+}
+
+/* Filter for blocked in sidebar */
+.wa-conversation-item.wa-blocked .wa-conv-name {
+  text-decoration: line-through;
+  text-decoration-color: rgba(220, 38, 38, 0.4);
+}
