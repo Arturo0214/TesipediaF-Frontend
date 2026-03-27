@@ -930,7 +930,8 @@ const AdminWhatsApp = () => {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
       const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const clientShort = (f.clientName || 'Cliente').split(' ')[0];
+      // Limpiar emojis y caracteres especiales del nombre para el filename/publicId de Cloudinary
+      const clientShort = (f.clientName || 'Cliente').split(' ')[0].replace(/[^\w\s\-áéíóúñÁÉÍÓÚÑ]/gi, '').trim() || 'Cliente';
       const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
 
       const pdfBody = JSON.stringify({
@@ -1102,10 +1103,12 @@ const AdminWhatsApp = () => {
 
   // Obtener último mensaje de un lead (limpio, sin tags internos)
   const getLastMessage = (lead) => {
+    // Usar preview pre-calculado del backend si existe
+    if (lead.ultimo_mensaje_preview) return lead.ultimo_mensaje_preview;
+
     const hist = parseHistorial(lead.historial_chat);
     if (hist.length === 0) {
-      // Sin historial cargado (getLeads no trae historial para ahorrar egress)
-      // Mostrar estado como fallback
+      // Fallback: mostrar estado
       const estadoLabels = {
         bienvenida: 'Nuevo lead',
         calificando: 'En calificación',
@@ -1275,12 +1278,15 @@ const AdminWhatsApp = () => {
           try {
             // El JSON a veces viene incrustado con secuencias de escape
             let parsedStr = stateMatch[1];
-            if (typeof parsedStr === 'string' && parsedStr.includes('\\"')) {
-              parsedStr = parsedStr.replace(/\\"/g, '"');
+            // Ignorar valores no-JSON como "REDACTED", strings vacíos, etc.
+            if (parsedStr && parsedStr.trim().startsWith('{')) {
+              if (typeof parsedStr === 'string' && parsedStr.includes('\\"')) {
+                parsedStr = parsedStr.replace(/\\"/g, '"');
+              }
+              stateData = JSON.parse(parsedStr);
             }
-            stateData = JSON.parse(parsedStr);
-          } catch(e) { 
-            console.error('Error parseando STATE:', e);
+          } catch(e) {
+            // Silenciar — stateData queda null y no afecta rendering
           }
         }
         

@@ -406,11 +406,12 @@ const SalesQuote = () => {
             }
 
             // 📄 2. Generar PDF via backend (mismo endpoint que WhatsApp)
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const API_URL = import.meta.env.VITE_API_URL || 'https://tesipedia-backend-service-production.up.railway.app';
             const now = new Date();
             const dd = String(now.getDate()).padStart(2, '0');
             const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const clientShort = (formData.clientName || 'Cliente').split(' ')[0];
+            // Limpiar emojis y caracteres especiales del nombre para el filename/publicId de Cloudinary
+            const clientShort = (formData.clientName || 'Cliente').split(' ')[0].replace(/[^\w\s\-áéíóúñÁÉÍÓÚÑ]/gi, '').trim() || 'Cliente';
             const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
 
             const pdfBody = {
