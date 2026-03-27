@@ -175,7 +175,7 @@ function formatLabel(text) {
   );
 }
 
-const POLL_INTERVAL = 15000; // 15 segundos — optimizado para reducir egress de Supabase
+const POLL_INTERVAL = 30000; // 30 segundos — optimizado para reducir egress de Supabase
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();
@@ -248,7 +248,7 @@ const AdminWhatsApp = () => {
       if (currentSelected) {
         const updated = data.find(l => l.wa_id === currentSelected.wa_id);
         if (updated) {
-          // getLeads solo trae últimos 3 mensajes → NUNCA sobrescribir historial completo.
+          // getLeads NO trae historial_chat (optimización egress) → preservar historial del lead seleccionado.
           const metaChanged = updated.estado_sofia !== currentSelected.estado_sofia
             || updated.modo_humano !== currentSelected.modo_humano
             || updated.precio !== currentSelected.precio
@@ -1103,7 +1103,20 @@ const AdminWhatsApp = () => {
   // Obtener último mensaje de un lead (limpio, sin tags internos)
   const getLastMessage = (lead) => {
     const hist = parseHistorial(lead.historial_chat);
-    if (hist.length === 0) return 'Sin mensajes';
+    if (hist.length === 0) {
+      // Sin historial cargado (getLeads no trae historial para ahorrar egress)
+      // Mostrar estado como fallback
+      const estadoLabels = {
+        bienvenida: 'Nuevo lead',
+        calificando: 'En calificación',
+        cotizando: 'Cotizando',
+        cotizacion_enviada: 'Cotización enviada',
+        esperando_aprobacion: 'Esperando aprobación',
+        modo_humano: 'Modo humano',
+        descartado: 'Descartado',
+      };
+      return estadoLabels[lead.estado_sofia] || lead.estado_sofia || 'Sin mensajes';
+    }
     const last = hist[hist.length - 1];
     let content = last.content || '';
     // Limpiar tags [HUMANO:Name] y [HUMANO]
@@ -1168,6 +1181,9 @@ const AdminWhatsApp = () => {
   const getEstadoValidation = (lead) => {
     const estado = lead.estado_sofia;
     const hist = parseHistorial(lead.historial_chat);
+
+    // Si no hay historial cargado (listado sin historial_chat), no validar
+    if (hist.length === 0 && !lead.historial_chat) return [];
 
     // Verificar si hay archivos enviados en el historial (cotizaciones)
     const hasFileSent = hist.some(m => m.role === 'assistant' && m.mediaUrl);
