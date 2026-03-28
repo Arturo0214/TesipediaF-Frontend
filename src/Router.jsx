@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { useSelector } from 'react-redux';
 import MainLayout from './components/layout/MainLayout';
+const AdsLandingLayout = lazy(() => import('./components/layout/AdsLandingLayout'));
 
 // Lazy load all pages for code splitting
 const Home = lazy(() => import('./pages/Home/Home'));
@@ -79,11 +80,19 @@ const router = createBrowserRouter(
         { path: 'tesis-licenciatura', element: <LazyPage><TesisLicenciatura /></LazyPage> },
         { path: 'tesis-maestria', element: <LazyPage><TesisMaestria /></LazyPage> },
         { path: 'tesis-doctoral', element: <LazyPage><TesisDoctorado /></LazyPage> },
-        { path: 'tutoria-academica', element: <LazyPage><TutoriaAcademica /></LazyPage> },
         { path: 'cotizar', element: <LazyPage><CotizarLanding /></LazyPage> },
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },
         { path: '*', element: <LazyPage><NotFound /></LazyPage> },
+      ],
+    },
+
+    // Landing pages para Google Ads — layout limpio sin navbar/footer del sitio principal
+    {
+      path: '/',
+      element: <LazyPage><AdsLandingLayout /></LazyPage>,
+      children: [
+        { path: 'tutoria-academica', element: <LazyPage><TutoriaAcademica /></LazyPage> },
       ],
     },
 

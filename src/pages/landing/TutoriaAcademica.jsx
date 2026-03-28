@@ -15,8 +15,62 @@ const handleWAClick = (ctaName = 'tutoria_whatsapp') => {
   trackGoogleAdsConversion();
 };
 
+const LOGO_URL = 'https://res.cloudinary.com/dbowaer8j/image/upload/f_auto,q_auto,w_200/v1743713944/Tesipedia-logo_n1liaw.png';
+
 /* ─── Inline Styles ─── */
 const styles = {
+  /* MINI HEADER — limpio para Google Ads */
+  miniHeader: {
+    background: '#fff',
+    borderBottom: '1px solid #e2e8f0',
+    padding: '14px 24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+  },
+  miniHeaderLogo: {
+    height: '38px',
+    width: 'auto',
+  },
+  miniHeaderCta: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: '#25d366',
+    color: '#fff',
+    padding: '10px 20px',
+    borderRadius: '10px',
+    fontSize: '0.9rem',
+    fontWeight: 700,
+    textDecoration: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  /* MINI FOOTER — limpio para Google Ads */
+  miniFooter: {
+    background: '#1a1a2e',
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    padding: '32px 24px',
+    fontSize: '0.88rem',
+    lineHeight: 1.7,
+  },
+  miniFooterBrand: {
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: '1.05rem',
+    marginBottom: '8px',
+  },
+  miniFooterLink: {
+    color: 'rgba(255,255,255,0.6)',
+    textDecoration: 'none',
+    margin: '0 10px',
+    fontSize: '0.82rem',
+  },
   page: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     color: '#1a1a2e',
@@ -564,6 +618,17 @@ function TutoriaAcademica() {
   ];
 
   return (
+    <>
+      {/* ── MINI HEADER — limpio para Google Ads ── */}
+      <header style={styles.miniHeader}>
+        <a href="https://tesipedia.com/tutoria-academica">
+          <img src={LOGO_URL} alt="Tesipedia — Tutoría Académica" style={styles.miniHeaderLogo} width="150" height="38" />
+        </a>
+        <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick('tutoria_header_cta')} style={styles.miniHeaderCta}>
+          <FaWhatsapp /> Consulta Gratis
+        </a>
+      </header>
+
     <div style={styles.page}>
       <Helmet>
         <title>Tutoría Académica Profesional | Mentoría para tu Proyecto — Tesipedia</title>
@@ -766,6 +831,22 @@ function TutoriaAcademica() {
         </div>
       </section>
     </div>
+
+      {/* ── MINI FOOTER — limpio para Google Ads ── */}
+      <footer style={styles.miniFooter}>
+        <div style={styles.miniFooterBrand}>Tesipedia — Tutoría y Mentoría Académica</div>
+        <p style={{ margin: '8px 0 12px' }}>
+          Orientación académica personalizada con mentores certificados.
+        </p>
+        <div>
+          <a href="https://tesipedia.com/politica-de-privacidad" style={styles.miniFooterLink}>Política de Privacidad</a>
+          <a href="https://tesipedia.com/contacto" style={styles.miniFooterLink}>Contacto</a>
+        </div>
+        <p style={{ margin: '12px 0 0', fontSize: '0.78rem', opacity: 0.5 }}>
+          © {new Date().getFullYear()} Tesipedia — Todos los derechos reservados
+        </p>
+      </footer>
+    </>
   );
 }
 
