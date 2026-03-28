@@ -38,8 +38,7 @@ function TesisMaestria() {
     "provider": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para elaborar tu tesis de maestría en México. Investigadores con doctorado, 100% original, verificada con Turnitin y anti-IA. Metodología rigurosa. +680 maestros titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "21600", "highPrice": "45000", "unitText": "por tesis completa" },
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "687", "bestRating": "5" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "21600", "highPrice": "45000", "unitText": "por tesis completa" }
   };
 
   const faqSchema = {

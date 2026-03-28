@@ -53,8 +53,7 @@ function ComprarTesis() {
     "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para comprar tu tesis en México. Elaboramos tesis de licenciatura, maestría y doctorado 100% originales. Verificadas con Turnitin y escáner anti-IA. Más de 3,000 estudiantes titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "170", "highPrice": "350", "unitText": "por página" },
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3247", "bestRating": "5" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "170", "highPrice": "350", "unitText": "por página" }
   };
 
   const faqSchema = {

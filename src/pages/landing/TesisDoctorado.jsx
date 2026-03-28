@@ -38,8 +38,7 @@ function TesisDoctorado() {
     "provider": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para elaborar tu tesis doctoral en México. Investigadores doctores con experiencia internacional, nivel publicable, 100% original. Publicación en revistas indexadas incluida. +140 doctores titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "38400", "highPrice": "87500", "unitText": "por tesis completa" },
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "142", "bestRating": "5" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "38400", "highPrice": "87500", "unitText": "por tesis completa" }
   };
 
   const faqSchema = {

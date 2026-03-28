@@ -38,8 +38,7 @@ function TesisLicenciatura() {
     "provider": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para elaborar tu tesis de licenciatura en México. 100% original, verificada con Turnitin y anti-IA. Más de 2,800 estudiantes titulados en nivel licenciatura.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "11000", "highPrice": "25000", "unitText": "por tesis completa" },
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "2847", "bestRating": "5" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "11000", "highPrice": "25000", "unitText": "por tesis completa" }
   };
 
   const faqSchema = {
