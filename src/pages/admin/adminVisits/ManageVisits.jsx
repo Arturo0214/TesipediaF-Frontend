@@ -4,18 +4,28 @@ import { getVisits, clearError } from '../../../features/visits/visitsSlice';
 import { getEventStats, getEventFeed, getRealtimeData } from '../../../services/eventService';
 import { getGADashboard, getGARealtime } from '../../../services/gaService';
 import {
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line,
+} from 'recharts';
+import {
   FaGlobe, FaMapMarkerAlt, FaSearch, FaEye, FaTimes,
   FaSyncAlt, FaChartLine, FaCalendarAlt, FaClock,
   FaDesktop, FaMobileAlt, FaArrowUp, FaArrowDown,
   FaBuilding, FaWifi, FaRoute, FaMousePointer,
-  FaBolt, FaUsers, FaWhatsapp, FaComments, FaFileAlt,
+  FaBolt, FaUsers, FaComments, FaFileAlt,
   FaScroll, FaHandPointer, FaMobile, FaLaptop, FaTabletAlt,
-  FaGoogle, FaSignInAlt, FaPercentage, FaChartBar,
-  FaFilter, FaChevronDown, FaChevronUp, FaExternalLinkAlt,
+  FaSignInAlt, FaPercentage, FaChartBar,
+  FaChevronDown, FaChevronUp, FaExternalLinkAlt, FaLink,
 } from 'react-icons/fa';
-import { SiGoogleanalytics } from 'react-icons/si';
 import VisitsMap from './VisitsMap';
 import './ManageVisits.css';
+
+// ── Color palette ──
+const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
+const CHART_BLUE = '#3b82f6';
+const CHART_PURPLE = '#8b5cf6';
+const CHART_GREEN = '#10b981';
 
 const ManageVisits = () => {
   const dispatch = useDispatch();
@@ -48,7 +58,7 @@ const ManageVisits = () => {
   const gaRealtimeInterval = useRef(null);
   // Dashboard expandable sections
   const [expandedSections, setExpandedSections] = useState({
-    funnel: true, pages: true, acquisition: true, geo: true, events: true,
+    funnel: true, pages: true, acquisition: true, geo: true, events: true, sources: true, search: true,
   });
 
   const toggleSection = (key) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -58,12 +68,10 @@ const ManageVisits = () => {
     return () => dispatch(clearError());
   }, [dispatch]);
 
-  // Load everything on mount for dashboard
   useEffect(() => {
     loadGAData();
     loadEventData();
     loadRealtimeData();
-    // Realtime refresh every 15s
     realtimeInterval.current = setInterval(loadRealtimeData, 15000);
     gaRealtimeInterval.current = setInterval(async () => {
       try {
@@ -132,9 +140,7 @@ const ManageVisits = () => {
     setGaLoading(false);
   }, [gaPeriod]);
 
-  // Reload GA when period changes
   useEffect(() => { loadGAData(); }, [gaPeriod]);
-  // Reload events when filters change
   useEffect(() => { loadEventData(); }, [eventPeriod, eventFeedPage, eventTypeFilter]);
 
   // ── Time helpers ──
@@ -175,7 +181,7 @@ const ManageVisits = () => {
       timeline.push({ key, label, count });
     }
 
-    const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: i, count: 0 }));
+    const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: `${i}h`, count: 0 }));
     visits.forEach(v => { hourly[new Date(v.createdAt).getHours()].count++; });
 
     const prevWeekStart = new Date(weekAgo); prevWeekStart.setDate(prevWeekStart.getDate() - 7);
@@ -199,11 +205,19 @@ const ManageVisits = () => {
       }
     });
 
+    // Referrer breakdown from internal visits
+    const byReferrer = {};
+    visits.forEach(v => {
+      const ref = v.referrer || '(directo)';
+      byReferrer[ref] = (byReferrer[ref] || 0) + 1;
+    });
+    const topReferrers = Object.entries(byReferrer).sort(([, a], [, b]) => b - a).slice(0, 10);
+
     return {
       total, today, thisWeek, thisMonth, weekGrowth,
       countries: countries.size, cities: cities.size,
       topCountries, topCities, timeline, hourly, topPaths,
-      visitsByCountryISO,
+      visitsByCountryISO, topReferrers,
     };
   }, [visits]);
 
@@ -242,9 +256,6 @@ const ManageVisits = () => {
     return sec > 0 ? `${m}m ${sec}s` : `${m}m`;
   };
 
-  const maxTimeline = Math.max(...stats.timeline.map(t => t.count), 1);
-  const maxHourly = Math.max(...stats.hourly.map(h => h.count), 1);
-
   const getDeviceType = (ua) => {
     if (!ua) return 'desktop';
     const lower = ua.toLowerCase();
@@ -264,6 +275,62 @@ const ManageVisits = () => {
   const ctaClicks = eventStats?.byType?.find(t => t._id === 'cta')?.count || 0;
   const chatEvents = eventStats?.byType?.find(t => t._id === 'chat')?.count || 0;
   const activeSessionsNow = realtimeData?.activeUsers || 0;
+
+  // GA timeline data for Recharts (hourly when 1 day, daily otherwise)
+  const gaTimelineData = useMemo(() => {
+    if (!gaData?.timeline) return null;
+    const { type, rows } = gaData.timeline;
+    if (!rows || rows.length === 0) return null;
+
+    if (type === 'hourly') {
+      // dateHour format: "2026032814" → hour "14:00"
+      return rows.map(d => {
+        const dh = d.dateHour || '';
+        const hour = dh.length >= 10 ? dh.slice(8, 10) : dh;
+        const label = `${hour}:00`;
+        return { label, usuarios: d.users, sesiones: d.sessions, vistas: d.pageViews || 0 };
+      });
+    }
+
+    // Daily view
+    return rows.map(d => {
+      const dateStr = d.date;
+      const label = dateStr ? `${dateStr.slice(6, 8)}/${dateStr.slice(4, 6)}` : '';
+      return { label, usuarios: d.users, sesiones: d.sessions, vistas: d.pageViews || 0 };
+    });
+  }, [gaData]);
+
+  // Channels pie data
+  const channelsPieData = useMemo(() => {
+    if (!gaData?.channels) return [];
+    return gaData.channels.map((ch, i) => ({
+      name: ch.channel, value: ch.sessions, fill: COLORS[i % COLORS.length],
+    }));
+  }, [gaData]);
+
+  // Devices pie data
+  const devicesPieData = useMemo(() => {
+    if (!gaData?.devices) return [];
+    const deviceColors = { desktop: '#3b82f6', mobile: '#8b5cf6', tablet: '#06b6d4' };
+    return gaData.devices.map(d => ({
+      name: d.device, value: d.users, fill: deviceColors[d.device] || '#9ca3af',
+    }));
+  }, [gaData]);
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="vs-recharts-tooltip">
+        <p className="vs-tooltip-label">{label}</p>
+        {payload.map((p, i) => (
+          <p key={i} style={{ color: p.color }} className="vs-tooltip-value">
+            {p.name}: <strong>{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</strong>
+          </p>
+        ))}
+      </div>
+    );
+  };
 
   if (loading && visits.length === 0) {
     return <div className="vs"><div className="vs-loading"><div className="vs-spinner" /> Cargando dashboard...</div></div>;
@@ -344,23 +411,24 @@ const ManageVisits = () => {
         </div>
       )}
 
-      {/* ═══ TABS — simplificados ═══ */}
+      {/* ═══ TABS ═══ */}
       <div className="vs-nav">
         {[
           { key: 'dashboard', icon: <FaChartLine />, label: 'Dashboard' },
           { key: 'eventos', icon: <FaMousePointer />, label: 'Eventos' },
           { key: 'realtime', icon: <FaBolt />, label: 'Tiempo Real' },
+          { key: 'geografia', icon: <FaGlobe />, label: 'Geografia' },
           { key: 'registro', icon: <FaEye />, label: `Registro (${stats.total})` },
         ].map(tab => (
           <button key={tab.key} className={`vs-nav-btn ${activeTab === tab.key ? 'active' : ''}`}
             onClick={() => { setActiveTab(tab.key); setPage(1); }}>
-            {tab.icon} {tab.label}
+            {tab.icon} <span className="vs-nav-label">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* ═══════════════════════════════════════════
-           DASHBOARD TAB — Vista unificada profesional
+           DASHBOARD TAB
           ═══════════════════════════════════════════ */}
       {activeTab === 'dashboard' && (
         <>
@@ -390,7 +458,7 @@ const ManageVisits = () => {
             {gaLoading && <span className="vs-loading-inline" style={{ marginLeft: 'auto' }}><div className="vs-spinner-sm" /></span>}
           </div>
 
-          {/* ── KPI Row — Las 6 métricas clave ── */}
+          {/* ── KPI Row ── */}
           <div className="vs-kpi-grid-6">
             <div className="vs-kpi">
               <div className="vs-kpi-top">
@@ -443,52 +511,248 @@ const ManageVisits = () => {
             </div>
           </div>
 
-          {/* ── Timeline GA ── */}
-          {gaData?.timeline && gaData.timeline.length > 0 && (
+          {/* ── Timeline Chart (Recharts) ── */}
+          {gaTimelineData && gaTimelineData.length > 0 ? (
             <div className="vs-chart-card full">
-              <h4 className="vs-chart-title"><FaChartLine /> Trafico diario (ultimos {gaPeriod} dias)</h4>
-              <div className="vs-timeline-chart">
-                {gaData.timeline.map((d, i) => {
-                  const maxVal = Math.max(...gaData.timeline.map(t => t.users), 1);
-                  const dateStr = d.date;
-                  const label = dateStr ? `${dateStr.slice(6, 8)}/${dateStr.slice(4, 6)}` : '';
-                  return (
-                    <div key={i} className="vs-tl-col" title={`${label}: ${d.users} usuarios, ${d.sessions} sesiones`}>
-                      <span className="vs-tl-val">{d.users > 0 ? d.users : ''}</span>
-                      <div className="vs-tl-bar" style={{ height: `${Math.max(3, (d.users / maxVal) * 100)}%` }} />
-                      <span className="vs-tl-label">{i % Math.max(1, Math.floor(gaData.timeline.length / 10)) === 0 ? label : ''}</span>
+              <h4 className="vs-chart-title"><FaChartLine /> {gaPeriod <= 1 ? 'Trafico por hora (hoy)' : `Trafico diario (ultimos ${gaPeriod} dias)`}</h4>
+              <div className="vs-chart-container">
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={gaTimelineData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradUsers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={CHART_BLUE} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={CHART_BLUE} stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gradSessions" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={CHART_PURPLE} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={CHART_PURPLE} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9ca3af' }} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} allowDecimals={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Area type="monotone" dataKey="usuarios" stroke={CHART_BLUE} fill="url(#gradUsers)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                    <Area type="monotone" dataKey="sesiones" stroke={CHART_PURPLE} fill="url(#gradSessions)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          ) : (
+            <div className="vs-chart-card full">
+              <h4 className="vs-chart-title">
+                <FaChartLine /> {gaPeriod <= 1 ? 'Visitas por hora (hoy)' : `Visitas por dia (ultimos ${gaPeriod <= 1 ? 1 : Math.min(gaPeriod, 30)} dias)`}
+              </h4>
+              <div className="vs-chart-container">
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart
+                    data={gaPeriod <= 1 ? stats.hourly : stats.timeline.slice(Math.max(0, 30 - gaPeriod))}
+                    margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey={gaPeriod <= 1 ? 'hour' : 'label'} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={gaPeriod <= 1 ? 2 : Math.max(0, Math.floor(gaPeriod / 10))} />
+                    <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} allowDecimals={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="count" name="visitas" fill={CHART_BLUE} radius={[4, 4, 0, 0]} maxBarSize={24} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* ── SECTION: Fuentes de Trafico ── */}
+          <SectionHeader title="Fuentes de Trafico" icon={<FaLink />} sectionKey="sources" expanded={expandedSections.sources} onToggle={toggleSection} />
+          {expandedSections.sources && (
+            <div className="vs-charts-row">
+              {/* Traffic Sources from GA */}
+              {gaData?.sources && gaData.sources.length > 0 ? (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaExternalLinkAlt /> Fuentes / Medio (GA)</h4>
+                  <div className="vs-sources-table">
+                    <div className="vs-sources-thead">
+                      <span className="vs-src-name">Fuente</span>
+                      <span className="vs-src-medium">Medio</span>
+                      <span className="vs-src-num">Sesiones</span>
+                      <span className="vs-src-num">Usuarios</span>
+                      <span className="vs-src-num">Rebote</span>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="vs-timeline-legend">
-                <span><span className="vs-legend-dot blue" /> Usuarios activos por dia</span>
-              </div>
-            </div>
-          )}
-
-          {/* ── Fallback: timeline interno si GA no tiene data ── */}
-          {(!gaData?.timeline || gaData.timeline.length === 0) && (
-            <div className="vs-chart-card full">
-              <h4 className="vs-chart-title"><FaChartLine /> Visitas por dia (ultimos 30 dias)</h4>
-              <div className="vs-timeline-chart">
-                {stats.timeline.map((d, i) => (
-                  <div key={d.key} className="vs-tl-col" title={`${d.label}: ${d.count} visitas`}>
-                    <span className="vs-tl-val">{d.count > 0 ? d.count : ''}</span>
-                    <div className="vs-tl-bar" style={{ height: `${Math.max(2, (d.count / maxTimeline) * 100)}%` }} />
-                    <span className="vs-tl-label">{i % 3 === 0 ? d.label : ''}</span>
+                    {gaData.sources.slice(0, 10).map((s, i) => (
+                      <div key={i} className="vs-sources-row">
+                        <span className="vs-src-name" title={s.source}>
+                          <span className="vs-src-pos">{i + 1}</span>
+                          {s.source}
+                        </span>
+                        <span className="vs-src-medium">
+                          <span className={`vs-medium-badge ${s.medium}`}>{s.medium}</span>
+                        </span>
+                        <span className="vs-src-num"><strong>{s.sessions}</strong></span>
+                        <span className="vs-src-num">{s.users}</span>
+                        <span className="vs-src-num">{(s.bounceRate * 100).toFixed(0)}%</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaExternalLinkAlt /> Referrers (interno)</h4>
+                  <div className="vs-rank-list">
+                    {stats.topReferrers.map(([name, count], i) => {
+                      const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+                      return (
+                        <div key={name} className="vs-rank-item">
+                          <span className="vs-rank-pos">{i + 1}</span>
+                          <span className="vs-rank-name mono" title={name}>{name}</span>
+                          <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
+                          <span className="vs-rank-count">{count}</span>
+                          <span className="vs-rank-pct">{pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Channels Pie Chart */}
+              {channelsPieData.length > 0 ? (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaSignInAlt /> Canales de trafico</h4>
+                  <div className="vs-chart-container" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <ResponsiveContainer width="50%" height={220}>
+                      <PieChart>
+                        <Pie
+                          data={channelsPieData}
+                          cx="50%" cy="50%"
+                          outerRadius={80} innerRadius={40}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {channelsPieData.map((entry, i) => (
+                            <Cell key={i} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="vs-pie-legend">
+                      {channelsPieData.map((ch, i) => (
+                        <div key={i} className="vs-pie-legend-item">
+                          <span className="vs-pie-dot" style={{ background: ch.fill }} />
+                          <span className="vs-pie-label">{ch.name}</span>
+                          <span className="vs-pie-val">{ch.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaSignInAlt /> Canales de trafico</h4>
+                  <div className="vs-empty-text">No hay datos de canales disponibles</div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* ── SECTION: Top Paginas + Canales ── */}
-          <SectionHeader title="Paginas & Adquisicion" icon={<FaRoute />} sectionKey="pages" expanded={expandedSections.pages} onToggle={toggleSection} />
+          {/* ── SECTION: Busqueda Organica (Search Console) ── */}
+          {gaData?.searchConsole && (gaData.searchConsole.queries?.length > 0 || gaData.searchConsole.summary) && (
+            <>
+              <SectionHeader title="Busqueda Organica (Search Console)" icon={<FaSearch />} sectionKey="search" expanded={expandedSections.search} onToggle={toggleSection} />
+              {expandedSections.search && (
+                <>
+                  {/* Summary KPIs */}
+                  {gaData.searchConsole.summary && (
+                    <div className="vs-kpi-grid-4">
+                      <div className="vs-kpi">
+                        <div className="vs-kpi-top"><span className="vs-kpi-icon blue"><FaMousePointer /></span></div>
+                        <div className="vs-kpi-value">{(gaData.searchConsole.summary.totalClicks || 0).toLocaleString()}</div>
+                        <div className="vs-kpi-label">Clics organicos</div>
+                      </div>
+                      <div className="vs-kpi">
+                        <div className="vs-kpi-top"><span className="vs-kpi-icon purple"><FaEye /></span></div>
+                        <div className="vs-kpi-value">{(gaData.searchConsole.summary.totalImpressions || 0).toLocaleString()}</div>
+                        <div className="vs-kpi-label">Impresiones</div>
+                      </div>
+                      <div className="vs-kpi">
+                        <div className="vs-kpi-top"><span className="vs-kpi-icon green"><FaPercentage /></span></div>
+                        <div className="vs-kpi-value">{gaData.searchConsole.summary.avgCTR || 0}%</div>
+                        <div className="vs-kpi-label">CTR promedio</div>
+                      </div>
+                      <div className="vs-kpi">
+                        <div className="vs-kpi-top"><span className="vs-kpi-icon orange"><FaChartLine /></span></div>
+                        <div className="vs-kpi-value">{gaData.searchConsole.summary.avgPosition || 0}</div>
+                        <div className="vs-kpi-label">Posicion promedio</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="vs-charts-row">
+                    {/* Top Queries */}
+                    {gaData.searchConsole.queries?.length > 0 && (
+                      <div className="vs-chart-card">
+                        <h4 className="vs-chart-title"><FaSearch /> Consultas de busqueda organica</h4>
+                        <div className="vs-sources-table">
+                          <div className="vs-sources-thead">
+                            <span className="vs-src-name">Consulta</span>
+                            <span className="vs-src-num">Clics</span>
+                            <span className="vs-src-num">Impresiones</span>
+                            <span className="vs-src-num">CTR</span>
+                            <span className="vs-src-num">Posicion</span>
+                          </div>
+                          {gaData.searchConsole.queries.slice(0, 15).map((q, i) => (
+                            <div key={i} className="vs-sources-row">
+                              <span className="vs-src-name" title={q.query}>
+                                <span className="vs-src-pos">{i + 1}</span>
+                                {q.query}
+                              </span>
+                              <span className="vs-src-num"><strong>{q.clicks}</strong></span>
+                              <span className="vs-src-num">{q.impressions.toLocaleString()}</span>
+                              <span className="vs-src-num">{q.ctr}%</span>
+                              <span className="vs-src-num">{q.position}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Top Pages from Search */}
+                    {gaData.searchConsole.pages?.length > 0 && (
+                      <div className="vs-chart-card">
+                        <h4 className="vs-chart-title"><FaFileAlt /> Paginas en busqueda organica</h4>
+                        <div className="vs-sources-table">
+                          <div className="vs-sources-thead">
+                            <span className="vs-src-name">Pagina</span>
+                            <span className="vs-src-num">Clics</span>
+                            <span className="vs-src-num">Impresiones</span>
+                            <span className="vs-src-num">CTR</span>
+                            <span className="vs-src-num">Posicion</span>
+                          </div>
+                          {gaData.searchConsole.pages.slice(0, 10).map((p, i) => (
+                            <div key={i} className="vs-sources-row">
+                              <span className="vs-src-name mono" title={p.page}>
+                                <span className="vs-src-pos">{i + 1}</span>
+                                {p.page}
+                              </span>
+                              <span className="vs-src-num"><strong>{p.clicks}</strong></span>
+                              <span className="vs-src-num">{p.impressions.toLocaleString()}</span>
+                              <span className="vs-src-num">{p.ctr}%</span>
+                              <span className="vs-src-num">{p.position}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* ── SECTION: Top Paginas ── */}
+          <SectionHeader title="Top Paginas & Rendimiento" icon={<FaRoute />} sectionKey="pages" expanded={expandedSections.pages} onToggle={toggleSection} />
           {expandedSections.pages && (
             <div className="vs-charts-row">
-              {/* Top pages table */}
-              {gaData?.pages && (
+              {gaData?.pages ? (
                 <div className="vs-chart-card">
                   <h4 className="vs-chart-title"><FaEye /> Top paginas</h4>
                   <div className="vs-mini-table">
@@ -511,77 +775,17 @@ const ManageVisits = () => {
                     ))}
                   </div>
                 </div>
-              )}
-
-              {/* Channels */}
-              {gaData?.channels && (
-                <div className="vs-chart-card">
-                  <h4 className="vs-chart-title"><FaSignInAlt /> Canales de trafico</h4>
-                  <div className="vs-rank-list">
-                    {gaData.channels.map((ch, i) => {
-                      const maxSessions = gaData.channels[0]?.sessions || 1;
-                      const pct = Math.round((ch.sessions / maxSessions) * 100);
-                      return (
-                        <div key={i} className="vs-rank-item">
-                          <span className="vs-rank-pos">{i + 1}</span>
-                          <span className="vs-rank-name">{ch.channel}</span>
-                          <div className="vs-rank-bar-bg">
-                            <div className="vs-rank-bar" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="vs-rank-count">{ch.sessions}</span>
-                          <span className="vs-rank-pct">{ch.newUsers} new</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── SECTION: Geografia ── */}
-          <SectionHeader title="Geografia" icon={<FaGlobe />} sectionKey="geo" expanded={expandedSections.geo} onToggle={toggleSection} />
-          {expandedSections.geo && (
-            <>
-            {/* Mapa mundial de visitas */}
-            {Object.keys(stats.visitsByCountryISO).length > 0 && (
-              <div className="vs-chart-card full" style={{ marginBottom: 16 }}>
-                <VisitsMap visitsByCountry={stats.visitsByCountryISO} />
-              </div>
-            )}
-            <div className="vs-charts-row">
-              {gaData?.countries ? (
-                <div className="vs-chart-card">
-                  <h4 className="vs-chart-title"><FaGlobe /> Usuarios por pais (GA)</h4>
-                  <div className="vs-rank-list">
-                    {gaData.countries.map((c, i) => {
-                      const max = gaData.countries[0]?.activeUsers || 1;
-                      const pct = Math.round((c.activeUsers / max) * 100);
-                      return (
-                        <div key={i} className="vs-rank-item">
-                          <span className="vs-rank-pos">{i + 1}</span>
-                          <span className="vs-rank-name">{c.country}</span>
-                          <div className="vs-rank-bar-bg">
-                            <div className="vs-rank-bar city" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="vs-rank-count">{c.activeUsers}</span>
-                          <span className="vs-rank-pct">{c.newUsers} new</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               ) : (
                 <div className="vs-chart-card">
-                  <h4 className="vs-chart-title"><FaGlobe /> Top paises (interno)</h4>
+                  <h4 className="vs-chart-title"><FaEye /> Top rutas (interno)</h4>
                   <div className="vs-rank-list">
-                    {stats.topCountries.map(([name, count], i) => {
+                    {stats.topPaths.map(([path, count], i) => {
                       const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
                       return (
-                        <div key={name} className="vs-rank-item">
+                        <div key={path} className="vs-rank-item">
                           <span className="vs-rank-pos">{i + 1}</span>
-                          <span className="vs-rank-name">{countryName(name)}</span>
-                          <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
+                          <span className="vs-rank-name mono">{path}</span>
+                          <div className="vs-rank-bar-bg"><div className="vs-rank-bar path" style={{ width: `${pct}%` }} /></div>
                           <span className="vs-rank-count">{count}</span>
                           <span className="vs-rank-pct">{pct}%</span>
                         </div>
@@ -591,44 +795,55 @@ const ManageVisits = () => {
                 </div>
               )}
 
-              {/* Devices + Hourly heatmap */}
+              {/* Devices donut + Hourly bar */}
               <div className="vs-chart-card">
-                {gaData?.devices ? (
+                {devicesPieData.length > 0 ? (
                   <>
                     <h4 className="vs-chart-title"><FaDesktop /> Dispositivos</h4>
-                    <div className="vs-device-grid">
-                      {gaData.devices.map(d => {
-                        const total = gaData.devices.reduce((s, x) => s + x.users, 0) || 1;
-                        const pct = Math.round((d.users / total) * 100);
-                        const icon = { desktop: <FaLaptop />, mobile: <FaMobile />, tablet: <FaTabletAlt /> }[d.device] || <FaDesktop />;
-                        return (
-                          <div key={d.device} className="vs-device-card">
-                            <div className="vs-device-icon">{icon}</div>
-                            <div className="vs-device-pct">{pct}%</div>
-                            <div className="vs-device-label">{d.device}</div>
-                            <div className="vs-device-count">{d.users} usuarios</div>
-                          </div>
-                        );
-                      })}
+                    <div className="vs-chart-container" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <ResponsiveContainer width="50%" height={200}>
+                        <PieChart>
+                          <Pie data={devicesPieData} cx="50%" cy="50%" outerRadius={70} innerRadius={35} paddingAngle={3} dataKey="value">
+                            {devicesPieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="vs-pie-legend">
+                        {devicesPieData.map((d, i) => {
+                          const total = devicesPieData.reduce((s, x) => s + x.value, 0) || 1;
+                          const pct = Math.round((d.value / total) * 100);
+                          const icon = { desktop: <FaLaptop />, mobile: <FaMobile />, tablet: <FaTabletAlt /> }[d.name] || <FaDesktop />;
+                          return (
+                            <div key={i} className="vs-pie-legend-item">
+                              <span className="vs-pie-dot" style={{ background: d.fill }} />
+                              <span className="vs-pie-icon">{icon}</span>
+                              <span className="vs-pie-label">{d.name}</span>
+                              <span className="vs-pie-val">{pct}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </>
                 ) : (
                   <>
                     <h4 className="vs-chart-title"><FaClock /> Distribucion por hora</h4>
-                    <div className="vs-hourly-chart">
-                      {stats.hourly.map(h => (
-                        <div key={h.hour} className="vs-hr-col" title={`${h.hour}:00 - ${h.count} visitas`}>
-                          <span className="vs-hr-val">{h.count > 0 ? h.count : ''}</span>
-                          <div className="vs-hr-bar" style={{ height: `${Math.max(2, (h.count / maxHourly) * 100)}%` }} />
-                          <span className="vs-hr-label">{h.hour % 3 === 0 ? `${h.hour}h` : ''}</span>
-                        </div>
-                      ))}
+                    <div className="vs-chart-container">
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={stats.hourly} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#9ca3af' }} interval={2} />
+                          <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} allowDecimals={false} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="count" name="visitas" fill={CHART_PURPLE} radius={[3, 3, 0, 0]} maxBarSize={16} />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </>
                 )}
               </div>
             </div>
-            </>
           )}
 
           {/* ── SECTION: Eventos rapidos ── */}
@@ -807,7 +1022,6 @@ const ManageVisits = () => {
             </>
           )}
 
-          {/* Event feed table */}
           <div className="vs-chart-card full">
             <h4 className="vs-chart-title"><FaEye /> Feed de eventos recientes</h4>
             <div className="vs-table-wrap">
@@ -862,7 +1076,6 @@ const ManageVisits = () => {
             {realtimeLoading && <span className="vs-loading-inline"><div className="vs-spinner-sm" /></span>}
           </div>
 
-          {/* Big numbers row */}
           <div className="vs-realtime-heroes">
             <div className="vs-realtime-hero">
               <div className="vs-realtime-number">{realtimeUsers}</div>
@@ -876,7 +1089,6 @@ const ManageVisits = () => {
             </div>
           </div>
 
-          {/* GA Realtime details */}
           {gaRealtime && (
             <div className="vs-charts-row">
               {gaRealtime.byPage?.length > 0 && (
@@ -910,7 +1122,6 @@ const ManageVisits = () => {
             </div>
           )}
 
-          {/* Internal realtime */}
           {realtimeData && (
             <>
               {realtimeData.activeByPage?.length > 0 && (
@@ -970,6 +1181,130 @@ const ManageVisits = () => {
 
           {!realtimeData && !gaRealtime && !realtimeLoading && (
             <div className="vs-empty-state"><FaBolt className="vs-empty-icon" /><p>No hay datos en tiempo real disponibles</p></div>
+          )}
+        </>
+      )}
+
+      {/* ═══ GEOGRAFIA TAB ═══ */}
+      {activeTab === 'geografia' && (
+        <>
+          {/* Map */}
+          {Object.keys(stats.visitsByCountryISO).length > 0 && (
+            <div className="vs-chart-card full">
+              <VisitsMap visitsByCountry={stats.visitsByCountryISO} gaCountries={gaData?.countries || []} />
+            </div>
+          )}
+
+          {/* Countries + Cities row */}
+          <div className="vs-charts-row">
+            {/* Countries */}
+            <div className="vs-chart-card">
+              <h4 className="vs-chart-title"><FaGlobe /> Usuarios por pais</h4>
+              {gaData?.countries ? (
+                <>
+                  <div className="vs-chart-container">
+                    <ResponsiveContainer width="100%" height={Math.min(gaData.countries.length * 38, 400)}>
+                      <BarChart data={gaData.countries.slice(0, 10)} layout="vertical" margin={{ top: 0, right: 10, left: 5, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                        <XAxis type="number" tick={{ fontSize: 11, fill: '#9ca3af' }} allowDecimals={false} />
+                        <YAxis type="category" dataKey="country" tick={{ fontSize: 11, fill: '#374151' }} width={90} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="activeUsers" name="usuarios" fill={CHART_BLUE} radius={[0, 4, 4, 0]} maxBarSize={24}>
+                          {gaData.countries.slice(0, 10).map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="vs-geo-table" style={{ marginTop: 16 }}>
+                    <div className="vs-mini-thead">
+                      <span className="vs-mt-page">Pais</span>
+                      <span className="vs-mt-num">Usuarios</span>
+                      <span className="vs-mt-num">Nuevos</span>
+                      <span className="vs-mt-num">Sesiones</span>
+                    </div>
+                    {gaData.countries.map((c, i) => (
+                      <div key={i} className="vs-mini-row">
+                        <span className="vs-mt-page">
+                          <span className="vs-mt-pos">{i + 1}</span>
+                          {c.country}
+                        </span>
+                        <span className="vs-mt-num"><strong>{c.activeUsers}</strong></span>
+                        <span className="vs-mt-num">{c.newUsers}</span>
+                        <span className="vs-mt-num">{c.sessions}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="vs-rank-list">
+                  {stats.topCountries.map(([name, count], i) => {
+                    const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+                    return (
+                      <div key={name} className="vs-rank-item">
+                        <span className="vs-rank-pos">{i + 1}</span>
+                        <span className="vs-rank-name">{countryName(name)}</span>
+                        <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
+                        <span className="vs-rank-count">{count}</span>
+                        <span className="vs-rank-pct">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Cities */}
+            <div className="vs-chart-card">
+              <h4 className="vs-chart-title"><FaMapMarkerAlt /> Top ciudades</h4>
+              <div className="vs-rank-list">
+                {stats.topCities.map(([name, count], i) => {
+                  const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+                  return (
+                    <div key={name} className="vs-rank-item">
+                      <span className="vs-rank-pos">{i + 1}</span>
+                      <span className="vs-rank-name">{name}</span>
+                      <div className="vs-rank-bar-bg"><div className="vs-rank-bar city" style={{ width: `${pct}%` }} /></div>
+                      <span className="vs-rank-count">{count}</span>
+                      <span className="vs-rank-pct">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Devices */}
+          {devicesPieData.length > 0 && (
+            <div className="vs-chart-card full">
+              <h4 className="vs-chart-title"><FaDesktop /> Dispositivos por region</h4>
+              <div className="vs-chart-container" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+                <ResponsiveContainer width={220} height={220}>
+                  <PieChart>
+                    <Pie data={devicesPieData} cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={3} dataKey="value">
+                      {devicesPieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="vs-pie-legend">
+                  {devicesPieData.map((d, i) => {
+                    const total = devicesPieData.reduce((s, x) => s + x.value, 0) || 1;
+                    const pct = Math.round((d.value / total) * 100);
+                    const icon = { desktop: <FaLaptop />, mobile: <FaMobile />, tablet: <FaTabletAlt /> }[d.name] || <FaDesktop />;
+                    return (
+                      <div key={i} className="vs-pie-legend-item">
+                        <span className="vs-pie-dot" style={{ background: d.fill }} />
+                        <span className="vs-pie-icon">{icon}</span>
+                        <span className="vs-pie-label">{d.name}</span>
+                        <span className="vs-pie-val">{pct}% ({d.value})</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}

@@ -1,6 +1,15 @@
 # Tesipedia - Robots.txt
 User-agent: *
 Allow: /
+
+# Landing pages SEO (prioridad máxima)
+Allow: /comprar-tesis
+Allow: /tesis-licenciatura
+Allow: /tesis-maestria
+Allow: /tesis-doctoral
+Allow: /tutoria-academica
+
+# Páginas públicas
 Allow: /blog
 Allow: /blog/
 Allow: /sobre-nosotros

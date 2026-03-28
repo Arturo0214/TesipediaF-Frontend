@@ -181,6 +181,15 @@
   }
   </script>
 
+  <!-- Canonical dinámico para SPA: establece el canonical correcto antes de que JS del framework cargue -->
+  <script>
+    (function() {
+      var link = document.createElement('link');
+      link.rel = 'canonical';
+      link.href = 'https://tesipedia.com' + window.location.pathname;
+      document.head.appendChild(link);
+    })();
+  </script>
 
 </head>
 

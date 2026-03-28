@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
+import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
   FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaQuoteLeft
@@ -18,6 +19,11 @@ function ComprarTesis() {
     dispatch(trackVisit({ path: '/comprar-tesis', referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
     window.scrollTo(0, 0);
   }, [dispatch]);
+
+  const handleWAClick = (ctaName) => {
+    trackCTA(ctaName, 'WhatsApp CTA');
+    trackGoogleAdsConversion();
+  };
 
   const orgSchema = {
     "@context": "https://schema.org",
@@ -133,10 +139,10 @@ function ComprarTesis() {
             En <strong>Tesipedia</strong> puedes <strong>comprar tu tesis de licenciatura, maestría y doctorado</strong> desde <strong>$110 MXN por página</strong>. Escrita por investigadores humanos, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>. Más de 3,000 estudiantes titulados en México.
           </p>
           <div className="landing-hero-ctas">
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary">
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick('comprar_hero')} data-track-cta="comprar_hero" data-track-label="Cotizar Gratis por WhatsApp">
               <FaWhatsapp /> Cotizar Gratis por WhatsApp
             </a>
-            <a href="#como-funciona" className="landing-cta-secondary">
+            <a href="#como-funciona" className="landing-cta-secondary" data-track-cta="comprar_hero_proceso" data-track-label="¿Cómo funciona?">
               ¿Cómo funciona? <FaArrowRight />
             </a>
           </div>
@@ -204,7 +210,7 @@ function ComprarTesis() {
           </div>
         </div>
         <div className="landing-cta-center">
-          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary">
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick('comprar_como_funciona')} data-track-cta="comprar_como_funciona" data-track-label="Quiero Cotizar Mi Tesis">
             <FaWhatsapp /> Quiero Cotizar Mi Tesis
           </a>
         </div>
@@ -230,7 +236,7 @@ function ComprarTesis() {
               <li>Correcciones de sinodales</li>
               <li>Áreas salud/exactas: $150/pág</li>
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Licenciatura</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('comprar_pricing_licenciatura')} data-track-cta="comprar_pricing_licenciatura" data-track-label="Cotizar Licenciatura">Cotizar Licenciatura</a>
           </div>
           <div className="landing-pricing-card landing-pricing-featured">
             <FaGraduationCap className="pricing-icon" />
@@ -245,7 +251,7 @@ function ComprarTesis() {
               <li>Incluye Turnitin + Anti-IA</li>
               <li>Áreas salud/exactas: $200/pág</li>
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Maestría</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('comprar_pricing_maestria')} data-track-cta="comprar_pricing_maestria" data-track-label="Cotizar Maestría">Cotizar Maestría</a>
           </div>
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
@@ -259,7 +265,7 @@ function ComprarTesis() {
               <li>Publicación indexada opcional</li>
               <li>Áreas salud/exactas: $250/pág</li>
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Doctorado</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('comprar_pricing_doctorado')} data-track-cta="comprar_pricing_doctorado" data-track-label="Cotizar Doctorado">Cotizar Doctorado</a>
           </div>
         </div>
       </section>
@@ -301,7 +307,7 @@ function ComprarTesis() {
       <section className="landing-final-cta">
         <h2>Titúlate hoy — Cotiza tu tesis gratis</h2>
         <p>Únete a los más de 3,000 estudiantes que ya se titularon con Tesipedia. Cotización sin compromiso en menos de 5 minutos.</p>
-        <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary landing-cta-big">
+        <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary landing-cta-big" onClick={() => handleWAClick('comprar_final_cta')} data-track-cta="comprar_final_cta" data-track-label="Cotizar Mi Tesis por WhatsApp">
           <FaWhatsapp /> Cotizar Mi Tesis por WhatsApp
         </a>
         <p className="landing-final-sub">O llámanos: <a href="tel:+525670071517">+52 56 7007 1517</a></p>

@@ -22,6 +22,31 @@
 /robots.txt
   Cache-Control: public, max-age=3600
 
+# HTTP Link canonical headers para landing pages SEO (evita problema de "página alternativa con canonical")
+/comprar-tesis
+  Link: <https://tesipedia.com/comprar-tesis>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
+/tesis-licenciatura
+  Link: <https://tesipedia.com/tesis-licenciatura>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
+/tesis-maestria
+  Link: <https://tesipedia.com/tesis-maestria>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
+/tesis-doctoral
+  Link: <https://tesipedia.com/tesis-doctoral>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
+/tutoria-academica
+  Link: <https://tesipedia.com/tutoria-academica>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
+/blog
+  Link: <https://tesipedia.com/blog>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
 # Security headers para todas las rutas
 /*
   X-Frame-Options: SAMEORIGIN

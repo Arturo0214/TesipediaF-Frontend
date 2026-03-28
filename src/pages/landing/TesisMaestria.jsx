@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
+import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
   FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaQuoteLeft
@@ -17,6 +18,11 @@ function TesisMaestria() {
     dispatch(trackVisit({ path: '/tesis-maestria', referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
     window.scrollTo(0, 0);
   }, [dispatch]);
+
+  const handleWAClick = (ctaName) => {
+    trackCTA(ctaName, 'WhatsApp CTA');
+    trackGoogleAdsConversion();
+  };
 
   const productSchema = {
     "@context": "https://schema.org",
@@ -119,10 +125,10 @@ function TesisMaestria() {
             Entrega en <strong>4-6 semanas</strong>.
           </p>
           <div className="landing-hero-ctas">
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary">
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick('maestria_hero')} data-track-cta="maestria_hero" data-track-label="Cotizar Mi Tesis Gratis">
               <FaWhatsapp /> Cotizar Mi Tesis Gratis
             </a>
-            <a href="#como-funciona" className="landing-cta-secondary">
+            <a href="#como-funciona" className="landing-cta-secondary" data-track-cta="maestria_hero_proceso" data-track-label="¿Cómo funciona?">
               ¿Cómo funciona? <FaArrowRight />
             </a>
           </div>
@@ -191,7 +197,7 @@ function TesisMaestria() {
           </div>
         </div>
         <div className="landing-cta-center">
-          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary">
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick('maestria_como_funciona')} data-track-cta="maestria_como_funciona" data-track-label="Quiero Mi Tesis de Maestría">
             <FaWhatsapp /> Quiero Mi Tesis de Maestría
           </a>
         </div>
@@ -215,7 +221,7 @@ function TesisMaestria() {
               <li>Investigador con doctorado</li>
               <li>Pago en 3, 6 o 9 meses</li>
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Estándar</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('maestria_pricing_estandar')} data-track-cta="maestria_pricing_estandar" data-track-label="Cotizar Estándar">Cotizar Estándar</a>
           </div>
           <div className="landing-pricing-card landing-pricing-featured">
             <FaGraduationCap className="pricing-icon" />
@@ -229,7 +235,7 @@ function TesisMaestria() {
               <li>Doctor especialista</li>
               <li>Pago flexible</li>
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Completa</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('maestria_pricing_completa')} data-track-cta="maestria_pricing_completa" data-track-label="Cotizar Completa">Cotizar Completa</a>
           </div>
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
@@ -242,7 +248,7 @@ function TesisMaestria() {
               <li>Nivel publicable</li>
               <li>Pago flexible</li>
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Publicable</a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('maestria_pricing_salud_exactas')} data-track-cta="maestria_pricing_salud_exactas" data-track-label="Cotizar Publicable">Cotizar Publicable</a>
           </div>
         </div>
       </section>
@@ -284,7 +290,7 @@ function TesisMaestria() {
       <section className="landing-final-cta">
         <h2>Titúlate hoy — Cotiza tu tesis de maestría gratis</h2>
         <p>Únete a los más de 680 maestros que ya se titularon con Tesipedia. Cotización sin compromiso en menos de 5 minutos.</p>
-        <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary landing-cta-big">
+        <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary landing-cta-big" onClick={() => handleWAClick('maestria_final_cta')} data-track-cta="maestria_final_cta" data-track-label="Cotizar Mi Tesis por WhatsApp">
           <FaWhatsapp /> Cotizar Mi Tesis por WhatsApp
         </a>
         <p className="landing-final-sub">O llámanos: <a href="tel:+525670071517">+52 56 7007 1517</a></p>
