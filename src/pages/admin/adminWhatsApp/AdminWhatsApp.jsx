@@ -997,6 +997,7 @@ const AdminWhatsApp = () => {
         esquemaTipo: f.esquemaTipo || '33-33-34',
         fechaPago1: f.fechaPago1 || '',
         fechaAvance: f.fechaAvance || '',
+        fechaPagoFinal: f.fechaPagoFinal || f.fechaEntregaDate || '',
         pdfFilename,
       });
 
@@ -2308,7 +2309,8 @@ const AdminWhatsApp = () => {
                         )}
                         <Col xs={6}>
                           <div className="wq-micro-label">Pago Final</div>
-                          <Form.Control size="sm" type="date" value={quoteFields.fechaEntregaDate || ''} disabled className="bg-light" />
+                          <Form.Control size="sm" type="date" value={quoteFields.fechaPagoFinal || quoteFields.fechaEntregaDate || ''}
+                            onChange={(e) => handleQuoteFieldChange('fechaPagoFinal', e.target.value)} />
                         </Col>
                       </Row>
                     </div>
