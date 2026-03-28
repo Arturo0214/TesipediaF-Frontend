@@ -80,18 +80,20 @@ const AdminDashboard = () => {
     const paidQuotes = quotes.filter(q => q.status === 'paid');
     const rejectedQuotes = quotes.filter(q => q.status === 'rejected');
 
-    const thisMonthQuotes = quotes.filter(q => new Date(q.createdAt) >= thisMonth);
+    const thisMonthQuotes = quotes.filter(q => q && q.createdAt && new Date(q.createdAt) >= thisMonth);
     const lastMonthQuotes = quotes.filter(q => {
+      if (!q || !q.createdAt) return false;
       const d = new Date(q.createdAt);
       return d >= lastMonth && d <= lastMonthEnd;
     });
 
     const revenueThisMonth = paidQuotes
-      .filter(q => new Date(q.updatedAt || q.createdAt) >= thisMonth)
+      .filter(q => q && (q.updatedAt || q.createdAt) && new Date(q.updatedAt || q.createdAt) >= thisMonth)
       .reduce((sum, q) => sum + (q.priceDetails?.finalPrice || q.estimatedPrice || 0), 0);
 
     const revenueLastMonth = paidQuotes
       .filter(q => {
+        if (!q || !(q.updatedAt || q.createdAt)) return false;
         const d = new Date(q.updatedAt || q.createdAt);
         return d >= lastMonth && d <= lastMonthEnd;
       })
@@ -104,8 +106,8 @@ const AdminDashboard = () => {
     const totalFinished = paidQuotes.length + rejectedQuotes.length;
     const conversionRate = totalFinished > 0 ? Math.round((paidQuotes.length / totalFinished) * 100) : 0;
 
-    const weekVisits = visits.filter(v => new Date(v.createdAt || v.date) >= sevenDaysAgo);
-    const newUsersMonth = users.filter(u => new Date(u.createdAt) >= thisMonth);
+    const weekVisits = visits.filter(v => v && (v.createdAt || v.date) && new Date(v.createdAt || v.date) >= sevenDaysAgo);
+    const newUsersMonth = users.filter(u => u && u.createdAt && new Date(u.createdAt) >= thisMonth);
 
     return {
       pendingQuotes, approvedQuotes, paidQuotes, rejectedQuotes,
@@ -118,6 +120,7 @@ const AdminDashboard = () => {
   // ── Recent activity ───────────────────────────────
   const recentActivity = useMemo(() => {
     return [...notifications]
+      .filter(n => n && n.createdAt)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 8);
   }, [notifications]);
