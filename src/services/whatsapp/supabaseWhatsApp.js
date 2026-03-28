@@ -125,6 +125,62 @@ export async function configAutoReminder(config) {
   return data;
 }
 
+// ─── Lead Revival (Cold leads re-engagement) ─────────────────
+
+/**
+ * Obtener estado del sistema de revival de leads
+ */
+export async function getRevivalStatus() {
+  const { data } = await axiosWithAuth.get(`${BASE}/revival/status`);
+  return data;
+}
+
+/**
+ * Configurar el sistema de revival automático
+ * @param {{ active?: boolean, intervalHours?: number, maxPerRun?: number }} config
+ */
+export async function configRevival(config) {
+  const { data } = await axiosWithAuth.post(`${BASE}/revival/config`, config);
+  return data;
+}
+
+/**
+ * Ejecutar revival manualmente
+ * @param {{ maxPerRun?: number, dryRun?: boolean, tiers?: number[] }} opts
+ */
+export async function runRevival(opts = {}) {
+  const { data } = await axiosWithAuth.post(`${BASE}/revival`, opts);
+  return data;
+}
+
+// ─── Quote Follow-up ──────────────────────────────────────────
+
+/**
+ * Obtener estado del sistema de seguimiento de cotizaciones
+ */
+export async function getQuoteFollowUpStatus() {
+  const { data } = await axiosWithAuth.get(`${BASE}/quote-followup/status`);
+  return data;
+}
+
+/**
+ * Configurar el sistema de seguimiento automático de cotizaciones
+ * @param {{ active?: boolean, intervalHours?: number, maxPerRun?: number }} config
+ */
+export async function configQuoteFollowUp(config) {
+  const { data } = await axiosWithAuth.post(`${BASE}/quote-followup/config`, config);
+  return data;
+}
+
+/**
+ * Ejecutar seguimiento de cotizaciones manualmente
+ * @param {{ maxPerRun?: number, dryRun?: boolean, tiers?: number[] }} opts
+ */
+export async function runQuoteFollowUp(opts = {}) {
+  const { data } = await axiosWithAuth.post(`${BASE}/quote-followup`, opts);
+  return data;
+}
+
 // ─── Lead Notes ───────────────────────────────────────────────
 
 const NOTES_BASE = '/api/v1/lead-notes';

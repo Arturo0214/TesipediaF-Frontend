@@ -19,6 +19,7 @@ import {
     FaWhatsapp,
     FaCalculator,
     FaHubspot,
+    FaCogs,
     FaAngleDoubleLeft,
     FaAngleDoubleRight
 } from 'react-icons/fa';
@@ -47,6 +48,7 @@ import AdminDashboard from '../adminDashboard/AdminDashboard.jsx';
 import AdminHubSpot from '../adminHubSpot/AdminHubSpot.jsx';
 import AdminMessages from '../adminMessages/AdminMessages.jsx';
 import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp.jsx';
+import AdminAutomations from '../adminAutomations/AdminAutomations.jsx';
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 import SalesQuote from '../../SalesQuote/SalesQuote.jsx';
 
@@ -108,6 +110,7 @@ const AdminPanel = () => {
     const getInitialTab = () => {
         const path = location.pathname;
         if (path.includes('/usuarios')) return 'usuarios';
+        if (path.includes('/automatizaciones')) return 'automatizaciones';
         if (path.includes('/whatsapp')) return 'whatsapp';
         if (path.includes('/mensajes')) return 'mensajes';
         if (path.includes('/cotizaciones')) return 'cotizaciones';
@@ -129,6 +132,7 @@ const AdminPanel = () => {
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
+        { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
         { key: 'hubspot', icon: FaHubspot, label: 'HubSpot', section: 'estadisticas', path: '/admin/hubspot' },
@@ -263,7 +267,8 @@ const AdminPanel = () => {
         usuarios: ManageUsers,
         hubspot: AdminHubSpot,
         mensajes: AdminMessages,
-        whatsapp: AdminWhatsApp
+        whatsapp: AdminWhatsApp,
+        automatizaciones: AdminAutomations
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);

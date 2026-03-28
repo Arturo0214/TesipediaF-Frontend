@@ -114,6 +114,7 @@ const router = createBrowserRouter(
             { path: 'admin/pedidos', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/urgentes', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/whatsapp', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/automatizaciones', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/mensajes', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/usuarios', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/escritores', element: <LazyPage><AdminPanel /></LazyPage> },
