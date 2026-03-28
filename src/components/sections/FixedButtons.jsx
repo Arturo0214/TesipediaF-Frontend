@@ -89,6 +89,8 @@ const FixedButtons = () => {
             className="whatsapp-button"
             aria-label="Contactar por WhatsApp"
             title="Contactar por WhatsApp"
+            data-track-cta="whatsapp_floating"
+            data-track-label="Botón WhatsApp flotante"
           >
             <FaWhatsapp aria-hidden="true" />
           </a>
@@ -99,6 +101,8 @@ const FixedButtons = () => {
               aria-label={isChatOpen ? 'Cerrar chat en línea' : 'Abrir chat en línea'}
               aria-expanded={isChatOpen}
               title="Chat en línea"
+              data-track-cta="chat_open"
+              data-track-label="Botón abrir chat"
             >
               {isChatOpen ? (
                 <FaTimes aria-hidden="true" />

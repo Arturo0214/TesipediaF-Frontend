@@ -34,12 +34,16 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-gradient-primary"
+                data-track-cta="hero_whatsapp"
+                data-track-label="Quiero Titularme Ya - Hero"
               >
                 <span>¡Quiero Titularme Ya!</span>
               </Button>
               <Button
                 onClick={onOpenChat}
                 className="btn-outline-gradient"
+                data-track-cta="hero_chat"
+                data-track-label="Chat en Línea - Hero"
               >
                 <FaComments style={{ position: 'relative', zIndex: 2 }} aria-hidden="true" />
                 <span>Chat en Línea</span>
@@ -80,6 +84,8 @@ const HeroSection = ({ stats, currentStat, onOpenChat }) => {
                 <Button
                   onClick={onOpenChat}
                   className="contact-btn-new contact-btn-chat-new"
+                  data-track-cta="hero_contact_chat"
+                  data-track-label="Chatear en la Página - Hero contact"
                 >
                   <FaComments className="contact-btn-icon-new" aria-hidden="true" />
                   <div className="contact-btn-content-new">

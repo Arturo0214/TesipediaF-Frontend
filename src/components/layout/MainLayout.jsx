@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import NavbarRedactor from './NavbarRedactor';
 import NavbarCliente from './NavbarClient/NavbarCliente';
@@ -7,9 +7,11 @@ import Navbar from "./Navbar/Navbar";
 import { Footer } from "./Footer";
 import ScrollToTop from "../common/ScrollToTop";
 import FixedButtons from "../sections/FixedButtons";
+import useEventTracking from '../../hooks/useEventTracking';
 
 function MainLayout() {
     const { user, isAuthenticated } = useSelector(state => state.auth);
+    useEventTracking(); // Auto-track pageviews, scroll depth, and data-track-* clicks
     const [isChatVisible, setChatVisible] = useState(false);
 
     const handleChatClick = () => {

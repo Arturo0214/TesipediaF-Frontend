@@ -147,4 +147,100 @@
   .vs-table thead th, .vs-table tbody td { padding: 8px 10px; font-size: 0.78rem; }
   .vs-visitor-ua { max-width: 120px; }
   .vs-drawer { width: 100vw; max-width: 100vw; }
+  .vs-realtime-hero { padding: 30px 16px; }
+  .vs-realtime-number { font-size: 3rem; }
 }
+
+/* ═══ EVENTOS TAB ═══ */
+.vs-period-select {
+  padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 8px;
+  background: #fff; color: #374151; font-size: 0.82rem; cursor: pointer;
+}
+.vs-period-select:focus { outline: none; border-color: #3b82f6; }
+.vs-loading-inline { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #6b7280; margin-left: auto; }
+.vs-spinner-sm { width: 14px; height: 14px; border: 2px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: vs-spin 0.7s linear infinite; }
+
+.vs-event-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+  background: #e5e7eb; color: #374151;
+}
+.vs-event-badge.click { background: #dbeafe; color: #1e40af; }
+.vs-event-badge.cta { background: #dcfce7; color: #166534; }
+.vs-event-badge.pageview { background: #f3e8ff; color: #7c3aed; }
+.vs-event-badge.scroll { background: #fef3c7; color: #92400e; }
+.vs-event-badge.chat { background: #d1fae5; color: #065f46; }
+.vs-event-badge.form { background: #fce7f3; color: #9d174d; }
+
+.vs-event-action { display: flex; flex-direction: column; gap: 1px; }
+.vs-event-action strong { font-size: 0.82rem; }
+.vs-event-sub { font-size: 0.7rem; color: #9ca3af; }
+
+.vs-rank-sub { display: block; font-size: 0.68rem; color: #9ca3af; font-weight: 400; }
+
+/* ═══ TIEMPO REAL TAB ═══ */
+.vs-realtime-indicator {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; color: #059669; font-weight: 500;
+}
+.vs-pulse {
+  width: 8px; height: 8px; background: #10b981; border-radius: 50%;
+  animation: vs-pulse 1.5s ease-in-out infinite;
+}
+@keyframes vs-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.vs-realtime-hero {
+  text-align: center; padding: 40px 20px; margin-bottom: 20px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border-radius: 14px; border: 1px solid #a7f3d0;
+}
+.vs-realtime-number { font-size: 4.5rem; font-weight: 800; color: #059669; line-height: 1; }
+.vs-realtime-label { font-size: 1.1rem; color: #374151; font-weight: 600; margin-top: 8px; }
+.vs-realtime-sub { font-size: 0.82rem; color: #6b7280; margin-top: 4px; }
+
+.vs-event-live-feed { display: flex; flex-direction: column; gap: 4px; max-height: 400px; overflow-y: auto; }
+.vs-live-event {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: #f9fafb; border-radius: 8px; font-size: 0.82rem;
+  border-left: 3px solid #e5e7eb; transition: border-color 0.2s;
+}
+.vs-live-event:first-child { border-left-color: #10b981; background: #f0fdf4; }
+.vs-live-action { font-weight: 600; color: #374151; flex: 1; }
+.vs-live-page { color: #6b7280; font-size: 0.75rem; font-family: monospace; }
+.vs-live-time { color: #9ca3af; font-size: 0.75rem; white-space: nowrap; }
+
+.vs-empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+.vs-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.vs-empty-text { color: #9ca3af; text-align: center; padding: 20px; font-size: 0.85rem; }
+
+/* ═══ GOOGLE ANALYTICS TAB ═══ */
+.vs-ga-header-row { display: flex; align-items: center; gap: 8px; }
+.vs-ga-logo { font-size: 1.2rem; color: #f9ab00; }
+.vs-ga-title { font-weight: 700; font-size: 0.9rem; color: #374151; }
+
+.vs-refresh-sm {
+  padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 8px;
+  background: #fff; cursor: pointer; color: #6b7280; font-size: 0.82rem;
+  display: flex; align-items: center; margin-left: auto;
+}
+.vs-refresh-sm:hover { background: #f3f4f6; }
+
+.vs-ga-error {
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 16px; color: #dc2626; font-size: 0.85rem;
+}
+.vs-ga-error-help { color: #6b7280; font-size: 0.78rem; margin-top: 8px; }
+.vs-ga-error-help code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem; }
+
+.vs-ga-realtime-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 1px solid #a7f3d0; border-radius: 10px;
+  padding: 12px 18px; margin-bottom: 16px;
+  font-size: 0.88rem; color: #065f46;
+}
+.vs-ga-realtime-bar strong { font-size: 1.4rem; color: #059669; }
+.vs-ga-rt-countries { font-size: 0.78rem; color: #6b7280; }

@@ -35,6 +35,7 @@ import {
   FaStop,
   FaBan,
   FaUnlock,
+  FaCalendarDay,
 } from 'react-icons/fa';
 import {
   getLeads,
@@ -194,6 +195,7 @@ const AdminWhatsApp = () => {
   const [newChatNumber, setNewChatNumber] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('all');
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
+  const [dateFilter, setDateFilter] = useState(''); // '' = all, 'YYYY-MM-DD' = specific day
   const [windowExpired, setWindowExpired] = useState(false);
   const [sendingTemplate, setSendingTemplate] = useState(false);
   const [sendingReengagement, setSendingReengagement] = useState(false);
@@ -1108,6 +1110,13 @@ const AdminWhatsApp = () => {
         if (who !== attendedFilter) return false;
       }
     }
+    // Filtro por fecha (día específico, usando created_at o updated_at)
+    if (dateFilter) {
+      const leadDate = lead.created_at || lead.updated_at;
+      if (!leadDate) return false;
+      const leadDay = new Date(leadDate).toISOString().split('T')[0];
+      if (leadDay !== dateFilter) return false;
+    }
     // Filtro por búsqueda
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -1618,6 +1627,22 @@ const AdminWhatsApp = () => {
                 );
               })}
             </select>
+            <div className="wa-date-filter">
+              <FaCalendarDay className="wa-date-icon" style={{ color: dateFilter ? '#25d366' : '#888' }} />
+              <input
+                type="date"
+                className="wa-filter-select"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                style={{ color: dateFilter ? '#333' : '#888' }}
+                title="Filtrar por día de creación"
+              />
+              {dateFilter && (
+                <button className="wa-date-clear" onClick={() => setDateFilter('')} title="Quitar filtro de fecha">
+                  <FaTimes />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="wa-conversations-list">
