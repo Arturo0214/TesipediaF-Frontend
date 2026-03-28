@@ -26,7 +26,7 @@ function TesisMaestria() {
     "brand": { "@type": "Organization", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "687", "bestRating": "5", "worstRating": "1" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "270", "highPrice": "300", "unitText": "por página" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "160", "highPrice": "200", "unitText": "por página" },
     "url": "https://tesipedia.com/tesis-maestria"
   };
 
@@ -38,7 +38,7 @@ function TesisMaestria() {
     "provider": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para elaborar tu tesis de maestría en México. Investigadores con doctorado, 100% original, verificada con Turnitin y anti-IA. Metodología rigurosa. +680 maestros titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "21600", "highPrice": "45000", "unitText": "por tesis completa" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "12800", "highPrice": "30000", "unitText": "por tesis completa" }
   };
 
   const faqSchema = {
@@ -48,7 +48,7 @@ function TesisMaestria() {
       {
         "@type": "Question",
         "name": "¿Cuánto cuesta una tesis de maestría?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El precio de una tesis de maestría depende del número de páginas y área de estudio. Nuestras tarifas van desde $270 MXN por página ($300 para áreas de salud y exactas). Para una tesis típica de maestría (80 páginas mínimo), el costo es desde $21,600 MXN. Para tesis de 100-150 páginas: entre $27,000 y $45,000 MXN. Ofrecemos planes de pago flexible en 3, 6 o 9 meses." }
+        "acceptedAnswer": { "@type": "Answer", "text": "El precio de una tesis de maestría depende del número de páginas y área de estudio. Nuestras tarifas van desde $160 MXN por página ($200 para áreas de salud y exactas). Para una tesis típica de maestría (80 páginas mínimo), el costo es desde $12,800 MXN. Para tesis de 100-150 páginas: entre $16,000 y $30,000 MXN. Ofrecemos planes de pago flexible en 3, 6 o 9 meses." }
       },
       {
         "@type": "Question",
@@ -91,12 +91,12 @@ function TesisMaestria() {
   return (
     <div className="landing-page">
       <Helmet>
-        <title>Tesis de Maestría en México 2026 | Tesipedia — Desde $270 por página</title>
-        <meta name="description" content="Elabora tu tesis de maestría en México con Tesipedia. Desde $270 MXN por página, 4-6 semanas de entrega. Investigadores con doctorado, 100% original, Turnitin + anti-IA. +680 maestros titulados. Cotiza gratis." />
+        <title>Tesis de Maestría en México 2026 | Tesipedia — Desde $160 por página</title>
+        <meta name="description" content="Elabora tu tesis de maestría en México con Tesipedia. Desde $160 MXN por página, 4-6 semanas de entrega. Investigadores con doctorado, 100% original, Turnitin + anti-IA. +680 maestros titulados. Cotiza gratis." />
         <meta name="keywords" content="tesis de maestría, tesis maestría, hacer tesis maestría, tesis maestría precio, tesis maestría México, tesis de posgrado, maestría profesional" />
         <link rel="canonical" href="https://tesipedia.com/tesis-maestria" />
         <meta property="og:title" content="Tesis de Maestría en México 2026 | Tesipedia" />
-        <meta property="og:description" content="Elabora tu tesis de maestría profesional. Desde $270 MXN/página, 4-6 semanas. Doctores especialistas, Turnitin + anti-IA. +680 maestros titulados. Cotiza gratis." />
+        <meta property="og:description" content="Elabora tu tesis de maestría profesional. Desde $160 MXN/página, 4-6 semanas. Doctores especialistas, Turnitin + anti-IA. +680 maestros titulados. Cotiza gratis." />
         <meta property="og:url" content="https://tesipedia.com/tesis-maestria" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -114,7 +114,7 @@ function TesisMaestria() {
           </div>
           <h1>Tesis de Maestría en México — Profesional, Original y Sin Plagio</h1>
           <p className="landing-hero-sub">
-            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>maestría desde $270 por página</strong>.
+            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>maestría desde $160 por página</strong>.
             Escrita por investigadores con doctorado, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>.
             Entrega en <strong>4-6 semanas</strong>.
           </p>
@@ -201,16 +201,16 @@ function TesisMaestria() {
       <section className="landing-section" id="precios">
         <h2>¿Cuánto cuesta una tesis de maestría?</h2>
         <p className="landing-section-intro">
-          Precios desde $270 MXN por página ($300 para áreas de salud y exactas). Investigadores con doctorado, metodología rigurosa.
+          Precios desde $160 MXN por página ($200 para áreas de salud y exactas). Investigadores con doctorado, metodología rigurosa.
         </p>
         <div className="landing-pricing-grid">
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Maestría Estándar</h3>
-            <div className="pricing-price">Desde <strong>$270/página</strong></div>
+            <div className="pricing-price">Desde <strong>$160/página</strong></div>
             <ul>
               <li>80-100 páginas</li>
-              <li>Precio: $21,600 - $27,000 MXN</li>
+              <li>Precio: $12,800 - $16,000 MXN</li>
               <li>Entrega: 4-6 semanas</li>
               <li>Investigador con doctorado</li>
               <li>Pago en 3, 6 o 9 meses</li>
@@ -221,10 +221,10 @@ function TesisMaestria() {
             <FaGraduationCap className="pricing-icon" />
             <div className="pricing-badge">Más Popular</div>
             <h3>Maestría Completa</h3>
-            <div className="pricing-price">Desde <strong>$270/página</strong></div>
+            <div className="pricing-price">Desde <strong>$160/página</strong></div>
             <ul>
               <li>100-150 páginas</li>
-              <li>Precio: $27,000 - $40,500 MXN</li>
+              <li>Precio: $16,000 - $24,000 MXN</li>
               <li>Entrega: 4-6 semanas</li>
               <li>Doctor especialista</li>
               <li>Pago flexible</li>
@@ -234,7 +234,7 @@ function TesisMaestria() {
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Salud y Exactas</h3>
-            <div className="pricing-price">Desde <strong>$300/página</strong></div>
+            <div className="pricing-price">Desde <strong>$200/página</strong></div>
             <ul>
               <li>Medicina, Ingeniería, Ciencias, Matemáticas</li>
               <li>Doctor especialista en el área</li>

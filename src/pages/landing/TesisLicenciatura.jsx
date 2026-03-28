@@ -26,7 +26,7 @@ function TesisLicenciatura() {
     "brand": { "@type": "Organization", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "2847", "bestRating": "5", "worstRating": "1" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "220", "highPrice": "250", "unitText": "por página" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "110", "highPrice": "150", "unitText": "por página" },
     "url": "https://tesipedia.com/tesis-licenciatura"
   };
 
@@ -38,7 +38,7 @@ function TesisLicenciatura() {
     "provider": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para elaborar tu tesis de licenciatura en México. 100% original, verificada con Turnitin y anti-IA. Más de 2,800 estudiantes titulados en nivel licenciatura.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "11000", "highPrice": "25000", "unitText": "por tesis completa" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "15000", "unitText": "por tesis completa" }
   };
 
   const faqSchema = {
@@ -48,7 +48,7 @@ function TesisLicenciatura() {
       {
         "@type": "Question",
         "name": "¿Cuánto cuesta una tesis de licenciatura?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El precio de una tesis de licenciatura depende del número de páginas y área de estudio. Nuestras tarifas van desde $220 MXN por página ($250 para áreas de salud y exactas). Para una tesis típica de licenciatura (50 páginas mínimo), el costo es desde $11,000 MXN. Para tesis de 70-100 páginas: entre $15,400 y $25,000 MXN. Ofrecemos planes de pago flexible en 3 o 6 meses." }
+        "acceptedAnswer": { "@type": "Answer", "text": "El precio de una tesis de licenciatura depende del número de páginas y área de estudio. Nuestras tarifas van desde $110 MXN por página ($150 para áreas de salud y exactas). Para una tesis típica de licenciatura (50 páginas mínimo), el costo es desde $5,500 MXN. Para tesis de 70-100 páginas: entre $7,700 y $15,000 MXN. Ofrecemos planes de pago flexible en 3 o 6 meses." }
       },
       {
         "@type": "Question",
@@ -91,12 +91,12 @@ function TesisLicenciatura() {
   return (
     <div className="landing-page">
       <Helmet>
-        <title>Tesis de Licenciatura en México 2026 | Tesipedia — Desde $220 por página</title>
-        <meta name="description" content="Elabora tu tesis de licenciatura en México con Tesipedia. Desde $220 MXN por página, 3-4 semanas de entrega. 100% original, verificada con Turnitin y anti-IA. +2,800 titulados. Cotiza gratis." />
+        <title>Tesis de Licenciatura en México 2026 | Tesipedia — Desde $110 por página</title>
+        <meta name="description" content="Elabora tu tesis de licenciatura en México con Tesipedia. Desde $110 MXN por página, 3-4 semanas de entrega. 100% original, verificada con Turnitin y anti-IA. +2,800 titulados. Cotiza gratis." />
         <meta name="keywords" content="tesis de licenciatura, tesis licenciatura, hacer tesis licenciatura, tesis licenciatura precio, tesis licenciatura México, elaboración de tesis licenciatura" />
         <link rel="canonical" href="https://tesipedia.com/tesis-licenciatura" />
         <meta property="og:title" content="Tesis de Licenciatura en México 2026 | Tesipedia" />
-        <meta property="og:description" content="Elabora tu tesis de licenciatura profesional. Desde $220 MXN/página, 3-4 semanas. 100% original, Turnitin + anti-IA. +2,800 estudiantes titulados. Cotiza gratis." />
+        <meta property="og:description" content="Elabora tu tesis de licenciatura profesional. Desde $110 MXN/página, 3-4 semanas. 100% original, Turnitin + anti-IA. +2,800 estudiantes titulados. Cotiza gratis." />
         <meta property="og:url" content="https://tesipedia.com/tesis-licenciatura" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -114,7 +114,7 @@ function TesisLicenciatura() {
           </div>
           <h1>Tesis de Licenciatura en México — Profesional, Original y Sin Plagio</h1>
           <p className="landing-hero-sub">
-            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>licenciatura desde $220 por página</strong>.
+            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>licenciatura desde $110 por página</strong>.
             Escrita por investigadores con maestría, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>.
             Entrega en <strong>3-4 semanas</strong>.
           </p>
@@ -201,16 +201,16 @@ function TesisLicenciatura() {
       <section className="landing-section" id="precios">
         <h2>¿Cuánto cuesta una tesis de licenciatura?</h2>
         <p className="landing-section-intro">
-          Precios desde $220 MXN por página ($250 para áreas de salud y exactas). El costo total depende del número de páginas y tiempo de entrega.
+          Precios desde $110 MXN por página ($150 para áreas de salud y exactas). El costo total depende del número de páginas y tiempo de entrega.
         </p>
         <div className="landing-pricing-grid">
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Licenciatura Estándar</h3>
-            <div className="pricing-price">Desde <strong>$220/página</strong></div>
+            <div className="pricing-price">Desde <strong>$110/página</strong></div>
             <ul>
               <li>50-80 páginas</li>
-              <li>Precio: $11,000 - $17,600 MXN</li>
+              <li>Precio: $5,500 - $8,800 MXN</li>
               <li>Entrega: 3-4 semanas</li>
               <li>Incluye Turnitin + Anti-IA</li>
               <li>Pago en 3 o 6 meses</li>
@@ -221,10 +221,10 @@ function TesisLicenciatura() {
             <FaGraduationCap className="pricing-icon" />
             <div className="pricing-badge">Más Popular</div>
             <h3>Licenciatura Completa</h3>
-            <div className="pricing-price">Desde <strong>$220/página</strong></div>
+            <div className="pricing-price">Desde <strong>$110/página</strong></div>
             <ul>
               <li>80-120 páginas</li>
-              <li>Precio: $17,600 - $26,400 MXN</li>
+              <li>Precio: $8,800 - $13,200 MXN</li>
               <li>Entrega: 3-4 semanas</li>
               <li>Investigador especializado</li>
               <li>Pago en 3 o 6 meses</li>
@@ -234,7 +234,7 @@ function TesisLicenciatura() {
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Salud y Exactas</h3>
-            <div className="pricing-price">Desde <strong>$250/página</strong></div>
+            <div className="pricing-price">Desde <strong>$150/página</strong></div>
             <ul>
               <li>Medicina, Enfermería, Ingeniería, Matemáticas</li>
               <li>Investigador especializado en el área</li>

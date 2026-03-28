@@ -99,7 +99,7 @@ function Home() {
       "bestRating": "5",
       "worstRating": "1"
     },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "9900", "highPrice": "50000", "offerCount": "3" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "50000", "offerCount": "3" },
     "review": [
       {
         "@type": "Review",
@@ -136,8 +136,8 @@ function Home() {
     "offers": {
       "@type": "AggregateOffer",
       "priceCurrency": "MXN",
-      "lowPrice": "170",
-      "highPrice": "350",
+      "lowPrice": "110",
+      "highPrice": "250",
       "unitText": "por página",
       "offerCount": "3"
     },
@@ -250,11 +250,11 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>Hacer Tesis en México | Tesipedia — Te Hacemos Tu Tesis de Licenciatura, Maestría y Doctorado</title>
-        <meta name="description" content="¿Necesitas hacer tu tesis? En Tesipedia te hacemos tu tesis de licenciatura, maestría o doctorado. Compra tu tesis 100% original, sin plagio ni IA. +3,000 titulados en México. Cotiza gratis por WhatsApp." />
-        <meta name="keywords" content="hacer tesis, comprar tesis, hacer mi tesis, te hacemos tu tesis, hacemos tesis, quien me hace mi tesis, comprar tesis México, hacer tesis licenciatura, hacer tesis maestría, hacer tesis doctorado, tesis por encargo, encargar tesis, elaboración de tesis, desarrollo de tesis México, asesoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
-        <meta property="og:title" content="Hacer Tesis en México | Tesipedia — Te Hacemos Tu Tesis 100% Original" />
-        <meta property="og:description" content="¿Necesitas hacer tu tesis? +3,000 estudiantes ya se titularon con Tesipedia. Te hacemos tu tesis 100% original. Cotiza gratis." />
+        <title>Comprar Tesis en México | Tesipedia — Hacemos Tu Tesis de Licenciatura, Maestría y Doctorado | Desde $110/pág</title>
+        <meta name="description" content="¿Quieres comprar tesis en México? Tesipedia elabora tu tesis de licenciatura, maestría y doctorado. 100% original, sin plagio ni IA. Desde $110/página. +3,000 titulados. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="comprar tesis, comprar tesis México, hacer tesis, hacer mi tesis, te hacemos tu tesis, hacemos tesis, quien me hace mi tesis, hacer tesis licenciatura, hacer tesis maestría, hacer tesis doctorado, tesis por encargo, encargar tesis, elaboración de tesis, desarrollo de tesis México, asesoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
+        <meta property="og:title" content="Comprar Tesis en México | Tesipedia — Tesis 100% Original Desde $110/pág" />
+        <meta property="og:description" content="¿Quieres comprar tesis? +3,000 estudiantes titulados con Tesipedia. Tesis 100% original desde $110/página. Cotiza gratis." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tesipedia.com" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />

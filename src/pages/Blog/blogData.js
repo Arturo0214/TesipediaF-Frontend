@@ -20,6 +20,8 @@ export const images = {
   tesisEnLinea: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=800&h=450&fit=crop&q=80',
   titulacion: 'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=800&h=450&fit=crop&q=80',
   herramientasIA: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=450&fit=crop&q=80',
+  comparativaPrecios: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop&q=80',
+  guiaCompra: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=450&fit=crop&q=80',
 };
 
 // Helper function to create URL-friendly slugs
@@ -321,7 +323,7 @@ No es solo "entregar un documento" — te acompañamos hasta que te titules.
 
 💰 ¿Cuánto cuesta realmente?
 
-Depende de varios factores: nivel académico, número de páginas, área de estudio y urgencia. Como referencia, nuestros precios van desde $120 por página en redacción y $60 por página en corrección. El precio final depende de tu proyecto específico — por eso ofrecemos cotización personalizada y gratuita.
+Depende de varios factores: nivel académico, número de páginas, área de estudio y urgencia. Como referencia, nuestros precios van desde $110 por página en redacción y $55 por página en corrección. El precio final depende de tu proyecto específico — por eso ofrecemos cotización personalizada y gratuita.
 
 Aceptamos tarjetas, transferencias, OXXO y pagos en parcialidades. Sabemos que no todos pueden pagar de un jalón.
 
@@ -367,7 +369,7 @@ Hay muchos servicios en el mercado, y no todos son iguales. Antes de pagar un so
 
 📊 Rango de precios realista
 
-En Tesipedia manejamos precios desde $120 por página en redacción y $60 por página en corrección. El costo final depende de tu nivel académico, área y urgencia. Si alguien te ofrece precios ridículamente bajos, desconfía — probablemente sea un trabajo reciclado o generado con ChatGPT sin revisión.
+En Tesipedia manejamos precios desde $110 por página en redacción y $55 por página en corrección. El costo final depende de tu nivel académico, área y urgencia. Si alguien te ofrece precios ridículamente bajos, desconfía — probablemente sea un trabajo reciclado o generado con ChatGPT sin revisión.
 
 🔬 Lo que incluye Tesipedia
 
@@ -975,6 +977,120 @@ Cada vez más tesis combinan enfoques cuantitativos y cualitativos. Puedes hacer
 🎯 ¿Cómo elijo el mío?
 
 Hazte estas preguntas: ¿Qué tipo de respuesta necesito (número o comprensión profunda)? ¿Tengo acceso a suficientes participantes para una muestra cuantitativa? ¿Cuánto tiempo y presupuesto tengo? ¿Qué espera mi universidad o mi asesor? La respuesta honesta a estas preguntas te llevará al método correcto.`
+  },
+  {
+    id: 22,
+    title: 'Comparativa de Precios de Servicios de Tesis en México 2026: ¿Cuánto Cobran Realmente?',
+    excerpt: 'Analizamos los precios reales de los principales servicios de elaboración de tesis en México. Comparativa detallada por nivel académico, área de estudio y tipo de servicio para que tomes la mejor decisión.',
+    image: images.comparativaPrecios,
+    date: '2026-03-28',
+    category: 'Precios',
+    readTime: '12 min',
+    featured: true,
+    slug: 'comparativa-precios-servicios-tesis-mexico-2026',
+    content: `Si estás buscando comprar una tesis en México, probablemente ya descubriste que los precios varían enormemente. Desde "$3,000 por tu tesis completa" hasta cotizaciones de $80,000 o más. ¿Cómo saber si te están cobrando de más — o peor, si el precio bajo esconde un servicio que te va a dejar sin tesis y sin dinero?
+
+En esta guía analizamos los precios reales del mercado en 2026 para que compares con información real.
+
+💰 Rangos de precio por nivel académico (mercado mexicano 2026)
+
+El mercado de servicios de tesis en México se ha profesionalizado significativamente. Estos son los rangos que encontrarás:
+
+Tesis de licenciatura: El rango va desde $5,500 MXN hasta $30,000 MXN dependiendo del número de páginas, área de estudio y urgencia. El precio promedio por página oscila entre $110 y $250 MXN. Las áreas de ciencias exactas y salud suelen tener un sobrecosto del 20-40%.
+
+Tesis de maestría: Aquí los precios van desde $12,800 MXN hasta $50,000 MXN. El precio por página promedio es de $160-$300 MXN. La complejidad metodológica de una maestría justifica precios más altos.
+
+Tesis de doctorado: Los precios más altos del mercado, desde $25,200 MXN hasta $87,500 MXN. El precio por página va de $210-$400 MXN. La investigación doctoral requiere investigadores con doctorado y experiencia en publicación indexada.
+
+📊 ¿Qué incluye (y qué NO incluye) el precio?
+
+Esta es la pregunta clave que muchos estudiantes olvidan hacer. Un precio bajo que no incluye lo esencial termina costando más:
+
+Servicios que DEBEN estar incluidos: reporte de Turnitin (antiplagio), escáner anti-IA, al menos 1-2 rondas de correcciones, asesoría personalizada, avances parciales y formato según tu universidad.
+
+Servicios que son extra en algunos proveedores pero que Tesipedia incluye: correcciones de sinodales, preparación para defensa, acompañamiento hasta titulación y certificado anti-IA.
+
+Costos ocultos comunes: correcciones adicionales ($500-$2,000 por ronda), cambio de tema ($3,000-$5,000), urgencia ($2,000-$8,000 extra), formato especial ($1,000-$2,000).
+
+⚠️ Por qué el precio más bajo NO es la mejor opción
+
+Cuando ves una "tesis completa por $3,000 MXN", pregúntate: ¿quién puede investigar, redactar y corregir 80 páginas de contenido académico original por ese precio? La respuesta es nadie que haga un trabajo serio.
+
+Los servicios ultra-baratos generalmente: reciclan tesis anteriores (alto riesgo de plagio), usan IA sin supervisión (detectable por tu universidad), no ofrecen correcciones, no dan reporte Turnitin, y desaparecen después del pago.
+
+El resultado: reprobas, pierdes tu dinero, y tienes que empezar de cero con otro servicio.
+
+✅ Tesipedia: precios competitivos con calidad garantizada
+
+En Tesipedia ofrecemos los precios más competitivos del mercado mexicano SIN sacrificar calidad. Nuestros precios desde $110/página para licenciatura incluyen: investigadores humanos con posgrado (nunca IA), reporte Turnitin + certificado anti-IA, correcciones ilimitadas incluyendo sinodales, acompañamiento hasta tu titulación, y pagos flexibles en 3, 6 o 12 meses.
+
+Más de 3,000 estudiantes ya se titularon con nosotros. 98% de índice de aprobación. Cotiza gratis por WhatsApp al +52 56 7007 1517.
+
+🎯 Cómo elegir el mejor servicio para tu presupuesto
+
+No elijas solo por precio. Considera estos factores: ¿Incluye Turnitin y anti-IA? ¿Cuántas correcciones incluye? ¿Quién redacta (investigador con posgrado o freelancer sin experiencia)? ¿Tienen contrato y factura? ¿Ofrecen garantía de aprobación? ¿Puedes ver avances parciales?
+
+El servicio ideal combina precio justo, calidad verificable y garantías reales. Eso es exactamente lo que ofrecemos en Tesipedia.`
+  },
+  {
+    id: 23,
+    title: 'Comprar Tesis en México 2026: Todo Lo Que Necesitas Saber Antes de Decidir',
+    excerpt: 'La guía más completa sobre comprar tesis en México. Precios actualizados, cómo identificar servicios confiables, qué preguntar y cómo proteger tu inversión académica.',
+    image: images.guiaCompra,
+    date: '2026-03-28',
+    category: 'Guías',
+    readTime: '15 min',
+    featured: true,
+    slug: 'comprar-tesis-mexico-2026-guia-completa',
+    content: `Comprar una tesis en México es una decisión importante que puede marcar la diferencia entre titularte en semanas o seguir atorado durante años. Pero con tantas opciones en internet, ¿cómo saber cuál es la correcta? Esta guía te explica todo: precios reales, cómo funciona el proceso, qué debes exigir y cómo protegerte.
+
+📋 ¿Es legal comprar una tesis en México?
+
+Los servicios de asesoría y elaboración de tesis operan como consultorías académicas profesionales. Al igual que contratar a un contador para tu declaración fiscal o a un abogado para un contrato, contratar a un especialista para tu investigación académica es legal. Lo importante es que el servicio sea profesional, que la investigación sea original, y que tú comprendas el contenido de tu tesis para defenderla ante tu jurado.
+
+💡 ¿Cómo funciona el proceso de comprar una tesis?
+
+El proceso profesional en un servicio como Tesipedia funciona así:
+
+Paso 1 — Cotización gratuita: Envías los datos de tu tesis (carrera, nivel, número de páginas, tema y fecha de entrega). Recibes una cotización personalizada sin compromiso.
+
+Paso 2 — Asignación de investigador: Se te asigna un investigador especialista en tu área con maestría o doctorado. Revisas su perfil y apruebas.
+
+Paso 3 — Desarrollo con avances: Tu investigador elabora la tesis con avances semanales o quincenales. Puedes revisar, hacer comentarios y solicitar ajustes en cada entrega parcial.
+
+Paso 4 — Verificación y entrega: Se ejecuta verificación con Turnitin (antiplagio) y escáner anti-IA. Recibes la tesis completa con reportes de verificación.
+
+Paso 5 — Correcciones y defensa: Si tu jurado solicita cambios, se realizan sin costo adicional. Opcionalmente te preparan para la defensa oral.
+
+💰 Precios actualizados 2026
+
+Los precios de una tesis profesional en México dependen del nivel académico:
+
+Licenciatura: Desde $110 MXN por página. Una tesis de 50-80 páginas cuesta entre $5,500 y $8,800 MXN.
+Maestría: Desde $160 MXN por página. Una tesis de 80-120 páginas cuesta entre $12,800 y $19,200 MXN.
+Doctorado: Desde $210 MXN por página. Una tesis de 120-200 páginas cuesta entre $25,200 y $42,000 MXN.
+
+Áreas de salud y ciencias exactas tienen un sobrecosto del 20-30% por la complejidad adicional.
+
+🔍 Señales de un servicio confiable vs uno fraudulento
+
+CONFIABLE: Tiene página web profesional, ofrece contrato de servicios, trabaja con pagos parciales, incluye Turnitin y anti-IA, muestra testimonios verificables, da avances parciales, tiene equipo con credenciales verificables.
+
+FRAUDULENTO: Solo tiene página de Facebook o WhatsApp, exige pago completo por adelantado, promete tesis en 3-5 días, precios de $2,000-$3,000 por una tesis completa, no ofrece correcciones, no da reportes de verificación.
+
+🛡️ Cómo proteger tu inversión
+
+Siempre exige contrato por escrito que detalle: número exacto de páginas, plazo de entrega, número de correcciones incluidas, herramientas de verificación (Turnitin, anti-IA), política de reembolso y formas de pago. Guarda todos los comprobantes y comunicaciones por escrito.
+
+📱 Preguntas que debes hacer antes de pagar
+
+¿Quién va a redactar mi tesis? ¿Qué formación tiene? ¿Incluyen reporte Turnitin y certificado anti-IA? ¿Cuántas correcciones están incluidas? ¿Puedo ver avances parciales? ¿Qué pasa si mi jurado pide cambios? ¿Tienen garantía de aprobación? ¿Ofrecen factura y contrato?
+
+🎓 ¿Por qué más de 3,000 estudiantes eligieron Tesipedia?
+
+Tesipedia es el servicio #1 de elaboración de tesis en México. Ofrecemos los precios más competitivos del mercado (desde $110/página), investigadores humanos con posgrado, verificación Turnitin + anti-IA incluida, correcciones ilimitadas incluyendo observaciones de sinodales, acompañamiento hasta tu titulación, y pagos flexibles en 3, 6 o 12 meses.
+
+No arriesgues tu título con servicios dudosos. Cotiza gratis por WhatsApp al +52 56 7007 1517 o visita tesipedia.com/comprar-tesis para conocer todos nuestros planes.`
   }
 ];
 

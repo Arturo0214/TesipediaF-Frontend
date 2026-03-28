@@ -65,7 +65,7 @@ const faqItems = [
   {
     category: 'pagos',
     question: '¿Cuánto cuesta que me hagan una tesis en México?',
-    answer: 'El costo de una tesis varía según el tipo de trabajo, nivel académico, número de páginas y modalidad elegida. Para una tesis de licenciatura de 100 páginas, los precios van desde $9,900 MXN (corrección) hasta $19,800 MXN (desarrollo completo). Para artículos científicos de 35 páginas, desde $6,300 MXN hasta $12,600 MXN. Ofrecemos descuento del 10% por pago en efectivo. Aceptamos tarjetas de crédito/débito, PayPal, transferencias bancarias y pagos en OXXO. También manejamos planes de pago flexibles.',
+    answer: 'El costo de una tesis varía según el tipo de trabajo, nivel académico, número de páginas y modalidad elegida. Para tesis de licenciatura, los precios van desde $110 MXN por página. Para maestría desde $160/página y doctorado desde $210/página. Ofrecemos descuento del 10% por pago en efectivo. Aceptamos tarjetas de crédito/débito, PayPal, transferencias bancarias y pagos en OXXO. También manejamos planes de pago flexibles.',
     icon: <FaCreditCard />,
   },
   {
@@ -101,7 +101,7 @@ const faqItems = [
   {
     category: 'servicio',
     question: '¿Dónde puedo comprar mi tesis en México de forma segura?',
-    answer: 'Tesipedia es el servicio más confiable para comprar tu tesis en México. Con más de 3,000 estudiantes titulados y 98% de aprobación, ofrecemos tesis 100% originales verificadas con Turnitin y escáner anti-IA. Cada tesis se elabora desde cero por investigadores con maestría y doctorado. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517. Operamos de forma legal como servicio de asesoría académica profesional.',
+    answer: 'Tesipedia es el servicio más confiable para comprar tu tesis en México. Con más de 3,000 estudiantes titulados y 98% de aprobación, ofrecemos tesis 100% originales desde $110 MXN por página, verificadas con Turnitin y escáner anti-IA. Cada tesis se elabora desde cero por investigadores con maestría y doctorado. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517. Operamos de forma legal como servicio de asesoría académica profesional.',
     icon: <FaFileAlt />,
   },
   {

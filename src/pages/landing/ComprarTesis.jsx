@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
@@ -26,7 +27,7 @@ function ComprarTesis() {
     "brand": { "@type": "Brand", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3247", "bestRating": "5", "worstRating": "1" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "11000", "highPrice": "87500", "offerCount": "3" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "87500", "offerCount": "3" },
     "review": [
       {
         "@type": "Review",
@@ -53,7 +54,7 @@ function ComprarTesis() {
     "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para comprar tu tesis en México. Elaboramos tesis de licenciatura, maestría y doctorado 100% originales. Verificadas con Turnitin y escáner anti-IA. Más de 3,000 estudiantes titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "170", "highPrice": "350", "unitText": "por página" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "110", "highPrice": "250", "unitText": "por página" }
   };
 
   const faqSchema = {
@@ -63,7 +64,7 @@ function ComprarTesis() {
       {
         "@type": "Question",
         "name": "¿Cuánto cuesta comprar una tesis en México?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El precio de comprar una tesis en México varía según el nivel académico, área de estudio y número de páginas. Para licenciatura: desde $11,000 MXN (50 páginas a $220/pág). Para maestría: desde $21,600 MXN (80 páginas a $270/pág). Para doctorado: desde $38,400 MXN (120 páginas a $320/pág). Las áreas de salud y ciencias exactas tienen un costo ligeramente mayor. En Tesipedia ofrecemos cotización gratuita y planes de pago." }
+        "acceptedAnswer": { "@type": "Answer", "text": "El precio de comprar una tesis en México varía según el nivel académico, área de estudio y número de páginas. Para licenciatura: desde $5,500 MXN (50 páginas a $110/pág). Para maestría: desde $12,800 MXN (80 páginas a $160/pág). Para doctorado: desde $25,200 MXN (120 páginas a $210/pág). Las áreas de salud y ciencias exactas tienen un costo ligeramente mayor. En Tesipedia ofrecemos los precios más bajos del mercado, cotización gratuita y planes de pago." }
       },
       {
         "@type": "Question",
@@ -106,12 +107,12 @@ function ComprarTesis() {
   return (
     <div className="landing-page">
       <Helmet>
-        <title>Comprar Tesis en México 2026 | Tesipedia — Tesis 100% Originales</title>
-        <meta name="description" content="¿Quieres comprar tu tesis? En Tesipedia elaboramos tu tesis de licenciatura, maestría y doctorado en México. 100% original, libre de plagio e IA. +3,000 titulados. Cotiza gratis por WhatsApp." />
-        <meta name="keywords" content="comprar tesis, comprar tesis México, hacer tesis, tesis por encargo, tesis profesional, elaboración de tesis, tesis de licenciatura, tesis de maestría, tesis de doctorado, tesipedia" />
+        <title>Comprar Tesis en México 2026 — Desde $110/Página | Tesipedia #1 en Tesis Profesionales</title>
+        <meta name="description" content="Compra tu tesis profesional en México desde $110 por página. Tesis de licenciatura, maestría y doctorado 100% originales. Verificadas con Turnitin y anti-IA. Más de 3,000 titulados. Entrega en 3 semanas. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="comprar tesis, comprar tesis en México, comprar tesis México, tesis por encargo México, hacer tesis, tesis profesional, tesis 100% original, tesis sin plagio, tesis licenciatura, tesis maestría, tesis doctorado, tesipedia, elaboración de tesis, encargar tesis, quién me hace mi tesis" />
         <link rel="canonical" href="https://tesipedia.com/comprar-tesis" />
-        <meta property="og:title" content="Comprar Tesis en México 2026 | Tesipedia" />
-        <meta property="og:description" content="Compra tu tesis profesional en México. 100% original, verificada con Turnitin y anti-IA. +3,000 estudiantes titulados. Cotiza gratis." />
+        <meta property="og:title" content="Comprar Tesis en México 2026 — Desde $110/Página | Tesipedia" />
+        <meta property="og:description" content="Compra tu tesis profesional en México. Desde $110/página. 100% original, Turnitin + anti-IA. +3,000 titulados. Cotiza gratis." />
         <meta property="og:url" content="https://tesipedia.com/comprar-tesis" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -127,11 +128,9 @@ function ComprarTesis() {
           <div className="landing-hero-badge">
             <FaStar className="star-icon" /> 4.9/5 — Más de 3,000 estudiantes titulados
           </div>
-          <h1>Comprar Tesis en México — Profesional, Original y Sin Plagio</h1>
+          <h1>Comprar Tesis en México — Desde $110 por Página, Original y Sin Plagio</h1>
           <p className="landing-hero-sub">
-            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>licenciatura, maestría y doctorado</strong>.
-            Escrita por investigadores humanos, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>.
-            Titúlate sin estrés.
+            En <strong>Tesipedia</strong> puedes <strong>comprar tu tesis de licenciatura, maestría y doctorado</strong> desde <strong>$110 MXN por página</strong>. Escrita por investigadores humanos, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>. Más de 3,000 estudiantes titulados en México.
           </p>
           <div className="landing-hero-ctas">
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary">
@@ -153,8 +152,7 @@ function ComprarTesis() {
       <section className="landing-section" id="por-que-tesipedia">
         <h2>¿Por qué comprar tu tesis en Tesipedia?</h2>
         <p className="landing-section-intro">
-          Somos el servicio de elaboración de tesis más confiable de México. A diferencia de otros servicios,
-          en Tesipedia cada tesis es escrita por investigadores humanos con posgrado — nunca usamos inteligencia artificial.
+          Somos el servicio de elaboración de tesis más confiable de México. A diferencia de otros servicios, en Tesipedia cada tesis es escrita por investigadores humanos con posgrado — nunca usamos inteligencia artificial. Ya sea que busques una <Link to="/tesis-licenciatura">tesis de licenciatura</Link>, <Link to="/tesis-maestria">tesis de maestría</Link> o <Link to="/tesis-doctoral">tesis doctoral</Link>, estás en el lugar correcto.
         </p>
         <div className="landing-features-grid">
           <div className="landing-feature-card">
@@ -223,14 +221,14 @@ function ComprarTesis() {
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Tesis de Licenciatura</h3>
-            <div className="pricing-price">Desde <strong>$220/pág</strong></div>
-            <div className="pricing-ref">~$11,000 MXN (50 págs)</div>
+            <div className="pricing-price">Desde <strong>$110/pág</strong></div>
+            <div className="pricing-ref">~$5,500 MXN (50 págs)</div>
             <ul>
               <li>50-120 páginas</li>
               <li>Entrega: 3-4 semanas</li>
               <li>Incluye Turnitin + Anti-IA</li>
               <li>Correcciones de sinodales</li>
-              <li>Áreas salud/exactas: $250/pág</li>
+              <li>Áreas salud/exactas: $150/pág</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Licenciatura</a>
           </div>
@@ -238,28 +236,28 @@ function ComprarTesis() {
             <FaGraduationCap className="pricing-icon" />
             <div className="pricing-badge">Más Popular</div>
             <h3>Tesis de Maestría</h3>
-            <div className="pricing-price">Desde <strong>$270/pág</strong></div>
-            <div className="pricing-ref">~$21,600 MXN (80 págs)</div>
+            <div className="pricing-price">Desde <strong>$160/pág</strong></div>
+            <div className="pricing-ref">~$12,800 MXN (80 págs)</div>
             <ul>
               <li>80-150 páginas</li>
               <li>Entrega: 4-6 semanas</li>
               <li>Investigador con doctorado</li>
               <li>Incluye Turnitin + Anti-IA</li>
-              <li>Áreas salud/exactas: $300/pág</li>
+              <li>Áreas salud/exactas: $200/pág</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Maestría</a>
           </div>
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Tesis de Doctorado</h3>
-            <div className="pricing-price">Desde <strong>$320/pág</strong></div>
-            <div className="pricing-ref">~$38,400 MXN (120 págs)</div>
+            <div className="pricing-price">Desde <strong>$210/pág</strong></div>
+            <div className="pricing-ref">~$25,200 MXN (120 págs)</div>
             <ul>
               <li>120-250 páginas</li>
               <li>Entrega: 6-8 semanas</li>
               <li>Investigador con doctorado</li>
               <li>Publicación indexada opcional</li>
-              <li>Áreas salud/exactas: $350/pág</li>
+              <li>Áreas salud/exactas: $250/pág</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Doctorado</a>
           </div>
@@ -307,6 +305,20 @@ function ComprarTesis() {
           <FaWhatsapp /> Cotizar Mi Tesis por WhatsApp
         </a>
         <p className="landing-final-sub">O llámanos: <a href="tel:+525670071517">+52 56 7007 1517</a></p>
+      </section>
+
+      {/* INTERNAL LINKS SEO */}
+      <section className="landing-section" style={{ paddingTop: '1rem', paddingBottom: '2rem' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.1rem', color: '#1e3a5f', marginBottom: '1rem' }}>Servicios relacionados</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
+            <Link to="/tesis-licenciatura" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Tesis de Licenciatura desde $110/pág</Link>
+            <Link to="/tesis-maestria" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Tesis de Maestría desde $160/pág</Link>
+            <Link to="/tesis-doctoral" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Tesis Doctoral desde $210/pág</Link>
+            <Link to="/preguntas-frecuentes" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Preguntas Frecuentes</Link>
+            <Link to="/blog" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Blog Académico</Link>
+          </div>
+        </div>
       </section>
     </div>
   );

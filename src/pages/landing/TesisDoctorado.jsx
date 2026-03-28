@@ -26,7 +26,7 @@ function TesisDoctorado() {
     "brand": { "@type": "Organization", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "142", "bestRating": "5", "worstRating": "1" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "320", "highPrice": "350", "unitText": "por página" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "210", "highPrice": "250", "unitText": "por página" },
     "url": "https://tesipedia.com/tesis-doctoral"
   };
 
@@ -38,7 +38,7 @@ function TesisDoctorado() {
     "provider": { "@type": "Organization", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para elaborar tu tesis doctoral en México. Investigadores doctores con experiencia internacional, nivel publicable, 100% original. Publicación en revistas indexadas incluida. +140 doctores titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "38400", "highPrice": "87500", "unitText": "por tesis completa" }
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "25200", "highPrice": "62500", "unitText": "por tesis completa" }
   };
 
   const faqSchema = {
@@ -48,7 +48,7 @@ function TesisDoctorado() {
       {
         "@type": "Question",
         "name": "¿Cuánto cuesta una tesis doctoral?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El precio de una tesis doctoral depende del número de páginas y área de estudio. Nuestras tarifas van desde $320 MXN por página ($350 para áreas de salud y exactas). Para una tesis típica de doctorado (120 páginas mínimo), el costo es desde $38,400 MXN. Para tesis de 150-250 páginas: entre $48,000 y $87,500 MXN. Ofrecemos planes de pago flexible en 6, 9 o 12 meses." }
+        "acceptedAnswer": { "@type": "Answer", "text": "El precio de una tesis doctoral depende del número de páginas y área de estudio. Nuestras tarifas van desde $210 MXN por página ($250 para áreas de salud y exactas). Para una tesis típica de doctorado (120 páginas mínimo), el costo es desde $25,200 MXN. Para tesis de 150-250 páginas: entre $31,500 y $62,500 MXN. Ofrecemos planes de pago flexible en 6, 9 o 12 meses." }
       },
       {
         "@type": "Question",
@@ -91,12 +91,12 @@ function TesisDoctorado() {
   return (
     <div className="landing-page">
       <Helmet>
-        <title>Tesis Doctoral en México 2026 | Tesipedia — Desde $320 por página</title>
-        <meta name="description" content="Elabora tu tesis doctoral en México con Tesipedia. Desde $320 MXN por página, 6-8 semanas de entrega. Investigadores doctores internacionales, 100% original, publicación indexada. +140 doctores titulados. Cotiza gratis." />
+        <title>Tesis Doctoral en México 2026 | Tesipedia — Desde $210 por página</title>
+        <meta name="description" content="Elabora tu tesis doctoral en México con Tesipedia. Desde $210 MXN por página, 6-8 semanas de entrega. Investigadores doctores internacionales, 100% original, publicación indexada. +140 doctores titulados. Cotiza gratis." />
         <meta name="keywords" content="tesis doctoral, tesis de doctorado, hacer tesis doctoral, tesis doctoral México, tesis doctorado precio, publicación tesis, revista indexada" />
         <link rel="canonical" href="https://tesipedia.com/tesis-doctoral" />
         <meta property="og:title" content="Tesis Doctoral en México 2026 | Tesipedia" />
-        <meta property="og:description" content="Elabora tu tesis doctoral profesional. Desde $320 MXN/página, 6-8 semanas. Doctores internacionales, nivel publicable, Turnitin + anti-IA. +140 doctores titulados. Cotiza gratis." />
+        <meta property="og:description" content="Elabora tu tesis doctoral profesional. Desde $210 MXN/página, 6-8 semanas. Doctores internacionales, nivel publicable, Turnitin + anti-IA. +140 doctores titulados. Cotiza gratis." />
         <meta property="og:url" content="https://tesipedia.com/tesis-doctoral" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -114,7 +114,7 @@ function TesisDoctorado() {
           </div>
           <h1>Tesis Doctoral en México — Profesional, Original y Publicable</h1>
           <p className="landing-hero-sub">
-            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>doctorado desde $320 por página</strong>.
+            En <strong>Tesipedia</strong> elaboramos tu tesis de <strong>doctorado desde $210 por página</strong>.
             Escrita por doctores internacionales, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>.
             Entrega en <strong>6-8 semanas</strong>. Publicación indexada incluida.
           </p>
@@ -201,16 +201,16 @@ function TesisDoctorado() {
       <section className="landing-section" id="precios">
         <h2>¿Cuánto cuesta una tesis doctoral?</h2>
         <p className="landing-section-intro">
-          Precios desde $320 MXN por página ($350 para áreas de salud y exactas). Doctores internacionales, investigación de nivel clase mundial.
+          Precios desde $210 MXN por página ($250 para áreas de salud y exactas). Doctores internacionales, investigación de nivel clase mundial.
         </p>
         <div className="landing-pricing-grid">
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Doctorado Estándar</h3>
-            <div className="pricing-price">Desde <strong>$320/página</strong></div>
+            <div className="pricing-price">Desde <strong>$210/página</strong></div>
             <ul>
               <li>120-150 páginas</li>
-              <li>Precio: $38,400 - $48,000 MXN</li>
+              <li>Precio: $25,200 - $31,500 MXN</li>
               <li>Entrega: 6-8 semanas</li>
               <li>Doctor especialista</li>
               <li>Pago flexible 6-12 meses</li>
@@ -221,10 +221,10 @@ function TesisDoctorado() {
             <FaGraduationCap className="pricing-icon" />
             <div className="pricing-badge">Más Popular</div>
             <h3>Doctorado Completo</h3>
-            <div className="pricing-price">Desde <strong>$320/página</strong></div>
+            <div className="pricing-price">Desde <strong>$210/página</strong></div>
             <ul>
               <li>150-200 páginas</li>
-              <li>Precio: $48,000 - $64,000 MXN</li>
+              <li>Precio: $31,500 - $42,000 MXN</li>
               <li>Entrega: 6-8 semanas</li>
               <li>Equipo de doctores</li>
               <li>Pago flexible 9-12 meses</li>
@@ -234,7 +234,7 @@ function TesisDoctorado() {
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Salud y Exactas</h3>
-            <div className="pricing-price">Desde <strong>$350/página</strong></div>
+            <div className="pricing-price">Desde <strong>$250/página</strong></div>
             <ul>
               <li>Medicina, Ciencias, Ingeniería, Matemáticas</li>
               <li>Doctor especialista en el área</li>
