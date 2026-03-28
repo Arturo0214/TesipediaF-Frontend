@@ -1,0 +1,243 @@
+/* ============ COTIZAR LANDING — BOOKING STYLE ============ */
+
+/* Hero adjustments */
+.cotizar-hero {
+  padding-bottom: 70px;
+}
+
+/* Booking-style badges */
+.cotizar-booking-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.booking-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.booking-badge svg {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+/* Pulse CTA */
+.cotizar-cta-pulse {
+  animation: ctaPulse 2.5s ease-in-out infinite;
+}
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35); }
+  50% { box-shadow: 0 4px 28px rgba(37, 211, 102, 0.6); }
+}
+
+/* ---- FORM SECTION ---- */
+.cotizar-form-section {
+  max-width: 680px;
+  margin: 0 auto;
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.cotizar-form {
+  background: #fff;
+  border: 1px solid #e8eaf0;
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.cotizar-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.cotizar-field-full {
+  grid-column: 1 / -1;
+}
+
+.cotizar-field label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+
+.cotizar-field input,
+.cotizar-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #d4d8e0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  background: #fafbfc;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  font-family: inherit;
+}
+.cotizar-field input:focus,
+.cotizar-field select:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  background: #fff;
+}
+.cotizar-field input.has-error,
+.cotizar-field select.has-error {
+  border-color: #f44336;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+.field-error {
+  display: block;
+  font-size: 0.8rem;
+  color: #f44336;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Phone input with prefix */
+.phone-input-wrap {
+  display: flex;
+  align-items: stretch;
+}
+.phone-prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: #eef0f4;
+  border: 1.5px solid #d4d8e0;
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+.phone-input-wrap input {
+  border-radius: 0 10px 10px 0;
+}
+
+/* Submit button */
+.cotizar-submit-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.cotizar-submit-btn:hover:not(:disabled) {
+  background: #4338CA;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+.cotizar-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cotizar-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cotizar-form-note {
+  text-align: center;
+  font-size: 0.82rem;
+  color: #888;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cotizar-form-note svg {
+  color: #4F46E5;
+  font-size: 0.85rem;
+}
+
+.cotizar-error-msg {
+  text-align: center;
+  color: #f44336;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+.cotizar-error-msg a {
+  color: #25d366;
+  font-weight: 600;
+}
+
+/* ---- SUCCESS STATE ---- */
+.cotizar-success-msg {
+  text-align: center;
+  background: #fff;
+  border: 2px solid #25d366;
+  border-radius: 16px;
+  padding: 48px 28px;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.1);
+}
+.cotizar-success-msg > svg {
+  font-size: 3rem;
+  color: #25d366;
+  margin-bottom: 16px;
+}
+.cotizar-success-msg h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+.cotizar-success-msg p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 600px) {
+  .cotizar-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .cotizar-form {
+    padding: 24px 18px;
+  }
+  .cotizar-form-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .cotizar-booking-badges {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+}
