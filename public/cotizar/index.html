@@ -106,7 +106,34 @@
 
   <a href="#main-content" class="skip-to-content" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;">Saltar al contenido principal</a>
   <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+  <script>
+    // This static HTML exists only for OG meta tags (crawlers don't execute JS).
+    // For real browsers: dynamically load the SPA bundle from the root index.html
+    // since Vite doesn't transform files inside public/.
+    fetch('/index.html')
+      .then(function(r) { return r.text(); })
+      .then(function(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        // Inject CSS from root build
+        doc.querySelectorAll('link[rel="stylesheet"]').forEach(function(l) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = l.getAttribute('href');
+          document.head.appendChild(link);
+        });
+        // Inject JS modules from root build
+        doc.querySelectorAll('script[type="module"][src]').forEach(function(s) {
+          var script = document.createElement('script');
+          script.type = 'module';
+          script.src = s.getAttribute('src');
+          document.body.appendChild(script);
+        });
+      })
+      .catch(function() {
+        // Fallback: show noscript content for browsers without fetch
+      });
+  </script>
 
   <!-- Google tag (gtag.js) - Deferred to not block rendering -->
   <script>
