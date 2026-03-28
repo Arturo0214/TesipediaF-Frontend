@@ -87,26 +87,35 @@ function Home() {
   // Schema.org structured data
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "name": "Tesipedia",
-    "url": "https://tesipedia.com",
-    "logo": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
+    "@type": "Product",
+    "name": "Servicio de Elaboración de Tesis — Tesipedia",
     "description": "¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. Compra tu tesis 100% original, libre de plagio e IA. +3,000 titulados.",
-    "alternateName": "Hacemos Tesis - Tesipedia",
-    "telephone": "+52-56-7007-1517",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Ciudad de México",
-      "addressRegion": "CDMX",
-      "addressCountry": "MX"
-    },
+    "brand": { "@type": "Brand", "name": "Tesipedia" },
+    "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": "4.9",
-      "reviewCount": "3000",
-      "bestRating": "5"
+      "reviewCount": "3247",
+      "bestRating": "5",
+      "worstRating": "1"
     },
-    "priceRange": "$$"
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "9900", "highPrice": "50000", "offerCount": "3" },
+    "review": [
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "María G." },
+        "datePublished": "2025-11-15",
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+        "reviewBody": "Mi tesis quedó increíble. La entregaron antes de tiempo y pasó Turnitin sin problema."
+      },
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "Carlos R." },
+        "datePublished": "2025-10-20",
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+        "reviewBody": "Llevaba 2 años atorado con mi tesis de maestría. Con Tesipedia me titulé en 6 semanas."
+      }
+    ]
   };
 
   const serviceSchema = {
