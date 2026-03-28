@@ -14,6 +14,7 @@ import {
   FaFilter, FaChevronDown, FaChevronUp, FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { SiGoogleanalytics } from 'react-icons/si';
+import VisitsMap from './VisitsMap';
 import './ManageVisits.css';
 
 const ManageVisits = () => {
@@ -188,10 +189,21 @@ const ManageVisits = () => {
     visits.forEach(v => { byPath[v.path || '/'] = (byPath[v.path || '/'] || 0) + 1; });
     const topPaths = Object.entries(byPath).sort(([, a], [, b]) => b - a).slice(0, 8);
 
+    // Build visitsByCountry with ISO codes for the map
+    const visitsByCountryISO = {};
+    visits.forEach(v => {
+      const code = v.geoLocation?.country;
+      if (code && code !== 'Desconocido' && code !== 'Local' && code !== 'XX') {
+        const iso = code.length === 2 ? code.toUpperCase() : code;
+        visitsByCountryISO[iso] = (visitsByCountryISO[iso] || 0) + 1;
+      }
+    });
+
     return {
       total, today, thisWeek, thisMonth, weekGrowth,
       countries: countries.size, cities: cities.size,
       topCountries, topCities, timeline, hourly, topPaths,
+      visitsByCountryISO,
     };
   }, [visits]);
 
@@ -215,6 +227,10 @@ const ManageVisits = () => {
   const pagedVisits = filteredVisits.slice((page - 1) * perPage, page * perPage);
 
   // ── Helpers ──
+  const countryName = (code) => {
+    if (!code || code === 'Desconocido' || code === 'XX') return 'Desconocido';
+    try { return new Intl.DisplayNames(['es'], { type: 'region' }).of(code.toUpperCase()); } catch { return code; }
+  };
   const fmtDate = (d) => new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
   const fmtTime = (d) => new Date(d).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   const fmtFull = (d) => new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -268,7 +284,7 @@ const ManageVisits = () => {
                 <h4>Ubicacion</h4>
                 <div className="vs-drawer-fields">
                   <div className="vs-drawer-field"><FaMapMarkerAlt className="vs-field-icon" /><div><span className="vs-field-label">Ciudad</span><span className="vs-field-value">{selectedVisit.geoLocation?.city || 'N/A'}</span></div></div>
-                  <div className="vs-drawer-field"><FaGlobe className="vs-field-icon" /><div><span className="vs-field-label">Pais</span><span className="vs-field-value">{selectedVisit.geoLocation?.country || 'N/A'}</span></div></div>
+                  <div className="vs-drawer-field"><FaGlobe className="vs-field-icon" /><div><span className="vs-field-label">Pais</span><span className="vs-field-value">{countryName(selectedVisit.geoLocation?.country) || 'N/A'}</span></div></div>
                   <div className="vs-drawer-field"><FaBuilding className="vs-field-icon" /><div><span className="vs-field-label">Region</span><span className="vs-field-value">{selectedVisit.geoLocation?.region || 'N/A'}</span></div></div>
                   <div className="vs-drawer-field"><FaWifi className="vs-field-icon" /><div><span className="vs-field-label">Organizacion / ISP</span><span className="vs-field-value">{selectedVisit.geoLocation?.org || 'N/A'}</span></div></div>
                   {selectedVisit.geoLocation?.location && <div className="vs-drawer-field"><FaMapMarkerAlt className="vs-field-icon" /><div><span className="vs-field-label">Coordenadas</span><span className="vs-field-value">{selectedVisit.geoLocation.location}</span></div></div>}
@@ -526,6 +542,13 @@ const ManageVisits = () => {
           {/* ── SECTION: Geografia ── */}
           <SectionHeader title="Geografia" icon={<FaGlobe />} sectionKey="geo" expanded={expandedSections.geo} onToggle={toggleSection} />
           {expandedSections.geo && (
+            <>
+            {/* Mapa mundial de visitas */}
+            {Object.keys(stats.visitsByCountryISO).length > 0 && (
+              <div className="vs-chart-card full" style={{ marginBottom: 16 }}>
+                <VisitsMap visitsByCountry={stats.visitsByCountryISO} />
+              </div>
+            )}
             <div className="vs-charts-row">
               {gaData?.countries ? (
                 <div className="vs-chart-card">
@@ -557,7 +580,7 @@ const ManageVisits = () => {
                       return (
                         <div key={name} className="vs-rank-item">
                           <span className="vs-rank-pos">{i + 1}</span>
-                          <span className="vs-rank-name">{name}</span>
+                          <span className="vs-rank-name">{countryName(name)}</span>
                           <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
                           <span className="vs-rank-count">{count}</span>
                           <span className="vs-rank-pct">{pct}%</span>
@@ -605,6 +628,7 @@ const ManageVisits = () => {
                 )}
               </div>
             </div>
+            </>
           )}
 
           {/* ── SECTION: Eventos rapidos ── */}
@@ -981,7 +1005,7 @@ const ManageVisits = () => {
                           </div>
                         </div>
                       </td>
-                      <td><span className="vs-location">{v.geoLocation?.city || 'N/A'}, {v.geoLocation?.country || 'N/A'}</span></td>
+                      <td><span className="vs-location">{v.geoLocation?.city || 'N/A'}, {countryName(v.geoLocation?.country) || 'N/A'}</span></td>
                       <td><span className="vs-path">{v.path || '/'}</span></td>
                       <td><div className="vs-date-group"><span className="vs-date">{fmtDate(v.createdAt)}</span><span className="vs-time">{fmtTime(v.createdAt)}</span></div></td>
                     </tr>

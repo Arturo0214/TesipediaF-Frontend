@@ -39,9 +39,6 @@ function normalizeCountryCode(country, geo) {
 function VisitsMap({ visitsByCountry = {} }) {
     const [tooltip, setTooltip] = useState(null);
 
-    // Debug: mostrar los datos recibidos
-    console.log('visitsByCountry (prop):', visitsByCountry);
-
     const totalVisits = Object.values(visitsByCountry).reduce((a, b) => a + b, 0);
 
     return (
@@ -52,18 +49,9 @@ function VisitsMap({ visitsByCountry = {} }) {
                 <ComposableMap projectionConfig={{ scale: 120 }} width={1000} height={400} style={{ width: '100%', height: '100%' }}>
                     <Geographies geography={geoUrl}>
                         {({ geographies }) => {
-                            // Debug: mostrar los códigos ISO_A2 del mapa
-                            console.log('Geographies:', geographies.map(geo => ({
-                                name: geo.properties.ADMIN,
-                                iso: geo.properties.ISO_A2
-                            })));
                             return geographies.map(geo => {
                                 const iso2 = geo.properties.ISO_A2;
                                 const visits = visitsByCountry[iso2] || 0;
-                                // Debug: mostrar el país y visitas
-                                if (visits > 0) {
-                                    console.log(`Pintando ${geo.properties.ADMIN} (${iso2}): ${visits} visitas`);
-                                }
                                 return (
                                     <Geography
                                         key={geo.rsmKey}
