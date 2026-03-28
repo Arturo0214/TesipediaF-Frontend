@@ -42,25 +42,25 @@
 
 /* ---- FORM SECTION ---- */
 .cotizar-form-section {
-  max-width: 680px;
+  max-width: 620px;
   margin: 0 auto;
-  padding-top: 48px;
-  padding-bottom: 48px;
+  padding-top: 32px;
+  padding-bottom: 32px;
 }
 
 .cotizar-form {
   background: #fff;
   border: 1px solid #e8eaf0;
-  border-radius: 16px;
-  padding: 32px 28px;
+  border-radius: 14px;
+  padding: 20px 20px 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .cotizar-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 24px;
+  gap: 10px 14px;
+  margin-bottom: 14px;
 }
 .cotizar-field-full {
   grid-column: 1 / -1;
@@ -68,19 +68,19 @@
 
 .cotizar-field label {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #1a1a2e;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .cotizar-field input,
 .cotizar-field select {
   width: 100%;
-  padding: 12px 14px;
+  padding: 8px 10px;
   border: 1.5px solid #d4d8e0;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
   color: #1a1a2e;
   background: #fafbfc;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -136,12 +136,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
+  padding: 10px 20px;
   background: #4F46E5;
   color: #fff;
   border: none;
   border-radius: 10px;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
@@ -169,9 +169,9 @@
 
 .cotizar-form-note {
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: #888;
-  margin-top: 16px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -223,7 +223,108 @@
   margin-right: auto;
 }
 
+/* ---- LOGO ---- */
+.cotizar-logo {
+  display: block;
+  margin: 0 auto 20px;
+  max-width: 160px;
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+}
+
+/* ---- HERO HIGHLIGHT ---- */
+.hero-highlight {
+  display: inline-block;
+  background: linear-gradient(135deg, #25d366, #00e676);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: inherit;
+  font-weight: 900;
+}
+
+/* ---- SOCIAL PROOF BAR ---- */
+.cotizar-social-proof-bar {
+  background: linear-gradient(90deg, #4F46E5, #6366f1);
+  color: #fff;
+  text-align: center;
+  padding: 12px 20px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  animation: proofPulse 3s ease-in-out infinite;
+}
+.cotizar-social-proof-bar strong {
+  font-weight: 800;
+}
+@keyframes proofPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+/* ---- TESTIMONIALS ---- */
+.cotizar-testimonials {
+  padding-top: 56px;
+  padding-bottom: 56px;
+}
+.cotizar-testimonials h2 {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.cotizar-testimonial-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.cotizar-testimonial-item {
+  background: #fff;
+  border: 1px solid #e8eaf0;
+  border-radius: 14px;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cotizar-testimonial-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cotizar-testimonial-item p {
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.6;
+  margin: 12px 0;
+  font-style: italic;
+}
+.cotizar-testimonial-item strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 8px;
+}
+
+.cotizar-stars {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  color: #f59e0b;
+  font-size: 1rem;
+}
+
 /* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .cotizar-testimonial-strip {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+}
+
 @media (max-width: 600px) {
   .cotizar-form-grid {
     grid-template-columns: 1fr;
@@ -239,5 +340,12 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+  }
+  .cotizar-logo {
+    max-width: 120px;
+  }
+  .cotizar-social-proof-bar {
+    font-size: 0.84rem;
+    padding: 10px 16px;
   }
 }

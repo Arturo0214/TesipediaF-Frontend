@@ -131,7 +131,8 @@
 .landing-section-alt {
   background: #f8f9fc;
   max-width: 100%;
-  padding: 60px 24px;
+  padding: 64px 24px;
+  border-top: 1px solid #eceef3;
 }
 .landing-section-alt > h2,
 .landing-section-alt > p,
@@ -143,7 +144,8 @@
   margin-right: auto;
 }
 
-.landing-section h2 {
+.landing-section h2,
+.landing-section-alt h2 {
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 800;
   text-align: center;
@@ -206,27 +208,29 @@
   padding: 24px 16px;
 }
 .step-number {
-  width: 48px;
-  height: 48px;
-  background: #4F46E5;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #4F46E5, #7c3aed);
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  margin: 0 auto 14px;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
 }
 .landing-step h3 {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 8px;
+  color: #1a1a2e;
 }
 .landing-step p {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: #555;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .landing-cta-center {
