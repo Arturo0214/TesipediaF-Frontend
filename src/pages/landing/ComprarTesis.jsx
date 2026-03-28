@@ -26,7 +26,7 @@ function ComprarTesis() {
     "brand": { "@type": "Brand", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3247", "bestRating": "5", "worstRating": "1" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "9900", "highPrice": "50000", "offerCount": "3" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "11000", "highPrice": "87500", "offerCount": "3" },
     "review": [
       {
         "@type": "Review",
@@ -53,7 +53,7 @@ function ComprarTesis() {
     "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
     "description": "Servicio profesional para comprar tu tesis en México. Elaboramos tesis de licenciatura, maestría y doctorado 100% originales. Verificadas con Turnitin y escáner anti-IA. Más de 3,000 estudiantes titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "60", "highPrice": "120", "unitText": "por página" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "170", "highPrice": "350", "unitText": "por página" },
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3247", "bestRating": "5" }
   };
 
@@ -64,7 +64,7 @@ function ComprarTesis() {
       {
         "@type": "Question",
         "name": "¿Cuánto cuesta comprar una tesis en México?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El precio de comprar una tesis en México varía según el nivel académico y número de páginas. Para licenciatura: desde $9,900 MXN (50 páginas). Para maestría: desde $18,000 MXN. Para doctorado: desde $30,000 MXN. En Tesipedia ofrecemos cotización gratuita y planes de pago a 3 o 6 meses." }
+        "acceptedAnswer": { "@type": "Answer", "text": "El precio de comprar una tesis en México varía según el nivel académico, área de estudio y número de páginas. Para licenciatura: desde $11,000 MXN (50 páginas a $220/pág). Para maestría: desde $21,600 MXN (80 páginas a $270/pág). Para doctorado: desde $38,400 MXN (120 páginas a $320/pág). Las áreas de salud y ciencias exactas tienen un costo ligeramente mayor. En Tesipedia ofrecemos cotización gratuita y planes de pago." }
       },
       {
         "@type": "Question",
@@ -224,13 +224,14 @@ function ComprarTesis() {
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Tesis de Licenciatura</h3>
-            <div className="pricing-price">Desde <strong>$9,900 MXN</strong></div>
+            <div className="pricing-price">Desde <strong>$220/pág</strong></div>
+            <div className="pricing-ref">~$11,000 MXN (50 págs)</div>
             <ul>
               <li>50-120 páginas</li>
               <li>Entrega: 3-4 semanas</li>
               <li>Incluye Turnitin + Anti-IA</li>
               <li>Correcciones de sinodales</li>
-              <li>Pago en 3 o 6 meses</li>
+              <li>Áreas salud/exactas: $250/pág</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Licenciatura</a>
           </div>
@@ -238,26 +239,28 @@ function ComprarTesis() {
             <FaGraduationCap className="pricing-icon" />
             <div className="pricing-badge">Más Popular</div>
             <h3>Tesis de Maestría</h3>
-            <div className="pricing-price">Desde <strong>$18,000 MXN</strong></div>
+            <div className="pricing-price">Desde <strong>$270/pág</strong></div>
+            <div className="pricing-ref">~$21,600 MXN (80 págs)</div>
             <ul>
               <li>80-150 páginas</li>
               <li>Entrega: 4-6 semanas</li>
               <li>Investigador con doctorado</li>
               <li>Incluye Turnitin + Anti-IA</li>
-              <li>Pago en 3 o 6 meses</li>
+              <li>Áreas salud/exactas: $300/pág</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Maestría</a>
           </div>
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
             <h3>Tesis de Doctorado</h3>
-            <div className="pricing-price">Desde <strong>$30,000 MXN</strong></div>
+            <div className="pricing-price">Desde <strong>$320/pág</strong></div>
+            <div className="pricing-ref">~$38,400 MXN (120 págs)</div>
             <ul>
               <li>120-250 páginas</li>
               <li>Entrega: 6-8 semanas</li>
               <li>Investigador con doctorado</li>
               <li>Publicación indexada opcional</li>
-              <li>Pago en 3 o 6 meses</li>
+              <li>Áreas salud/exactas: $350/pág</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card">Cotizar Doctorado</a>
           </div>

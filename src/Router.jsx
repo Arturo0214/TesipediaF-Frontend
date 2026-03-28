@@ -27,6 +27,12 @@ const BlogPost = lazy(() => import('./pages/Blog/BlogPost'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 const SalesQuote = lazy(() => import('./pages/SalesQuote/SalesQuote'));
 
+// SEO Landing Pages
+const ComprarTesis = lazy(() => import('./pages/landing/ComprarTesis'));
+const TesisLicenciatura = lazy(() => import('./pages/landing/TesisLicenciatura'));
+const TesisMaestria = lazy(() => import('./pages/landing/TesisMaestria'));
+const TesisDoctorado = lazy(() => import('./pages/landing/TesisDoctorado'));
+
 // Lazy load protected layouts and pages (not needed on initial load)
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
 const ClientLayout = lazy(() => import('./components/layout/ClientLayout'));
@@ -67,6 +73,10 @@ const router = createBrowserRouter(
         { path: 'blog', element: <LazyPage><Blog /></LazyPage> },
         { path: 'blog/:slug', element: <LazyPage><BlogPost /></LazyPage> },
         { path: 'cotizacion/:id', element: <LazyPage><SalesQuote /></LazyPage> },
+        { path: 'comprar-tesis', element: <LazyPage><ComprarTesis /></LazyPage> },
+        { path: 'tesis-licenciatura', element: <LazyPage><TesisLicenciatura /></LazyPage> },
+        { path: 'tesis-maestria', element: <LazyPage><TesisMaestria /></LazyPage> },
+        { path: 'tesis-doctoral', element: <LazyPage><TesisDoctorado /></LazyPage> },
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },
         { path: '*', element: <LazyPage><NotFound /></LazyPage> },
