@@ -1295,7 +1295,47 @@ const AdminWhatsApp = () => {
       );
     }
 
-    return historial.map((msg, idx) => {
+    // Helper: obtener la fecha (solo dia) de un mensaje para agrupar
+    const getMsgDateKey = (msg, idx) => {
+      let ts = msg.timestamp;
+      if (!ts && msg.role === 'user' && idx + 1 < historial.length && historial[idx + 1].timestamp) {
+        ts = historial[idx + 1].timestamp;
+      }
+      if (!ts) return null;
+      const d = parseUTCDate(ts);
+      if (!d || isNaN(d.getTime())) return null;
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    };
+
+    const formatDateDivider = (ts) => {
+      if (!ts) return '';
+      const d = parseUTCDate(ts);
+      if (!d || isNaN(d.getTime())) return '';
+      const today = new Date();
+      const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+      const isToday = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+      const isYesterday = d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
+      if (isToday) return 'Hoy';
+      if (isYesterday) return 'Ayer';
+      return format(d, "d 'de' MMMM, yyyy", { locale: es });
+    };
+
+    let lastDateKey = null;
+    const elements = [];
+
+    historial.forEach((msg, idx) => {
+      // Insertar separador de fecha cuando cambia el día
+      const dateKey = getMsgDateKey(msg, idx);
+      if (dateKey && dateKey !== lastDateKey) {
+        lastDateKey = dateKey;
+        const ts = msg.timestamp || (msg.role === 'user' && idx + 1 < historial.length ? historial[idx + 1].timestamp : null);
+        elements.push(
+          <div key={`date-${dateKey}`} className="wa-date-divider">
+            <span>{formatDateDivider(ts)}</span>
+          </div>
+        );
+      }
+
       const isUser = msg.role === 'user';
       const isTemplate = !isUser && (msg.isTemplate || msg.content?.startsWith('[TEMPLATE:'));
       const isHuman = !isUser && !isTemplate && (msg.content?.startsWith('[HUMANO]') || msg.content?.startsWith('[HUMANO:'));
@@ -1347,7 +1387,7 @@ const AdminWhatsApp = () => {
         content = content.replace(/\[CALCULAR_COTIZACION\]/g, '').trim();
       }
 
-      return (
+      elements.push(
         <div
           key={idx}
           className={`wa-message ${isUser ? 'wa-message-user' : 'wa-message-bot'} ${isHuman ? 'wa-message-human' : ''} ${isTemplate ? 'wa-message-template' : ''}`}
@@ -1359,7 +1399,7 @@ const AdminWhatsApp = () => {
             <div className="wa-message-sender">
               {isUser ? (selectedLead.nombre || 'Cliente') : isTemplate ? 'Plantilla WhatsApp' : isHuman ? (humanName ? `${humanName} (Humano)` : 'Humano') : 'Sofía (Bot)'}
             </div>
-            
+
             {/* Si hay archivo/media */}
             {msg.mediaUrl && (
               <div className="wa-message-media mt-2 mb-2">
@@ -1378,7 +1418,7 @@ const AdminWhatsApp = () => {
                 )}
               </div>
             )}
-            
+
             {content && <div className="wa-message-text">{formatLabel(content)}</div>}
 
             {stateData && (
@@ -1420,6 +1460,8 @@ const AdminWhatsApp = () => {
         </div>
       );
     });
+
+    return elements;
   };
 
   if (error && !leads.length) {

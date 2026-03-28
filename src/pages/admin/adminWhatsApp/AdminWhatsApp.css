@@ -1995,3 +1995,46 @@
   text-decoration: line-through;
   text-decoration-color: rgba(220, 38, 38, 0.4);
 }
+
+/* ============================================
+   Date Dividers (WhatsApp-style)
+   ============================================ */
+.wa-date-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 24px;
+  user-select: none;
+}
+
+.wa-date-divider::before,
+.wa-date-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.wa-date-divider span {
+  display: inline-block;
+  padding: 4px 14px;
+  background: #e1f2fb;
+  color: #54656f;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+  .wa-date-divider {
+    margin: 8px 12px;
+  }
+  .wa-date-divider span {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+}

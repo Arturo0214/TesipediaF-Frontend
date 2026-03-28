@@ -18,7 +18,9 @@ import {
     FaTimes,
     FaWhatsapp,
     FaCalculator,
-    FaHubspot
+    FaHubspot,
+    FaAngleDoubleLeft,
+    FaAngleDoubleRight
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -90,6 +92,17 @@ const AdminPanel = () => {
     const dispatch = useDispatch();
     const authUser = useSelector(state => state.auth.user);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        try { return localStorage.getItem('tesipedia_sidebar_collapsed') === 'true'; } catch { return false; }
+    });
+
+    const toggleSidebarCollapse = () => {
+        setSidebarCollapsed(prev => {
+            const next = !prev;
+            try { localStorage.setItem('tesipedia_sidebar_collapsed', String(next)); } catch {}
+            return next;
+        });
+    };
 
     // Determinar pestaña inicial basada en la URL
     const getInitialTab = () => {
@@ -122,13 +135,15 @@ const AdminPanel = () => {
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas' }
     ];
 
-    // Mapeo inverso: sección → tipo de notificación
-    const sectionToNotificationType = {
-        cotizaciones: 'cotizacion',
-        proyectos: 'proyecto',
-        pagos: 'pago',
-        mensajes: 'mensaje',
-        visitas: 'visita',
+    // Mapeo inverso: sección → tipos de notificación que se marcan como leídos
+    const sectionToNotificationTypes = {
+        cotizaciones: ['cotizacion'],
+        proyectos: ['proyecto'],
+        pagos: ['pago', 'pedido'],
+        mensajes: ['mensaje'],
+        visitas: ['visita'],
+        whatsapp: ['whatsapp', 'lead'],
+        dashboard: ['alerta', 'info'],
     };
 
     const handleTabSelect = (key) => {
@@ -137,13 +152,13 @@ const AdminPanel = () => {
         setIsSidebarOpen(false);
 
         // Marcar notificaciones de esta sección como leídas
-        const notificationType = sectionToNotificationType[key];
-        if (notificationType) {
+        const types = sectionToNotificationTypes[key] || [];
+        types.forEach(notificationType => {
             const hasUnread = notifications.some(n => !n.isRead && n.type === notificationType);
             if (hasUnread) {
                 dispatch(markNotificationsByType(notificationType));
             }
-        }
+        });
 
         // Force scroll reset
         window.scrollTo(0, 0);
@@ -258,9 +273,13 @@ const AdminPanel = () => {
         cotizacion: 'cotizaciones',
         proyecto: 'proyectos',
         pago: 'pagos',
+        pedido: 'pagos',
         mensaje: 'mensajes',
         visita: 'visitas',
-        // Puedes agregar más si tienes más secciones
+        whatsapp: 'whatsapp',
+        lead: 'whatsapp',
+        alerta: 'dashboard',
+        info: 'dashboard',
     };
 
     // Calcular notificaciones no leídas por sección
@@ -312,6 +331,7 @@ const AdminPanel = () => {
                                 as={Link}
                                 to={path}
                                 replace
+                                title={label}
                             >
                                 <Icon />
                                 <span>{label}</span>
@@ -338,11 +358,19 @@ const AdminPanel = () => {
             </button>
             {/* Overlay oscuro cuando el sidebar está abierto en mobile */}
             {isSidebarOpen && <div className="tesipedia-admin-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
-            <div className="tesipedia-admin-topbar">
-                <span className="tesipedia-admin-topbar-label">Panel de Administración</span>
-            </div>
-            <div className="tesipedia-admin-container">
-                <aside className={`tesipedia-admin-sidebar ${isSidebarOpen ? 'active' : ''}`}>
+            <div className={`tesipedia-admin-container${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
+                <aside className={`tesipedia-admin-sidebar ${isSidebarOpen ? 'active' : ''}${sidebarCollapsed ? ' collapsed' : ''}`}>
+                    {/* Título + botón de colapsar */}
+                    <div className="tesipedia-sidebar-header">
+                        <span className="tesipedia-sidebar-title">Panel de Administración</span>
+                        <button
+                            className="tesipedia-sidebar-collapse-btn"
+                            onClick={toggleSidebarCollapse}
+                            title={sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+                        >
+                            {sidebarCollapsed ? <FaAngleDoubleRight /> : <FaAngleDoubleLeft />}
+                        </button>
+                    </div>
                     <nav className="tesipedia-admin-nav">
                         {renderNavSection('principal', 'Principal')}
                         {renderNavSection('gestion', 'Gestión')}
@@ -351,6 +379,7 @@ const AdminPanel = () => {
                         <button
                             className="tesipedia-admin-logout"
                             onClick={handleLogout}
+                            title="Cerrar Sesión"
                         >
                             <FaSignOutAlt />
                             <span>Cerrar Sesión</span>

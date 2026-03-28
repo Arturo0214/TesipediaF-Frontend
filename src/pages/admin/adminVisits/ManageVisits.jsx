@@ -10,7 +10,8 @@ import {
   FaBuilding, FaWifi, FaRoute, FaMousePointer,
   FaBolt, FaUsers, FaWhatsapp, FaComments, FaFileAlt,
   FaScroll, FaHandPointer, FaMobile, FaLaptop, FaTabletAlt,
-  FaGoogle, FaSignInAlt, FaPercentage,
+  FaGoogle, FaSignInAlt, FaPercentage, FaChartBar,
+  FaFilter, FaChevronDown, FaChevronUp, FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { SiGoogleanalytics } from 'react-icons/si';
 import './ManageVisits.css';
@@ -18,7 +19,7 @@ import './ManageVisits.css';
 const ManageVisits = () => {
   const dispatch = useDispatch();
   const { visits, loading, error } = useSelector(state => state.visits);
-  const [activeTab, setActiveTab] = useState('resumen');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
@@ -31,7 +32,7 @@ const ManageVisits = () => {
   const [eventFeedPage, setEventFeedPage] = useState(1);
   const [eventFeedTotal, setEventFeedTotal] = useState(0);
   const [eventLoading, setEventLoading] = useState(false);
-  const [eventPeriod, setEventPeriod] = useState(24); // hours
+  const [eventPeriod, setEventPeriod] = useState(24);
   const [eventTypeFilter, setEventTypeFilter] = useState('');
   // Realtime state
   const [realtimeData, setRealtimeData] = useState(null);
@@ -44,22 +45,48 @@ const ManageVisits = () => {
   const [gaPeriod, setGaPeriod] = useState(7);
   const [gaRealtime, setGaRealtime] = useState(null);
   const gaRealtimeInterval = useRef(null);
+  // Dashboard expandable sections
+  const [expandedSections, setExpandedSections] = useState({
+    funnel: true, pages: true, acquisition: true, geo: true, events: true,
+  });
+
+  const toggleSection = (key) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
     dispatch(getVisits());
     return () => dispatch(clearError());
   }, [dispatch]);
 
+  // Load everything on mount for dashboard
+  useEffect(() => {
+    loadGAData();
+    loadEventData();
+    loadRealtimeData();
+    // Realtime refresh every 15s
+    realtimeInterval.current = setInterval(loadRealtimeData, 15000);
+    gaRealtimeInterval.current = setInterval(async () => {
+      try {
+        const rt = await getGARealtime();
+        setGaRealtime(rt);
+      } catch {}
+    }, 30000);
+    return () => {
+      if (realtimeInterval.current) clearInterval(realtimeInterval.current);
+      if (gaRealtimeInterval.current) clearInterval(gaRealtimeInterval.current);
+    };
+  }, []);
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await dispatch(getVisits());
-    if (activeTab === 'eventos') loadEventData();
-    if (activeTab === 'realtime') loadRealtimeData();
-    if (activeTab === 'analytics') loadGAData();
+    await Promise.all([
+      dispatch(getVisits()),
+      loadGAData(),
+      loadEventData(),
+      loadRealtimeData(),
+    ]);
     setRefreshing(false);
   };
 
-  // ── Load event analytics ──
   const loadEventData = useCallback(async () => {
     setEventLoading(true);
     try {
@@ -87,23 +114,6 @@ const ManageVisits = () => {
     setRealtimeLoading(false);
   }, []);
 
-  // Load events when tab changes or filters change
-  useEffect(() => {
-    if (activeTab === 'eventos') loadEventData();
-  }, [activeTab, loadEventData]);
-
-  // Realtime auto-refresh every 10 seconds
-  useEffect(() => {
-    if (activeTab === 'realtime') {
-      loadRealtimeData();
-      realtimeInterval.current = setInterval(loadRealtimeData, 10000);
-    }
-    return () => {
-      if (realtimeInterval.current) clearInterval(realtimeInterval.current);
-    };
-  }, [activeTab, loadRealtimeData]);
-
-  // Load GA data when tab or period changes
   const loadGAData = useCallback(async () => {
     setGaLoading(true);
     setGaError(null);
@@ -121,20 +131,10 @@ const ManageVisits = () => {
     setGaLoading(false);
   }, [gaPeriod]);
 
-  useEffect(() => {
-    if (activeTab === 'analytics') {
-      loadGAData();
-      gaRealtimeInterval.current = setInterval(async () => {
-        try {
-          const rt = await getGARealtime();
-          setGaRealtime(rt);
-        } catch {}
-      }, 30000); // Refresh realtime every 30s
-    }
-    return () => {
-      if (gaRealtimeInterval.current) clearInterval(gaRealtimeInterval.current);
-    };
-  }, [activeTab, loadGAData]);
+  // Reload GA when period changes
+  useEffect(() => { loadGAData(); }, [gaPeriod]);
+  // Reload events when filters change
+  useEffect(() => { loadEventData(); }, [eventPeriod, eventFeedPage, eventTypeFilter]);
 
   // ── Time helpers ──
   const now = new Date();
@@ -151,7 +151,6 @@ const ManageVisits = () => {
     const countries = new Set(visits.map(v => v.geoLocation?.country).filter(Boolean));
     const cities = new Set(visits.map(v => v.geoLocation?.city).filter(Boolean));
 
-    // By country
     const byCountry = {};
     const byCity = {};
     visits.forEach(v => {
@@ -160,11 +159,9 @@ const ManageVisits = () => {
       byCountry[country] = (byCountry[country] || 0) + 1;
       byCity[city] = (byCity[city] || 0) + 1;
     });
-
     const topCountries = Object.entries(byCountry).sort(([, a], [, b]) => b - a).slice(0, 10);
     const topCities = Object.entries(byCity).sort(([, a], [, b]) => b - a).slice(0, 10);
 
-    // Timeline: last 30 days
     const timeline = [];
     for (let i = 29; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
@@ -177,14 +174,9 @@ const ManageVisits = () => {
       timeline.push({ key, label, count });
     }
 
-    // Hourly distribution (24h)
     const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: i, count: 0 }));
-    visits.forEach(v => {
-      const h = new Date(v.createdAt).getHours();
-      hourly[h].count++;
-    });
+    visits.forEach(v => { hourly[new Date(v.createdAt).getHours()].count++; });
 
-    // Weekly comparison
     const prevWeekStart = new Date(weekAgo); prevWeekStart.setDate(prevWeekStart.getDate() - 7);
     const prevWeek = visits.filter(v => {
       const d = new Date(v.createdAt);
@@ -192,12 +184,8 @@ const ManageVisits = () => {
     }).length;
     const weekGrowth = prevWeek > 0 ? Math.round(((thisWeek - prevWeek) / prevWeek) * 100) : (thisWeek > 0 ? 100 : 0);
 
-    // Top paths
     const byPath = {};
-    visits.forEach(v => {
-      const path = v.path || '/';
-      byPath[path] = (byPath[path] || 0) + 1;
-    });
+    visits.forEach(v => { byPath[v.path || '/'] = (byPath[v.path || '/'] || 0) + 1; });
     const topPaths = Object.entries(byPath).sort(([, a], [, b]) => b - a).slice(0, 8);
 
     return {
@@ -207,7 +195,7 @@ const ManageVisits = () => {
     };
   }, [visits]);
 
-  // ── Filtered visits for table ──
+  // ── Filtered visits for registro tab ──
   const filteredVisits = useMemo(() => {
     let list = [...visits];
     if (searchTerm) {
@@ -230,6 +218,13 @@ const ManageVisits = () => {
   const fmtDate = (d) => new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
   const fmtTime = (d) => new Date(d).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   const fmtFull = (d) => new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const fmtDuration = (s) => {
+    if (!s || s < 1) return '0s';
+    if (s < 60) return `${Math.round(s)}s`;
+    const m = Math.floor(s / 60);
+    const sec = Math.round(s % 60);
+    return sec > 0 ? `${m}m ${sec}s` : `${m}m`;
+  };
 
   const maxTimeline = Math.max(...stats.timeline.map(t => t.count), 1);
   const maxHourly = Math.max(...stats.hourly.map(h => h.count), 1);
@@ -241,8 +236,21 @@ const ManageVisits = () => {
     return 'desktop';
   };
 
+  // GA combined metrics
+  const gaUsers = gaData?.overview?.current?.activeUsers || 0;
+  const gaSessions = gaData?.overview?.current?.sessions || 0;
+  const gaPageViews = gaData?.overview?.current?.pageViews || 0;
+  const gaBounceRate = gaData?.overview?.current?.bounceRate || 0;
+  const gaNewUsers = gaData?.overview?.current?.newUsers || 0;
+  const gaAvgDuration = gaData?.overview?.current?.avgSessionDuration || 0;
+  const gaEngaged = gaData?.overview?.current?.engagedSessions || 0;
+  const realtimeUsers = gaRealtime?.totalActive || 0;
+  const ctaClicks = eventStats?.byType?.find(t => t._id === 'cta')?.count || 0;
+  const chatEvents = eventStats?.byType?.find(t => t._id === 'chat')?.count || 0;
+  const activeSessionsNow = realtimeData?.activeUsers || 0;
+
   if (loading && visits.length === 0) {
-    return <div className="vs"><div className="vs-loading"><div className="vs-spinner" /> Cargando visitas...</div></div>;
+    return <div className="vs"><div className="vs-loading"><div className="vs-spinner" /> Cargando dashboard...</div></div>;
   }
 
   return (
@@ -259,86 +267,27 @@ const ManageVisits = () => {
               <div className="vs-drawer-section">
                 <h4>Ubicacion</h4>
                 <div className="vs-drawer-fields">
-                  <div className="vs-drawer-field">
-                    <FaMapMarkerAlt className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">Ciudad</span>
-                      <span className="vs-field-value">{selectedVisit.geoLocation?.city || 'N/A'}</span>
-                    </div>
-                  </div>
-                  <div className="vs-drawer-field">
-                    <FaGlobe className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">Pais</span>
-                      <span className="vs-field-value">{selectedVisit.geoLocation?.country || 'N/A'}</span>
-                    </div>
-                  </div>
-                  <div className="vs-drawer-field">
-                    <FaBuilding className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">Region</span>
-                      <span className="vs-field-value">{selectedVisit.geoLocation?.region || 'N/A'}</span>
-                    </div>
-                  </div>
-                  <div className="vs-drawer-field">
-                    <FaWifi className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">Organizacion / ISP</span>
-                      <span className="vs-field-value">{selectedVisit.geoLocation?.org || 'N/A'}</span>
-                    </div>
-                  </div>
-                  {selectedVisit.geoLocation?.location && (
-                    <div className="vs-drawer-field">
-                      <FaMapMarkerAlt className="vs-field-icon" />
-                      <div>
-                        <span className="vs-field-label">Coordenadas</span>
-                        <span className="vs-field-value">{selectedVisit.geoLocation.location}</span>
-                      </div>
-                    </div>
-                  )}
+                  <div className="vs-drawer-field"><FaMapMarkerAlt className="vs-field-icon" /><div><span className="vs-field-label">Ciudad</span><span className="vs-field-value">{selectedVisit.geoLocation?.city || 'N/A'}</span></div></div>
+                  <div className="vs-drawer-field"><FaGlobe className="vs-field-icon" /><div><span className="vs-field-label">Pais</span><span className="vs-field-value">{selectedVisit.geoLocation?.country || 'N/A'}</span></div></div>
+                  <div className="vs-drawer-field"><FaBuilding className="vs-field-icon" /><div><span className="vs-field-label">Region</span><span className="vs-field-value">{selectedVisit.geoLocation?.region || 'N/A'}</span></div></div>
+                  <div className="vs-drawer-field"><FaWifi className="vs-field-icon" /><div><span className="vs-field-label">Organizacion / ISP</span><span className="vs-field-value">{selectedVisit.geoLocation?.org || 'N/A'}</span></div></div>
+                  {selectedVisit.geoLocation?.location && <div className="vs-drawer-field"><FaMapMarkerAlt className="vs-field-icon" /><div><span className="vs-field-label">Coordenadas</span><span className="vs-field-value">{selectedVisit.geoLocation.location}</span></div></div>}
                 </div>
               </div>
-
               <div className="vs-drawer-section">
                 <h4>Conexion</h4>
                 <div className="vs-drawer-fields">
-                  <div className="vs-drawer-field">
-                    <FaGlobe className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">IP</span>
-                      <span className="vs-field-value mono">{selectedVisit.ip}</span>
-                    </div>
-                  </div>
-                  <div className="vs-drawer-field">
-                    <FaRoute className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">Ruta visitada</span>
-                      <span className="vs-field-value mono">{selectedVisit.path || '/'}</span>
-                    </div>
-                  </div>
-                  <div className="vs-drawer-field">
-                    <FaDesktop className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">User Agent</span>
-                      <span className="vs-field-value small">{selectedVisit.userAgent || 'N/A'}</span>
-                    </div>
-                  </div>
+                  <div className="vs-drawer-field"><FaGlobe className="vs-field-icon" /><div><span className="vs-field-label">IP</span><span className="vs-field-value mono">{selectedVisit.ip}</span></div></div>
+                  <div className="vs-drawer-field"><FaRoute className="vs-field-icon" /><div><span className="vs-field-label">Ruta visitada</span><span className="vs-field-value mono">{selectedVisit.path || '/'}</span></div></div>
+                  <div className="vs-drawer-field"><FaDesktop className="vs-field-icon" /><div><span className="vs-field-label">User Agent</span><span className="vs-field-value small">{selectedVisit.userAgent || 'N/A'}</span></div></div>
                 </div>
               </div>
-
               <div className="vs-drawer-section">
                 <h4>Tiempo</h4>
                 <div className="vs-drawer-fields">
-                  <div className="vs-drawer-field">
-                    <FaCalendarAlt className="vs-field-icon" />
-                    <div>
-                      <span className="vs-field-label">Fecha y hora</span>
-                      <span className="vs-field-value">{fmtFull(selectedVisit.createdAt)}</span>
-                    </div>
-                  </div>
+                  <div className="vs-drawer-field"><FaCalendarAlt className="vs-field-icon" /><div><span className="vs-field-label">Fecha y hora</span><span className="vs-field-value">{fmtFull(selectedVisit.createdAt)}</span></div></div>
                 </div>
               </div>
-
               <div className="vs-drawer-section">
                 <h4>ID</h4>
                 <span className="vs-id-badge">{selectedVisit._id}</span>
@@ -348,369 +297,355 @@ const ManageVisits = () => {
         </div>
       )}
 
-      {/* Header */}
+      {/* ═══ HEADER ═══ */}
       <div className="vs-header">
         <div className="vs-header-left">
-          <FaGlobe className="vs-logo" />
+          <div className="vs-logo-icon"><FaChartBar /></div>
           <div>
-            <h2 className="vs-title">Analisis de Visitas</h2>
-            <span className="vs-subtitle">{stats.total} visitas totales · {stats.countries} paises</span>
+            <h2 className="vs-title">Analytics Dashboard</h2>
+            <span className="vs-subtitle">Tesipedia · Metricas en tiempo real</span>
           </div>
         </div>
-        <button className={`vs-refresh ${refreshing ? 'vs-spinning' : ''}`} onClick={handleRefresh} disabled={refreshing}>
-          <FaSyncAlt /> Actualizar
-        </button>
+        <div className="vs-header-actions">
+          <select className="vs-period-select" value={gaPeriod} onChange={e => setGaPeriod(Number(e.target.value))}>
+            <option value={1}>Hoy</option>
+            <option value={7}>7 dias</option>
+            <option value={14}>14 dias</option>
+            <option value={28}>28 dias</option>
+            <option value={90}>90 dias</option>
+          </select>
+          <button className={`vs-refresh ${refreshing ? 'vs-spinning' : ''}`} onClick={handleRefresh} disabled={refreshing}>
+            <FaSyncAlt /> {refreshing ? '' : 'Actualizar'}
+          </button>
+        </div>
       </div>
 
       {error && <div className="vs-error-bar">{error}</div>}
+      {gaError && (
+        <div className="vs-ga-error">
+          <strong>Error GA4:</strong> {gaError}
+          <p className="vs-ga-error-help">Configura <code>GA_CLIENT_EMAIL</code> y <code>GA_PRIVATE_KEY</code> en Railway.</p>
+        </div>
+      )}
 
-      {/* Tabs */}
+      {/* ═══ TABS — simplificados ═══ */}
       <div className="vs-nav">
-        {['resumen', 'analytics', 'eventos', 'realtime', 'evolucion', 'registro'].map(tab => (
-          <button key={tab} className={`vs-nav-btn ${activeTab === tab ? 'active' : ''}`} onClick={() => { setActiveTab(tab); setPage(1); }}>
-            {tab === 'resumen' && <><FaChartLine /> Resumen</>}
-            {tab === 'analytics' && <><SiGoogleanalytics /> Google Analytics</>}
-            {tab === 'eventos' && <><FaMousePointer /> Eventos</>}
-            {tab === 'realtime' && <><FaBolt /> Tiempo Real</>}
-            {tab === 'evolucion' && <><FaCalendarAlt /> Evolucion</>}
-            {tab === 'registro' && <><FaEye /> Registro ({stats.total})</>}
+        {[
+          { key: 'dashboard', icon: <FaChartLine />, label: 'Dashboard' },
+          { key: 'eventos', icon: <FaMousePointer />, label: 'Eventos' },
+          { key: 'realtime', icon: <FaBolt />, label: 'Tiempo Real' },
+          { key: 'registro', icon: <FaEye />, label: `Registro (${stats.total})` },
+        ].map(tab => (
+          <button key={tab.key} className={`vs-nav-btn ${activeTab === tab.key ? 'active' : ''}`}
+            onClick={() => { setActiveTab(tab.key); setPage(1); }}>
+            {tab.icon} {tab.label}
           </button>
         ))}
       </div>
 
-      {/* ═══ RESUMEN TAB ═══ */}
-      {activeTab === 'resumen' && (
+      {/* ═══════════════════════════════════════════
+           DASHBOARD TAB — Vista unificada profesional
+          ═══════════════════════════════════════════ */}
+      {activeTab === 'dashboard' && (
         <>
-          {/* KPI cards */}
-          <div className="vs-kpi-grid">
-            <div className="vs-kpi">
-              <div className="vs-kpi-top">
-                <span className="vs-kpi-icon blue"><FaGlobe /></span>
-                <GrowthBadge value={stats.weekGrowth} />
-              </div>
-              <div className="vs-kpi-value">{stats.total.toLocaleString()}</div>
-              <div className="vs-kpi-label">Visitas totales</div>
-              <div className="vs-kpi-sub">{stats.thisMonth} este mes</div>
-            </div>
-            <div className="vs-kpi">
-              <div className="vs-kpi-top">
-                <span className="vs-kpi-icon green"><FaCalendarAlt /></span>
-              </div>
-              <div className="vs-kpi-value">{stats.today}</div>
-              <div className="vs-kpi-label">Hoy</div>
-              <div className="vs-kpi-sub">{stats.thisWeek} esta semana</div>
-            </div>
-            <div className="vs-kpi">
-              <div className="vs-kpi-top">
-                <span className="vs-kpi-icon purple"><FaMapMarkerAlt /></span>
-              </div>
-              <div className="vs-kpi-value">{stats.countries}</div>
-              <div className="vs-kpi-label">Paises</div>
-              <div className="vs-kpi-sub">{stats.cities} ciudades</div>
-            </div>
-            <div className="vs-kpi">
-              <div className="vs-kpi-top">
-                <span className="vs-kpi-icon orange"><FaChartLine /></span>
-              </div>
-              <div className="vs-kpi-value">{stats.thisMonth > 0 ? Math.round(stats.total / 30) : 0}</div>
-              <div className="vs-kpi-label">Promedio diario</div>
-              <div className="vs-kpi-sub">Ultimos 30 dias</div>
-            </div>
-          </div>
-
-          {/* Top Countries + Cities */}
-          <div className="vs-charts-row">
-            <div className="vs-chart-card">
-              <h4 className="vs-chart-title"><FaGlobe /> Top paises</h4>
-              <div className="vs-rank-list">
-                {stats.topCountries.map(([name, count], i) => {
-                  const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-                  return (
-                    <div key={name} className="vs-rank-item">
-                      <span className="vs-rank-pos">{i + 1}</span>
-                      <span className="vs-rank-name">{name}</span>
-                      <div className="vs-rank-bar-bg">
-                        <div className="vs-rank-bar" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="vs-rank-count">{count}</span>
-                      <span className="vs-rank-pct">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="vs-chart-card">
-              <h4 className="vs-chart-title"><FaMapMarkerAlt /> Top ciudades</h4>
-              <div className="vs-rank-list">
-                {stats.topCities.map(([name, count], i) => {
-                  const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-                  return (
-                    <div key={name} className="vs-rank-item">
-                      <span className="vs-rank-pos">{i + 1}</span>
-                      <span className="vs-rank-name">{name}</span>
-                      <div className="vs-rank-bar-bg">
-                        <div className="vs-rank-bar city" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="vs-rank-count">{count}</span>
-                      <span className="vs-rank-pct">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Top Paths */}
-          <div className="vs-chart-card full">
-            <h4 className="vs-chart-title"><FaRoute /> Paginas mas visitadas</h4>
-            <div className="vs-rank-list">
-              {stats.topPaths.map(([path, count], i) => {
-                const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-                return (
-                  <div key={path} className="vs-rank-item">
-                    <span className="vs-rank-pos">{i + 1}</span>
-                    <span className="vs-rank-name mono">{path}</span>
-                    <div className="vs-rank-bar-bg">
-                      <div className="vs-rank-bar path" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="vs-rank-count">{count}</span>
-                    <span className="vs-rank-pct">{pct}%</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ═══ GOOGLE ANALYTICS TAB ═══ */}
-      {activeTab === 'analytics' && (
-        <>
-          <div className="vs-toolbar">
-            <div className="vs-ga-header-row">
-              <SiGoogleanalytics className="vs-ga-logo" />
-              <span className="vs-ga-title">Google Analytics</span>
-            </div>
-            <select className="vs-period-select" value={gaPeriod} onChange={e => setGaPeriod(Number(e.target.value))}>
-              <option value={1}>Hoy</option>
-              <option value={7}>Últimos 7 días</option>
-              <option value={14}>Últimos 14 días</option>
-              <option value={28}>Últimos 28 días</option>
-              <option value={90}>Últimos 90 días</option>
-            </select>
-            <button className={`vs-refresh-sm ${gaLoading ? 'vs-spinning' : ''}`} onClick={loadGAData} disabled={gaLoading}>
-              <FaSyncAlt />
-            </button>
-          </div>
-
-          {gaError && (
-            <div className="vs-ga-error">
-              <strong>Error conectando con Google Analytics:</strong> {gaError}
-              <p className="vs-ga-error-help">
-                Asegurate de configurar las variables de entorno <code>GA_CLIENT_EMAIL</code> y <code>GA_PRIVATE_KEY</code> en Railway (o <code>GOOGLE_APPLICATION_CREDENTIALS</code> local) con las credenciales de una Service Account de Google Cloud con acceso a tu propiedad GA4.
-              </p>
-            </div>
-          )}
-
-          {gaLoading && !gaData && (
-            <div className="vs-loading"><div className="vs-spinner" /> Cargando datos de Google Analytics...</div>
-          )}
-
-          {/* Realtime banner */}
-          {gaRealtime && (
-            <div className="vs-ga-realtime-bar">
+          {/* ── Realtime strip ── */}
+          <div className="vs-realtime-strip">
+            <div className="vs-rt-item">
               <span className="vs-pulse" />
-              <strong>{gaRealtime.totalActive}</strong> usuarios activos ahora
-              {gaRealtime.byCountry.length > 0 && (
-                <span className="vs-ga-rt-countries">
-                  — {gaRealtime.byCountry.slice(0, 3).map(c => `${c.country} (${c.activeUsers})`).join(', ')}
-                </span>
-              )}
+              <strong>{realtimeUsers}</strong>
+              <span>en GA ahora</span>
+            </div>
+            <div className="vs-rt-divider" />
+            <div className="vs-rt-item">
+              <span className="vs-pulse-blue" />
+              <strong>{activeSessionsNow}</strong>
+              <span>sesiones propias</span>
+            </div>
+            {gaRealtime?.byCountry?.length > 0 && (
+              <>
+                <div className="vs-rt-divider" />
+                <div className="vs-rt-countries">
+                  {gaRealtime.byCountry.slice(0, 4).map(c => (
+                    <span key={c.country} className="vs-rt-country">{c.country} <strong>{c.activeUsers}</strong></span>
+                  ))}
+                </div>
+              </>
+            )}
+            {gaLoading && <span className="vs-loading-inline" style={{ marginLeft: 'auto' }}><div className="vs-spinner-sm" /></span>}
+          </div>
+
+          {/* ── KPI Row — Las 6 métricas clave ── */}
+          <div className="vs-kpi-grid-6">
+            <div className="vs-kpi">
+              <div className="vs-kpi-top">
+                <span className="vs-kpi-icon blue"><FaUsers /></span>
+                <GrowthBadge value={gaData?.overview?.growth?.activeUsers} />
+              </div>
+              <div className="vs-kpi-value">{gaUsers.toLocaleString()}</div>
+              <div className="vs-kpi-label">Usuarios</div>
+              <div className="vs-kpi-sub">{gaNewUsers} nuevos</div>
+            </div>
+            <div className="vs-kpi">
+              <div className="vs-kpi-top">
+                <span className="vs-kpi-icon green"><FaSignInAlt /></span>
+                <GrowthBadge value={gaData?.overview?.growth?.sessions} />
+              </div>
+              <div className="vs-kpi-value">{gaSessions.toLocaleString()}</div>
+              <div className="vs-kpi-label">Sesiones</div>
+              <div className="vs-kpi-sub">{gaEngaged} comprometidas</div>
+            </div>
+            <div className="vs-kpi">
+              <div className="vs-kpi-top">
+                <span className="vs-kpi-icon purple"><FaEye /></span>
+                <GrowthBadge value={gaData?.overview?.growth?.pageViews} />
+              </div>
+              <div className="vs-kpi-value">{gaPageViews.toLocaleString()}</div>
+              <div className="vs-kpi-label">Vistas de pagina</div>
+            </div>
+            <div className="vs-kpi">
+              <div className="vs-kpi-top">
+                <span className="vs-kpi-icon orange"><FaClock /></span>
+              </div>
+              <div className="vs-kpi-value">{fmtDuration(gaAvgDuration)}</div>
+              <div className="vs-kpi-label">Duracion promedio</div>
+            </div>
+            <div className="vs-kpi">
+              <div className="vs-kpi-top">
+                <span className="vs-kpi-icon red"><FaPercentage /></span>
+                <GrowthBadge value={gaData?.overview?.growth?.bounceRate} invert />
+              </div>
+              <div className="vs-kpi-value">{(gaBounceRate * 100).toFixed(1)}%</div>
+              <div className="vs-kpi-label">Tasa de rebote</div>
+            </div>
+            <div className="vs-kpi">
+              <div className="vs-kpi-top">
+                <span className="vs-kpi-icon teal"><FaHandPointer /></span>
+              </div>
+              <div className="vs-kpi-value">{ctaClicks}</div>
+              <div className="vs-kpi-label">Clicks en CTAs</div>
+              <div className="vs-kpi-sub">{chatEvents} chats</div>
+            </div>
+          </div>
+
+          {/* ── Timeline GA ── */}
+          {gaData?.timeline && gaData.timeline.length > 0 && (
+            <div className="vs-chart-card full">
+              <h4 className="vs-chart-title"><FaChartLine /> Trafico diario (ultimos {gaPeriod} dias)</h4>
+              <div className="vs-timeline-chart">
+                {gaData.timeline.map((d, i) => {
+                  const maxVal = Math.max(...gaData.timeline.map(t => t.users), 1);
+                  const dateStr = d.date;
+                  const label = dateStr ? `${dateStr.slice(6, 8)}/${dateStr.slice(4, 6)}` : '';
+                  return (
+                    <div key={i} className="vs-tl-col" title={`${label}: ${d.users} usuarios, ${d.sessions} sesiones`}>
+                      <span className="vs-tl-val">{d.users > 0 ? d.users : ''}</span>
+                      <div className="vs-tl-bar" style={{ height: `${Math.max(3, (d.users / maxVal) * 100)}%` }} />
+                      <span className="vs-tl-label">{i % Math.max(1, Math.floor(gaData.timeline.length / 10)) === 0 ? label : ''}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="vs-timeline-legend">
+                <span><span className="vs-legend-dot blue" /> Usuarios activos por dia</span>
+              </div>
             </div>
           )}
 
-          {gaData && (
-            <>
-              {/* KPIs */}
-              {gaData.overview && (
-                <div className="vs-kpi-grid">
-                  <div className="vs-kpi">
-                    <div className="vs-kpi-top">
-                      <span className="vs-kpi-icon blue"><FaUsers /></span>
-                      <GrowthBadge value={gaData.overview.growth?.activeUsers} />
-                    </div>
-                    <div className="vs-kpi-value">{gaData.overview.current?.activeUsers?.toLocaleString() || 0}</div>
-                    <div className="vs-kpi-label">Usuarios activos</div>
-                    <div className="vs-kpi-sub">{gaData.overview.current?.newUsers || 0} nuevos</div>
+          {/* ── Fallback: timeline interno si GA no tiene data ── */}
+          {(!gaData?.timeline || gaData.timeline.length === 0) && (
+            <div className="vs-chart-card full">
+              <h4 className="vs-chart-title"><FaChartLine /> Visitas por dia (ultimos 30 dias)</h4>
+              <div className="vs-timeline-chart">
+                {stats.timeline.map((d, i) => (
+                  <div key={d.key} className="vs-tl-col" title={`${d.label}: ${d.count} visitas`}>
+                    <span className="vs-tl-val">{d.count > 0 ? d.count : ''}</span>
+                    <div className="vs-tl-bar" style={{ height: `${Math.max(2, (d.count / maxTimeline) * 100)}%` }} />
+                    <span className="vs-tl-label">{i % 3 === 0 ? d.label : ''}</span>
                   </div>
-                  <div className="vs-kpi">
-                    <div className="vs-kpi-top">
-                      <span className="vs-kpi-icon green"><FaSignInAlt /></span>
-                      <GrowthBadge value={gaData.overview.growth?.sessions} />
-                    </div>
-                    <div className="vs-kpi-value">{gaData.overview.current?.sessions?.toLocaleString() || 0}</div>
-                    <div className="vs-kpi-label">Sesiones</div>
-                    <div className="vs-kpi-sub">{gaData.overview.current?.engagedSessions || 0} comprometidas</div>
-                  </div>
-                  <div className="vs-kpi">
-                    <div className="vs-kpi-top">
-                      <span className="vs-kpi-icon purple"><FaEye /></span>
-                      <GrowthBadge value={gaData.overview.growth?.pageViews} />
-                    </div>
-                    <div className="vs-kpi-value">{gaData.overview.current?.pageViews?.toLocaleString() || 0}</div>
-                    <div className="vs-kpi-label">Vistas de página</div>
-                  </div>
-                  <div className="vs-kpi">
-                    <div className="vs-kpi-top">
-                      <span className="vs-kpi-icon orange"><FaPercentage /></span>
-                      <GrowthBadge value={gaData.overview.growth?.bounceRate} invert />
-                    </div>
-                    <div className="vs-kpi-value">{((gaData.overview.current?.bounceRate || 0) * 100).toFixed(1)}%</div>
-                    <div className="vs-kpi-label">Tasa de rebote</div>
-                    <div className="vs-kpi-sub">Duración prom: {Math.round(gaData.overview.current?.avgSessionDuration || 0)}s</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Channels + Countries */}
-              <div className="vs-charts-row">
-                {gaData.channels && (
-                  <div className="vs-chart-card">
-                    <h4 className="vs-chart-title"><FaRoute /> Canales de adquisicion</h4>
-                    <div className="vs-rank-list">
-                      {gaData.channels.map((ch, i) => {
-                        const maxSessions = gaData.channels[0]?.sessions || 1;
-                        const pct = Math.round((ch.sessions / maxSessions) * 100);
-                        return (
-                          <div key={i} className="vs-rank-item">
-                            <span className="vs-rank-pos">{i + 1}</span>
-                            <span className="vs-rank-name">{ch.channel}</span>
-                            <div className="vs-rank-bar-bg">
-                              <div className="vs-rank-bar" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="vs-rank-count">{ch.sessions} ses</span>
-                            <span className="vs-rank-pct">{ch.newUsers} nuevos</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {gaData.countries && (
-                  <div className="vs-chart-card">
-                    <h4 className="vs-chart-title"><FaGlobe /> Usuarios por pais</h4>
-                    <div className="vs-rank-list">
-                      {gaData.countries.map((c, i) => {
-                        const max = gaData.countries[0]?.activeUsers || 1;
-                        const pct = Math.round((c.activeUsers / max) * 100);
-                        return (
-                          <div key={i} className="vs-rank-item">
-                            <span className="vs-rank-pos">{i + 1}</span>
-                            <span className="vs-rank-name">{c.country}</span>
-                            <div className="vs-rank-bar-bg">
-                              <div className="vs-rank-bar city" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="vs-rank-count">{c.activeUsers}</span>
-                            <span className="vs-rank-pct">{c.newUsers} nuevos</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
+            </div>
+          )}
 
-              {/* Top pages */}
-              {gaData.pages && (
-                <div className="vs-chart-card full">
-                  <h4 className="vs-chart-title"><FaEye /> Paginas mas visitadas (GA4)</h4>
-                  <div className="vs-table-wrap">
-                    <table className="vs-table">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Pagina</th>
-                          <th>Vistas</th>
-                          <th>Usuarios</th>
-                          <th>Sesiones</th>
-                          <th>Rebote</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {gaData.pages.map((p, i) => (
-                          <tr key={i}>
-                            <td>{i + 1}</td>
-                            <td><span className="vs-path">{p.page}</span></td>
-                            <td><strong>{p.views}</strong></td>
-                            <td>{p.users}</td>
-                            <td>{p.sessions}</td>
-                            <td>{(p.bounceRate * 100).toFixed(0)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Events + Devices */}
-              <div className="vs-charts-row">
-                {gaData.events && (
-                  <div className="vs-chart-card">
-                    <h4 className="vs-chart-title"><FaMousePointer /> Eventos (GA4)</h4>
-                    <div className="vs-rank-list">
-                      {gaData.events.map((ev, i) => (
-                        <div key={i} className="vs-rank-item">
-                          <span className="vs-rank-pos">{i + 1}</span>
-                          <span className="vs-rank-name">{ev.event}</span>
-                          <span className="vs-rank-count">{ev.count.toLocaleString()}</span>
-                          <GrowthBadge value={ev.growth} />
-                        </div>
-                      ))}
+          {/* ── SECTION: Top Paginas + Canales ── */}
+          <SectionHeader title="Paginas & Adquisicion" icon={<FaRoute />} sectionKey="pages" expanded={expandedSections.pages} onToggle={toggleSection} />
+          {expandedSections.pages && (
+            <div className="vs-charts-row">
+              {/* Top pages table */}
+              {gaData?.pages && (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaEye /> Top paginas</h4>
+                  <div className="vs-mini-table">
+                    <div className="vs-mini-thead">
+                      <span className="vs-mt-page">Pagina</span>
+                      <span className="vs-mt-num">Vistas</span>
+                      <span className="vs-mt-num">Usuarios</span>
+                      <span className="vs-mt-num">Rebote</span>
                     </div>
-                  </div>
-                )}
-                {gaData.devices && (
-                  <div className="vs-chart-card">
-                    <h4 className="vs-chart-title"><FaDesktop /> Dispositivos (GA4)</h4>
-                    <div className="vs-rank-list">
-                      {gaData.devices.map((d, i) => {
-                        const total = gaData.devices.reduce((s, x) => s + x.users, 0) || 1;
-                        const pct = Math.round((d.users / total) * 100);
-                        const icon = { desktop: <FaLaptop />, mobile: <FaMobile />, tablet: <FaTabletAlt /> }[d.device] || <FaDesktop />;
-                        return (
-                          <div key={i} className="vs-rank-item">
-                            <span className="vs-rank-pos">{icon}</span>
-                            <span className="vs-rank-name">{d.device}</span>
-                            <div className="vs-rank-bar-bg">
-                              <div className="vs-rank-bar path" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="vs-rank-count">{d.users} usuarios</span>
-                            <span className="vs-rank-pct">{pct}%</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Realtime detail */}
-              {gaRealtime && gaRealtime.byPage.length > 0 && (
-                <div className="vs-chart-card full">
-                  <h4 className="vs-chart-title"><FaBolt /> Paginas activas ahora (Tiempo Real GA)</h4>
-                  <div className="vs-rank-list">
-                    {gaRealtime.byPage.map((p, i) => (
-                      <div key={i} className="vs-rank-item">
-                        <span className="vs-rank-pos">{i + 1}</span>
-                        <span className="vs-rank-name">{p.page}</span>
-                        <span className="vs-rank-count">{p.activeUsers} activos</span>
+                    {gaData.pages.slice(0, 8).map((p, i) => (
+                      <div key={i} className="vs-mini-row">
+                        <span className="vs-mt-page" title={p.page}>
+                          <span className="vs-mt-pos">{i + 1}</span>
+                          {p.page}
+                        </span>
+                        <span className="vs-mt-num"><strong>{p.views}</strong></span>
+                        <span className="vs-mt-num">{p.users}</span>
+                        <span className="vs-mt-num">{(p.bounceRate * 100).toFixed(0)}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </>
+
+              {/* Channels */}
+              {gaData?.channels && (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaSignInAlt /> Canales de trafico</h4>
+                  <div className="vs-rank-list">
+                    {gaData.channels.map((ch, i) => {
+                      const maxSessions = gaData.channels[0]?.sessions || 1;
+                      const pct = Math.round((ch.sessions / maxSessions) * 100);
+                      return (
+                        <div key={i} className="vs-rank-item">
+                          <span className="vs-rank-pos">{i + 1}</span>
+                          <span className="vs-rank-name">{ch.channel}</span>
+                          <div className="vs-rank-bar-bg">
+                            <div className="vs-rank-bar" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="vs-rank-count">{ch.sessions}</span>
+                          <span className="vs-rank-pct">{ch.newUsers} new</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── SECTION: Geografia ── */}
+          <SectionHeader title="Geografia" icon={<FaGlobe />} sectionKey="geo" expanded={expandedSections.geo} onToggle={toggleSection} />
+          {expandedSections.geo && (
+            <div className="vs-charts-row">
+              {gaData?.countries ? (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaGlobe /> Usuarios por pais (GA)</h4>
+                  <div className="vs-rank-list">
+                    {gaData.countries.map((c, i) => {
+                      const max = gaData.countries[0]?.activeUsers || 1;
+                      const pct = Math.round((c.activeUsers / max) * 100);
+                      return (
+                        <div key={i} className="vs-rank-item">
+                          <span className="vs-rank-pos">{i + 1}</span>
+                          <span className="vs-rank-name">{c.country}</span>
+                          <div className="vs-rank-bar-bg">
+                            <div className="vs-rank-bar city" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="vs-rank-count">{c.activeUsers}</span>
+                          <span className="vs-rank-pct">{c.newUsers} new</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaGlobe /> Top paises (interno)</h4>
+                  <div className="vs-rank-list">
+                    {stats.topCountries.map(([name, count], i) => {
+                      const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+                      return (
+                        <div key={name} className="vs-rank-item">
+                          <span className="vs-rank-pos">{i + 1}</span>
+                          <span className="vs-rank-name">{name}</span>
+                          <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
+                          <span className="vs-rank-count">{count}</span>
+                          <span className="vs-rank-pct">{pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Devices + Hourly heatmap */}
+              <div className="vs-chart-card">
+                {gaData?.devices ? (
+                  <>
+                    <h4 className="vs-chart-title"><FaDesktop /> Dispositivos</h4>
+                    <div className="vs-device-grid">
+                      {gaData.devices.map(d => {
+                        const total = gaData.devices.reduce((s, x) => s + x.users, 0) || 1;
+                        const pct = Math.round((d.users / total) * 100);
+                        const icon = { desktop: <FaLaptop />, mobile: <FaMobile />, tablet: <FaTabletAlt /> }[d.device] || <FaDesktop />;
+                        return (
+                          <div key={d.device} className="vs-device-card">
+                            <div className="vs-device-icon">{icon}</div>
+                            <div className="vs-device-pct">{pct}%</div>
+                            <div className="vs-device-label">{d.device}</div>
+                            <div className="vs-device-count">{d.users} usuarios</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="vs-chart-title"><FaClock /> Distribucion por hora</h4>
+                    <div className="vs-hourly-chart">
+                      {stats.hourly.map(h => (
+                        <div key={h.hour} className="vs-hr-col" title={`${h.hour}:00 - ${h.count} visitas`}>
+                          <span className="vs-hr-val">{h.count > 0 ? h.count : ''}</span>
+                          <div className="vs-hr-bar" style={{ height: `${Math.max(2, (h.count / maxHourly) * 100)}%` }} />
+                          <span className="vs-hr-label">{h.hour % 3 === 0 ? `${h.hour}h` : ''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── SECTION: Eventos rapidos ── */}
+          <SectionHeader title="Eventos & Acciones" icon={<FaMousePointer />} sectionKey="events" expanded={expandedSections.events} onToggle={toggleSection} />
+          {expandedSections.events && eventStats && (
+            <div className="vs-charts-row">
+              <div className="vs-chart-card">
+                <h4 className="vs-chart-title"><FaBolt /> Por tipo de evento</h4>
+                <div className="vs-rank-list">
+                  {eventStats.byType.map((t) => {
+                    const total = eventStats.recentEvents || 1;
+                    const pct = Math.round((t.count / total) * 100);
+                    const icon = { click: <FaHandPointer />, cta: <FaMousePointer />, pageview: <FaEye />, scroll: <FaScroll />, chat: <FaComments />, form: <FaFileAlt /> }[t._id] || <FaBolt />;
+                    return (
+                      <div key={t._id} className="vs-rank-item">
+                        <span className="vs-rank-pos">{icon}</span>
+                        <span className="vs-rank-name">{t._id}</span>
+                        <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
+                        <span className="vs-rank-count">{t.count}</span>
+                        <span className="vs-rank-pct">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="vs-chart-card">
+                <h4 className="vs-chart-title"><FaHandPointer /> Top acciones</h4>
+                <div className="vs-rank-list">
+                  {eventStats.byAction.slice(0, 8).map((a, i) => (
+                    <div key={i} className="vs-rank-item">
+                      <span className="vs-rank-pos">{i + 1}</span>
+                      <span className="vs-rank-name" title={`${a.action} — ${a.page}`}>
+                        {a.label || a.action}
+                        <small className="vs-rank-sub">{a.page}</small>
+                      </span>
+                      <span className="vs-rank-count">{a.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}
@@ -718,14 +653,13 @@ const ManageVisits = () => {
       {/* ═══ EVENTOS TAB ═══ */}
       {activeTab === 'eventos' && (
         <>
-          {/* Period selector */}
           <div className="vs-toolbar">
             <select className="vs-period-select" value={eventPeriod} onChange={e => { setEventPeriod(Number(e.target.value)); setEventFeedPage(1); }}>
-              <option value={1}>Última hora</option>
-              <option value={6}>Últimas 6 horas</option>
-              <option value={24}>Últimas 24 horas</option>
-              <option value={168}>Última semana</option>
-              <option value={720}>Último mes</option>
+              <option value={1}>Ultima hora</option>
+              <option value={6}>Ultimas 6 horas</option>
+              <option value={24}>Ultimas 24 horas</option>
+              <option value={168}>Ultima semana</option>
+              <option value={720}>Ultimo mes</option>
             </select>
             <select className="vs-period-select" value={eventTypeFilter} onChange={e => { setEventTypeFilter(e.target.value); setEventFeedPage(1); }}>
               <option value="">Todos los tipos</option>
@@ -741,7 +675,6 @@ const ManageVisits = () => {
 
           {eventStats && (
             <>
-              {/* Event KPIs */}
               <div className="vs-kpi-grid">
                 <div className="vs-kpi">
                   <div className="vs-kpi-top"><span className="vs-kpi-icon blue"><FaMousePointer /></span></div>
@@ -757,24 +690,23 @@ const ManageVisits = () => {
                 </div>
                 <div className="vs-kpi">
                   <div className="vs-kpi-top"><span className="vs-kpi-icon purple"><FaHandPointer /></span></div>
-                  <div className="vs-kpi-value">{eventStats.byType.find(t => t._id === 'cta')?.count || 0}</div>
+                  <div className="vs-kpi-value">{ctaClicks}</div>
                   <div className="vs-kpi-label">Clicks en CTAs</div>
                   <div className="vs-kpi-sub">Conversiones potenciales</div>
                 </div>
                 <div className="vs-kpi">
                   <div className="vs-kpi-top"><span className="vs-kpi-icon orange"><FaComments /></span></div>
-                  <div className="vs-kpi-value">{eventStats.byType.find(t => t._id === 'chat')?.count || 0}</div>
+                  <div className="vs-kpi-value">{chatEvents}</div>
                   <div className="vs-kpi-label">Interacciones chat</div>
                   <div className="vs-kpi-sub">Chatbot Sofia</div>
                 </div>
               </div>
 
-              {/* Event type breakdown + Top actions */}
               <div className="vs-charts-row">
                 <div className="vs-chart-card">
                   <h4 className="vs-chart-title"><FaBolt /> Por tipo de evento</h4>
                   <div className="vs-rank-list">
-                    {eventStats.byType.map((t, i) => {
+                    {eventStats.byType.map((t) => {
                       const total = eventStats.recentEvents || 1;
                       const pct = Math.round((t.count / total) * 100);
                       const icon = { click: <FaHandPointer />, cta: <FaMousePointer />, pageview: <FaEye />, scroll: <FaScroll />, chat: <FaComments />, form: <FaFileAlt /> }[t._id] || <FaBolt />;
@@ -782,9 +714,7 @@ const ManageVisits = () => {
                         <div key={t._id} className="vs-rank-item">
                           <span className="vs-rank-pos">{icon}</span>
                           <span className="vs-rank-name">{t._id}</span>
-                          <div className="vs-rank-bar-bg">
-                            <div className="vs-rank-bar" style={{ width: `${pct}%` }} />
-                          </div>
+                          <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
                           <span className="vs-rank-count">{t.count}</span>
                           <span className="vs-rank-pct">{pct}%</span>
                         </div>
@@ -809,19 +739,25 @@ const ManageVisits = () => {
                 </div>
               </div>
 
-              {/* Pages with most events + Device breakdown */}
               <div className="vs-charts-row">
                 <div className="vs-chart-card">
                   <h4 className="vs-chart-title"><FaRoute /> Paginas con mas eventos</h4>
                   <div className="vs-rank-list">
-                    {eventStats.byPage.map((p, i) => (
-                      <div key={i} className="vs-rank-item">
-                        <span className="vs-rank-pos">{i + 1}</span>
-                        <span className="vs-rank-name mono">{p.page}</span>
-                        <span className="vs-rank-count">{p.events} eventos</span>
-                        <span className="vs-rank-pct">{p.sessions} sesiones</span>
-                      </div>
-                    ))}
+                    {eventStats.byPage.map((p, i) => {
+                      const maxEvents = eventStats.byPage[0]?.events || 1;
+                      const pct = Math.round((p.events / maxEvents) * 100);
+                      return (
+                        <div key={i} className="vs-rank-item">
+                          <span className="vs-rank-pos">{i + 1}</span>
+                          <span className="vs-rank-name mono">{p.page}</span>
+                          <div className="vs-rank-bar-bg">
+                            <div className="vs-rank-bar path" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="vs-rank-count">{p.events}</span>
+                          <span className="vs-rank-pct">{p.sessions} ses</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="vs-chart-card">
@@ -835,9 +771,7 @@ const ManageVisits = () => {
                         <div key={d._id} className="vs-rank-item">
                           <span className="vs-rank-pos">{icon}</span>
                           <span className="vs-rank-name">{d._id}</span>
-                          <div className="vs-rank-bar-bg">
-                            <div className="vs-rank-bar city" style={{ width: `${pct}%` }} />
-                          </div>
+                          <div className="vs-rank-bar-bg"><div className="vs-rank-bar city" style={{ width: `${pct}%` }} /></div>
                           <span className="vs-rank-count">{d.count}</span>
                           <span className="vs-rank-pct">{pct}%</span>
                         </div>
@@ -866,7 +800,7 @@ const ManageVisits = () => {
                 <tbody>
                   {eventFeed.length === 0 ? (
                     <tr><td colSpan={5} className="vs-empty-row">
-                      {eventLoading ? 'Cargando eventos...' : 'No hay eventos registrados aun. Los eventos se registraran automaticamente cuando los usuarios interactuen con tu pagina.'}
+                      {eventLoading ? 'Cargando eventos...' : 'No hay eventos registrados aun.'}
                     </td></tr>
                   ) : eventFeed.map(ev => (
                     <tr key={ev._id}>
@@ -900,25 +834,64 @@ const ManageVisits = () => {
       {activeTab === 'realtime' && (
         <>
           <div className="vs-toolbar">
-            <span className="vs-realtime-indicator">
-              <span className="vs-pulse" /> Actualizando cada 10 segundos
-            </span>
+            <span className="vs-realtime-indicator"><span className="vs-pulse" /> Actualizando cada 15 segundos</span>
             {realtimeLoading && <span className="vs-loading-inline"><div className="vs-spinner-sm" /></span>}
           </div>
 
+          {/* Big numbers row */}
+          <div className="vs-realtime-heroes">
+            <div className="vs-realtime-hero">
+              <div className="vs-realtime-number">{realtimeUsers}</div>
+              <div className="vs-realtime-label">Usuarios en GA</div>
+              <div className="vs-realtime-sub">Google Analytics tiempo real</div>
+            </div>
+            <div className="vs-realtime-hero blue">
+              <div className="vs-realtime-number">{activeSessionsNow}</div>
+              <div className="vs-realtime-label">Sesiones propias</div>
+              <div className="vs-realtime-sub">Tracking interno (5 min)</div>
+            </div>
+          </div>
+
+          {/* GA Realtime details */}
+          {gaRealtime && (
+            <div className="vs-charts-row">
+              {gaRealtime.byPage?.length > 0 && (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaRoute /> Paginas activas (GA)</h4>
+                  <div className="vs-rank-list">
+                    {gaRealtime.byPage.map((p, i) => (
+                      <div key={i} className="vs-rank-item">
+                        <span className="vs-rank-pos">{i + 1}</span>
+                        <span className="vs-rank-name mono">{p.page}</span>
+                        <span className="vs-rank-count">{p.activeUsers}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {gaRealtime.byCountry?.length > 0 && (
+                <div className="vs-chart-card">
+                  <h4 className="vs-chart-title"><FaGlobe /> Paises activos (GA)</h4>
+                  <div className="vs-rank-list">
+                    {gaRealtime.byCountry.map((c, i) => (
+                      <div key={i} className="vs-rank-item">
+                        <span className="vs-rank-pos">{i + 1}</span>
+                        <span className="vs-rank-name">{c.country}</span>
+                        <span className="vs-rank-count">{c.activeUsers}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Internal realtime */}
           {realtimeData && (
             <>
-              {/* Big realtime number */}
-              <div className="vs-realtime-hero">
-                <div className="vs-realtime-number">{realtimeData.activeUsers}</div>
-                <div className="vs-realtime-label">Usuarios activos ahora</div>
-                <div className="vs-realtime-sub">En los ultimos 5 minutos</div>
-              </div>
-
-              {/* Active pages */}
-              {realtimeData.activeByPage.length > 0 && (
+              {realtimeData.activeByPage?.length > 0 && (
                 <div className="vs-chart-card full">
-                  <h4 className="vs-chart-title"><FaRoute /> Paginas activas ahora</h4>
+                  <h4 className="vs-chart-title"><FaRoute /> Paginas activas (interno)</h4>
                   <div className="vs-rank-list">
                     {realtimeData.activeByPage.map((p, i) => (
                       <div key={i} className="vs-rank-item">
@@ -931,21 +904,12 @@ const ManageVisits = () => {
                 </div>
               )}
 
-              {/* Active sessions */}
-              {realtimeData.activeSessions.length > 0 && (
+              {realtimeData.activeSessions?.length > 0 && (
                 <div className="vs-chart-card full">
                   <h4 className="vs-chart-title"><FaUsers /> Sesiones activas</h4>
                   <div className="vs-table-wrap">
                     <table className="vs-table">
-                      <thead>
-                        <tr>
-                          <th>Sesion</th>
-                          <th>Pagina actual</th>
-                          <th>Dispositivo</th>
-                          <th>Eventos</th>
-                          <th>Ultima actividad</th>
-                        </tr>
-                      </thead>
+                      <thead><tr><th>Sesion</th><th>Pagina actual</th><th>Dispositivo</th><th>Eventos</th><th>Ultima actividad</th></tr></thead>
                       <tbody>
                         {realtimeData.activeSessions.map(s => (
                           <tr key={s._id}>
@@ -962,13 +926,12 @@ const ManageVisits = () => {
                 </div>
               )}
 
-              {/* Recent events live feed */}
               <div className="vs-chart-card full">
                 <h4 className="vs-chart-title"><FaBolt /> Actividad reciente (30 min)</h4>
                 <div className="vs-event-live-feed">
-                  {realtimeData.recentEvents.length === 0 ? (
+                  {realtimeData.recentEvents?.length === 0 ? (
                     <p className="vs-empty-text">Sin actividad reciente</p>
-                  ) : realtimeData.recentEvents.map(ev => (
+                  ) : realtimeData.recentEvents?.map(ev => (
                     <div key={ev._id} className="vs-live-event">
                       <span className={`vs-event-badge ${ev.type}`}>{ev.type}</span>
                       <span className="vs-live-action">{ev.label || ev.action}</span>
@@ -981,45 +944,9 @@ const ManageVisits = () => {
             </>
           )}
 
-          {!realtimeData && !realtimeLoading && (
-            <div className="vs-empty-state">
-              <FaBolt className="vs-empty-icon" />
-              <p>No hay datos en tiempo real disponibles</p>
-            </div>
+          {!realtimeData && !gaRealtime && !realtimeLoading && (
+            <div className="vs-empty-state"><FaBolt className="vs-empty-icon" /><p>No hay datos en tiempo real disponibles</p></div>
           )}
-        </>
-      )}
-
-      {/* ═══ EVOLUCION TAB ═══ */}
-      {activeTab === 'evolucion' && (
-        <>
-          {/* 30-day timeline */}
-          <div className="vs-chart-card full">
-            <h4 className="vs-chart-title">Visitas por dia (ultimos 30 dias)</h4>
-            <div className="vs-timeline-chart">
-              {stats.timeline.map((d, i) => (
-                <div key={d.key} className="vs-tl-col" title={`${d.label}: ${d.count} visitas`}>
-                  <span className="vs-tl-val">{d.count > 0 ? d.count : ''}</span>
-                  <div className="vs-tl-bar" style={{ height: `${Math.max(2, (d.count / maxTimeline) * 100)}%` }} />
-                  <span className="vs-tl-label">{i % 3 === 0 ? d.label : ''}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Hourly distribution */}
-          <div className="vs-chart-card full">
-            <h4 className="vs-chart-title"><FaClock /> Distribucion por hora del dia</h4>
-            <div className="vs-hourly-chart">
-              {stats.hourly.map(h => (
-                <div key={h.hour} className="vs-hr-col" title={`${h.hour}:00 - ${h.count} visitas`}>
-                  <span className="vs-hr-val">{h.count > 0 ? h.count : ''}</span>
-                  <div className="vs-hr-bar" style={{ height: `${Math.max(2, (h.count / maxHourly) * 100)}%` }} />
-                  <span className="vs-hr-label">{h.hour % 3 === 0 ? `${h.hour}h` : ''}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </>
       )}
 
@@ -1037,44 +964,26 @@ const ManageVisits = () => {
 
           <div className="vs-table-wrap">
             <table className="vs-table">
-              <thead>
-                <tr>
-                  <th>Visitante</th>
-                  <th>Ubicacion</th>
-                  <th>Ruta</th>
-                  <th>Fecha</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Visitante</th><th>Ubicacion</th><th>Ruta</th><th>Fecha</th></tr></thead>
               <tbody>
                 {pagedVisits.length === 0 ? (
                   <tr><td colSpan={4} className="vs-empty-row">No se encontraron visitas</td></tr>
                 ) : pagedVisits.map(v => {
                   const device = getDeviceType(v.userAgent);
-                  const city = v.geoLocation?.city || 'N/A';
-                  const country = v.geoLocation?.country || 'N/A';
                   return (
                     <tr key={v._id} className="vs-clickable-row" onClick={() => setSelectedVisit(v)}>
                       <td>
                         <div className="vs-cell-visitor">
-                          <div className="vs-visitor-icon">
-                            {device === 'mobile' ? <FaMobileAlt /> : <FaDesktop />}
-                          </div>
+                          <div className="vs-visitor-icon">{device === 'mobile' ? <FaMobileAlt /> : <FaDesktop />}</div>
                           <div>
                             <span className="vs-visitor-ip">{v.ip}</span>
                             <span className="vs-visitor-ua">{(v.userAgent || '').substring(0, 40)}...</span>
                           </div>
                         </div>
                       </td>
-                      <td>
-                        <span className="vs-location">{city}, {country}</span>
-                      </td>
+                      <td><span className="vs-location">{v.geoLocation?.city || 'N/A'}, {v.geoLocation?.country || 'N/A'}</span></td>
                       <td><span className="vs-path">{v.path || '/'}</span></td>
-                      <td>
-                        <div className="vs-date-group">
-                          <span className="vs-date">{fmtDate(v.createdAt)}</span>
-                          <span className="vs-time">{fmtTime(v.createdAt)}</span>
-                        </div>
-                      </td>
+                      <td><div className="vs-date-group"><span className="vs-date">{fmtDate(v.createdAt)}</span><span className="vs-time">{fmtTime(v.createdAt)}</span></div></td>
                     </tr>
                   );
                 })}
@@ -1082,7 +991,6 @@ const ManageVisits = () => {
             </table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="vs-pagination">
               <button className="vs-page-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Anterior</button>
@@ -1096,6 +1004,8 @@ const ManageVisits = () => {
   );
 };
 
+/* ── Sub-components ── */
+
 const GrowthBadge = ({ value, invert }) => {
   if (value === undefined || value === null) return null;
   const goingUp = value >= 0;
@@ -1106,5 +1016,15 @@ const GrowthBadge = ({ value, invert }) => {
     </span>
   );
 };
+
+const SectionHeader = ({ title, icon, sectionKey, expanded, onToggle }) => (
+  <div className="vs-section-header" onClick={() => onToggle(sectionKey)}>
+    <div className="vs-section-left">
+      {icon}
+      <span>{title}</span>
+    </div>
+    {expanded ? <FaChevronUp className="vs-section-chevron" /> : <FaChevronDown className="vs-section-chevron" />}
+  </div>
+);
 
 export default ManageVisits;

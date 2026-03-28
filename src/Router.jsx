@@ -32,6 +32,7 @@ const ComprarTesis = lazy(() => import('./pages/landing/ComprarTesis'));
 const TesisLicenciatura = lazy(() => import('./pages/landing/TesisLicenciatura'));
 const TesisMaestria = lazy(() => import('./pages/landing/TesisMaestria'));
 const TesisDoctorado = lazy(() => import('./pages/landing/TesisDoctorado'));
+const TutoriaAcademica = lazy(() => import('./pages/landing/TutoriaAcademica'));
 
 // Lazy load protected layouts and pages (not needed on initial load)
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
@@ -77,6 +78,7 @@ const router = createBrowserRouter(
         { path: 'tesis-licenciatura', element: <LazyPage><TesisLicenciatura /></LazyPage> },
         { path: 'tesis-maestria', element: <LazyPage><TesisMaestria /></LazyPage> },
         { path: 'tesis-doctoral', element: <LazyPage><TesisDoctorado /></LazyPage> },
+        { path: 'tutoria-academica', element: <LazyPage><TutoriaAcademica /></LazyPage> },
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },
         { path: '*', element: <LazyPage><NotFound /></LazyPage> },

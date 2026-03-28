@@ -13,6 +13,8 @@ import {
     FaInfoCircle,
     FaShoppingCart,
     FaTruck,
+    FaWhatsapp,
+    FaUserPlus,
 } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { markNotificationAsRead, markAllNotificationsAsRead } from '../../features/notifications/notificationSlice';
@@ -27,6 +29,8 @@ const typeConfig = {
     proyecto: { icon: FaProjectDiagram, color: '#fdcb6e', bg: '#fef9e7', label: 'Proyecto' },
     pedido: { icon: FaShoppingCart, color: '#00cec9', bg: '#e6fcfb', label: 'Pedido' },
     entrega: { icon: FaTruck, color: '#55a3e5', bg: '#ebf4fd', label: 'Entrega' },
+    whatsapp: { icon: FaWhatsapp, color: '#25d366', bg: '#e8faf0', label: 'WhatsApp' },
+    lead: { icon: FaUserPlus, color: '#0984e3', bg: '#e8f4fd', label: 'Lead' },
     alerta: { icon: FaExclamationTriangle, color: '#d63031', bg: '#fce4e4', label: 'Alerta' },
     info: { icon: FaInfoCircle, color: '#636e72', bg: '#f0f0f0', label: 'Info' },
 };
