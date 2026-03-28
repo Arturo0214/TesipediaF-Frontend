@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { FaPaperPlane, FaPaperclip, FaSpinner, FaTimes } from 'react-icons/fa';
+import { trackGoogleAdsConversion } from '../../services/eventService';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     sendMessage,
@@ -169,6 +170,9 @@ const ChatPanel = ({ isOpen, onClose, orderId, userId, userName, isPublic = fals
             // Enviar mensaje a través de HTTP (para persistencia)
             const response = await dispatch(sendMessage(messageData)).unwrap();
             console.log('Mensaje enviado exitosamente:', response);
+
+            // Fire Google Ads conversion on first public message
+            if (isPublic) trackGoogleAdsConversion();
 
             // Usar el conversationId del mensaje enviado
             const responseConversationId = response.conversationId || conversationId;

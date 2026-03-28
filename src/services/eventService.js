@@ -90,6 +90,15 @@ export const trackChat = (action, label = '') =>
 export const trackForm = (action, label = '') =>
   trackEvent('form', action, { category: 'conversion', label });
 
+// ─── Google Ads Conversion Tracking ───
+export const trackGoogleAdsConversion = () => {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'conversion', {
+      send_to: 'AW-18036773645/y_s6CLDHqJEcEI2mzZhD',
+    });
+  }
+};
+
 // ─── Admin endpoints (autenticados) ───
 export const getEventFeed = async (params = {}) => {
   const query = new URLSearchParams(params).toString();

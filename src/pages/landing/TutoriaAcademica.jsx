@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
+import { trackGoogleAdsConversion } from '../../services/eventService';
 import {
   FaWhatsapp, FaCheckCircle, FaStar, FaUserGraduate,
   FaGraduationCap, FaClock, FaChalkboardTeacher, FaArrowRight, FaQuoteLeft,
@@ -9,6 +10,7 @@ import {
 } from 'react-icons/fa';
 
 const WA_LINK = 'https://wa.me/5215670071517?text=Hola%2C%20me%20interesa%20la%20tutor%C3%ADa%20acad%C3%A9mica';
+const handleWAClick = () => trackGoogleAdsConversion();
 
 /* ─── Inline Styles ─── */
 const styles = {
@@ -586,7 +588,7 @@ function TutoriaAcademica() {
             <strong> Consulta gratis hoy.</strong>
           </p>
           <div style={styles.heroCtas}>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={styles.ctaPrimary}>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={handleWAClick} style={styles.ctaPrimary}>
               <FaWhatsapp /> Consulta Gratis por WhatsApp
             </a>
             <a href="#como-funciona" style={styles.ctaSecondary}>
@@ -635,7 +637,7 @@ function TutoriaAcademica() {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: '40px' }}>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={styles.ctaPrimary}>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={handleWAClick} style={styles.ctaPrimary}>
               <FaWhatsapp /> Empieza Tu Mentoría Hoy
             </a>
           </div>
@@ -659,7 +661,7 @@ function TutoriaAcademica() {
                 </li>
               ))}
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={handleWAClick}
               style={{ ...styles.priceBtn, background: '#fff', color: '#4F46E5', border: '2px solid #4F46E5' }}>
               <FaWhatsapp /> Consultar Programa
             </a>
@@ -678,7 +680,7 @@ function TutoriaAcademica() {
                 </li>
               ))}
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={handleWAClick}
               style={{ ...styles.priceBtn, background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)', color: '#fff', border: '2px solid transparent', boxShadow: '0 6px 20px rgba(79,70,229,0.3)' }}>
               <FaWhatsapp /> Consultar Programa
             </a>
@@ -696,7 +698,7 @@ function TutoriaAcademica() {
                 </li>
               ))}
             </ul>
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={handleWAClick}
               style={{ ...styles.priceBtn, background: '#fff', color: '#4F46E5', border: '2px solid #4F46E5' }}>
               <FaWhatsapp /> Consultar Programa
             </a>
@@ -752,7 +754,7 @@ function TutoriaAcademica() {
           <p style={styles.finalCtaSub}>
             Consulta gratis y sin compromiso. Un mentor experto te orientará desde el primer momento.
           </p>
-          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" style={{ ...styles.ctaPrimary, fontSize: '1.15rem', padding: '18px 40px' }}>
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={handleWAClick} style={{ ...styles.ctaPrimary, fontSize: '1.15rem', padding: '18px 40px' }}>
             <FaWhatsapp /> Consulta Gratis por WhatsApp
           </a>
         </div>

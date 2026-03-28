@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { FaPaperPlane, FaTimes, FaWhatsapp, FaRobot } from 'react-icons/fa';
-import { trackChat, trackCTA } from '../../services/eventService';
+import { trackChat, trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import './TesipediaBot.css';
 
 // ─── Configuration ───────────────────────────────────────────
@@ -444,6 +444,7 @@ const TesipediaBot = ({ isOpen, onClose }) => {
   // Send lead data to backend as a chat message summary (fire-and-forget)
   const sendLeadToBackend = (data) => {
     trackCTA('chat_lead_captured', `${data.name} - ${data.phone || data.email || ''}`);
+    trackGoogleAdsConversion();
 
     if (!publicIdRef.current) return;
     // Enviar un resumen del lead como mensaje de chat para que aparezca en admin/mensajes
