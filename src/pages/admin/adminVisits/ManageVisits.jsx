@@ -17,6 +17,7 @@ import {
   FaScroll, FaHandPointer, FaMobile, FaLaptop, FaTabletAlt,
   FaSignInAlt, FaPercentage, FaChartBar,
   FaChevronDown, FaChevronUp, FaExternalLinkAlt, FaLink,
+  FaGoogle, FaSearchPlus, FaAd,
 } from 'react-icons/fa';
 import VisitsMap from './VisitsMap';
 import './ManageVisits.css';
@@ -510,6 +511,126 @@ const ManageVisits = () => {
               <div className="vs-kpi-sub">{chatEvents} chats</div>
             </div>
           </div>
+
+          {/* ── Google Traffic Section ── */}
+          {gaData?.googleTraffic && (
+            <div className="vs-google-traffic-section">
+              <div className="vs-google-traffic-header">
+                <div className="vs-google-traffic-title">
+                  <FaGoogle className="vs-google-icon" />
+                  <h3>Tráfico desde Google</h3>
+                  <GrowthBadge value={gaData.googleTraffic.growth} />
+                </div>
+                <div className="vs-google-traffic-total">
+                  <span className="vs-google-total-number">{gaData.googleTraffic.total.sessions.toLocaleString()}</span>
+                  <span className="vs-google-total-label">sesiones totales</span>
+                </div>
+              </div>
+
+              <div className="vs-google-kpi-row">
+                <div className="vs-google-kpi">
+                  <div className="vs-google-kpi-value">{gaData.googleTraffic.total.users.toLocaleString()}</div>
+                  <div className="vs-google-kpi-label">Usuarios</div>
+                </div>
+                <div className="vs-google-kpi">
+                  <div className="vs-google-kpi-value">{gaData.googleTraffic.total.newUsers.toLocaleString()}</div>
+                  <div className="vs-google-kpi-label">Nuevos</div>
+                </div>
+                <div className="vs-google-kpi">
+                  <div className="vs-google-kpi-value">{gaData.googleTraffic.total.pageViews.toLocaleString()}</div>
+                  <div className="vs-google-kpi-label">Vistas</div>
+                </div>
+                <div className="vs-google-kpi">
+                  <div className="vs-google-kpi-value">{(gaData.googleTraffic.total.bounceRate * 100).toFixed(1)}%</div>
+                  <div className="vs-google-kpi-label">Rebote</div>
+                </div>
+                <div className="vs-google-kpi">
+                  <div className="vs-google-kpi-value">{fmtDuration(gaData.googleTraffic.total.avgDuration)}</div>
+                  <div className="vs-google-kpi-label">Duración prom.</div>
+                </div>
+              </div>
+
+              {/* Breakdown by medium */}
+              <div className="vs-google-breakdown">
+                <h4 className="vs-google-breakdown-title">Desglose por tipo</h4>
+                <div className="vs-google-medium-grid">
+                  {gaData.googleTraffic.byMedium.map((m, i) => (
+                    <div key={m.medium} className={`vs-google-medium-card ${m.medium === 'organic' ? 'organic' : m.medium === 'cpc' ? 'cpc' : 'other'}`}>
+                      <div className="vs-google-medium-icon">
+                        {m.medium === 'organic' ? <FaSearchPlus /> : m.medium === 'cpc' ? <FaAd /> : <FaLink />}
+                      </div>
+                      <div className="vs-google-medium-info">
+                        <div className="vs-google-medium-label">{m.label}</div>
+                        <div className="vs-google-medium-sessions">
+                          <strong>{m.sessions.toLocaleString()}</strong> sesiones
+                          <GrowthBadge value={m.growth} />
+                        </div>
+                        <div className="vs-google-medium-detail">
+                          {m.users} usuarios · {m.newUsers} nuevos · {m.pageViews} vistas
+                        </div>
+                      </div>
+                      <div className="vs-google-medium-bar">
+                        <div
+                          className="vs-google-medium-bar-fill"
+                          style={{ width: `${gaData.googleTraffic.total.sessions > 0 ? Math.round((m.sessions / gaData.googleTraffic.total.sessions) * 100) : 0}%` }}
+                        />
+                        <span className="vs-google-medium-pct">
+                          {gaData.googleTraffic.total.sessions > 0 ? Math.round((m.sessions / gaData.googleTraffic.total.sessions) * 100) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Google Traffic Timeline */}
+              {gaData.googleTraffic.timeline?.rows?.length > 0 && (
+                <div className="vs-google-timeline">
+                  <h4 className="vs-google-breakdown-title"><FaChartLine /> Tendencia de tráfico de Google</h4>
+                  <div className="vs-chart-container">
+                    <ResponsiveContainer width="100%" height={220}>
+                      <AreaChart data={gaData.googleTraffic.timeline.rows.map(r => {
+                        const raw = r.date || r.dateHour || '';
+                        const label = gaData.googleTraffic.timeline.type === 'hourly'
+                          ? `${raw.slice(8, 10)}:00`
+                          : `${raw.slice(6, 8)}/${raw.slice(4, 6)}`;
+                        return { label, sesiones: r.sessions, usuarios: r.users };
+                      })} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="gradGoogleSessions" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4285F4" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="#4285F4" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9ca3af' }} interval="preserveStartEnd" />
+                        <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} allowDecimals={false} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
+                        <Area type="monotone" dataKey="sesiones" stroke="#4285F4" fill="url(#gradGoogleSessions)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                        <Area type="monotone" dataKey="usuarios" stroke="#34A853" fill="transparent" strokeWidth={2} strokeDasharray="5 5" dot={false} activeDot={{ r: 4 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Comparison with total traffic */}
+              {gaSessions > 0 && (
+                <div className="vs-google-share">
+                  <div className="vs-google-share-bar">
+                    <div
+                      className="vs-google-share-fill"
+                      style={{ width: `${Math.round((gaData.googleTraffic.total.sessions / gaSessions) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="vs-google-share-text">
+                    Google representa el <strong>{Math.round((gaData.googleTraffic.total.sessions / gaSessions) * 100)}%</strong> de todo tu tráfico ({gaData.googleTraffic.total.sessions.toLocaleString()} de {gaSessions.toLocaleString()} sesiones)
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Timeline Chart (Recharts) ── */}
           {gaTimelineData && gaTimelineData.length > 0 ? (
