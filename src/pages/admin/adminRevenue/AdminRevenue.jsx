@@ -63,7 +63,7 @@ const fmt = (n) => {
 
 const AdminRevenue = () => {
   const dispatch = useDispatch();
-  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncStatus } = useSelector(state => state.revenue);
+  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading } = useSelector(state => state.revenue);
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -115,9 +115,11 @@ const AdminRevenue = () => {
   };
 
   const handleSync = async () => {
-    await dispatch(syncProviders({ year: selectedYear, month: selectedMonth }));
+    const result = await dispatch(syncProviders({ year: selectedYear, month: selectedMonth }));
+    // Refresh dashboard and sync status regardless of result
     dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
-    if (activeView === 'expenses') {
+    dispatch(fetchSyncStatus());
+    if (activeView === 'expenses' || result?.payload?.created > 0) {
       const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
       const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString();
       dispatch(fetchExpenses({ startDate, endDate }));
@@ -585,6 +587,20 @@ const AdminRevenue = () => {
         </button>
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
 
+        {syncError && (
+          <div style={{
+            padding: '14px 18px', borderRadius: 10, marginBottom: 20,
+            background: '#FEE2E2', border: '1px solid #DC2626',
+          }}>
+            <strong style={{ fontSize: '0.88rem', color: '#991B1B' }}>
+              <FaTimesCircle style={{ marginRight: 6 }} /> Error al sincronizar
+            </strong>
+            <div style={{ fontSize: '0.8rem', marginTop: 6, color: '#991B1B' }}>
+              {typeof syncError === 'string' ? syncError : 'Error de conexion con el servidor'}
+            </div>
+          </div>
+        )}
+
         {syncResult && (
           <div style={{
             padding: '14px 18px', borderRadius: 10, marginBottom: 20,
@@ -611,6 +627,18 @@ const AdminRevenue = () => {
 
       <div className="rev-section">
         <h3 className="rev-section-title"><FaCog /> Estado de Proveedores</h3>
+        {syncStatusLoading && (
+          <div className="rev-loading" style={{ padding: '20px 0' }}><Spinner animation="border" size="sm" /> Cargando proveedores...</div>
+        )}
+        {!syncStatusLoading && !syncStatus?.providers?.length && (
+          <div className="rev-empty" style={{ padding: '20px 0' }}>
+            <FaCog />
+            <div>No se pudo cargar el estado de proveedores</div>
+            <button className="rev-form-submit" style={{ marginTop: 10, fontSize: '0.8rem' }} onClick={() => dispatch(fetchSyncStatus())}>
+              Reintentar
+            </button>
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {syncStatus?.providers?.map((p, i) => (
             <div key={i} style={{
