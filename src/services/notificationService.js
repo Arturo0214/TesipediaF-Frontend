@@ -25,7 +25,7 @@ notificationAPI.interceptors.request.use(
     }
 );
 
-const API_URL = import.meta.env.VITE_API_URL;
+// axiosWithAuth ya tiene baseURL = VITE_BASE_URL, usar rutas relativas
 
 let lastFetchTime = 0;
 const MINIMUM_INTERVAL = 5000; // 5 segundos entre solicitudes
@@ -40,7 +40,7 @@ const getNotifications = async () => {
 
     try {
         lastFetchTime = now;
-        const response = await axiosWithAuth.get(`${API_URL}/api/notifications`);
+        const response = await axiosWithAuth.get('/notifications');
         return response.data;
     } catch (error) {
         console.error('Error al obtener notificaciones:', error);
@@ -50,7 +50,7 @@ const getNotifications = async () => {
 
 const markAsRead = async (notificationId) => {
     try {
-        const response = await axiosWithAuth.put(`${API_URL}/api/notifications/${notificationId}/read`);
+        const response = await axiosWithAuth.put(`/notifications/${notificationId}/read`);
         return response.data;
     } catch (error) {
         console.error('Error al marcar notificación como leída:', error);
@@ -60,7 +60,7 @@ const markAsRead = async (notificationId) => {
 
 const markAllAsRead = async () => {
     try {
-        const response = await axiosWithAuth.put(`${API_URL}/api/notifications/read-all`);
+        const response = await axiosWithAuth.put('/notifications/read-all');
         return response.data;
     } catch (error) {
         console.error('Error al marcar todas las notificaciones como leídas:', error);

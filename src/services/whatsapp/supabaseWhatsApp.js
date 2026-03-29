@@ -11,9 +11,9 @@ const BASE = '/api/v1/whatsapp';
 /**
  * Obtener todos los leads con conversaciones
  */
-export async function getLeads() {
-  const { data } = await axiosWithAuth.get(`${BASE}/leads`);
-  return data;
+export async function getLeads(origen = 'regular', limit = 100, offset = 0) {
+  const { data } = await axiosWithAuth.get(`${BASE}/leads?origen=${origen}&limit=${limit}&offset=${offset}`);
+  return data; // { leads: [...], total, limit, offset, hasMore }
 }
 
 /**
@@ -247,6 +247,17 @@ export async function sendManyChatReactivation(options = {}) {
  */
 export async function previewManyChatMessages(segment = 'SUPER_HOT', limit = 5) {
   const { data } = await axiosWithAuth.get(`${BASE}/manychat/preview?segment=${segment}&limit=${limit}`);
+  return data;
+}
+
+/**
+ * Obtener leads ManyChat con vista inteligente
+ * @param {string} filter - 'respondieron' | 'enviados' | 'pendientes' | 'todos'
+ * @param {number} page
+ * @param {number} limit
+ */
+export async function getManyChatLeads(filter = 'respondieron', page = 1, limit = 20) {
+  const { data } = await axiosWithAuth.get(`${BASE}/manychat/leads?filter=${filter}&page=${page}&limit=${limit}`);
   return data;
 }
 

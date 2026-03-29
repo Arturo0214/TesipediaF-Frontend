@@ -183,6 +183,9 @@ const AdminWhatsApp = () => {
   const { user: authUser, isSuperAdmin } = useSelector((state) => state.auth || {});
   const currentAdminKey = normalizeAdminName(authUser?.name || authUser?.nombre || '');
   const [leads, setLeads] = useState([]);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -196,6 +199,7 @@ const AdminWhatsApp = () => {
   const [estadoFilter, setEstadoFilter] = useState('all');
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
   const [dateFilter, setDateFilter] = useState(''); // '' = all, 'YYYY-MM-DD' = specific day
+  const [origenFilter, setOrigenFilter] = useState('regular'); // 'all' | 'regular' | 'manychat'
   const [windowExpired, setWindowExpired] = useState(false);
   const [sendingTemplate, setSendingTemplate] = useState(false);
   const [sendingReengagement, setSendingReengagement] = useState(false);
@@ -240,11 +244,18 @@ const AdminWhatsApp = () => {
   }, [selectedLead]);
 
   // Cargar leads — usa el ref para siempre tener el selectedLead actual
+  const origenRef = useRef(origenFilter);
+  useEffect(() => { origenRef.current = origenFilter; }, [origenFilter]);
+
   const fetchLeads = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const data = await getLeads();
+      const result = await getLeads(origenRef.current, 100, 0);
+      // Handle both paginated response { leads, total, hasMore } and legacy array
+      const data = Array.isArray(result) ? result : (result.leads || []);
       setLeads(data);
+      setTotalLeads(result.total || data.length);
+      setHasMore(result.hasMore || false);
       // Actualizar el lead seleccionado usando el REF (no el state, que puede estar stale)
       const currentSelected = selectedLeadRef.current;
       if (currentSelected) {
@@ -286,6 +297,23 @@ const AdminWhatsApp = () => {
       if (!silent) setLoading(false);
     }
   }, []); // sin dependencias — usa ref en vez de state
+
+  // Cargar más leads (infinite scroll)
+  const loadMoreLeads = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    try {
+      setLoadingMore(true);
+      const result = await getLeads(origenRef.current, 100, leads.length);
+      const moreData = Array.isArray(result) ? result : (result.leads || []);
+      setLeads(prev => [...prev, ...moreData]);
+      setTotalLeads(result.total || leads.length + moreData.length);
+      setHasMore(result.hasMore || false);
+    } catch (err) {
+      console.error('Error cargando más leads:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, leads.length]);
 
   const handleReengagement = async () => {
     const hoursStr = window.prompt(
@@ -352,6 +380,11 @@ const AdminWhatsApp = () => {
     pollRef.current = setInterval(() => fetchLeads(true), POLL_INTERVAL);
     return () => clearInterval(pollRef.current);
   }, [fetchLeads]);
+
+  // Re-cargar leads cuando cambie el filtro de origen
+  useEffect(() => {
+    fetchLeads();
+  }, [origenFilter]);
 
   // Scroll inteligente: al cambiar de lead, al cargar historial completo, o al llegar mensajes nuevos
   useEffect(() => {
@@ -670,7 +703,7 @@ const AdminWhatsApp = () => {
       } catch (refreshErr) {
         console.warn('No se pudo refrescar después de audio:', refreshErr);
       }
-      try { const data = await getLeads(); setLeads(data); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); setHasMore(r.hasMore || false); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar nota de voz: ' + err.message);
     } finally {
@@ -765,7 +798,7 @@ const AdminWhatsApp = () => {
         console.warn('No se pudo refrescar después de enviar, mensaje optimista se mantiene:', refreshErr);
       }
       // Actualizar sidebar sin tocar selectedLead
-      try { const data = await getLeads(); setLeads(data); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); setHasMore(r.hasMore || false); } catch (_) {}
       inputRef.current?.focus();
     } catch (err) {
       toast.error('Error al enviar: ' + err.message);
@@ -785,7 +818,7 @@ const AdminWhatsApp = () => {
       // Refrescar historial completo + sidebar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
-      try { const data = await getLeads(); setLeads(data); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); setHasMore(r.hasMore || false); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar plantilla: ' + err.message);
     } finally {
@@ -1094,7 +1127,7 @@ const AdminWhatsApp = () => {
   // Obtener estados únicos para el filtro
   const estadosUnicos = [...new Set(leads.map(l => l.estado_sofia || 'sin_estado').filter(Boolean))];
 
-  // Filtrar leads
+  // Filtrar leads (origen ya filtrado por el backend, aquí solo filtros locales)
   const filteredLeads = leads.filter(lead => {
     // Filtro por estado
     if (estadoFilter !== 'all') {
@@ -1618,8 +1651,18 @@ const AdminWhatsApp = () => {
             </div>
           )}
 
-          {/* Filtros compactos */}
+          {/* Filtros compactos — 2 rows */}
           <div className="wa-filters">
+            <select
+              className="wa-filter-select"
+              value={origenFilter}
+              onChange={(e) => setOrigenFilter(e.target.value)}
+              style={origenFilter === 'manychat' ? { borderColor: '#7c3aed', color: '#7c3aed', fontWeight: 600 } : origenFilter === 'regular' ? { borderColor: '#25d366', color: '#25d366', fontWeight: 600 } : {}}
+            >
+              <option value="regular">WhatsApp ({leads.length})</option>
+              <option value="manychat">ManyChat</option>
+              <option value="all">Todos</option>
+            </select>
             <select
               className="wa-filter-select"
               value={estadoFilter}
@@ -1633,6 +1676,8 @@ const AdminWhatsApp = () => {
                 );
               })}
             </select>
+          </div>
+          <div className="wa-filters">
             <select
               className="wa-filter-select"
               value={attendedFilter}
@@ -1679,62 +1724,84 @@ const AdminWhatsApp = () => {
                 <p>No hay conversaciones</p>
               </div>
             ) : (
-              filteredLeads.map((lead) => {
-                const unread = getUnreadCount(lead);
-                const isSelected = selectedLead?.wa_id === lead.wa_id;
-                const attendedInfo = getAttendedColor(lead);
-                return (
-                  <div
-                    key={lead.wa_id}
-                    className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
-                    style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
-                    onClick={() => handleSelectLead(lead)}
-                  >
-                    <div className="wa-conv-avatar">
-                      <FaUser />
-                      {lead.modo_humano && (
-                        <span className="wa-human-badge" title="Modo humano activo">
-                          <FaUserTie />
-                        </span>
-                      )}
-                    </div>
-                    <div className="wa-conv-info">
-                      <div className="wa-conv-header">
-                        <span className="wa-conv-name">{lead.nombre || 'Sin nombre'}</span>
-                        <span className="wa-conv-time">{formatDate(lead.updated_at)}</span>
-                      </div>
-                      <div className="wa-conv-preview">
-                        <span className="wa-conv-last-msg">{getLastMessage(lead)}</span>
-                        {unread > 0 && (
-                          <Badge bg="success" pill className="wa-unread-badge">{unread}</Badge>
-                        )}
-                      </div>
-                      <div className="wa-conv-meta">
-                        <Badge bg={getEstadoBadge(lead.estado_sofia)} className="wa-estado-badge">
-                          {getEstadoIcon(lead.estado_sofia)}{lead.estado_sofia || 'nuevo'}
-                        </Badge>
-                        {attendedInfo.label !== 'Sin atender' && (
-                          <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
-                            <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
-                            {attendedInfo.label}
+              <>
+                {filteredLeads.map((lead) => {
+                  const unread = getUnreadCount(lead);
+                  const isSelected = selectedLead?.wa_id === lead.wa_id;
+                  const attendedInfo = getAttendedColor(lead);
+                  return (
+                    <div
+                      key={lead.wa_id}
+                      className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
+                      style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
+                      onClick={() => handleSelectLead(lead)}
+                    >
+                      <div className="wa-conv-avatar">
+                        <FaUser />
+                        {lead.modo_humano && (
+                          <span className="wa-human-badge" title="Modo humano activo">
+                            <FaUserTie />
                           </span>
                         )}
-                        {lead.bloqueado && (
-                          <Badge bg="danger" className="wa-blocked-badge">
-                            <FaBan className="me-1" />Bloqueado
+                      </div>
+                      <div className="wa-conv-info">
+                        <div className="wa-conv-header">
+                          <span className="wa-conv-name">{lead.nombre || 'Sin nombre'}</span>
+                          <span className="wa-conv-time">{formatDate(lead.updated_at)}</span>
+                        </div>
+                        <div className="wa-conv-preview">
+                          <span className="wa-conv-last-msg">{getLastMessage(lead)}</span>
+                          {unread > 0 && (
+                            <Badge bg="success" pill className="wa-unread-badge">{unread}</Badge>
+                          )}
+                        </div>
+                        <div className="wa-conv-meta">
+                          <Badge bg={getEstadoBadge(lead.estado_sofia)} className="wa-estado-badge">
+                            {getEstadoIcon(lead.estado_sofia)}{lead.estado_sofia || 'nuevo'}
                           </Badge>
-                        )}
-                        {/* Indicador de cotización pendiente de envío */}
-                        {lead.estado_sofia === 'cotizacion_lista' && (
-                          <span className="wa-pending-send-tag">
-                            <FaExclamationTriangle className="me-1" />Sin enviar
-                          </span>
-                        )}
+                          {attendedInfo.label !== 'Sin atender' && (
+                            <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
+                              <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
+                              {attendedInfo.label}
+                            </span>
+                          )}
+                          {lead.origen === 'manychat' && (
+                            <Badge bg="light" text="dark" style={{ fontSize: '0.55rem', border: '1px solid #c4b5fd', color: '#7c3aed' }}>
+                              MC{lead.manychat_segment ? `: ${lead.manychat_segment}` : ''}
+                            </Badge>
+                          )}
+                          {lead.bloqueado && (
+                            <Badge bg="danger" className="wa-blocked-badge">
+                              <FaBan className="me-1" />Bloqueado
+                            </Badge>
+                          )}
+                          {lead.estado_sofia === 'cotizacion_lista' && (
+                            <span className="wa-pending-send-tag">
+                              <FaExclamationTriangle className="me-1" />Sin enviar
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+                {/* Load more button */}
+                {hasMore && (
+                  <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                    <button
+                      onClick={loadMoreLeads}
+                      disabled={loadingMore}
+                      style={{
+                        background: 'none', border: '1px solid #e5e7eb', borderRadius: 8,
+                        padding: '6px 16px', fontSize: '0.75rem', color: '#6b7280',
+                        cursor: loadingMore ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {loadingMore ? 'Cargando...' : `Cargar más (${totalLeads - leads.length} restantes)`}
+                    </button>
                   </div>
-                );
-              })
+                )}
+              </>
             )}
           </div>
         </div>

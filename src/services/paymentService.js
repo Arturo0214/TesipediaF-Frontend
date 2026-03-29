@@ -1,12 +1,14 @@
 import axios from 'axios';
 import axiosWithAuth from '../utils/axioswithAuth';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// axiosWithAuth ya tiene baseURL = VITE_BASE_URL, usar rutas relativas
+// Para llamadas sin auth (guest), usar BASE_URL explícito
+const BASE_URL = import.meta.env.VITE_BASE_URL || '';
 
 // Crear orden a partir de una cotización
 export const createOrderFromQuote = async (publicId) => {
     try {
-        const response = await axiosWithAuth.post(`${API_URL}/api/orders/from-quote/${publicId}`);
+        const response = await axiosWithAuth.post(`/orders/from-quote/${publicId}`);
         return response;
     } catch (error) {
         console.error('Error en createOrderFromQuote:', error);
@@ -17,7 +19,7 @@ export const createOrderFromQuote = async (publicId) => {
 // Crear sesión de Stripe para pago normal
 export const createStripeSession = async (orderId) => {
     try {
-        const response = await axiosWithAuth.post(`${API_URL}/api/payments/create-session`, { orderId });
+        const response = await axiosWithAuth.post('/payments/create-session', { orderId });
         return response;
     } catch (error) {
         console.error('Error en createStripeSession:', error);
@@ -41,7 +43,7 @@ export const createGuestPayment = async (paymentData) => {
 // Verificar estado de pago normal
 export const checkPaymentStatus = async (sessionId) => {
     try {
-        const response = await axiosWithAuth.get(`${API_URL}/api/payments/check-status/${sessionId}`);
+        const response = await axiosWithAuth.get(`/payments/check-status/${sessionId}`);
         return {
             data: {
                 status: response.data.status,
@@ -59,7 +61,7 @@ export const checkPaymentStatus = async (sessionId) => {
 // Verificar estado de pago de invitado
 export const checkGuestPaymentStatus = async (trackingToken) => {
     try {
-        const response = await axios.get(`${API_URL}/api/payments/guest/check-status/${trackingToken}`);
+        const response = await axios.get(`${BASE_URL}payments/guest/check-status/${trackingToken}`);
         return {
             data: {
                 status: response.data.status,
@@ -116,7 +118,7 @@ export const getPaymentDetails = async (paymentId) => {
 // Obtener detalles de una cotización
 export const getQuoteDetails = async (publicId) => {
     try {
-        const response = await axiosWithAuth.get(`${API_URL}/api/quotes/public/${publicId}`);
+        const response = await axiosWithAuth.get(`/quotes/public/${publicId}`);
         return response;
     } catch (error) {
         console.error('Error en getQuoteDetails:', error);
@@ -127,7 +129,7 @@ export const getQuoteDetails = async (publicId) => {
 // Vincular una cotización a un usuario
 export const linkQuoteToUser = async (publicId) => {
     try {
-        const response = await axios.post(`${API_URL}/api/quotes/link/${publicId}`);
+        const response = await axios.post(`${BASE_URL}quotes/link/${publicId}`);
         return response;
     } catch (error) {
         console.error('Error en linkQuoteToUser:', error);
@@ -138,7 +140,7 @@ export const linkQuoteToUser = async (publicId) => {
 // Crear una sesión de pago para invitados
 export const createGuestPaymentSession = async (quoteId) => {
     try {
-        const response = await axios.post(`${API_URL}/api/payments/guest/create-session`, { quoteId });
+        const response = await axios.post(`${BASE_URL}payments/guest/create-session`, { quoteId });
         return response;
     } catch (error) {
         console.error('Error en createGuestPaymentSession:', error);
