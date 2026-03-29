@@ -76,7 +76,7 @@ export const autoCalculateCosts = createAsyncThunk(
     try {
       return await revenueService.autoCalculateCosts(paymentId);
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Error al calcular costos automáticos');
+      return rejectWithValue(error.response?.data?.message || 'Error al calcular costos automaticos');
     }
   }
 );
@@ -109,7 +109,7 @@ export const fetchCategories = createAsyncThunk(
     try {
       return await revenueService.getCategories();
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Error al cargar categorías');
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar categorias');
     }
   }
 );

@@ -56,7 +56,7 @@ const revenueService = {
     return response.data;
   },
 
-  // Categorías
+  // Categorias
   getCategories: async () => {
     const response = await axiosWithAuth.get('/revenue/categories');
     return response.data;
@@ -68,7 +68,7 @@ const revenueService = {
     return response.data;
   },
 
-  // Estado de configuración de providers
+  // Estado de configuracion de providers
   getSyncStatus: async () => {
     const response = await axiosWithAuth.get('/revenue/sync-status');
     return response.data;
