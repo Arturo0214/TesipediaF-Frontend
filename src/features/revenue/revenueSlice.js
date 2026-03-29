@@ -76,7 +76,7 @@ export const autoCalculateCosts = createAsyncThunk(
     try {
       return await revenueService.autoCalculateCosts(paymentId);
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Error al calcular costos automáticos');
+      return rejectWithValue(error.response?.data?.message || 'Error al calcular costos automaticos');
     }
   }
 );
@@ -109,7 +109,7 @@ export const fetchCategories = createAsyncThunk(
     try {
       return await revenueService.getCategories();
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Error al cargar categorías');
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar categorias');
     }
   }
 );
@@ -125,7 +125,9 @@ const revenueSlice = createSlice({
     costPerSale: null,
     categories: [],
     syncStatus: null,
+    syncStatusLoading: false,
     syncResult: null,
+    syncError: null,
     syncing: false,
     loading: false,
     expensesLoading: false,
@@ -134,6 +136,7 @@ const revenueSlice = createSlice({
   reducers: {
     clearRevenueError: (state) => {
       state.error = null;
+      state.syncError = null;
     },
   },
   extraReducers: (builder) => {
@@ -177,12 +180,14 @@ const revenueSlice = createSlice({
       .addCase(fetchCategories.fulfilled, (state, action) => { state.categories = action.payload; })
 
       // Sync providers
-      .addCase(syncProviders.pending, (state) => { state.syncing = true; state.syncResult = null; })
-      .addCase(syncProviders.fulfilled, (state, action) => { state.syncing = false; state.syncResult = action.payload; })
-      .addCase(syncProviders.rejected, (state, action) => { state.syncing = false; state.error = action.payload; })
+      .addCase(syncProviders.pending, (state) => { state.syncing = true; state.syncResult = null; state.syncError = null; })
+      .addCase(syncProviders.fulfilled, (state, action) => { state.syncing = false; state.syncResult = action.payload; state.syncError = null; })
+      .addCase(syncProviders.rejected, (state, action) => { state.syncing = false; state.syncError = action.payload; })
 
       // Sync status
-      .addCase(fetchSyncStatus.fulfilled, (state, action) => { state.syncStatus = action.payload; })
+      .addCase(fetchSyncStatus.pending, (state) => { state.syncStatusLoading = true; })
+      .addCase(fetchSyncStatus.fulfilled, (state, action) => { state.syncStatusLoading = false; state.syncStatus = action.payload; })
+      .addCase(fetchSyncStatus.rejected, (state, action) => { state.syncStatusLoading = false; state.error = action.payload; })
 
       // Auto-calculate costs
       .addCase(autoCalculateCosts.fulfilled, (state, action) => {
