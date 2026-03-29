@@ -21,7 +21,8 @@ import {
     FaHubspot,
     FaCogs,
     FaAngleDoubleLeft,
-    FaAngleDoubleRight
+    FaAngleDoubleRight,
+    FaRocket
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -48,6 +49,7 @@ import AdminDashboard from '../adminDashboard/AdminDashboard.jsx';
 import AdminHubSpot from '../adminHubSpot/AdminHubSpot.jsx';
 import AdminMessages from '../adminMessages/AdminMessages.jsx';
 import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp.jsx';
+import AdminManyChat from '../adminManyChat/AdminManyChat.jsx';
 import AdminAutomations from '../adminAutomations/AdminAutomations.jsx';
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 import SalesQuote from '../../SalesQuote/SalesQuote.jsx';
@@ -111,6 +113,7 @@ const AdminPanel = () => {
         const path = location.pathname;
         if (path.includes('/usuarios')) return 'usuarios';
         if (path.includes('/automatizaciones')) return 'automatizaciones';
+        if (path.includes('/manychat')) return 'manychat';
         if (path.includes('/whatsapp')) return 'whatsapp';
         if (path.includes('/mensajes')) return 'mensajes';
         if (path.includes('/cotizaciones')) return 'cotizaciones';
@@ -132,6 +135,7 @@ const AdminPanel = () => {
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
+        { key: 'manychat', icon: FaRocket, label: 'ManyChat', section: 'gestion', path: '/admin/manychat' },
         { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
@@ -268,6 +272,7 @@ const AdminPanel = () => {
         hubspot: AdminHubSpot,
         mensajes: AdminMessages,
         whatsapp: AdminWhatsApp,
+        manychat: AdminManyChat,
         automatizaciones: AdminAutomations
     };
 

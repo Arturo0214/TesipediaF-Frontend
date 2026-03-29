@@ -212,6 +212,44 @@ export async function toggleBlockLead(waId, blocked) {
   return data;
 }
 
+// ─── ManyChat Reactivation ─────────────────────────────────────
+
+/**
+ * Obtener status de la reactivación ManyChat
+ */
+export async function getManyChatStatus() {
+  const { data } = await axiosWithAuth.get(`${BASE}/manychat/status`);
+  return data;
+}
+
+/**
+ * Importar contactos ManyChat a Supabase
+ * @param {Object} options - { segments, dryRun }
+ */
+export async function importManyChatLeads(options = {}) {
+  const { data } = await axiosWithAuth.post(`${BASE}/manychat/import`, options);
+  return data;
+}
+
+/**
+ * Enviar reactivación ManyChat
+ * @param {Object} options - { segments, maxPerRun, dryRun, startIndex }
+ */
+export async function sendManyChatReactivation(options = {}) {
+  const { data } = await axiosWithAuth.post(`${BASE}/manychat/send`, options);
+  return data;
+}
+
+/**
+ * Preview de mensajes ManyChat sin enviar
+ * @param {string} segment - Segmento a previsualizar
+ * @param {number} limit - Cantidad de previews
+ */
+export async function previewManyChatMessages(segment = 'SUPER_HOT', limit = 5) {
+  const { data } = await axiosWithAuth.get(`${BASE}/manychat/preview?segment=${segment}&limit=${limit}`);
+  return data;
+}
+
 /**
  * Parsear historial_chat que puede venir como string JSON o array
  */
