@@ -1,0 +1,534 @@
+/* ============================================
+   Admin Revenue — Tesipedia
+   Professional Financial Dashboard
+   ============================================ */
+
+.rev-dash {
+  padding: 24px 28px;
+  background: #f5f7fa;
+  min-height: 100%;
+}
+
+/* ── Header ── */
+.rev-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rev-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.rev-subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+.rev-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rev-month-select,
+.rev-year-select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.82rem;
+  color: #374151;
+  cursor: pointer;
+  outline: none;
+}
+
+.rev-month-select:focus,
+.rev-year-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+/* ── KPI Cards ── */
+.rev-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.rev-kpi {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid #f0f0f0;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.rev-kpi:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.rev-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.rev-kpi-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rev-kpi-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.rev-kpi-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.2;
+  margin: 2px 0;
+}
+
+.rev-kpi-sub {
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+.rev-kpi-value.positive { color: #059669; }
+.rev-kpi-value.negative { color: #DC2626; }
+
+/* ── Tabs ── */
+.rev-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: #fff;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  width: fit-content;
+}
+
+.rev-tab {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rev-tab:hover { color: #374151; background: #f3f4f6; }
+.rev-tab.active { background: #4F46E5; color: #fff; }
+
+/* ── Section Cards ── */
+.rev-section {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #f0f0f0;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.rev-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rev-section-title svg {
+  color: #6366f1;
+}
+
+/* ── Expense Breakdown ── */
+.rev-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.rev-cat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.15s;
+}
+
+.rev-cat-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.rev-cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rev-cat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rev-cat-name {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.rev-cat-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rev-cat-count {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+/* ── Expenses Table ── */
+.rev-table-wrap {
+  overflow-x: auto;
+}
+
+.rev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.rev-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom: 2px solid #f0f0f0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rev-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f5f5f5;
+  color: #374151;
+}
+
+.rev-table tr:hover td {
+  background: #fafbfc;
+}
+
+.rev-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: #f3f4f6;
+}
+
+.rev-cat-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.rev-amount-cell {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rev-actions-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.rev-action-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.72rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.1s;
+}
+
+.rev-action-btn:hover { border-color: #6366f1; color: #4F46E5; }
+.rev-action-btn.delete:hover { border-color: #DC2626; color: #DC2626; }
+
+/* ── Add Expense Form ── */
+.rev-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: #fafbfc;
+  border-radius: 10px;
+  border: 1px dashed #e5e7eb;
+}
+
+.rev-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rev-form-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rev-form-input,
+.rev-form-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.82rem;
+  color: #374151;
+  background: #fff;
+  outline: none;
+}
+
+.rev-form-input:focus,
+.rev-form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.rev-form-submit {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #4F46E5;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.rev-form-submit:hover { background: #4338CA; }
+.rev-form-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Cost Per Sale ── */
+.rev-sale-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rev-sale-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.15s;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rev-sale-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.rev-sale-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rev-sale-client {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.88rem;
+}
+
+.rev-sale-meta {
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+.rev-sale-numbers {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.rev-sale-num {
+  text-align: center;
+}
+
+.rev-sale-num-label {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rev-sale-num-value {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.rev-sale-num-value.income { color: #059669; }
+.rev-sale-num-value.cost { color: #DC2626; }
+.rev-sale-num-value.profit { color: #4F46E5; }
+
+.rev-margin-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.rev-margin-badge.good { background: #D1FAE5; color: #065F46; }
+.rev-margin-badge.mid { background: #FEF3C7; color: #92400E; }
+.rev-margin-badge.bad { background: #FEE2E2; color: #991B1B; }
+
+/* ── Loading ── */
+.rev-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+/* ── Empty State ── */
+.rev-empty {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.rev-empty svg {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  opacity: 0.4;
+}
+
+/* ── Bar Chart (CSS only) ── */
+.rev-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 180px;
+  padding: 10px 0;
+}
+
+.rev-chart-bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.rev-chart-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  width: 100%;
+  justify-content: center;
+  flex: 1;
+}
+
+.rev-chart-bar {
+  width: 14px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s ease;
+  min-height: 2px;
+}
+
+.rev-chart-bar.income { background: #059669; }
+.rev-chart-bar.expense { background: #DC2626; opacity: 0.75; }
+
+.rev-chart-label {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.rev-chart-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.rev-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+.rev-chart-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .rev-kpis { grid-template-columns: repeat(2, 1fr); }
+  .rev-form { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .rev-dash { padding: 16px; }
+  .rev-kpis { grid-template-columns: 1fr; }
+  .rev-form { grid-template-columns: 1fr; }
+  .rev-header { flex-direction: column; }
+  .rev-sale-card { flex-direction: column; align-items: flex-start; }
+  .rev-sale-numbers { flex-wrap: wrap; gap: 12px; }
+  .rev-breakdown { grid-template-columns: 1fr; }
+}

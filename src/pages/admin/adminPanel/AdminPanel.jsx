@@ -22,7 +22,8 @@ import {
     FaCogs,
     FaAngleDoubleLeft,
     FaAngleDoubleRight,
-    FaRocket
+    FaRocket,
+    FaChartPie
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -53,6 +54,7 @@ import AdminManyChat from '../adminManyChat/AdminManyChat.jsx';
 import AdminAutomations from '../adminAutomations/AdminAutomations.jsx';
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 import SalesQuote from '../../SalesQuote/SalesQuote.jsx';
+import AdminRevenue from '../adminRevenue/AdminRevenue.jsx';
 
 
 // Error boundary component
@@ -122,6 +124,7 @@ const AdminPanel = () => {
         if (path.includes('/visitas')) return 'visitas';
         if (path.includes('/hubspot')) return 'hubspot';
         if (path.includes('/cotizar')) return 'cotizar';
+        if (path.includes('/revenue')) return 'revenue';
         return 'dashboard';
     };
 
@@ -139,6 +142,7 @@ const AdminPanel = () => {
         { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
+        { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue' },
         { key: 'hubspot', icon: FaHubspot, label: 'HubSpot', section: 'estadisticas', path: '/admin/hubspot' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas' }
     ];
@@ -273,7 +277,8 @@ const AdminPanel = () => {
         mensajes: AdminMessages,
         whatsapp: AdminWhatsApp,
         manychat: AdminManyChat,
-        automatizaciones: AdminAutomations
+        automatizaciones: AdminAutomations,
+        revenue: AdminRevenue
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
@@ -384,6 +389,7 @@ const AdminPanel = () => {
                     <nav className="tesipedia-admin-nav">
                         {renderNavSection('principal', 'Principal')}
                         {renderNavSection('gestion', 'Gestión')}
+                        {renderNavSection('finanzas', 'Finanzas')}
                         {renderNavSection('estadisticas', 'Estadísticas')}
 
                         <button

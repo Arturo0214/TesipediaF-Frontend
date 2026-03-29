@@ -12,6 +12,7 @@ import notificationsReducer from '../features/notifications/notificationSlice';
 import userReducer from '../features/auth/userSlice';
 import projectReducer from '../features/projects/projectSlice';
 import hubspotReducer from '../features/hubspot/hubspotSlice';
+import revenueReducer from '../features/revenue/revenueSlice';
 
 // Auth: no persistir flags transitorios que pueden quedar stuck
 const authPersistConfig = {
@@ -39,6 +40,7 @@ const rootReducer = combineReducers({
     projects: projectReducer,
     chat: persistReducer(chatPersistConfig, chatReducer),
     hubspot: hubspotReducer,
+    revenue: revenueReducer,
 });
 
 // Configuración de persistencia global
