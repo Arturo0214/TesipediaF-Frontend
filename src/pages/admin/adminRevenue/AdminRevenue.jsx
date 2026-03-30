@@ -5,7 +5,8 @@ import {
   FaDollarSign, FaChartLine, FaReceipt, FaBalanceScale,
   FaPlus, FaTrash, FaPen, FaFileInvoiceDollar, FaArrowUp,
   FaArrowDown, FaPercentage, FaCalculator, FaTimes, FaSync,
-  FaCheckCircle, FaTimesCircle, FaCog
+  FaCheckCircle, FaTimesCircle, FaCog, FaBullhorn, FaServer,
+  FaGoogle, FaFacebookF, FaEye, FaMousePointer
 } from 'react-icons/fa';
 import {
   fetchRevenueDashboard,
@@ -16,6 +17,8 @@ import {
   fetchCategories,
   syncProviders,
   fetchSyncStatus,
+  fetchCampaigns,
+  fetchUsage,
 } from '../../../features/revenue/revenueSlice';
 import './AdminRevenue.css';
 
@@ -63,7 +66,7 @@ const fmt = (n) => {
 
 const AdminRevenue = () => {
   const dispatch = useDispatch();
-  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading } = useSelector(state => state.revenue);
+  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading } = useSelector(state => state.revenue);
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -94,6 +97,10 @@ const AdminRevenue = () => {
       const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
       const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString();
       dispatch(fetchCostPerSale({ startDate, endDate }));
+    }
+    if (activeView === 'campaigns') {
+      dispatch(fetchCampaigns({ year: selectedYear, month: selectedMonth }));
+      dispatch(fetchUsage());
     }
   }, [dispatch, activeView, selectedYear, selectedMonth]);
 
@@ -758,6 +765,214 @@ const AdminRevenue = () => {
     </>
   );
 
+  const renderCampaignsTab = () => {
+    const campaignList = campaigns?.campaigns || [];
+    const summary = campaigns?.summary || {};
+    const errors = campaigns?.errors || [];
+
+    return (
+      <>
+        {/* Usage / Billing Section */}
+        <div className="rev-section">
+          <h3 className="rev-section-title"><FaServer /> Uso de Servicios</h3>
+          {usageLoading ? (
+            <div className="rev-loading" style={{ padding: '20px 0' }}><Spinner animation="border" size="sm" /></div>
+          ) : !usage ? (
+            <div className="rev-empty" style={{ padding: '20px 0' }}>
+              <FaServer />
+              <div>No se pudo cargar información de uso</div>
+            </div>
+          ) : (
+            <div className="rev-usage-grid">
+              {/* Anthropic */}
+              <div className="rev-usage-card">
+                <div className="rev-usage-header">
+                  <span className="rev-usage-icon" style={{ background: '#EDE9FE', color: '#5B21B6' }}>AI</span>
+                  <span className="rev-usage-name">Anthropic</span>
+                </div>
+                {usage.anthropic?.error ? (
+                  <div className="rev-usage-error">{usage.anthropic.error}</div>
+                ) : (
+                  <>
+                    <div className="rev-usage-value">${usage.anthropic?.credit_balance?.toFixed(2) || '0.00'} USD</div>
+                    <div className="rev-usage-label">Crédito restante</div>
+                  </>
+                )}
+              </div>
+
+              {/* Railway */}
+              <div className="rev-usage-card">
+                <div className="rev-usage-header">
+                  <span className="rev-usage-icon" style={{ background: '#F3F4F6', color: '#0B0D0E' }}>RW</span>
+                  <span className="rev-usage-name">Railway</span>
+                </div>
+                {usage.railway?.error ? (
+                  <div className="rev-usage-error">{usage.railway.error}</div>
+                ) : (
+                  <>
+                    <div className="rev-usage-value">${usage.railway?.currentUsage?.toFixed(2) || '0.00'} USD</div>
+                    <div className="rev-usage-label">
+                      Uso actual · Plan {usage.railway?.plan || 'Pro'} (${usage.railway?.planLimit || 20}/mo)
+                    </div>
+                    {usage.railway?.estimatedBill && (
+                      <div className="rev-usage-sub">Estimado: ${usage.railway.estimatedBill.toFixed(2)}</div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Netlify */}
+              <div className="rev-usage-card">
+                <div className="rev-usage-header">
+                  <span className="rev-usage-icon" style={{ background: '#D1FAE5', color: '#00C7B7' }}>NF</span>
+                  <span className="rev-usage-name">Netlify</span>
+                </div>
+                {usage.netlify?.error ? (
+                  <div className="rev-usage-error">{usage.netlify.error}</div>
+                ) : (
+                  <>
+                    <div className="rev-usage-value">{usage.netlify?.bandwidth_used || '—'}</div>
+                    <div className="rev-usage-label">Bandwidth usado · {usage.netlify?.plan || 'Personal'}</div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Campaigns Section */}
+        <div className="rev-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h3 className="rev-section-title" style={{ margin: 0 }}>
+              <FaBullhorn /> Campañas — {MONTHS[selectedMonth]} {selectedYear}
+            </h3>
+            <button
+              className="rev-form-submit"
+              onClick={() => dispatch(fetchCampaigns({ year: selectedYear, month: selectedMonth }))}
+              disabled={campaignsLoading}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}
+            >
+              <FaSync style={campaignsLoading ? { animation: 'spin 1s linear infinite' } : {}} />
+              {campaignsLoading ? 'Cargando...' : 'Actualizar'}
+            </button>
+          </div>
+
+          {/* Platform summary KPIs */}
+          {(summary.meta || summary.google) && (
+            <div className="rev-campaign-summary">
+              {summary.meta && (
+                <div className="rev-campaign-platform">
+                  <FaFacebookF style={{ color: '#1877F2' }} />
+                  <span className="rev-campaign-platform-name">Meta Ads</span>
+                  <span className="rev-campaign-platform-count">{summary.meta.count} campañas</span>
+                  <span className="rev-campaign-platform-spend">{fmt(summary.meta.spend)}</span>
+                </div>
+              )}
+              {summary.google && (
+                <div className="rev-campaign-platform">
+                  <FaGoogle style={{ color: '#EA4335' }} />
+                  <span className="rev-campaign-platform-name">Google Ads</span>
+                  <span className="rev-campaign-platform-count">{summary.google.count} campañas</span>
+                  <span className="rev-campaign-platform-spend">{fmt(summary.google.spend)}</span>
+                </div>
+              )}
+              {campaigns?.totalSpend !== undefined && (
+                <div className="rev-campaign-platform total">
+                  <FaDollarSign style={{ color: '#DC2626' }} />
+                  <span className="rev-campaign-platform-name">Total Ads</span>
+                  <span className="rev-campaign-platform-spend negative">{fmt(campaigns.totalSpend)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Errors */}
+          {errors.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              {errors.map((e, i) => {
+                const isTokenExpired = e.error?.toLowerCase().includes('session has expired') || e.error?.toLowerCase().includes('access token');
+                const isNotConfigured = e.error?.toLowerCase().includes('no configurad');
+                const friendlyMsg = isTokenExpired
+                  ? 'Token expirado. Genera uno nuevo en Meta Business → Usuarios del sistema → Generar token.'
+                  : isNotConfigured
+                  ? 'Credenciales no configuradas en el archivo .env del backend.'
+                  : e.error;
+                return (
+                  <div key={i} style={{
+                    padding: '10px 14px', borderRadius: 8, marginBottom: 6,
+                    background: isTokenExpired ? '#FEE2E2' : '#FEF3C7',
+                    border: `1px solid ${isTokenExpired ? '#EF4444' : '#F59E0B'}`,
+                    fontSize: '0.8rem',
+                  }}>
+                    <FaTimesCircle style={{ marginRight: 6, color: isTokenExpired ? '#DC2626' : '#92400E' }} />
+                    <strong>{e.provider}:</strong> {friendlyMsg}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {campaignsLoading ? (
+            <div className="rev-loading" style={{ padding: '30px 0' }}><Spinner animation="border" size="sm" /></div>
+          ) : campaignList.length === 0 ? (
+            <div className="rev-empty">
+              <FaBullhorn />
+              <div>No hay campañas activas para este período</div>
+              <div style={{ fontSize: '0.78rem', marginTop: 6, color: '#9ca3af' }}>
+                Verifica que los tokens de Meta y Google Ads estén configurados en el backend
+              </div>
+            </div>
+          ) : (
+            <div className="rev-campaigns-grid">
+              {campaignList.map((c, i) => (
+                <div key={c.id || i} className="rev-campaign-card">
+                  <div className="rev-campaign-card-header">
+                    <span className="rev-campaign-badge" style={{
+                      background: c.platform === 'meta' ? '#E7F0FF' : '#FEE2E2',
+                      color: c.platform === 'meta' ? '#1877F2' : '#EA4335',
+                    }}>
+                      {c.platform === 'meta' ? <FaFacebookF /> : <FaGoogle />}
+                      {c.platform === 'meta' ? 'Meta' : 'Google'}
+                    </span>
+                    <span className="rev-campaign-spend">{fmt(c.spend)}</span>
+                  </div>
+                  <div className="rev-campaign-name">{c.name}</div>
+                  {c.objective && <div className="rev-campaign-objective">{c.objective}</div>}
+                  <div className="rev-campaign-metrics">
+                    <div className="rev-campaign-metric">
+                      <FaEye style={{ fontSize: '0.65rem' }} />
+                      <span className="rev-campaign-metric-value">{(c.impressions || 0).toLocaleString('es-MX')}</span>
+                      <span className="rev-campaign-metric-label">Impresiones</span>
+                    </div>
+                    <div className="rev-campaign-metric">
+                      <FaMousePointer style={{ fontSize: '0.65rem' }} />
+                      <span className="rev-campaign-metric-value">{(c.clicks || 0).toLocaleString('es-MX')}</span>
+                      <span className="rev-campaign-metric-label">Clics</span>
+                    </div>
+                    <div className="rev-campaign-metric">
+                      <span className="rev-campaign-metric-value">{c.ctr ? `${parseFloat(c.ctr).toFixed(2)}%` : '—'}</span>
+                      <span className="rev-campaign-metric-label">CTR</span>
+                    </div>
+                    <div className="rev-campaign-metric">
+                      <span className="rev-campaign-metric-value">{c.cpc ? fmt(c.cpc) : '—'}</span>
+                      <span className="rev-campaign-metric-label">CPC</span>
+                    </div>
+                    {c.conversions > 0 && (
+                      <div className="rev-campaign-metric">
+                        <span className="rev-campaign-metric-value">{c.conversions}</span>
+                        <span className="rev-campaign-metric-label">Leads</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+    );
+  };
+
   if (loading && !dashboard) {
     return (
       <div className="rev-dash">
@@ -803,6 +1018,9 @@ const AdminRevenue = () => {
         <button className={`rev-tab ${activeView === 'cost-per-sale' ? 'active' : ''}`} onClick={() => setActiveView('cost-per-sale')}>
           Costo por Venta
         </button>
+        <button className={`rev-tab ${activeView === 'campaigns' ? 'active' : ''}`} onClick={() => setActiveView('campaigns')}>
+          <FaBullhorn style={{ marginRight: 4 }} /> Campañas
+        </button>
         <button className={`rev-tab ${activeView === 'sync' ? 'active' : ''}`} onClick={() => setActiveView('sync')}>
           <FaSync style={{ marginRight: 4 }} /> APIs
         </button>
@@ -822,6 +1040,7 @@ const AdminRevenue = () => {
 
       {activeView === 'expenses' && renderExpensesTab()}
       {activeView === 'cost-per-sale' && renderCostPerSale()}
+      {activeView === 'campaigns' && renderCampaignsTab()}
       {activeView === 'sync' && renderSyncTab()}
     </div>
   );
