@@ -114,6 +114,28 @@ export const fetchCategories = createAsyncThunk(
   }
 );
 
+export const fetchCampaigns = createAsyncThunk(
+  'revenue/fetchCampaigns',
+  async ({ year, month } = {}, { rejectWithValue }) => {
+    try {
+      return await revenueService.getCampaigns(year, month);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar campañas');
+    }
+  }
+);
+
+export const fetchUsage = createAsyncThunk(
+  'revenue/fetchUsage',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await revenueService.getUsage();
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar uso de servicios');
+    }
+  }
+);
+
 // ── Slice ────────────────────────────────────────────
 
 const revenueSlice = createSlice({
@@ -129,6 +151,11 @@ const revenueSlice = createSlice({
     syncResult: null,
     syncError: null,
     syncing: false,
+    campaigns: null,
+    campaignsLoading: false,
+    campaignsError: null,
+    usage: null,
+    usageLoading: false,
     loading: false,
     expensesLoading: false,
     error: null,
@@ -194,7 +221,17 @@ const revenueSlice = createSlice({
         if (action.payload.expenses) {
           state.expenses.unshift(...action.payload.expenses);
         }
-      });
+      })
+
+      // Campaigns
+      .addCase(fetchCampaigns.pending, (state) => { state.campaignsLoading = true; state.campaignsError = null; })
+      .addCase(fetchCampaigns.fulfilled, (state, action) => { state.campaignsLoading = false; state.campaigns = action.payload; })
+      .addCase(fetchCampaigns.rejected, (state, action) => { state.campaignsLoading = false; state.campaignsError = action.payload; })
+
+      // Usage
+      .addCase(fetchUsage.pending, (state) => { state.usageLoading = true; })
+      .addCase(fetchUsage.fulfilled, (state, action) => { state.usageLoading = false; state.usage = action.payload; })
+      .addCase(fetchUsage.rejected, (state, action) => { state.usageLoading = false; state.error = action.payload; });
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container, Row, Col, Card, Button, Badge, Spinner, Alert,
   Form, Table,
@@ -6,12 +6,18 @@ import {
 import {
   FaWhatsapp, FaUpload, FaPaperPlane, FaSync, FaEye, FaCheck,
   FaExclamationTriangle, FaChevronDown, FaChevronUp,
+  FaComments, FaUser, FaRobot, FaUserTie, FaCircle,
 } from 'react-icons/fa';
 import {
   getManyChatStatus,
   importManyChatLeads,
   sendManyChatReactivation,
   previewManyChatMessages,
+  getManyChatLeads,
+  getLeadByWaId,
+  parseHistorial,
+  sendWhatsAppMessage,
+  toggleModoHumano,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { toast } from 'react-hot-toast';
 import '../adminCommon.css';
@@ -91,6 +97,99 @@ export default function AdminManyChat() {
 
   const toggleSegment = (seg) => {
     setSelectedSegments(prev => prev.includes(seg) ? prev.filter(s => s !== seg) : [...prev, seg]);
+  };
+
+  /* ─── Chat state ─────────────────────────────────────────── */
+  const [chatLeads, setChatLeads] = useState([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatDetailLoading, setChatDetailLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  const fetchChatLeads = useCallback(async () => {
+    try {
+      setChatLoading(true);
+      const data = await getManyChatLeads('todos', 1, 50);
+      setChatLeads(data.leads || data || []);
+    } catch (err) {
+      toast.error('Error cargando leads ManyChat: ' + err.message);
+    } finally {
+      setChatLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchChatLeads(); }, [fetchChatLeads]);
+
+  const handleSelectLead = async (lead) => {
+    setSelectedLead(lead);
+    setChatDetailLoading(true);
+    try {
+      const data = await getLeadByWaId(lead.wa_id);
+      const leadData = data.lead || data;
+      const msgs = parseHistorial(leadData.historial_chat);
+      setChatMessages(msgs);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (err) {
+      toast.error('Error cargando chat: ' + err.message);
+      setChatMessages([]);
+    } finally {
+      setChatDetailLoading(false);
+    }
+  };
+
+  const getLastUserMsg = (lead) => {
+    if (lead.lastUserMsg?.content) return lead.lastUserMsg.content;
+    return null;
+  };
+
+  const isHumanMessage = (content) => content?.startsWith?.('[HUMANO');
+  const isBotMessage = (role) => role === 'assistant';
+
+  /* ─── Send message state ─────────────────────────────────── */
+  const [msgText, setMsgText] = useState('');
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const [togglingHumano, setTogglingHumano] = useState(false);
+  const msgInputRef = useRef(null);
+
+  const handleToggleHumano = async () => {
+    if (!selectedLead) return;
+    try {
+      setTogglingHumano(true);
+      const newVal = !selectedLead.modo_humano;
+      await toggleModoHumano(selectedLead.wa_id, newVal);
+      setSelectedLead(prev => ({ ...prev, modo_humano: newVal }));
+      setChatLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, modo_humano: newVal } : l));
+      toast.success(newVal ? 'Modo humano activado' : 'Modo humano desactivado');
+    } catch (err) {
+      toast.error('Error: ' + err.message);
+    } finally {
+      setTogglingHumano(false);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!msgText.trim() || !selectedLead || sendingMsg) return;
+    try {
+      setSendingMsg(true);
+      await sendWhatsAppMessage(selectedLead.wa_id, msgText.trim());
+      // Add optimistic message
+      const adminName = 'Arturo Suárez';
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `[HUMANO:${adminName}] ${msgText.trim()}`,
+        timestamp: new Date().toISOString(),
+      }]);
+      setMsgText('');
+      toast.success('Mensaje enviado');
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (err) {
+      toast.error('Error enviando: ' + err.message);
+    } finally {
+      setSendingMsg(false);
+      msgInputRef.current?.focus();
+    }
   };
 
   if (loading) {
@@ -231,6 +330,198 @@ export default function AdminManyChat() {
                 {sendResult && <div className="mt-2"><Alert variant="success" className="py-1" style={{ fontSize: '0.8rem' }}>{sendResult.sent} enviados, {sendResult.skipped} saltados, {sendResult.failed} fallidos</Alert></div>}
               </Card.Body>
             )}
+          </Card>
+        </Col>
+      </Row>
+      {/* ─── Chat Section ─────────────────────────────────────────── */}
+      <Row className="mb-3">
+        <Col>
+          <Card className="border-0 shadow-sm">
+            <Card.Header className="bg-white border-0 d-flex align-items-center gap-2">
+              <FaComments className="text-success" />
+              <strong>Conversaciones ManyChat</strong>
+              <Badge bg="secondary" className="ms-1">{chatLeads.length}</Badge>
+              <Button variant="outline-secondary" size="sm" className="ms-auto" onClick={fetchChatLeads} disabled={chatLoading}>
+                <FaSync className={chatLoading ? 'spin' : ''} /> Actualizar
+              </Button>
+            </Card.Header>
+            <Card.Body className="p-0">
+              <div style={{ display: 'flex', height: '520px' }}>
+                {/* Lead list */}
+                <div style={{ width: '320px', borderRight: '1px solid #dee2e6', overflowY: 'auto', flexShrink: 0 }}>
+                  {chatLoading ? (
+                    <div className="text-center py-4"><Spinner size="sm" /></div>
+                  ) : chatLeads.length === 0 ? (
+                    <div className="text-center py-4 text-muted">
+                      <small>No hay leads ManyChat importados</small>
+                    </div>
+                  ) : (
+                    chatLeads.map(lead => {
+                      const lastUser = getLastUserMsg(lead);
+                      const isActive = selectedLead?.wa_id === lead.wa_id;
+                      return (
+                        <div
+                          key={lead.wa_id}
+                          onClick={() => handleSelectLead(lead)}
+                          style={{
+                            padding: '10px 14px',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid #f0f0f0',
+                            backgroundColor: isActive ? '#e8f5e9' : 'transparent',
+                            transition: 'background 0.15s',
+                          }}
+                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = '#f5f5f5'; }}
+                          onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                          <div className="d-flex justify-content-between align-items-start">
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div className="d-flex align-items-center gap-1">
+                                <strong style={{ fontSize: '0.9rem' }}>{lead.nombre || lead.wa_id}</strong>
+                                {lead.manychat_segment && (
+                                  <Badge bg={SEGMENT_COLORS[lead.manychat_segment] || 'secondary'} style={{ fontSize: '0.6rem' }}>
+                                    {lead.manychat_segment}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {lead.ultimo_mensaje_preview || lastUser || lead.estado_sofia || ''}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: '0.7rem', color: '#999', whiteSpace: 'nowrap', marginLeft: '8px' }}>
+                              {lead.totalMsgs || 0} msgs
+                            </div>
+                          </div>
+                          <div className="d-flex gap-1 mt-1">
+                            <Badge bg={lead.estado_sofia === 'descartado' ? 'danger' : lead.estado_sofia === 'cotizacion_enviada' ? 'success' : 'info'} style={{ fontSize: '0.65rem' }}>
+                              {lead.estado_sofia || 'sin etapa'}
+                            </Badge>
+                            {lead.modo_humano && <Badge bg="warning" text="dark" style={{ fontSize: '0.65rem' }}>Humano</Badge>}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Chat panel */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  {!selectedLead ? (
+                    <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                      <FaComments size={48} className="mb-2 opacity-25" />
+                      <p>Selecciona un lead para ver su conversación</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Chat header */}
+                      <div style={{ padding: '10px 16px', borderBottom: '1px solid #dee2e6', backgroundColor: '#f8f9fa' }}>
+                        <div className="d-flex align-items-center gap-2">
+                          <strong>{selectedLead.nombre || selectedLead.wa_id}</strong>
+                          <small className="text-muted">+{selectedLead.wa_id}</small>
+                          <Badge bg={SEGMENT_COLORS[selectedLead.manychat_segment] || 'secondary'}>
+                            {selectedLead.manychat_segment}
+                          </Badge>
+                          <Button
+                            variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'}
+                            size="sm"
+                            className="ms-auto d-flex align-items-center gap-1"
+                            onClick={handleToggleHumano}
+                            disabled={togglingHumano}
+                          >
+                            {togglingHumano ? <Spinner size="sm" /> : <FaUserTie />}
+                            {selectedLead.modo_humano ? 'Humano' : 'Activar Humano'}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Messages */}
+                      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', backgroundColor: '#ece5dd' }}>
+                        {chatDetailLoading ? (
+                          <div className="text-center py-4"><Spinner size="sm" /> Cargando chat...</div>
+                        ) : chatMessages.length === 0 ? (
+                          <div className="text-center py-4 text-muted">Sin mensajes</div>
+                        ) : (
+                          chatMessages.map((msg, i) => {
+                            const isUser = msg.role === 'user';
+                            const isHuman = isHumanMessage(msg.content);
+                            const content = msg.content || '';
+                            if (content.startsWith('[STATE:')) return null;
+
+                            return (
+                              <div key={i} style={{ display: 'flex', justifyContent: isUser ? 'flex-start' : 'flex-end', marginBottom: '6px' }}>
+                                <div style={{
+                                  maxWidth: '75%',
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  backgroundColor: isUser ? '#fff' : isHuman ? '#dcf8c6' : '#d4edff',
+                                  boxShadow: '0 1px 1px rgba(0,0,0,0.1)',
+                                  fontSize: '0.85rem',
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                }}>
+                                  {isHuman && (
+                                    <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#e65100', marginBottom: '2px' }}>
+                                      <FaUserTie className="me-1" />{content.match(/\[HUMANO:(.*?)\]/)?.[1] || 'Humano'}
+                                    </div>
+                                  )}
+                                  {!isUser && !isHuman && (
+                                    <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1565c0', marginBottom: '2px' }}>
+                                      <FaRobot className="me-1" />Sofia
+                                    </div>
+                                  )}
+                                  {isUser && (
+                                    <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#2e7d32', marginBottom: '2px' }}>
+                                      <FaUser className="me-1" />{selectedLead.nombre || 'Lead'}
+                                    </div>
+                                  )}
+                                  {isHuman ? content.replace(/\[HUMANO:.*?\]\s*/, '') : content.replace(/\[STATE:\{.*?\}\]/, '').trim()}
+                                  {msg.timestamp && (
+                                    <div style={{ fontSize: '0.65rem', color: '#999', textAlign: 'right', marginTop: '2px' }}>
+                                      {new Date(msg.timestamp).toLocaleString('es-MX', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                        <div ref={chatEndRef} />
+                      </div>
+
+                      {/* Message input */}
+                      <div style={{ borderTop: '1px solid #dee2e6', padding: '10px 12px', backgroundColor: '#f0f0f0' }}>
+                        {!selectedLead.modo_humano ? (
+                          <div className="text-center text-muted" style={{ fontSize: '0.8rem', padding: '6px 0' }}>
+                            <FaRobot className="me-1" /> Sofia está atendiendo. Activa <strong>modo humano</strong> para responder.
+                          </div>
+                        ) : (
+                          <form onSubmit={handleSendMessage} className="d-flex gap-2">
+                            <Form.Control
+                              ref={msgInputRef}
+                              type="text"
+                              placeholder="Escribe tu mensaje como humano..."
+                              value={msgText}
+                              onChange={e => setMsgText(e.target.value)}
+                              disabled={sendingMsg}
+                              size="sm"
+                              style={{ borderRadius: '20px' }}
+                            />
+                            <Button
+                              type="submit"
+                              variant="success"
+                              size="sm"
+                              disabled={sendingMsg || !msgText.trim()}
+                              style={{ borderRadius: '50%', width: '36px', height: '36px', padding: 0 }}
+                            >
+                              {sendingMsg ? <Spinner size="sm" /> : <FaPaperPlane />}
+                            </Button>
+                          </form>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card.Body>
           </Card>
         </Col>
       </Row>

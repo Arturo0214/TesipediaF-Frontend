@@ -49,6 +49,7 @@ const ClientPanel = () => {
 
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
   const [activeTab, setActiveTab] = useState('proyecto');
   const [commentText, setCommentText] = useState('');
@@ -72,11 +73,17 @@ const ClientPanel = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setFetchError(null);
         const { data } = await axiosWithAuth.get('/projects/client');
         setProjects(data);
         if (data.length > 0) setActiveProject(data[0]);
       } catch (err) {
         console.error('Error fetching projects:', err);
+        setFetchError(
+          err.response?.status === 401
+            ? 'Tu sesión expiró. Por favor cierra sesión e inicia de nuevo.'
+            : 'No pudimos cargar tus proyectos. Intenta recargar la página.'
+        );
       } finally {
         setLoading(false);
       }
@@ -300,7 +307,10 @@ const ClientPanel = () => {
         ) : (
           <div className="cp-empty-section">
             <FaMoneyBillWave className="cp-empty-section-icon" />
-            <p>Sin plan de pagos registrado.</p>
+            <p>El plan de pagos se mostrará aquí una vez que se confirme tu esquema de pago.</p>
+            <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px' }}>
+              Si ya realizaste un pago, contáctanos para que actualicemos tu información.
+            </p>
           </div>
         )}
       </div>
@@ -402,9 +412,29 @@ const ClientPanel = () => {
 
   const renderEmptyState = () => (
     <div className="cp-empty-state">
-      <div className="cp-empty-icon"><FaClipboardList /></div>
-      <h2>Aún no tienes proyectos</h2>
-      <p>Cuando solicites un servicio y sea aprobado, podrás dar seguimiento aquí.</p>
+      {fetchError ? (
+        <>
+          <div className="cp-empty-icon" style={{ color: '#e74c3c' }}><FaExclamationCircle /></div>
+          <h2>Error al cargar</h2>
+          <p>{fetchError}</p>
+          <button
+            className="cp-btn-retry"
+            onClick={() => { setLoading(true); setFetchError(null); window.location.reload(); }}
+            style={{ marginTop: '16px', padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: '#fff', cursor: 'pointer', fontSize: '0.95rem' }}
+          >
+            Reintentar
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="cp-empty-icon"><FaClipboardList /></div>
+          <h2>Tu proyecto se está preparando</h2>
+          <p>Estamos configurando los detalles de tu proyecto. Si acabas de registrarte, los datos aparecerán pronto.</p>
+          <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '8px' }}>
+            Si ya pasaron más de 24 horas, contáctanos por WhatsApp para ayudarte.
+          </p>
+        </>
+      )}
     </div>
   );
 

@@ -73,6 +73,21 @@ const revenueService = {
     const response = await axiosWithAuth.get('/revenue/sync-status');
     return response.data;
   },
+
+  // Campañas (Meta Ads + Google Ads) a nivel campaña
+  getCampaigns: async (year, month) => {
+    const params = {};
+    if (year !== undefined) params.year = year;
+    if (month !== undefined) params.month = month;
+    const response = await axiosWithAuth.get('/revenue/campaigns', { params });
+    return response.data;
+  },
+
+  // Uso/billing de servicios (Anthropic, Railway, Netlify)
+  getUsage: async () => {
+    const response = await axiosWithAuth.get('/revenue/usage');
+    return response.data;
+  },
 };
 
 export default revenueService;
