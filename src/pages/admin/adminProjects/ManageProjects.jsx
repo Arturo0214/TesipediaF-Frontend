@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllProjects, updateProjectStatus, updateProgress, addComment } from '../../../features/projects/projectSlice';
 import axiosWithAuth from '../../../utils/axioswithAuth';
-import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus, FaUserPlus } from 'react-icons/fa';
+import projectService from '../../../services/projectService';
+import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus, FaUserPlus, FaUpload, FaTrash, FaDownload, FaCloudUploadAlt } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import './ManageProjects.css';
 
@@ -33,6 +34,54 @@ function ManageProjects() {
     });
 
     const [creatingClient, setCreatingClient] = useState(null); // project ID being processed
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [deletingDeliverable, setDeletingDeliverable] = useState(null);
+    const fileInputRef = useRef(null);
+
+    // Handler para subir archivo entregable
+    const handleUploadDeliverable = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedProject) return;
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('El archivo no puede superar 10 MB');
+            return;
+        }
+        setUploadingFile(true);
+        try {
+            const updated = await projectService.uploadDeliverable(selectedProject._id, file);
+            setSelectedProject(updated);
+            dispatch(getAllProjects());
+            toast.success(`Archivo "${file.name}" subido correctamente`);
+        } catch (err) {
+            toast.error('Error al subir archivo: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setUploadingFile(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    // Handler para eliminar entregable
+    const handleRemoveDeliverable = async (deliverableId, filename) => {
+        if (!selectedProject) return;
+        setDeletingDeliverable(deliverableId);
+        try {
+            const updated = await projectService.removeDeliverable(selectedProject._id, deliverableId);
+            setSelectedProject(updated);
+            dispatch(getAllProjects());
+            toast.success(`Archivo "${filename}" eliminado`);
+        } catch (err) {
+            toast.error('Error al eliminar archivo: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setDeletingDeliverable(null);
+        }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (!bytes) return '';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
 
     // Handler to create client user from project
     const handleCreateClient = async (e, project) => {
@@ -672,6 +721,106 @@ function ManageProjects() {
                                 >
                                     Comentar
                                 </button>
+                            </div>
+                        </div>
+
+                        <div className="mp-modal-section">
+                            <h3 className="mp-section-title">
+                                <FaFileAlt style={{ marginRight: 6 }} />
+                                Archivos del Proyecto
+                            </h3>
+
+                            {/* Lista de archivos entregados */}
+                            {selectedProject.deliverables && selectedProject.deliverables.length > 0 ? (
+                                <div className="mp-deliverables-list">
+                                    {selectedProject.deliverables.map((del) => (
+                                        <div key={del._id} className="mp-deliverable-item">
+                                            <div className="mp-deliverable-info">
+                                                <FaFileAlt className="mp-deliverable-icon" />
+                                                <div>
+                                                    <span className="mp-deliverable-name">{del.originalname}</span>
+                                                    <span className="mp-deliverable-meta">
+                                                        {formatFileSize(del.size)} &middot; {new Date(del.uploadedAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="mp-deliverable-actions">
+                                                <a
+                                                    href={del.path}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="mp-btn mp-btn-sm mp-btn-secondary"
+                                                    title="Descargar"
+                                                >
+                                                    <FaDownload />
+                                                </a>
+                                                <button
+                                                    className="mp-btn mp-btn-sm mp-btn-danger"
+                                                    onClick={() => handleRemoveDeliverable(del._id, del.originalname)}
+                                                    disabled={deletingDeliverable === del._id}
+                                                    title="Eliminar"
+                                                >
+                                                    {deletingDeliverable === del._id ? '...' : <FaTrash />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="mp-no-deliverables">No hay archivos cargados todavia.</p>
+                            )}
+
+                            {/* Revisions files */}
+                            {selectedProject.revisions && selectedProject.revisions.length > 0 && (
+                                <div className="mp-revisions-files">
+                                    <h4 className="mp-subsection-title">Revisiones</h4>
+                                    {selectedProject.revisions.filter(r => r.file).map((rev) => (
+                                        <div key={rev._id || rev.version} className="mp-deliverable-item">
+                                            <div className="mp-deliverable-info">
+                                                <FaFileAlt className="mp-deliverable-icon" style={{ color: '#8b5cf6' }} />
+                                                <div>
+                                                    <span className="mp-deliverable-name">{rev.label || `v${rev.version}`} — {rev.file.originalname}</span>
+                                                    <span className="mp-deliverable-meta">
+                                                        {formatFileSize(rev.file.size)} &middot; {rev.type} &middot;
+                                                        <span className={`mp-rev-status mp-rev-${rev.status}`}> {rev.status}</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <a
+                                                href={rev.file.path}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mp-btn mp-btn-sm mp-btn-secondary"
+                                                title="Descargar"
+                                            >
+                                                <FaDownload />
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Upload button */}
+                            <div className="mp-upload-section">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleUploadDeliverable}
+                                    style={{ display: 'none' }}
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt,.zip,.rar"
+                                />
+                                <button
+                                    className="mp-btn mp-btn-primary mp-btn-upload"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploadingFile}
+                                >
+                                    {uploadingFile ? (
+                                        <><FaSync className="spinning" /> Subiendo...</>
+                                    ) : (
+                                        <><FaCloudUploadAlt /> Subir Archivo</>
+                                    )}
+                                </button>
+                                <span className="mp-upload-hint">PDF, Word, Excel, imagen o ZIP (max 10 MB)</span>
                             </div>
                         </div>
 

@@ -1520,3 +1520,152 @@
   align-items: center;
   gap: 6px;
 }
+
+/* ============================================
+   Deliverables / Files Section
+   ============================================ */
+
+.mp-deliverables-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mp-deliverable-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.mp-deliverable-item:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.mp-deliverable-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mp-deliverable-icon {
+  color: #3b82f6;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.mp-deliverable-info > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mp-deliverable-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mp-deliverable-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.mp-deliverable-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.mp-btn-danger {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.mp-btn-danger:hover {
+  background: #fecaca;
+}
+
+.mp-btn-sm {
+  padding: 5px 8px;
+  font-size: 0.78rem;
+}
+
+.mp-no-deliverables {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.mp-revisions-files {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.mp-subsection-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mp-rev-status {
+  font-weight: 500;
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.mp-rev-delivered { background: #dbeafe; color: #2563eb; }
+.mp-rev-approved { background: #dcfce7; color: #16a34a; }
+.mp-rev-pending_review { background: #fef3c7; color: #d97706; }
+.mp-rev-corrections_requested { background: #fee2e2; color: #dc2626; }
+
+.mp-upload-section {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.mp-btn-upload {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.mp-upload-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+@keyframes spinning {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spinning 1s linear infinite;
+}

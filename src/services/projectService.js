@@ -74,6 +74,20 @@ const deleteProject = async (id) => {
     return response.data;
 };
 
+// Upload deliverable file to project
+const uploadDeliverable = async (projectId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosWithAuth.post(`${API_URL}/${projectId}/deliverables`, formData);
+    return response.data;
+};
+
+// Remove deliverable from project
+const removeDeliverable = async (projectId, deliverableId) => {
+    const response = await axiosWithAuth.delete(`${API_URL}/${projectId}/deliverables/${deliverableId}`);
+    return response.data;
+};
+
 const projectService = {
     getAllProjects,
     getWriterProjects,
@@ -86,7 +100,9 @@ const projectService = {
     addComment,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    uploadDeliverable,
+    removeDeliverable
 };
 
 export default projectService; 
