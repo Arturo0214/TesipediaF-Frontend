@@ -237,6 +237,99 @@ const AdminWhatsApp = () => {
   });
   const [autoReminderLoading, setAutoReminderLoading] = useState(false);
   const prevLeadIdRef = useRef(null); // para scroll solo al cambiar de conversación
+  const prevLeadsMapRef = useRef(new Map()); // para detectar mensajes nuevos entre polls
+
+  // ─── Notificaciones para mensajes nuevos ───
+  useEffect(() => {
+    // Pedir permiso de notificaciones del navegador
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const playNotifSound = useCallback(() => {
+    try {
+      // Generar sonido de notificación con Web Audio API (dos tonos cortos)
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const playTone = (freq, startTime, duration) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+      const now = ctx.currentTime;
+      playTone(880, now, 0.15);       // primer tono
+      playTone(1100, now + 0.18, 0.15); // segundo tono más agudo
+    } catch (_) {}
+  }, []);
+
+  const showBrowserNotification = useCallback((title, body) => {
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/favicon.ico', tag: 'tesipedia-msg' });
+      }
+    } catch (_) {}
+  }, []);
+
+  // Detectar mensajes nuevos comparando con el poll anterior
+  const checkNewMessages = useCallback((newLeads) => {
+    if (prevLeadsMapRef.current.size === 0) {
+      // Primera carga: guardar sin notificar
+      const map = new Map();
+      newLeads.forEach(l => map.set(l.wa_id, l.updated_at));
+      prevLeadsMapRef.current = map;
+      return;
+    }
+    const newMsgs = [];
+    newLeads.forEach(lead => {
+      const prevUpdated = prevLeadsMapRef.current.get(lead.wa_id);
+      // Si el lead tiene updated_at más reciente Y el último mensaje es del usuario
+      if (prevUpdated && lead.updated_at !== prevUpdated) {
+        const hist = parseHistorial(lead.historial_chat);
+        if (hist.length > 0 && hist[hist.length - 1].role === 'user') {
+          newMsgs.push(lead);
+        }
+      } else if (!prevUpdated) {
+        // Lead completamente nuevo con mensaje del user
+        const hist = parseHistorial(lead.historial_chat);
+        if (hist.length > 0 && hist[hist.length - 1].role === 'user') {
+          newMsgs.push(lead);
+        }
+      }
+    });
+    // Actualizar mapa
+    const map = new Map();
+    newLeads.forEach(l => map.set(l.wa_id, l.updated_at));
+    prevLeadsMapRef.current = map;
+    // Notificar
+    if (newMsgs.length > 0) {
+      playNotifSound();
+      const mcLeads = newMsgs.filter(l => l.origen === 'manychat');
+      const regularLeads = newMsgs.filter(l => l.origen !== 'manychat');
+      if (mcLeads.length > 0) {
+        const names = mcLeads.slice(0, 3).map(l => l.nombre || l.wa_id).join(', ');
+        toast(`💬 ManyChat: ${mcLeads.length} mensaje${mcLeads.length > 1 ? 's' : ''} nuevo${mcLeads.length > 1 ? 's' : ''} — ${names}`, {
+          icon: '🟣', duration: 8000,
+          style: { background: '#f3f0ff', color: '#7c3aed', fontWeight: 600, border: '2px solid #7c3aed' },
+        });
+        showBrowserNotification(`ManyChat: ${mcLeads.length} nuevo${mcLeads.length > 1 ? 's' : ''}`, names);
+      }
+      if (regularLeads.length > 0) {
+        const names = regularLeads.slice(0, 3).map(l => l.nombre || l.wa_id).join(', ');
+        toast(`💬 ${regularLeads.length} mensaje${regularLeads.length > 1 ? 's' : ''} nuevo${regularLeads.length > 1 ? 's' : ''} — ${names}`, {
+          icon: '💬', duration: 6000,
+          style: { background: '#ecfdf5', color: '#065f46', fontWeight: 500 },
+        });
+        showBrowserNotification(`WhatsApp: ${regularLeads.length} nuevo${regularLeads.length > 1 ? 's' : ''}`, names);
+      }
+    }
+  }, [playNotifSound, showBrowserNotification]);
 
   // Mantener el ref sincronizado con el state
   useEffect(() => {
@@ -253,6 +346,14 @@ const AdminWhatsApp = () => {
       const result = await getLeads(origenRef.current, 100, 0);
       // Handle both paginated response { leads, total, hasMore } and legacy array
       const data = Array.isArray(result) ? result : (result.leads || []);
+      // Detectar mensajes nuevos (solo durante polling silencioso)
+      if (silent) checkNewMessages(data);
+      else {
+        // Primera carga: inicializar mapa sin notificar
+        const map = new Map();
+        data.forEach(l => map.set(l.wa_id, l.updated_at));
+        prevLeadsMapRef.current = map;
+      }
       setLeads(data);
       setTotalLeads(result.total || data.length);
       setHasMore(result.hasMore || false);
@@ -1159,6 +1260,25 @@ const AdminWhatsApp = () => {
       (lead.wa_id || '').includes(q) ||
       (lead.estado_sofia || '').toLowerCase().includes(q)
     );
+  }).sort((a, b) => {
+    // Siempre mostrar primero los leads con mensajes nuevos (no leídos)
+    // Inline: contar mensajes del user al final del historial
+    const countUnread = (lead) => {
+      const hist = parseHistorial(lead.historial_chat);
+      let c = 0;
+      for (let i = hist.length - 1; i >= 0; i--) {
+        if (hist[i].role === 'user') c++; else break;
+      }
+      return c;
+    };
+    const unreadA = countUnread(a);
+    const unreadB = countUnread(b);
+    if (unreadA > 0 && unreadB === 0) return -1;
+    if (unreadA === 0 && unreadB > 0) return 1;
+    // Dentro de cada grupo, ordenar por updated_at más reciente
+    const dateA = new Date(a.updated_at || 0).getTime();
+    const dateB = new Date(b.updated_at || 0).getTime();
+    return dateB - dateA;
   });
 
   // Formatear teléfono
@@ -2157,7 +2277,17 @@ const AdminWhatsApp = () => {
                     <FaTrash />
                   </button>
                   <div className="wa-audio-player-wrapper">
-                    <audio controls src={audioPreviewUrl} className="wa-audio-player" />
+                    <audio
+                      controls
+                      src={audioPreviewUrl}
+                      className="wa-audio-player"
+                      onError={(e) => {
+                        // En algunos navegadores móviles el preview no reproduce el blob
+                        // Reemplazar con indicador visual sin bloquear el envío
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px;color:#666;font-size:0.8rem;">🎤 Audio listo para enviar</div>';
+                      }}
+                    />
                   </div>
                   <button
                     type="button"
