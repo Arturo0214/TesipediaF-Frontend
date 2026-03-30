@@ -34,6 +34,8 @@ function ManageProjects() {
     });
 
     const [creatingClient, setCreatingClient] = useState(null); // project ID being processed
+    const [showManualClientForm, setShowManualClientForm] = useState(false);
+    const [manualClientData, setManualClientData] = useState({ email: '', password: '' });
     const [uploadingFile, setUploadingFile] = useState(false);
     const [deletingDeliverable, setDeletingDeliverable] = useState(null);
     const fileInputRef = useRef(null);
@@ -84,19 +86,24 @@ function ManageProjects() {
     };
 
     // Handler to create client user from project
-    const handleCreateClient = async (e, project) => {
-        e.stopPropagation();
-        if (!project.clientEmail && !project.clientPhone) {
-            toast.error('Este proyecto no tiene email ni teléfono de cliente');
-            return;
-        }
+    const handleCreateClient = async (e, project, manualData = null) => {
+        e?.stopPropagation?.();
         if (project.client) {
             toast('Este proyecto ya tiene un usuario cliente vinculado', { icon: '👤' });
             return;
         }
+        // Si no tiene email/phone y no se proporcionan datos manuales, pedir formulario
+        if (!project.clientEmail && !project.clientPhone && !manualData?.email) {
+            toast.error('Ingresa al menos un email para crear el usuario');
+            return;
+        }
         setCreatingClient(project._id);
         try {
-            const { data } = await axiosWithAuth.post(`/projects/${project._id}/create-client`);
+            const body = manualData ? {
+                email: manualData.email || undefined,
+                password: manualData.password || undefined,
+            } : {};
+            const { data } = await axiosWithAuth.post(`/projects/${project._id}/create-client`, body);
             if (data.alreadyExists && !data.password) {
                 toast.success(`Usuario ya existía: ${data.loginIdentifier || data.user.email}\nSe vinculó al proyecto`, {
                     duration: 5000, style: { whiteSpace: 'pre-line' }
@@ -104,12 +111,18 @@ function ManageProjects() {
             } else {
                 const login = data.loginIdentifier || data.user.email;
                 toast.success(
-                    `✅ Usuario creado\n🔑 Login: ${login}\n🔑 Contraseña: ${data.password}\n📱 Credenciales enviadas por WhatsApp`,
+                    `Usuario creado\nLogin: ${login}\nContraseña: ${data.password}`,
                     { duration: 10000, style: { whiteSpace: 'pre-line' } }
                 );
             }
-            // Refresh projects to update client info
+            setShowManualClientForm(false);
+            setManualClientData({ email: '', password: '' });
             dispatch(getAllProjects());
+            // Actualizar el selectedProject con los datos nuevos
+            try {
+                const { data: updated } = await axiosWithAuth.get(`/projects/${project._id}`);
+                setSelectedProject(updated);
+            } catch (_) {}
         } catch (err) {
             toast.error(err.response?.data?.message || 'Error al crear usuario cliente');
         } finally {
@@ -633,10 +646,55 @@ function ManageProjects() {
                                             ? 'Creando usuario...'
                                             : 'Crear Usuario y Contraseña'}
                                     </button>
+                                ) : !showManualClientForm ? (
+                                    <button
+                                        className="mp-btn mp-btn-create-client"
+                                        onClick={() => setShowManualClientForm(true)}
+                                    >
+                                        <FaUserPlus /> Crear Usuario Manualmente
+                                    </button>
                                 ) : (
-                                    <p className="mp-no-email-warning">
-                                        <FaUser /> Sin email ni teléfono de cliente — no se puede crear usuario
-                                    </p>
+                                    <div className="mp-manual-client-form">
+                                        <h4 className="mp-form-title">Crear cuenta de cliente</h4>
+                                        <div className="mp-form-row">
+                                            <div className="mp-form-field">
+                                                <label>Email del cliente *</label>
+                                                <input
+                                                    type="email"
+                                                    className="mp-input"
+                                                    placeholder="cliente@email.com"
+                                                    value={manualClientData.email}
+                                                    onChange={(e) => setManualClientData(prev => ({ ...prev, email: e.target.value }))}
+                                                />
+                                            </div>
+                                            <div className="mp-form-field">
+                                                <label>Contraseña (opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    className="mp-input"
+                                                    placeholder="Se genera automática si vacío"
+                                                    value={manualClientData.password}
+                                                    onChange={(e) => setManualClientData(prev => ({ ...prev, password: e.target.value }))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mp-form-actions">
+                                            <button
+                                                className="mp-btn mp-btn-primary"
+                                                onClick={(e) => handleCreateClient(e, selectedProject, manualClientData)}
+                                                disabled={!manualClientData.email.trim() || creatingClient === selectedProject._id}
+                                            >
+                                                <FaUserPlus />
+                                                {creatingClient === selectedProject._id ? 'Creando...' : 'Crear Usuario'}
+                                            </button>
+                                            <button
+                                                className="mp-btn mp-btn-ghost"
+                                                onClick={() => { setShowManualClientForm(false); setManualClientData({ email: '', password: '' }); }}
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
