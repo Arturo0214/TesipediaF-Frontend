@@ -363,6 +363,86 @@ const AdminRevenue = () => {
     );
   };
 
+  const renderContrast = () => {
+    if (!dashboard) return null;
+    const payments = dashboard.recentPayments || [];
+    const cats = dashboard.expenses?.monthly?.byCategory || [];
+    const totalIncome = dashboard.income?.monthly?.total || 0;
+    const totalExpenses = dashboard.expenses?.monthly?.total || 0;
+
+    const METHOD_LABELS = {
+      stripe: 'Stripe',
+      paypal: 'PayPal',
+      transferencia: 'Transferencia',
+      efectivo: 'Efectivo',
+      mercadolibre: 'MercadoLibre',
+      manual: 'Manual',
+    };
+
+    return (
+      <div className="rev-contrast-grid">
+        {/* INGRESOS — pagos individuales */}
+        <div className="rev-contrast-col income-col">
+          <div className="rev-contrast-header">
+            <span className="rev-contrast-title">
+              <FaArrowUp style={{ color: '#059669' }} /> Ingresos ({payments.length})
+            </span>
+            <span className="rev-contrast-total positive">{fmt(totalIncome)}</span>
+          </div>
+          {payments.length === 0 ? (
+            <div className="rev-empty" style={{ padding: '20px 0' }}>
+              <FaDollarSign />
+              <div>Sin pagos completados este mes</div>
+            </div>
+          ) : (
+            payments.map((p, i) => (
+              <div key={p._id || i} className="rev-payment-row">
+                <div className="rev-payment-info">
+                  <span className="rev-payment-client">{p.clientName || p.title || 'Venta sin nombre'}</span>
+                  <span className="rev-payment-meta">
+                    {p.vendedor && `${p.vendedor} · `}
+                    {new Date(p.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                  </span>
+                </div>
+                <span className="rev-method-badge">{METHOD_LABELS[p.method] || p.method}</span>
+                <span className="rev-payment-amount positive">{fmt(p.amount)}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* GASTOS — por categoría */}
+        <div className="rev-contrast-col expense-col">
+          <div className="rev-contrast-header">
+            <span className="rev-contrast-title">
+              <FaArrowDown style={{ color: '#DC2626' }} /> Gastos ({cats.length} categorías)
+            </span>
+            <span className="rev-contrast-total negative">{fmt(totalExpenses)}</span>
+          </div>
+          {cats.length === 0 ? (
+            <div className="rev-empty" style={{ padding: '20px 0' }}>
+              <FaReceipt />
+              <div>Sin gastos registrados este mes</div>
+            </div>
+          ) : (
+            cats.map((cat, i) => (
+              <div key={cat._id || i} className="rev-expense-row">
+                <div className="rev-payment-info">
+                  <span className="rev-payment-client">
+                    <span className="rev-cat-badge-dot" style={{ background: CATEGORY_COLORS[cat._id] || '#6B7280', display: 'inline-block', width: 8, height: 8, borderRadius: '50%', marginRight: 6 }} />
+                    {CATEGORY_LABELS[cat._id] || cat._id}
+                  </span>
+                  <span className="rev-payment-meta">{cat.count} registro{cat.count !== 1 ? 's' : ''}</span>
+                </div>
+                <span className="rev-payment-amount negative">{fmt(cat.total)}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderExpensesTab = () => (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -733,6 +813,7 @@ const AdminRevenue = () => {
         <>
           {renderKPIs()}
           {renderYearlyKPIs()}
+          {renderContrast()}
           {renderChart()}
           {renderBreakdown()}
           {renderVendedores()}
