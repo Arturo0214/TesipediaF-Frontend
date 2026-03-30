@@ -24,16 +24,17 @@ const STATUS_MAP = {
   cancelled:   { label: 'Cancelado',   icon: <FaTimes />,         class: 'cp-status-cancelled' },
 };
 
-const TIMELINE_STEPS = [
-  { key: 'pending',     label: 'Recibido' },
-  { key: 'in_progress', label: 'En desarrollo' },
-  { key: 'review',      label: 'Revisión' },
-  { key: 'completed',   label: 'Entregado' },
-];
+/* Revision type icons & labels */
+const REVISION_STATUS_MAP = {
+  delivered:              { label: 'Entregado',                 color: '#2563eb' },
+  pending_review:         { label: 'En revisión por tu asesor', color: '#d97706' },
+  corrections_requested:  { label: 'Correcciones solicitadas',  color: '#dc2626' },
+  approved:               { label: 'Aprobado',                  color: '#16a34a' },
+};
 
 const fmtDate = (d) => {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
 };
 
 const fmtMoney = (n) => {
@@ -129,14 +130,27 @@ const ClientPanel = () => {
     }
   };
 
-  const getStepStatus = (stepKey, projectStatus) => {
-    const order = ['pending', 'in_progress', 'review', 'completed'];
-    const currentIdx = order.indexOf(projectStatus);
-    const stepIdx = order.indexOf(stepKey);
-    if (projectStatus === 'cancelled') return 'pending';
-    if (stepIdx < currentIdx) return 'completed';
-    if (stepIdx === currentIdx) return 'current';
-    return 'pending';
+  /** Calculate delivery deadline: 7 days after payment date */
+  const getDeliveryDeadline = (paidDate) => {
+    if (!paidDate) return null;
+    const d = new Date(paidDate);
+    d.setDate(d.getDate() + 7);
+    return d;
+  };
+
+  /** Determine delivery status for a paid installment */
+  const getDeliveryStatus = (installment, projectStatus, isLastPayment, allPaid) => {
+    if (installment.status !== 'paid') return 'locked'; // not paid yet
+    // If project is completed and this is the last payment
+    if (projectStatus === 'completed' && isLastPayment) return 'delivered';
+    // If all payments before this are paid and project is completed
+    if (projectStatus === 'completed') return 'delivered';
+    // Check if there's a delivery associated (for now, use progress heuristic)
+    // The payment is done, delivery is either in progress or delivered
+    if (isLastPayment && allPaid && projectStatus === 'review') return 'in_review';
+    if (isLastPayment && allPaid) return 'in_progress';
+    // For non-last payments that are paid — assume delivered (earlier phases)
+    return 'delivered';
   };
 
   const getPaymentSchedule = (project) => project?.payment?.schedule || [];
@@ -236,35 +250,218 @@ const ClientPanel = () => {
 
   const renderTimelineSection = () => {
     if (!p) return renderEmptyState();
+
+    const sched = getPaymentSchedule(p);
+    const totalPayments = sched.length;
+    const paidCount = sched.filter(s => s.status === 'paid').length;
+    const allPaid = paidCount === totalPayments && totalPayments > 0;
+
+    // Revisions from backend (sorted by version)
+    const revisions = (p.revisions || []).slice().sort((a, b) => a.version - b.version);
+    const hasRevisions = revisions.length > 0;
+    const latestRevision = hasRevisions ? revisions[revisions.length - 1] : null;
+    const isApproved = latestRevision?.status === 'approved';
+    const hasPreliminary = revisions.some(r => r.type === 'preliminary');
+
+    // Compute overall progress: payments weight 40%, revisions weight 60%
+    const paymentProgress = totalPayments > 0 ? (paidCount / totalPayments) : 0;
+    const revisionProgress = isApproved ? 1 : hasRevisions ? 0.5 : (paidCount > 0 ? 0.15 : 0);
+    const overallPct = Math.round((paymentProgress * 40) + (revisionProgress * 60));
+
     return (
       <div className="cp-content-inner">
-        <h2 className="cp-section-heading">Línea de tiempo</h2>
-        <div className="cp-timeline">
-          {TIMELINE_STEPS.map((step) => {
-            const stepStatus = getStepStatus(step.key, p.status);
-            const dotClass =
-              stepStatus === 'completed' ? 'cp-dot-completed' :
-              stepStatus === 'current'   ? 'cp-dot-current' :
-              'cp-dot-pending';
-            return (
-              <div key={step.key} className="cp-timeline-item">
-                <div className={`cp-timeline-dot ${dotClass}`}>
-                  {stepStatus === 'completed' ? <FaCheck /> :
-                   stepStatus === 'current'   ? <FaSpinner /> :
-                   <FaHourglassHalf />}
+        <h2 className="cp-section-heading">Línea de tiempo del proyecto</h2>
+
+        {/* Summary card */}
+        <div className="cp-tl-summary">
+          <div className="cp-tl-summary-left">
+            <div className="cp-tl-summary-title">Progreso general</div>
+            <div className="cp-tl-summary-sub">
+              {paidCount} de {totalPayments} pagos · {revisions.length} {revisions.length === 1 ? 'versión' : 'versiones'} entregadas
+              {isApproved && ' · Versión final aprobada'}
+            </div>
+          </div>
+          <div className="cp-tl-summary-pct">{overallPct}%</div>
+        </div>
+        <div className="cp-tl-progress-track">
+          <div className="cp-tl-progress-fill" style={{ width: `${overallPct}%` }} />
+        </div>
+
+        {totalPayments > 0 ? (
+          <div className="cp-timeline">
+
+            {/* ── PHASE 1: Payments ── */}
+            {sched.map((inst, idx) => {
+              const isPaid = inst.status === 'paid';
+              const isOverdue = !isPaid && inst.dueDate && new Date(inst.dueDate) < new Date();
+              return (
+                <div key={`pay-${idx}`} className="cp-timeline-item">
+                  <div className={`cp-timeline-dot ${isPaid ? 'cp-dot-completed' : 'cp-dot-pending'}`}>
+                    {isPaid ? <FaCheck /> : <FaMoneyBillWave />}
+                  </div>
+                  <div className="cp-timeline-content">
+                    <div className="cp-tl-phase-header">
+                      <div className="cp-tl-phase-title">{inst.label || `Pago ${idx + 1}`}</div>
+                      <span className={`cp-tl-pay-badge ${isPaid ? 'cp-tl-pay-done' : isOverdue ? 'cp-tl-pay-overdue' : 'cp-tl-pay-pending'}`}>
+                        {isPaid ? <><FaCheckCircle /> Pagado</> : isOverdue ? <><FaExclamationCircle /> Vencido</> : <><FaClock /> Pendiente</>}
+                        {' · '}{fmtMoney(inst.amount)}
+                      </span>
+                    </div>
+                    <div className="cp-tl-phase-footer">
+                      {isPaid && inst.paidDate && (
+                        <span className="cp-tl-deadline"><FaCalendarAlt /> Pagado el {fmtDate(inst.paidDate)}</span>
+                      )}
+                      {!isPaid && inst.dueDate && (
+                        <span className="cp-tl-deadline"><FaCalendarAlt /> Fecha de pago: {fmtDate(inst.dueDate)}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className={`cp-timeline-content ${stepStatus === 'current' ? 'cp-tl-active' : ''}`}>
-                  <div className="cp-timeline-title">{step.label}</div>
-                  <div className="cp-timeline-date">
-                    {stepStatus === 'completed' ? 'Completado' :
-                     stepStatus === 'current'   ? 'En curso' :
-                     'Pendiente'}
+              );
+            })}
+
+            {/* ── PHASE 2: Versión preliminar ── */}
+            {paidCount > 0 && (
+              <div className="cp-timeline-item">
+                <div className={`cp-timeline-dot ${hasPreliminary ? 'cp-dot-completed' : 'cp-dot-current'}`}>
+                  {hasPreliminary ? <FaCheck /> : <FaSpinner />}
+                </div>
+                <div className={`cp-timeline-content ${!hasPreliminary ? 'cp-tl-active' : ''}`}>
+                  <div className="cp-tl-phase-header">
+                    <div className="cp-tl-phase-title">
+                      {hasPreliminary ? 'Versión preliminar entregada' : 'Versión preliminar en desarrollo'}
+                    </div>
+                  </div>
+                  <div className="cp-tl-phase-desc">
+                    {hasPreliminary
+                      ? 'Se entregó el primer avance de tu proyecto. En cuanto tu asesor envíe correcciones, se irán agregando aquí abajo.'
+                      : 'Estamos trabajando en la primera versión de tu proyecto — se entrega dentro de la 1ª semana después del pago.'}
+                  </div>
+                  {!hasPreliminary && paidCount > 0 && (
+                    <div className="cp-tl-phase-footer">
+                      <span className="cp-tl-status" style={{ color: '#2563eb' }}>En desarrollo</span>
+                      <span className="cp-tl-deadline">
+                        <FaCalendarAlt /> Fecha límite: {fmtDate(getDeliveryDeadline(sched[0]?.paidDate || sched[0]?.dueDate))}
+                      </span>
+                    </div>
+                  )}
+                  {hasPreliminary && (
+                    <div className="cp-tl-phase-footer">
+                      <span className="cp-tl-delivered-tag"><FaCheckCircle /> Entregado</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── PHASE 3: Dynamic correction/revision nodes ── */}
+            {revisions.filter(r => r.type !== 'preliminary').map((rev, idx) => {
+              const revStatus = REVISION_STATUS_MAP[rev.status] || REVISION_STATUS_MAP.delivered;
+              const isCurrent = rev.status === 'pending_review' || rev.status === 'corrections_requested';
+              const isRevApproved = rev.status === 'approved';
+              const dotClass = isRevApproved ? 'cp-dot-completed' :
+                               isCurrent ? 'cp-dot-current' : 'cp-dot-completed';
+              const icon = rev.type === 'correction'
+                ? (rev.status === 'corrections_requested' ? <FaExclamationCircle /> : <FaSearch />)
+                : (isRevApproved ? <FaCheck /> : <FaSpinner />);
+
+              return (
+                <div key={`rev-${rev.version}`} className="cp-timeline-item">
+                  <div className={`cp-timeline-dot ${dotClass}`}>
+                    {icon}
+                  </div>
+                  <div className={`cp-timeline-content ${isCurrent ? 'cp-tl-active' : ''} ${isRevApproved ? 'cp-tl-final-done' : ''}`}>
+                    <div className="cp-tl-phase-header">
+                      <div className="cp-tl-phase-title">
+                        {rev.label || (rev.type === 'correction' ? `Corrección ${idx + 1}` : `Revisión ${idx + 1}`)}
+                      </div>
+                      <span className="cp-tl-rev-badge" style={{ color: revStatus.color, borderColor: revStatus.color }}>
+                        {revStatus.label}
+                      </span>
+                    </div>
+                    {(rev.notes || rev.correctionNotes) && (
+                      <div className="cp-tl-phase-desc">
+                        {rev.type === 'correction' && rev.correctionNotes
+                          ? `Correcciones del asesor: ${rev.correctionNotes}`
+                          : rev.notes}
+                      </div>
+                    )}
+                    <div className="cp-tl-phase-footer">
+                      <span className="cp-tl-deadline"><FaCalendarAlt /> {fmtDate(rev.createdAt)}</span>
+                      {rev.file?.path && (
+                        <a href={rev.file.path} target="_blank" rel="noopener noreferrer" className="cp-tl-download-link">
+                          <FaDownload /> Ver documento
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* ── Placeholder: Awaiting corrections (when preliminary delivered but no corrections yet) ── */}
+            {hasPreliminary && !isApproved && revisions.filter(r => r.type !== 'preliminary').length === 0 && (
+              <div className="cp-timeline-item">
+                <div className="cp-timeline-dot cp-dot-pending cp-dot-dashed">
+                  <FaSearch />
+                </div>
+                <div className="cp-timeline-content cp-tl-placeholder">
+                  <div className="cp-tl-phase-title">Esperando correcciones de tu asesor</div>
+                  <div className="cp-tl-phase-desc">
+                    En cuanto tu asesor revise la versión preliminar y envíe correcciones, aparecerán aquí como nuevos nodos. Este proceso se repite hasta llegar a la versión final aprobada.
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            )}
+
+            {/* ── Placeholder: Next correction cycle (when there are corrections but not approved yet) ── */}
+            {hasPreliminary && !isApproved && revisions.filter(r => r.type !== 'preliminary').length > 0 && (
+              <div className="cp-timeline-item">
+                <div className="cp-timeline-dot cp-dot-pending cp-dot-dashed">
+                  <FaHourglassHalf />
+                </div>
+                <div className="cp-timeline-content cp-tl-placeholder">
+                  <div className="cp-tl-phase-title">Próxima revisión</div>
+                  <div className="cp-tl-phase-desc">
+                    Se seguirán abriendo nodos conforme haya nuevas correcciones, hasta llegar a la versión final aprobada.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── PHASE 4: Versión final ── */}
+            <div className="cp-timeline-item">
+              <div className={`cp-timeline-dot ${p.status === 'completed' || isApproved ? 'cp-dot-completed' : 'cp-dot-pending'}`}>
+                <FaGraduationCap />
+              </div>
+              <div className={`cp-timeline-content ${p.status === 'completed' || isApproved ? 'cp-tl-final-done' : ''}`}>
+                <div className="cp-tl-phase-header">
+                  <div className="cp-tl-phase-title">Versión final aprobada</div>
+                </div>
+                <div className="cp-tl-phase-desc">
+                  {p.status === 'completed' || isApproved
+                    ? 'Tu proyecto ha sido aprobado y entregado exitosamente.'
+                    : 'Una vez que tu asesor apruebe la última revisión sin correcciones, tu proyecto se marcará como finalizado.'}
+                </div>
+                <div className="cp-tl-phase-footer">
+                  <span className="cp-tl-status" style={{ color: p.status === 'completed' || isApproved ? '#16a34a' : '#94a3b8' }}>
+                    {p.status === 'completed' || isApproved ? 'Completado' : 'Pendiente'}
+                  </span>
+                  {p.dueDate && (
+                    <span className="cp-tl-deadline">
+                      <FaCalendarAlt /> Fecha final: {fmtDate(p.dueDate)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="cp-empty-section" style={{ marginTop: '20px' }}>
+            <FaClock className="cp-empty-section-icon" />
+            <p>La línea de tiempo se mostrará aquí una vez que se registren tus pagos.</p>
+          </div>
+        )}
       </div>
     );
   };
@@ -319,42 +516,113 @@ const ClientPanel = () => {
 
   const renderDocumentsSection = () => {
     if (!p) return renderEmptyState();
+
+    const revisions = (p.revisions || []).slice().sort((a, b) => a.version - b.version);
+    const hasRevisions = revisions.length > 0;
+    const hasRequirements = p.requirements?.file?.url || p.requirements?.file?.path;
+    const hasDeliverables = p.deliverables && p.deliverables.length > 0;
+
     return (
       <div className="cp-content-inner">
-        <h2 className="cp-section-heading">Documentos</h2>
-        {(p.deliverables && p.deliverables.length > 0) || p.requirements?.file?.url ? (
-          <div className="cp-docs-list">
-            {p.deliverables?.map((doc, i) => (
-              <div key={i} className="cp-doc-item">
-                <div className="cp-doc-icon"><FaFileAlt /></div>
-                <div className="cp-doc-info">
-                  <div className="cp-doc-name">{doc.fileName || `Archivo ${i + 1}`}</div>
-                  <div className="cp-doc-date">{fmtDate(doc.uploadedAt)}</div>
-                </div>
-                {doc.fileUrl && (
-                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="cp-doc-download">
-                    <FaDownload />
-                  </a>
-                )}
-              </div>
-            ))}
-            {p.requirements?.file?.url && (
-              <div className="cp-doc-item">
-                <div className="cp-doc-icon cp-doc-icon-req"><FaFileAlt /></div>
-                <div className="cp-doc-info">
-                  <div className="cp-doc-name">{p.requirements.file.originalName || 'Archivo de requisitos'}</div>
-                  <div className="cp-doc-date">Requisitos del proyecto</div>
-                </div>
-                <a href={p.requirements.file.url} target="_blank" rel="noopener noreferrer" className="cp-doc-download">
-                  <FaDownload />
-                </a>
-              </div>
-            )}
+        <h2 className="cp-section-heading">Documentos y versiones</h2>
+
+        {/* Requirements file */}
+        {hasRequirements && (
+          <div className="cp-doc-section-label">Archivo de requisitos</div>
+        )}
+        {hasRequirements && (
+          <div className="cp-doc-item" style={{ marginBottom: '20px' }}>
+            <div className="cp-doc-icon cp-doc-icon-req"><FaFileAlt /></div>
+            <div className="cp-doc-info">
+              <div className="cp-doc-name">{p.requirements.file.originalname || p.requirements.file.originalName || 'Archivo de requisitos'}</div>
+              <div className="cp-doc-date">Documento base del proyecto</div>
+            </div>
+            <a href={p.requirements.file.url || p.requirements.file.path} target="_blank" rel="noopener noreferrer" className="cp-doc-download">
+              <FaDownload />
+            </a>
           </div>
+        )}
+
+        {/* Version timeline */}
+        {hasRevisions ? (
+          <>
+            <div className="cp-doc-section-label">Historial de versiones</div>
+            <div className="cp-doc-timeline">
+              {revisions.map((rev, idx) => {
+                const revStatus = REVISION_STATUS_MAP[rev.status] || REVISION_STATUS_MAP.delivered;
+                const isLatest = idx === revisions.length - 1;
+                const typeLabel =
+                  rev.type === 'preliminary' ? 'Versión preliminar' :
+                  rev.type === 'correction'  ? 'Corrección' :
+                  rev.type === 'final'       ? 'Versión final' :
+                  'Revisión';
+
+                return (
+                  <div key={rev.version} className={`cp-doc-version-item ${isLatest ? 'cp-doc-version-latest' : ''}`}>
+                    <div className="cp-doc-version-dot">
+                      <div className={`cp-doc-dot ${rev.status === 'approved' ? 'cp-doc-dot-approved' : rev.status === 'corrections_requested' ? 'cp-doc-dot-correction' : 'cp-doc-dot-default'}`}>
+                        {rev.status === 'approved' ? <FaCheck /> :
+                         rev.status === 'corrections_requested' ? <FaExclamationCircle /> :
+                         <FaFileAlt />}
+                      </div>
+                    </div>
+                    <div className="cp-doc-version-content">
+                      <div className="cp-doc-version-header">
+                        <div>
+                          <span className="cp-doc-version-label">v{rev.version}</span>
+                          <span className="cp-doc-version-type">{typeLabel}</span>
+                          {rev.label && <span className="cp-doc-version-custom"> — {rev.label}</span>}
+                        </div>
+                        <span className="cp-doc-version-status" style={{ color: revStatus.color }}>
+                          {revStatus.label}
+                        </span>
+                      </div>
+                      {rev.notes && (
+                        <div className="cp-doc-version-notes">{rev.notes}</div>
+                      )}
+                      {rev.correctionNotes && (
+                        <div className="cp-doc-version-correction">
+                          <strong>Correcciones del asesor:</strong> {rev.correctionNotes}
+                        </div>
+                      )}
+                      <div className="cp-doc-version-footer">
+                        <span className="cp-doc-version-date"><FaCalendarAlt /> {fmtDate(rev.createdAt)}</span>
+                        {rev.file?.path && (
+                          <a href={rev.file.path} target="_blank" rel="noopener noreferrer" className="cp-doc-version-download">
+                            <FaDownload /> Descargar
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : hasDeliverables ? (
+          <>
+            <div className="cp-doc-section-label">Archivos entregados</div>
+            <div className="cp-docs-list">
+              {p.deliverables.map((doc, i) => (
+                <div key={i} className="cp-doc-item">
+                  <div className="cp-doc-icon"><FaFileAlt /></div>
+                  <div className="cp-doc-info">
+                    <div className="cp-doc-name">{doc.originalname || doc.fileName || `Archivo ${i + 1}`}</div>
+                    <div className="cp-doc-date">{fmtDate(doc.uploadedAt)}</div>
+                  </div>
+                  {(doc.path || doc.fileUrl) && (
+                    <a href={doc.path || doc.fileUrl} target="_blank" rel="noopener noreferrer" className="cp-doc-download">
+                      <FaDownload />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="cp-empty-section">
             <FaFileAlt className="cp-empty-section-icon" />
-            <p>Los archivos se mostrarán aquí cuando estén listos.</p>
+            <p>Las versiones de tu proyecto aparecerán aquí conforme se vayan entregando y revisando.</p>
           </div>
         )}
       </div>

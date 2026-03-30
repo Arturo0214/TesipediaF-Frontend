@@ -127,7 +127,7 @@ function ManagePayments() {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+        return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
     };
 
     const getSourceLabel = (source) => ({ stripe: 'Stripe', sofia: 'Sofia', guest: 'Invitado', manual: 'Manual', mercadolibre: 'Mercado Libre' }[source] || source);
