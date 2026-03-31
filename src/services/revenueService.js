@@ -86,7 +86,8 @@ const revenueService = {
   // Uso/billing de servicios (Anthropic, Railway, Netlify)
   getUsage: async () => {
     const response = await axiosWithAuth.get('/revenue/usage');
-    return response.data;
+    // Backend wraps in { usage: {...}, exchangeRate }, unwrap so state.usage = { anthropic, railway, netlify }
+    return response.data?.usage || response.data;
   },
 };
 
