@@ -126,6 +126,11 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAdmin = checkIsAdmin(action.payload);
         state.isSuperAdmin = checkIsSuperAdmin(action.payload);
+        // Guardar token inmediatamente en localStorage para que axiosWithAuth
+        // pueda usarlo antes de que redux-persist haga flush
+        if (action.payload?.token) {
+          try { localStorage.setItem('jwt_backup', action.payload.token); } catch (_) {}
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -171,6 +176,7 @@ const authSlice = createSlice({
           isSuccess: true,
           message: 'Sesión cerrada exitosamente'
         });
+        try { localStorage.removeItem('jwt_backup'); } catch (_) {}
       })
       .addCase(logout.rejected, (state) => {
         Object.assign(state, {
