@@ -222,7 +222,9 @@ const authSlice = createSlice({
       .addCase(getProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.user = action.payload;
+        // Preservar el token del login si getProfile no lo devuelve
+        const existingToken = state.user?.token;
+        state.user = { ...action.payload, token: action.payload.token || existingToken };
         state.isAdmin = checkIsAdmin(action.payload);
         state.isSuperAdmin = checkIsSuperAdmin(action.payload);
       })
