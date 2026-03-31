@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useEffect } from 'react';
+import React, { useState, Suspense, useEffect, lazy } from 'react';
 import { Nav, Alert, Button } from 'react-bootstrap';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
@@ -40,21 +40,22 @@ import '../adminCommon.css';
 import '../../../components/admin/NotificationDropdown.css';
 import authService from '../../../services/authService';
 
-// Import components
-import ManageQuotes from '../adminQuotes/ManageQuotes.jsx';
-import ManageProjects from '../adminProjects/ManageProjects.jsx';
-import ManagePayments from '../adminPayments/ManagePayments.jsx';
-import ManageVisits from '../adminVisits/ManageVisits.jsx';
-import ManageUsers from '../adminUsers/ManageUsers.jsx';
-import AdminDashboard from '../adminDashboard/AdminDashboard.jsx';
-import AdminHubSpot from '../adminHubSpot/AdminHubSpot.jsx';
-import AdminMessages from '../adminMessages/AdminMessages.jsx';
-import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp.jsx';
-import AdminManyChat from '../adminManyChat/AdminManyChat.jsx';
-import AdminAutomations from '../adminAutomations/AdminAutomations.jsx';
+// Lazy-loaded admin sections — each loads only when its tab is active
+// This splits the 1.3MB AdminPanel chunk into ~100-200KB per section
+const ManageQuotes = lazy(() => import('../adminQuotes/ManageQuotes.jsx'));
+const ManageProjects = lazy(() => import('../adminProjects/ManageProjects.jsx'));
+const ManagePayments = lazy(() => import('../adminPayments/ManagePayments.jsx'));
+const ManageVisits = lazy(() => import('../adminVisits/ManageVisits.jsx'));
+const ManageUsers = lazy(() => import('../adminUsers/ManageUsers.jsx'));
+const AdminDashboard = lazy(() => import('../adminDashboard/AdminDashboard.jsx'));
+const AdminHubSpot = lazy(() => import('../adminHubSpot/AdminHubSpot.jsx'));
+const AdminMessages = lazy(() => import('../adminMessages/AdminMessages.jsx'));
+const AdminWhatsApp = lazy(() => import('../adminWhatsApp/AdminWhatsApp.jsx'));
+const AdminManyChat = lazy(() => import('../adminManyChat/AdminManyChat.jsx'));
+const AdminAutomations = lazy(() => import('../adminAutomations/AdminAutomations.jsx'));
+const SalesQuote = lazy(() => import('../../SalesQuote/SalesQuote.jsx'));
+const AdminRevenue = lazy(() => import('../adminRevenue/AdminRevenue.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
-import SalesQuote from '../../SalesQuote/SalesQuote.jsx';
-import AdminRevenue from '../adminRevenue/AdminRevenue.jsx';
 
 
 // Error boundary component
