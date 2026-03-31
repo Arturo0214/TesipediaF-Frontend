@@ -794,8 +794,15 @@ const AdminRevenue = () => {
                   <div className="rev-usage-error">{usage.anthropic.error}</div>
                 ) : (
                   <>
-                    <div className="rev-usage-value">${usage.anthropic?.credit_balance?.toFixed(2) || '0.00'} USD</div>
-                    <div className="rev-usage-label">Crédito restante</div>
+                    <div className="rev-usage-value">
+                      ${usage.anthropic?.data?.subscriptionCostUSD || usage.anthropic?.data?.credit_balance?.toFixed(2) || '0'} USD
+                    </div>
+                    <div className="rev-usage-label">
+                      {usage.anthropic?.status === 'ok' && usage.anthropic?.data?.credit_balance !== undefined
+                        ? `Crédito restante · Suscripción $${usage.anthropic.data.subscriptionCostUSD}/mo`
+                        : `Suscripción mensual (${fmt(usage.anthropic?.data?.subscriptionCostMXN || 0)} MXN)`
+                      }
+                    </div>
                   </>
                 )}
               </div>
@@ -806,16 +813,21 @@ const AdminRevenue = () => {
                   <span className="rev-usage-icon" style={{ background: '#F3F4F6', color: '#0B0D0E' }}>RW</span>
                   <span className="rev-usage-name">Railway</span>
                 </div>
-                {usage.railway?.error ? (
-                  <div className="rev-usage-error">{usage.railway.error}</div>
+                {usage.railway?.data?.error ? (
+                  <div className="rev-usage-error">{usage.railway.data.error}</div>
+                ) : usage.railway?.status === 'estimated' ? (
+                  <>
+                    <div className="rev-usage-value">${usage.railway?.data?.estimatedMonthlyCostUSD || 20} USD</div>
+                    <div className="rev-usage-label">Costo estimado mensual ({fmt(usage.railway?.data?.estimatedMonthlyCostMXN || 0)} MXN)</div>
+                  </>
                 ) : (
                   <>
-                    <div className="rev-usage-value">${usage.railway?.currentUsage?.toFixed(2) || '0.00'} USD</div>
+                    <div className="rev-usage-value">${usage.railway?.data?.currentUsageUSD?.toFixed(2) || '0.00'} USD</div>
                     <div className="rev-usage-label">
-                      Uso actual · Plan {usage.railway?.plan || 'Pro'} (${usage.railway?.planLimit || 20}/mo)
+                      Uso actual · Plan {usage.railway?.data?.planName || 'Pro'} (${usage.railway?.data?.planPriceUSD || 20}/mo)
                     </div>
-                    {usage.railway?.estimatedBill && (
-                      <div className="rev-usage-sub">Estimado: ${usage.railway.estimatedBill.toFixed(2)}</div>
+                    {usage.railway?.data?.billEstimateUSD > 0 && (
+                      <div className="rev-usage-sub">Estimado ciclo: ${usage.railway.data.billEstimateUSD.toFixed(2)} USD</div>
                     )}
                   </>
                 )}
@@ -827,12 +839,14 @@ const AdminRevenue = () => {
                   <span className="rev-usage-icon" style={{ background: '#D1FAE5', color: '#00C7B7' }}>NF</span>
                   <span className="rev-usage-name">Netlify</span>
                 </div>
-                {usage.netlify?.error ? (
-                  <div className="rev-usage-error">{usage.netlify.error}</div>
+                {usage.netlify?.data?.error ? (
+                  <div className="rev-usage-error">{usage.netlify.data.error}</div>
                 ) : (
                   <>
-                    <div className="rev-usage-value">{usage.netlify?.bandwidth_used || '—'}</div>
-                    <div className="rev-usage-label">Bandwidth usado · {usage.netlify?.plan || 'Personal'}</div>
+                    <div className="rev-usage-value">${usage.netlify?.data?.planCostUSD || 9} USD</div>
+                    <div className="rev-usage-label">
+                      Plan {usage.netlify?.data?.planType || 'Personal'} ({fmt(usage.netlify?.data?.planCostMXN || 0)} MXN/mo)
+                    </div>
                   </>
                 )}
               </div>
