@@ -124,8 +124,8 @@
 
 /* Filtros compactos — matches wa-chat-row2 height */
 .wa-filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 4px 10px;
   align-items: center;
@@ -134,8 +134,8 @@
 }
 
 .wa-filter-select {
-  flex: 1 1 calc(50% - 4px);
   min-width: 0;
+  width: 100%;
   padding: 4px 6px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -150,7 +150,6 @@
   position: relative;
   display: flex;
   align-items: center;
-  flex: 1 1 100%;
 }
 
 .wa-date-filter .wa-filter-select {

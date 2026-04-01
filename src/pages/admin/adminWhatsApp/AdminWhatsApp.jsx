@@ -183,9 +183,12 @@ const AdminWhatsApp = () => {
   const { user: authUser, isSuperAdmin } = useSelector((state) => state.auth || {});
   const currentAdminKey = normalizeAdminName(authUser?.name || authUser?.nombre || '');
   const [leads, setLeads] = useState([]);
+  const leadsLengthRef = useRef(0);
   const [totalLeads, setTotalLeads] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const hasMoreRef = useRef(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -343,7 +346,10 @@ const AdminWhatsApp = () => {
   const fetchLeads = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const result = await getLeads(origenRef.current, 100, 0);
+      // When polling silently, fetch the same number of leads currently loaded
+      // so we don't wipe out leads loaded via "Cargar más"
+      const limit = silent ? Math.max(100, leadsLengthRef.current) : 100;
+      const result = await getLeads(origenRef.current, limit, 0);
       // Handle both paginated response { leads, total, hasMore } and legacy array
       const data = Array.isArray(result) ? result : (result.leads || []);
       // Detectar mensajes nuevos (solo durante polling silencioso)
@@ -356,7 +362,8 @@ const AdminWhatsApp = () => {
       }
       setLeads(data);
       setTotalLeads(result.total || data.length);
-      setHasMore(result.hasMore || false);
+      hasMoreRef.current = result.hasMore || false;
+      setHasMore(hasMoreRef.current);
       // Actualizar el lead seleccionado usando el REF (no el state, que puede estar stale)
       const currentSelected = selectedLeadRef.current;
       if (currentSelected) {
@@ -399,22 +406,31 @@ const AdminWhatsApp = () => {
     }
   }, []); // sin dependencias — usa ref en vez de state
 
+  // Mantener ref sincronizado con leads.length
+  useEffect(() => { leadsLengthRef.current = leads.length; }, [leads.length]);
+
   // Cargar más leads (infinite scroll)
   const loadMoreLeads = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMoreRef.current || !hasMoreRef.current) return;
     try {
+      loadingMoreRef.current = true;
       setLoadingMore(true);
-      const result = await getLeads(origenRef.current, 100, leads.length);
+      const result = await getLeads(origenRef.current, 100, leadsLengthRef.current);
       const moreData = Array.isArray(result) ? result : (result.leads || []);
-      setLeads(prev => [...prev, ...moreData]);
-      setTotalLeads(result.total || leads.length + moreData.length);
-      setHasMore(result.hasMore || false);
+      if (moreData.length > 0) {
+        setLeads(prev => [...prev, ...moreData]);
+        setTotalLeads(result.total || leadsLengthRef.current + moreData.length);
+      }
+      const more = result.hasMore || false;
+      hasMoreRef.current = more;
+      setHasMore(more);
     } catch (err) {
       console.error('Error cargando más leads:', err);
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, leads.length]);
+  }, []);
 
   const handleReengagement = async () => {
     const hoursStr = window.prompt(
@@ -804,7 +820,7 @@ const AdminWhatsApp = () => {
       } catch (refreshErr) {
         console.warn('No se pudo refrescar después de audio:', refreshErr);
       }
-      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); setHasMore(r.hasMore || false); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar nota de voz: ' + err.message);
     } finally {
@@ -899,7 +915,7 @@ const AdminWhatsApp = () => {
         console.warn('No se pudo refrescar después de enviar, mensaje optimista se mantiene:', refreshErr);
       }
       // Actualizar sidebar sin tocar selectedLead
-      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); setHasMore(r.hasMore || false); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
       inputRef.current?.focus();
     } catch (err) {
       toast.error('Error al enviar: ' + err.message);
@@ -919,7 +935,7 @@ const AdminWhatsApp = () => {
       // Refrescar historial completo + sidebar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
-      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); setHasMore(r.hasMore || false); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar plantilla: ' + err.message);
     } finally {
@@ -1779,7 +1795,7 @@ const AdminWhatsApp = () => {
               onChange={(e) => setOrigenFilter(e.target.value)}
               style={origenFilter === 'manychat' ? { borderColor: '#7c3aed', color: '#7c3aed', fontWeight: 600 } : origenFilter === 'regular' ? { borderColor: '#25d366', color: '#25d366', fontWeight: 600 } : {}}
             >
-              <option value="regular">WhatsApp ({leads.length})</option>
+              <option value="regular">WhatsApp ({filteredLeads.length})</option>
               <option value="manychat">ManyChat</option>
               <option value="all">Todos</option>
             </select>
@@ -1788,7 +1804,7 @@ const AdminWhatsApp = () => {
               value={estadoFilter}
               onChange={(e) => setEstadoFilter(e.target.value)}
             >
-              <option value="all">Estado: Todos ({leads.length})</option>
+              <option value="all">Estado: Todos ({filteredLeads.length})</option>
               {estadosUnicos.map(est => {
                 const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
                 return (
@@ -1796,8 +1812,6 @@ const AdminWhatsApp = () => {
                 );
               })}
             </select>
-          </div>
-          <div className="wa-filters">
             <select
               className="wa-filter-select"
               value={attendedFilter}
