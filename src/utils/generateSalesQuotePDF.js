@@ -5,7 +5,29 @@ import jsPDF from 'jspdf';
  * Tamaño: Letter (215.9 x 279.4 mm)
  * @param {Object} quoteData - Datos de la cotización
  */
-export const generateSalesQuotePDF = async (quoteData) => {
+export const generateSalesQuotePDF = async (rawData) => {
+    // Normalize fields — ManageQuotes passes normalized objects with _prefixed keys
+    // while SalesQuote passes direct fields. Merge both so the PDF always finds data.
+    const quoteData = {
+        ...rawData,
+        clientName: rawData.clientName || rawData._clientName || 'Cliente',
+        tipoTrabajo: rawData.tipoTrabajo || rawData._taskType || '',
+        extensionEstimada: rawData.extensionEstimada || rawData._pages || '',
+        descripcionServicio: rawData.descripcionServicio || rawData._description || '',
+        precioBase: parseFloat(rawData.precioBase) || parseFloat(rawData._basePrice) || 0,
+        descuentoEfectivo: parseFloat(rawData.descuentoEfectivo) || 0,
+        descuentoMonto: parseFloat(rawData.descuentoMonto) || parseFloat(rawData._discount) || 0,
+        precioConDescuento: parseFloat(rawData.precioConDescuento) || parseFloat(rawData._price) || 0,
+        recargoMonto: parseFloat(rawData.recargoMonto) || parseFloat(rawData._surcharge) || 0,
+        recargoPorcentaje: parseFloat(rawData.recargoPorcentaje) || parseFloat(rawData._surchargePercent) || 0,
+        metodoPago: rawData.metodoPago || rawData._paymentMethod || 'tarjeta-nu',
+        esquemaPago: rawData.esquemaPago || rawData._paymentScheme || '',
+        tiempoEntrega: rawData.tiempoEntrega || rawData._deliveryTime || '',
+        fechaEntrega: rawData.fechaEntrega || rawData._dueDate || '',
+        serviciosIncluidos: Array.isArray(rawData.serviciosIncluidos) ? rawData.serviciosIncluidos : [],
+        beneficiosAdicionales: Array.isArray(rawData.beneficiosAdicionales) ? rawData.beneficiosAdicionales : [],
+    };
+
     // Letter size: 215.9mm x 279.4mm
     const doc = new jsPDF({
         orientation: 'portrait',

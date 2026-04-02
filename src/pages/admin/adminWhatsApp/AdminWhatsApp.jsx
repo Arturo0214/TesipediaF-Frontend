@@ -1579,7 +1579,7 @@ const AdminWhatsApp = () => {
                   </a>
                 ) : msg.mimetype?.startsWith('audio/') || msg.mediaUrl.match(/\.(ogg|mp3|wav|webm|aac|opus|m4a)$/i) ? (
                   <div className="wa-media-audio">
-                    <audio controls src={msg.mediaUrl} preload="metadata" style={{ width: '100%', maxWidth: '280px' }} />
+                    <audio controls src={msg.mediaUrl.replace('/raw/upload/', '/video/upload/')} preload="metadata" style={{ width: '100%', maxWidth: '280px' }} />
                   </div>
                 ) : (
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
