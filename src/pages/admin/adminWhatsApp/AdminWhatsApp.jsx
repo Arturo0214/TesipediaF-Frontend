@@ -1578,7 +1578,7 @@ const AdminWhatsApp = () => {
                     <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" loading="lazy" />
                   </a>
                 ) : msg.mimetype?.startsWith('audio/') || msg.mediaUrl.match(/\.(ogg|mp3|wav|webm|aac|opus|m4a)$/i) ? (
-                  <a href={msg.mediaUrl.replace('/raw/upload/', '/video/upload/')} target="_blank" rel="noreferrer" className="wa-media-doc">
+                  <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
                     <FaMicrophone className="me-2" /> Escuchar audio
                   </a>
                 ) : (
