@@ -346,28 +346,60 @@ const AdminWhatsApp = () => {
   const fetchLeads = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      // When polling silently, fetch the same number of leads currently loaded
-      // so we don't wipe out leads loaded via "Cargar más"
-      const limit = silent ? Math.max(100, leadsLengthRef.current) : 100;
-      const result = await getLeads(origenRef.current, limit, 0);
-      // Handle both paginated response { leads, total, hasMore } and legacy array
-      const data = Array.isArray(result) ? result : (result.leads || []);
-      // Detectar mensajes nuevos (solo durante polling silencioso)
-      if (silent) checkNewMessages(data);
-      else {
-        // Primera carga: inicializar mapa sin notificar
+
+      let allData;
+      let totalCount;
+      let moreAvailable;
+
+      if (silent) {
+        // Polling silencioso: traer el mismo número de leads cargados actualmente
+        const limit = Math.max(100, leadsLengthRef.current);
+        const result = await getLeads(origenRef.current, limit, 0);
+        allData = Array.isArray(result) ? result : (result.leads || []);
+        totalCount = result.total || allData.length;
+        moreAvailable = result.hasMore || false;
+        checkNewMessages(allData);
+      } else {
+        // Carga inicial: traer TODAS las páginas automáticamente
+        const limit = 100;
+        let offset = 0;
+        allData = [];
+        moreAvailable = false;
+        totalCount = 0;
+
+        let keepLoading = true;
+        while (keepLoading) {
+          const result = await getLeads(origenRef.current, limit, offset);
+          const page = Array.isArray(result) ? result : (result.leads || []);
+          allData = [...allData, ...page];
+          totalCount = result.total || allData.length;
+
+          // Mostrar primera página de inmediato para UX más rápida
+          if (offset === 0 && page.length > 0) {
+            setLeads([...page]);
+            setTotalLeads(totalCount);
+          }
+
+          const more = result.hasMore || false;
+          offset += page.length;
+          if (!more || page.length === 0) keepLoading = false;
+        }
+
+        // Inicializar mapa sin notificar (primera carga)
         const map = new Map();
-        data.forEach(l => map.set(l.wa_id, l.updated_at));
+        allData.forEach(l => map.set(l.wa_id, l.updated_at));
         prevLeadsMapRef.current = map;
       }
-      setLeads(data);
-      setTotalLeads(result.total || data.length);
-      hasMoreRef.current = result.hasMore || false;
-      setHasMore(hasMoreRef.current);
+
+      setLeads(allData);
+      setTotalLeads(totalCount);
+      hasMoreRef.current = moreAvailable;
+      setHasMore(moreAvailable);
+
       // Actualizar el lead seleccionado usando el REF (no el state, que puede estar stale)
       const currentSelected = selectedLeadRef.current;
       if (currentSelected) {
-        const updated = data.find(l => l.wa_id === currentSelected.wa_id);
+        const updated = allData.find(l => l.wa_id === currentSelected.wa_id);
         if (updated) {
           // getLeads trae historial parcial (optimización egress) → preservar historial del lead seleccionado.
           const metaChanged = updated.estado_sofia !== currentSelected.estado_sofia
@@ -404,7 +436,7 @@ const AdminWhatsApp = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []); // sin dependencias — usa ref en vez de state
+  }, []); // sin dependencias — usa refs en vez de state
 
   // Mantener ref sincronizado con leads.length
   useEffect(() => { leadsLengthRef.current = leads.length; }, [leads.length]);
@@ -1268,13 +1300,27 @@ const AdminWhatsApp = () => {
       const leadDay = new Date(leadDate).toISOString().split('T')[0];
       if (leadDay !== dateFilter) return false;
     }
-    // Filtro por búsqueda
+    // Filtro por búsqueda — busca en todos los campos de texto del lead
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
+    // También buscar en el contenido del historial de chat disponible en la lista
+    const hist = parseHistorial(lead.historial_chat);
+    const chatText = hist.map(m => (m.content || '')).join(' ').toLowerCase();
     return (
       (lead.nombre || '').toLowerCase().includes(q) ||
       (lead.wa_id || '').includes(q) ||
-      (lead.estado_sofia || '').toLowerCase().includes(q)
+      (lead.estado_sofia || '').toLowerCase().includes(q) ||
+      (lead.carrera || '').toLowerCase().includes(q) ||
+      (lead.tema || '').toLowerCase().includes(q) ||
+      (lead.atendido_por || '').toLowerCase().includes(q) ||
+      (lead.tipo_servicio || '').toLowerCase().includes(q) ||
+      (SERVICIO_LABEL[lead.tipo_servicio] || '').toLowerCase().includes(q) ||
+      (lead.tipo_proyecto || '').toLowerCase().includes(q) ||
+      (PROYECTO_MAP[lead.tipo_proyecto] || '').toLowerCase().includes(q) ||
+      (lead.nivel || '').toLowerCase().includes(q) ||
+      (NIVEL_MAP[lead.nivel] || '').toLowerCase().includes(q) ||
+      (lead.ultimo_mensaje_preview || '').toLowerCase().includes(q) ||
+      chatText.includes(q)
     );
   }).sort((a, b) => {
     // Siempre mostrar primero los leads con mensajes nuevos (no leídos)
@@ -1756,7 +1802,7 @@ const AdminWhatsApp = () => {
             <FaSearch className="wa-search-icon" />
             <input
               type="text"
-              placeholder="Buscar por nombre, teléfono o estado..."
+              placeholder="Buscar por nombre, teléfono, tema, carrera, mensaje..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="wa-search-input"
