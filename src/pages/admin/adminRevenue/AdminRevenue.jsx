@@ -19,6 +19,7 @@ import {
   fetchSyncStatus,
   fetchCampaigns,
   fetchUsage,
+  cleanupDuplicates,
 } from '../../../features/revenue/revenueSlice';
 import './AdminRevenue.css';
 
@@ -66,7 +67,7 @@ const fmt = (n) => {
 
 const AdminRevenue = () => {
   const dispatch = useDispatch();
-  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading } = useSelector(state => state.revenue);
+  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading, cleanupResult, cleanupLoading } = useSelector(state => state.revenue);
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -119,6 +120,17 @@ const AdminRevenue = () => {
     setFormData({ category: 'claude_api', description: '', amount: '', date: new Date().toISOString().split('T')[0] });
     setShowForm(false);
     dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+  };
+
+  const handleCleanup = async () => {
+    const result = await dispatch(cleanupDuplicates({ year: selectedYear, month: selectedMonth }));
+    // Refresh dashboard after cleanup
+    dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+    if (activeView === 'expenses') {
+      const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
+      const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString();
+      dispatch(fetchExpenses({ startDate, endDate }));
+    }
   };
 
   const handleSync = async () => {
@@ -663,16 +675,54 @@ const AdminRevenue = () => {
           Conecta automáticamente con Anthropic, Meta Ads, Google Ads, Netlify y Railway para importar los gastos del mes seleccionado.
         </p>
 
-        <button
-          className="rev-form-submit"
-          onClick={handleSync}
-          disabled={syncing}
-          style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          <FaSync style={syncing ? { animation: 'spin 1s linear infinite' } : {}} />
-          {syncing ? 'Sincronizando...' : `Sincronizar ${MONTHS[selectedMonth]} ${selectedYear}`}
-        </button>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+          <button
+            className="rev-form-submit"
+            onClick={handleSync}
+            disabled={syncing}
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <FaSync style={syncing ? { animation: 'spin 1s linear infinite' } : {}} />
+            {syncing ? 'Sincronizando...' : `Sincronizar ${MONTHS[selectedMonth]} ${selectedYear}`}
+          </button>
+
+          <button
+            className="rev-form-submit"
+            onClick={handleCleanup}
+            disabled={cleanupLoading}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F59E0B' }}
+          >
+            <FaTrash />
+            {cleanupLoading ? 'Limpiando...' : 'Limpiar Duplicados'}
+          </button>
+        </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+
+        {cleanupResult && (
+          <div style={{
+            padding: '14px 18px', borderRadius: 10, marginBottom: 20,
+            background: cleanupResult.duplicatesDeleted > 0 || cleanupResult.amountFixes?.length > 0 ? '#D1FAE5' : '#F3F4F6',
+            border: `1px solid ${cleanupResult.duplicatesDeleted > 0 ? '#059669' : '#D1D5DB'}`,
+          }}>
+            <strong style={{ fontSize: '0.88rem' }}>{cleanupResult.message}</strong>
+            <div style={{ fontSize: '0.8rem', marginTop: 6, color: '#374151' }}>
+              {cleanupResult.duplicatesDeleted} duplicados eliminados
+              {cleanupResult.amountFixes?.length > 0 && ` · ${cleanupResult.amountFixes.length} montos corregidos`}
+            </div>
+            {cleanupResult.amountFixes?.map((fix, i) => (
+              <div key={i} style={{ fontSize: '0.75rem', color: '#065F46', marginTop: 4 }}>
+                <FaCheckCircle style={{ marginRight: 4 }} />
+                {fix.category}: ${fix.oldAmount} → ${fix.newAmount} MXN
+              </div>
+            ))}
+            {cleanupResult.deletedExpenses?.map((del, i) => (
+              <div key={`del-${i}`} style={{ fontSize: '0.75rem', color: '#991B1B', marginTop: 4 }}>
+                <FaTrash style={{ marginRight: 4 }} />
+                Eliminado: {del.description} (${del.amount} MXN)
+              </div>
+            ))}
+          </div>
+        )}
 
         {syncError && (
           <div style={{

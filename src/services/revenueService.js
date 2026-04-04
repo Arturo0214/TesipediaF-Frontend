@@ -89,6 +89,12 @@ const revenueService = {
     // Backend wraps in { usage: {...}, exchangeRate }, unwrap so state.usage = { anthropic, railway, netlify }
     return response.data?.usage || response.data;
   },
+
+  // Limpiar gastos duplicados automáticos
+  cleanupDuplicates: async (year, month) => {
+    const response = await axiosWithAuth.post('/revenue/cleanup-duplicates', { year, month });
+    return response.data;
+  },
 };
 
 export default revenueService;

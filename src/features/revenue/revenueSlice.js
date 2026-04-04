@@ -136,6 +136,17 @@ export const fetchUsage = createAsyncThunk(
   }
 );
 
+export const cleanupDuplicates = createAsyncThunk(
+  'revenue/cleanupDuplicates',
+  async ({ year, month } = {}, { rejectWithValue }) => {
+    try {
+      return await revenueService.cleanupDuplicates(year, month);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al limpiar duplicados');
+    }
+  }
+);
+
 // ── Slice ────────────────────────────────────────────
 
 const revenueSlice = createSlice({
@@ -151,6 +162,8 @@ const revenueSlice = createSlice({
     syncResult: null,
     syncError: null,
     syncing: false,
+    cleanupResult: null,
+    cleanupLoading: false,
     campaigns: null,
     campaignsLoading: false,
     campaignsError: null,
@@ -231,7 +244,12 @@ const revenueSlice = createSlice({
       // Usage
       .addCase(fetchUsage.pending, (state) => { state.usageLoading = true; })
       .addCase(fetchUsage.fulfilled, (state, action) => { state.usageLoading = false; state.usage = action.payload; })
-      .addCase(fetchUsage.rejected, (state, action) => { state.usageLoading = false; state.error = action.payload; });
+      .addCase(fetchUsage.rejected, (state, action) => { state.usageLoading = false; state.error = action.payload; })
+
+      // Cleanup duplicates
+      .addCase(cleanupDuplicates.pending, (state) => { state.cleanupLoading = true; state.cleanupResult = null; })
+      .addCase(cleanupDuplicates.fulfilled, (state, action) => { state.cleanupLoading = false; state.cleanupResult = action.payload; })
+      .addCase(cleanupDuplicates.rejected, (state, action) => { state.cleanupLoading = false; state.error = action.payload; });
   },
 });
 
