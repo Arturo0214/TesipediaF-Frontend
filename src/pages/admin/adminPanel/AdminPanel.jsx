@@ -23,7 +23,8 @@ import {
     FaAngleDoubleLeft,
     FaAngleDoubleRight,
     FaRocket,
-    FaChartPie
+    FaChartPie,
+    FaClipboardCheck,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -55,6 +56,7 @@ const AdminManyChat = lazy(() => import('../adminManyChat/AdminManyChat.jsx'));
 const AdminAutomations = lazy(() => import('../adminAutomations/AdminAutomations.jsx'));
 const SalesQuote = lazy(() => import('../../SalesQuote/SalesQuote.jsx'));
 const AdminRevenue = lazy(() => import('../adminRevenue/AdminRevenue.jsx'));
+const AdminInformes = lazy(() => import('../adminInformes/AdminInformes.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -126,6 +128,7 @@ const AdminPanel = () => {
         if (path.includes('/hubspot')) return 'hubspot';
         if (path.includes('/cotizar')) return 'cotizar';
         if (path.includes('/revenue')) return 'revenue';
+        if (path.includes('/informes')) return 'informes';
         return 'dashboard';
     };
 
@@ -144,6 +147,7 @@ const AdminPanel = () => {
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
         { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue' },
+        { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes' },
         { key: 'hubspot', icon: FaHubspot, label: 'HubSpot', section: 'estadisticas', path: '/admin/hubspot' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas' }
     ];
@@ -279,7 +283,8 @@ const AdminPanel = () => {
         whatsapp: AdminWhatsApp,
         manychat: AdminManyChat,
         automatizaciones: AdminAutomations,
-        revenue: AdminRevenue
+        revenue: AdminRevenue,
+        informes: AdminInformes,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);

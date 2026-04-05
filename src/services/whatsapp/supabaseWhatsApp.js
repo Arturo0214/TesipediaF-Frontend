@@ -261,6 +261,33 @@ export async function getManyChatLeads(filter = 'respondieron', page = 1, limit 
   return data;
 }
 
+// ─── Leads Stats (Informes) ───────────────────────────
+
+/**
+ * Obtener métricas completas de leads para el panel de informes
+ */
+export async function getLeadsStats() {
+  const { data } = await axiosWithAuth.get(`${BASE}/leads-stats`);
+  return data;
+}
+
+// ─── Calificación Follow-Up ──────────────────────────
+
+export async function getCalificacionFollowUpStatus() {
+  const { data } = await axiosWithAuth.get(`${BASE}/calificacion-followup/status`);
+  return data;
+}
+
+export async function configCalificacionFollowUp(config) {
+  const { data } = await axiosWithAuth.post(`${BASE}/calificacion-followup/config`, config);
+  return data;
+}
+
+export async function runCalificacionFollowUp(opts = {}) {
+  const { data } = await axiosWithAuth.post(`${BASE}/calificacion-followup`, opts);
+  return data;
+}
+
 /**
  * Parsear historial_chat que puede venir como string JSON o array
  */
