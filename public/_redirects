@@ -1,9 +1,11 @@
 # Landing pages SEO (críticas para indexación)
-/comprar-tesis         /index.html 200
-/tesis-licenciatura    /index.html 200
-/tesis-maestria        /index.html 200
-/tesis-doctoral        /index.html 200
-/tutoria-academica     /index.html 200
+/comprar-tesis              /index.html 200
+/tesis-licenciatura         /index.html 200
+/tesis-maestria             /index.html 200
+/tesis-doctoral             /index.html 200
+/tutoria-academica          /index.html 200
+/cuanto-cuesta-una-tesis    /index.html 200
+/ayuda-con-tesis            /index.html 200
 
 # Rutas públicas principales
 /servicios              /index.html 200

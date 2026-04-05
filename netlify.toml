@@ -1,11 +1,18 @@
 [build]
-  base = "/"
+  command = "npm run build"
   publish = "dist"
-  command = "npm run build:seo"
 
-# Pre-rendered pages are served as static files automatically.
-# This catch-all only fires for routes without a static HTML file.
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = true
+
+# IMPORTANT: Enable Prerendering in Netlify Dashboard:
+# Site settings > Build & deploy > Post processing > Prerendering
+# Set to "Netlify" to serve pre-rendered HTML to search engine bots.
+# This is CRITICAL for SPA SEO — without it, bots may not execute JS
+# and won't see React Helmet meta tags.
+
+# Headers are in public/_headers
+# Redirects are in public/_redirects

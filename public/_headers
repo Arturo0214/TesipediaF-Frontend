@@ -47,6 +47,14 @@
   Link: <https://tesipedia.com/blog>; rel="canonical"
   Cache-Control: public, max-age=0, must-revalidate
 
+/cuanto-cuesta-una-tesis
+  Link: <https://tesipedia.com/cuanto-cuesta-una-tesis>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
+/ayuda-con-tesis
+  Link: <https://tesipedia.com/ayuda-con-tesis>; rel="canonical"
+  Cache-Control: public, max-age=0, must-revalidate
+
 # Security headers para todas las rutas
 /*
   X-Frame-Options: SAMEORIGIN

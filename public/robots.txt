@@ -8,6 +8,8 @@ Allow: /tesis-licenciatura
 Allow: /tesis-maestria
 Allow: /tesis-doctoral
 Allow: /tutoria-academica
+Allow: /cuanto-cuesta-una-tesis
+Allow: /ayuda-con-tesis
 
 # Páginas públicas
 Allow: /blog

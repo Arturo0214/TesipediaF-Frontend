@@ -35,6 +35,8 @@ const TesisMaestria = lazy(() => import('./pages/landing/TesisMaestria'));
 const TesisDoctorado = lazy(() => import('./pages/landing/TesisDoctorado'));
 const TutoriaAcademica = lazy(() => import('./pages/landing/TutoriaAcademica'));
 const CotizarLanding = lazy(() => import('./pages/landing/CotizarLanding'));
+const CuantoCuestaUnaTesis = lazy(() => import('./pages/landing/CuantoCuestaUnaTesis'));
+const AyudaConTesis = lazy(() => import('./pages/landing/AyudaConTesis'));
 
 // Lazy load protected layouts and pages (not needed on initial load)
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
@@ -81,6 +83,8 @@ const router = createBrowserRouter(
         { path: 'tesis-maestria', element: <LazyPage><TesisMaestria /></LazyPage> },
         { path: 'tesis-doctoral', element: <LazyPage><TesisDoctorado /></LazyPage> },
         { path: 'cotizar', element: <LazyPage><CotizarLanding /></LazyPage> },
+        { path: 'cuanto-cuesta-una-tesis', element: <LazyPage><CuantoCuestaUnaTesis /></LazyPage> },
+        { path: 'ayuda-con-tesis', element: <LazyPage><AyudaConTesis /></LazyPage> },
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },
         { path: '*', element: <LazyPage><NotFound /></LazyPage> },
