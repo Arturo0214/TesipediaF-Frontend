@@ -1,783 +1,856 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   FaFacebookF, FaPlay, FaPause, FaSync, FaEdit, FaCheckCircle,
-  FaTimesCircle, FaClock, FaExclamationTriangle, FaChartBar,
-  FaMousePointer, FaEye, FaBullseye, FaDollarSign, FaUsers,
-  FaSave, FaTimes, FaRobot, FaLightbulb, FaArrowUp, FaArrowDown,
-  FaMinus, FaFire, FaThumbsDown, FaThumbsUp, FaBolt, FaAngleDown,
-  FaAngleUp, FaChevronRight, FaSpinner, FaInfoCircle, FaStar,
-  FaExclamationCircle, FaChartLine, FaBrain, FaClipboardList,
-  FaServer, FaCloud, FaCreditCard, FaGlobe, FaTrain, FaWallet,
+  FaTimesCircle, FaExclamationTriangle, FaChartBar,
+  FaMousePointer, FaEye, FaBullseye, FaDollarSign,
+  FaSave, FaTimes, FaArrowUp, FaArrowDown,
+  FaAngleDown, FaAngleUp, FaStar, FaPercent,
+  FaExclamationCircle, FaChartLine, FaInfoCircle,
+  FaLightbulb, FaFire, FaBolt, FaChevronRight,
+  FaThumbsUp, FaThumbsDown, FaMinus, FaShieldAlt,
+  FaMoon, FaSun, FaWhatsapp, FaLink, FaClock, FaUsers,
 } from 'react-icons/fa';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import './AdminCampaigns.css';
+
+/* ═══════════════════════════════════════════════════
+   CONSTANTS & HELPERS
+   ═══════════════════════════════════════════════════ */
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-const STATUS_CONFIG = {
-  ACTIVE:     { label: 'Activa',    color: '#10b981', bg: '#d1fae5' },
-  PAUSED:     { label: 'Pausada',   color: '#f59e0b', bg: '#fef3c7' },
-  DELETED:    { label: 'Eliminada', color: '#ef4444', bg: '#fee2e2' },
-  ARCHIVED:   { label: 'Archivada',  color: '#6b7280', bg: '#f3f4f6' },
-  IN_PROCESS: { label: 'En proceso', color: '#3b82f6', bg: '#dbeafe' },
-  WITH_ISSUES:{ label: 'Con issues', color: '#ef4444', bg: '#fee2e2' },
-};
-
-const IMPACT_CONFIG = {
-  alto:  { label: 'Alto impacto', color: '#ef4444', bg: '#fee2e2', icon: FaFire },
-  medio: { label: 'Impacto medio', color: '#f59e0b', bg: '#fef3c7', icon: FaBolt },
-  bajo:  { label: 'Impacto bajo',  color: '#6b7280', bg: '#f3f4f6', icon: FaChevronRight },
-};
-const URGENCY_CONFIG = {
-  'inmediata':   { label: 'Urgente', color: '#ef4444' },
-  'esta-semana': { label: 'Esta semana', color: '#f59e0b' },
-  'este-mes':    { label: 'Este mes', color: '#3b82f6' },
+const STATUS_MAP = {
+  ACTIVE:      { label: 'Activa',     color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+  PAUSED:      { label: 'Pausada',    color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  DELETED:     { label: 'Eliminada',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  ARCHIVED:    { label: 'Archivada',  color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
+  IN_PROCESS:  { label: 'En proceso', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+  WITH_ISSUES: { label: 'Con issues', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
 };
 
 const fmt = (n, d = 0) => {
-  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (n == null || isNaN(n)) return '—';
   return '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: d, maximumFractionDigits: d });
 };
-const fmtN = n => { if (!n && n !== 0) return '—'; return Number(n).toLocaleString('es-MX'); };
-const fmtPct = n => { if (!n) return '—'; return Number(n).toFixed(2) + '%'; };
+const fmtN = n => (n == null ? '—' : Number(n).toLocaleString('es-MX'));
+const fmtPct = n => (n == null || isNaN(n) ? '—' : Number(n).toFixed(2) + '%');
 
-// ── Sub-components ──────────────────────────────────
+/* ═══════════════════════════════════════════════════
+   RULES ENGINE — Expert Meta Ads Analysis
+   Analiza cada campaña y genera diagnóstico + acciones
+   ═══════════════════════════════════════════════════ */
 
-const KpiCard = ({ icon: Icon, label, value, sub, color, trend }) => (
-  <div className="ac-kpi-card" style={{ borderTop: `3px solid ${color}` }}>
-    <div className="ac-kpi-icon" style={{ color }}><Icon /></div>
-    <div className="ac-kpi-body">
-      <div className="ac-kpi-value">{value}</div>
-      <div className="ac-kpi-label">{label}</div>
-      {sub && <div className="ac-kpi-sub">{sub}</div>}
-    </div>
-  </div>
-);
-
-const ScoreRing = ({ score }) => {
-  const color = score >= 75 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
-  const label = score >= 75 ? 'Bueno' : score >= 50 ? 'Regular' : 'Crítico';
-  return (
-    <div className="ac-score-ring" style={{ '--score-color': color }}>
-      <div className="ac-score-value" style={{ color }}>{score}</div>
-      <div className="ac-score-label" style={{ color }}>{label}</div>
-    </div>
-  );
+// Thresholds calibrados para mercado MX / servicios educativos
+const THRESHOLDS = {
+  ctr: { critical: 0.5, low: 1.0, good: 2.0, excellent: 3.5 },
+  cpc: { excellent: 3, good: 8, high: 15, critical: 25 },       // MXN
+  cpm: { excellent: 30, good: 80, high: 150, critical: 250 },   // MXN
+  cpl: { excellent: 50, good: 150, high: 300, critical: 500 },  // MXN
+  frequency: { optimal: 2.5, high: 4, fatigue: 6 },
+  spend_no_leads: 500, // MXN gastados sin conversiones = alerta
 };
 
-const AlertBanner = ({ alert }) => {
-  const typeConfig = {
-    error:   { bg: '#fef2f2', border: '#fecaca', color: '#dc2626', icon: FaExclamationCircle },
-    warning: { bg: '#fffbeb', border: '#fcd34d', color: '#d97706', icon: FaExclamationTriangle },
-    info:    { bg: '#eff6ff', border: '#93c5fd', color: '#2563eb', icon: FaInfoCircle },
-  };
-  const cfg = typeConfig[alert.tipo] || typeConfig.info;
-  const Icon = cfg.icon;
-  return (
-    <div className="ac-alert-item" style={{ background: cfg.bg, borderLeft: `4px solid ${cfg.border}` }}>
-      <Icon style={{ color: cfg.color, flexShrink: 0 }} />
-      <div>
-        <strong style={{ color: cfg.color }}>{alert.titulo}</strong>
-        <div className="ac-alert-detail">{alert.detalle}</div>
-        {alert.campana && <div className="ac-alert-campaign">Campaña: {alert.campana}</div>}
-      </div>
-    </div>
-  );
-};
+function analyzeCampaign(campaign) {
+  const ins = campaign.insights;
+  if (!ins) return { score: null, alerts: [], actions: [], strengths: [], weaknesses: [] };
 
-const ActionCard = ({ action }) => {
-  const impCfg = IMPACT_CONFIG[action.impacto] || IMPACT_CONFIG.bajo;
-  const urgCfg = URGENCY_CONFIG[action.urgencia] || URGENCY_CONFIG['este-mes'];
-  const ImpIcon = impCfg.icon;
-  return (
-    <div className="ac-action-card">
-      <div className="ac-action-top">
-        <span className="ac-action-badge" style={{ color: impCfg.color, background: impCfg.bg }}>
-          <ImpIcon /> {impCfg.label}
-        </span>
-        <span className="ac-action-urgency" style={{ color: urgCfg.color }}>⏱ {urgCfg.label}</span>
-      </div>
-      <div className="ac-action-text">{action.accion}</div>
-      {action.detalle && <div className="ac-action-detail">{action.detalle}</div>}
-    </div>
-  );
-};
+  const alerts = [];
+  const actions = [];
+  const strengths = [];
+  const weaknesses = [];
+  let score = 70; // base score
 
-// ── Main Component ──────────────────────────────────
+  const ctr = ins.ctr || 0;
+  const cpc = ins.cpc || 0;
+  const cpm = ins.cpm || 0;
+  const spend = ins.spend || 0;
+  const clicks = ins.clicks || 0;
+  const impressions = ins.impressions || 0;
+  const conversions = ins.conversions || 0;
+  const cpl = ins.costPerLead || 0;
+  const frequency = ins.frequency || 0;
+  const reach = ins.reach || 0;
 
+  // ── CTR Analysis ──
+  if (ctr >= THRESHOLDS.ctr.excellent) {
+    score += 15;
+    strengths.push('CTR excelente (' + fmtPct(ctr) + ') — el anuncio genera alto interés');
+  } else if (ctr >= THRESHOLDS.ctr.good) {
+    score += 8;
+    strengths.push('CTR bueno (' + fmtPct(ctr) + ') — por encima del promedio');
+  } else if (ctr < THRESHOLDS.ctr.critical && impressions > 500) {
+    score -= 20;
+    alerts.push({ type: 'error', title: 'CTR crítico: ' + fmtPct(ctr), detail: 'Muy por debajo del mínimo (0.5%). El anuncio no genera interés. Cambiar creativos o segmentación urgentemente.' });
+    actions.push({ action: 'Cambiar creativos y copy del anuncio', impact: 'alto', urgency: 'inmediata', detail: 'El CTR indica que el anuncio no conecta con la audiencia. Probar nuevos ángulos de mensaje.' });
+    weaknesses.push('CTR muy bajo — el anuncio no genera clics');
+  } else if (ctr < THRESHOLDS.ctr.low && impressions > 500) {
+    score -= 10;
+    alerts.push({ type: 'warning', title: 'CTR bajo: ' + fmtPct(ctr), detail: 'Por debajo del benchmark de 1%. Revisar segmentación y creativos.' });
+    actions.push({ action: 'Optimizar creativos y segmentación', impact: 'medio', urgency: 'esta-semana', detail: 'Probar A/B testing con diferentes imágenes y textos.' });
+    weaknesses.push('CTR bajo — necesita optimización de creativos');
+  }
+
+  // ── CPC Analysis ──
+  if (cpc > 0 && cpc <= THRESHOLDS.cpc.excellent) {
+    score += 10;
+    strengths.push('CPC muy eficiente (' + fmt(cpc, 2) + ') — costo por clic muy bajo');
+  } else if (cpc > THRESHOLDS.cpc.critical) {
+    score -= 15;
+    alerts.push({ type: 'error', title: 'CPC excesivo: ' + fmt(cpc, 2), detail: 'Cada clic cuesta más de ' + fmt(THRESHOLDS.cpc.critical) + '. La campaña no es rentable con este CPC.' });
+    actions.push({ action: 'Reducir presupuesto o pausar campaña', impact: 'alto', urgency: 'inmediata', detail: 'CPC demasiado alto. Reducir presupuesto diario 50% o pausar para reevaluar.' });
+    weaknesses.push('CPC excesivamente alto — no es rentable');
+  } else if (cpc > THRESHOLDS.cpc.high) {
+    score -= 8;
+    alerts.push({ type: 'warning', title: 'CPC alto: ' + fmt(cpc, 2), detail: 'Por encima del benchmark de ' + fmt(THRESHOLDS.cpc.high) + '. Optimizar para reducir costos.' });
+    weaknesses.push('CPC por encima del promedio');
+  }
+
+  // ── CPL Analysis ──
+  if (conversions > 0) {
+    if (cpl <= THRESHOLDS.cpl.excellent) {
+      score += 15;
+      strengths.push('CPL excelente (' + fmt(cpl, 2) + ') — costo por lead muy eficiente');
+    } else if (cpl <= THRESHOLDS.cpl.good) {
+      score += 5;
+      strengths.push('CPL aceptable (' + fmt(cpl, 2) + ')');
+    } else if (cpl > THRESHOLDS.cpl.critical) {
+      score -= 15;
+      alerts.push({ type: 'error', title: 'CPL crítico: ' + fmt(cpl, 2), detail: 'Cada lead cuesta más de ' + fmt(THRESHOLDS.cpl.critical) + '. No es sostenible.' });
+      actions.push({ action: 'Reestructurar campaña completa', impact: 'alto', urgency: 'inmediata', detail: 'El costo por lead es insostenible. Revisar landing page, formulario y audiencia.' });
+      weaknesses.push('Costo por lead insostenible');
+    } else if (cpl > THRESHOLDS.cpl.high) {
+      score -= 8;
+      alerts.push({ type: 'warning', title: 'CPL alto: ' + fmt(cpl, 2), detail: 'Por encima de ' + fmt(THRESHOLDS.cpl.high) + '. Optimizar embudo de conversión.' });
+      weaknesses.push('Costo por lead elevado');
+    }
+  } else if (spend > THRESHOLDS.spend_no_leads) {
+    score -= 12;
+    const isWhatsApp = /whatsapp|wa\b|ctwa/i.test(campaign.name || '') || /MESSAGES/i.test(campaign.objective || '');
+    if (isWhatsApp) {
+      alerts.push({ type: 'error', title: 'Sin conversiones con ' + fmt(spend, 0) + ' gastados', detail: 'La campaña ha gastado significativamente sin generar leads vía WhatsApp. Revisar segmentación, creativos y horarios de publicación.' });
+      actions.push({ action: 'Revisar segmentación y creativos', impact: 'alto', urgency: 'inmediata', detail: 'Los clics no se convierten en conversaciones de WhatsApp. Probar nuevos creativos, ajustar audiencia o cambiar horarios (horario laboral MX genera mejor respuesta).' });
+      actions.push({ action: 'Verificar integración WhatsApp–Meta', impact: 'alto', urgency: 'inmediata', detail: 'Confirmar que la página de Facebook tiene WhatsApp Business vinculado correctamente y que el número está activo.' });
+    } else {
+      alerts.push({ type: 'error', title: 'Sin conversiones con ' + fmt(spend, 0) + ' gastados', detail: 'La campaña ha gastado significativamente sin generar leads. Revisar landing page y formulario de contacto.' });
+      actions.push({ action: 'Revisar landing page y formulario', impact: 'alto', urgency: 'inmediata', detail: 'Los clics llegan pero no convierten. Verificar que la landing page carga correctamente y que el formulario/CTA funciona.' });
+    }
+    weaknesses.push('Sin conversiones a pesar del gasto');
+  }
+
+  // ── Frequency Analysis ──
+  if (frequency > THRESHOLDS.frequency.fatigue) {
+    score -= 12;
+    alerts.push({ type: 'error', title: 'Fatiga de audiencia: frecuencia ' + frequency.toFixed(1) + 'x', detail: 'La audiencia ha visto el anuncio demasiadas veces. Los costos subirán y la efectividad bajará.' });
+    actions.push({ action: 'Ampliar audiencia o rotar creativos', impact: 'alto', urgency: 'inmediata', detail: 'Frecuencia > 6x indica saturación. Crear nuevos segmentos o cambiar creativos.' });
+    weaknesses.push('Audiencia saturada por alta frecuencia');
+  } else if (frequency > THRESHOLDS.frequency.high) {
+    score -= 5;
+    alerts.push({ type: 'warning', title: 'Frecuencia elevada: ' + frequency.toFixed(1) + 'x', detail: 'Se acerca al punto de fatiga. Monitorear de cerca.' });
+    weaknesses.push('Frecuencia acercándose al límite');
+  } else if (frequency > 0 && frequency <= THRESHOLDS.frequency.optimal) {
+    strengths.push('Frecuencia óptima (' + frequency.toFixed(1) + 'x)');
+  }
+
+  // ── CPM Analysis ──
+  if (cpm > 0 && cpm <= THRESHOLDS.cpm.excellent) {
+    score += 5;
+    strengths.push('CPM muy bajo (' + fmt(cpm, 2) + ') — impresiones baratas');
+  } else if (cpm > THRESHOLDS.cpm.critical) {
+    score -= 8;
+    alerts.push({ type: 'warning', title: 'CPM muy alto: ' + fmt(cpm, 2), detail: 'El costo por 1000 impresiones es excesivo. Revisar competencia de la audiencia.' });
+    weaknesses.push('CPM elevado — audiencia muy competida');
+  }
+
+  // ── Spend efficiency ──
+  if (spend > 0 && clicks > 0 && conversions > 0) {
+    const convRate = (conversions / clicks) * 100;
+    if (convRate > 5) {
+      strengths.push('Tasa de conversión alta (' + convRate.toFixed(1) + '%)');
+      score += 8;
+    } else if (convRate < 1 && clicks > 50) {
+      const isWA = /whatsapp|wa\b|ctwa/i.test(campaign.name || '') || /MESSAGES/i.test(campaign.objective || '');
+      weaknesses.push('Tasa de conversión baja (' + convRate.toFixed(1) + '%)' + (isWA ? ' — pocos inician conversación' : ' — revisar landing page'));
+      actions.push({ action: isWA ? 'Optimizar mensaje inicial y creativos' : 'Optimizar landing page', impact: 'medio', urgency: 'esta-semana', detail: isWA ? 'Los clics llegan pero pocos inician conversación en WhatsApp. Probar mensajes de bienvenida más directos y creativos que generen urgencia.' : 'Los clics llegan pero no convierten. Mejorar la página de destino, CTA y formulario.' });
+    }
+  }
+
+  // Clamp score
+  score = Math.max(0, Math.min(100, score));
+
+  // ── Generate recommendation ──
+  let recommendation = '';
+  let recommendedAction = null; // { type: 'pause' | 'resume' | 'budget_down' | 'budget_up', value? }
+
+  if (score >= 80) {
+    recommendation = 'Campaña con excelente rendimiento. Considerar aumentar presupuesto para escalar resultados.';
+    if (campaign.dailyBudget) {
+      recommendedAction = { type: 'budget_up', value: Math.round(campaign.dailyBudget * 1.3), reason: 'Buen rendimiento — escalar +30%' };
+    }
+  } else if (score >= 60) {
+    recommendation = 'Rendimiento aceptable. Aplicar las optimizaciones sugeridas para mejorar métricas.';
+  } else if (score >= 40) {
+    recommendation = 'Rendimiento deficiente. Se recomienda reducir presupuesto y optimizar antes de seguir gastando.';
+    if (campaign.dailyBudget) {
+      recommendedAction = { type: 'budget_down', value: Math.round(campaign.dailyBudget * 0.5), reason: 'Bajo rendimiento — reducir 50%' };
+    }
+  } else {
+    recommendation = 'Rendimiento crítico. Se recomienda pausar la campaña y reestructurar completamente antes de reactivar.';
+    if (campaign.status === 'ACTIVE') {
+      recommendedAction = { type: 'pause', reason: 'Score crítico — pausar para evitar más gasto ineficiente' };
+    }
+  }
+
+  return { score, alerts, actions, strengths, weaknesses, recommendation, recommendedAction };
+}
+
+function analyzePortfolio(campaigns) {
+  const active = campaigns.filter(c => c.status === 'ACTIVE');
+  const withInsights = campaigns.filter(c => c.insights);
+  if (withInsights.length === 0) return null;
+
+  const totalSpend = withInsights.reduce((s, c) => s + (c.insights?.spend || 0), 0);
+  const totalClicks = withInsights.reduce((s, c) => s + (c.insights?.clicks || 0), 0);
+  const totalConversions = withInsights.reduce((s, c) => s + (c.insights?.conversions || 0), 0);
+  const totalImpressions = withInsights.reduce((s, c) => s + (c.insights?.impressions || 0), 0);
+
+  const globalCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  const globalCPC = totalClicks > 0 ? totalSpend / totalClicks : 0;
+  const globalCPL = totalConversions > 0 ? totalSpend / totalConversions : 0;
+
+  const alerts = [];
+
+  // No conversions at all
+  if (totalConversions === 0 && totalSpend > 1000) {
+    alerts.push({ type: 'error', title: 'Sin conversiones totales', detail: `Se han gastado ${fmt(totalSpend, 0)} sin generar ningún lead. Revisar toda la estrategia de campañas, pixel y landing pages.` });
+  }
+
+  // Budget concentration
+  if (withInsights.length > 1) {
+    const topSpend = Math.max(...withInsights.map(c => c.insights?.spend || 0));
+    if (topSpend / totalSpend > 0.7) {
+      const topCampaign = withInsights.find(c => c.insights?.spend === topSpend);
+      alerts.push({ type: 'warning', title: 'Presupuesto concentrado', detail: `El ${((topSpend / totalSpend) * 100).toFixed(0)}% del gasto está en "${topCampaign?.name}". Diversificar para reducir riesgo.` });
+    }
+  }
+
+  // All campaigns paused
+  if (active.length === 0 && campaigns.length > 0) {
+    alerts.push({ type: 'info', title: 'Todas las campañas pausadas', detail: 'No hay campañas activas. No se está generando alcance ni leads.' });
+  }
+
+  return { globalCTR, globalCPC, globalCPL, totalSpend, totalClicks, totalConversions, totalImpressions, alerts };
+}
+
+
+/* ═══════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════ */
 const AdminCampaigns = () => {
   const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth());
+  const [year, setYear] = useState(now.getFullYear());
 
-  // Campaign data
   const [campaigns, setCampaigns] = useState([]);
   const [totals, setTotals] = useState(null);
-  const [period, setPeriod] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Campaign actions
   const [actionLoading, setActionLoading] = useState({});
   const [actionResult, setActionResult] = useState({});
   const [editBudget, setEditBudget] = useState(null);
-
-  // Service usage (Anthropic, Railway, Netlify)
-  const [usage, setUsage] = useState(null);
-  const [usageLoading, setUsageLoading] = useState(false);
-  const [usageError, setUsageError] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [showDiag, setShowDiag] = useState(false);
+  const [showWA, setShowWA] = useState(false);
+  const detailRef = useRef(null);
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem('mc-theme') === 'dark'; } catch { return false; }
+  });
 
-  // AI Analysis
-  const [analysis, setAnalysis] = useState(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analyzeError, setAnalyzeError] = useState(null);
-  const [aiContext, setAiContext] = useState('');
-  const [showAiPanel, setShowAiPanel] = useState(false);
-  const [expandedCampaignAnalysis, setExpandedCampaignAnalysis] = useState(null);
-  const [expandedSection, setExpandedSection] = useState('alertas');
+  useEffect(() => {
+    try { localStorage.setItem('mc-theme', dark ? 'dark' : 'light'); } catch {}
+  }, [dark]);
 
+  /* ── Fetch campaigns ── */
   const fetchCampaigns = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setAnalysis(null);
+    setLoading(true); setError(null);
     try {
-      const res = await axiosWithAuth.get(`/revenue/campaigns/meta/detail`, {
-        params: { year: selectedYear, month: selectedMonth },
-
-      });
+      const res = await axiosWithAuth.get('/revenue/campaigns/meta/detail', { params: { year, month } });
       setCampaigns(res.data.campaigns || []);
       setTotals(res.data.totals || null);
-      setPeriod(res.data.period || null);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
+    } finally { setLoading(false); }
+  }, [month, year]);
+
+  useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+
+  // Scroll to detail card when opened
+  useEffect(() => {
+    if (expandedId && detailRef.current) {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
     }
-  }, [selectedMonth, selectedYear]);
+  }, [expandedId]);
 
-  const fetchUsage = useCallback(async () => {
-    setUsageLoading(true);
-    setUsageError(null);
-    try {
-      const res = await axiosWithAuth.get(`/revenue/usage`);
-      setUsage(res.data);
-    } catch (err) {
-      setUsageError(err.response?.data?.error || err.message);
-    } finally {
-      setUsageLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchCampaigns(); fetchUsage(); }, [fetchCampaigns, fetchUsage]);
-
-  const handleAnalyze = async () => {
-    if (!campaigns.length) return;
-    setAnalyzing(true);
-    setAnalyzeError(null);
-    setShowAiPanel(true);
-    try {
-      const res = await axiosWithAuth.post(
-        `/revenue/campaigns/meta/analyze`,
-        {
-          campaigns,
-          totals,
-          period: { from: `${selectedYear}-${String(selectedMonth + 1).padStart(2,'0')}-01`, to: `${selectedYear}-${String(selectedMonth + 1).padStart(2,'0')}-30` },
-          context: aiContext,
-        },
-        { withCredentials: true }
-      );
-      setAnalysis(res.data.analysis);
-    } catch (err) {
-      setAnalyzeError(err.response?.data?.error || err.message);
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
+  /* ── Campaign actions ── */
   const handleStatusToggle = async (campaign) => {
     const action = campaign.status === 'ACTIVE' ? 'pause' : 'resume';
-    setActionLoading(prev => ({ ...prev, [campaign.id]: 'status' }));
-    setActionResult(prev => ({ ...prev, [campaign.id]: null }));
+    setActionLoading(p => ({ ...p, [campaign.id]: 'status' }));
+    setActionResult(p => ({ ...p, [campaign.id]: null }));
     try {
-      const res = await axiosWithAuth.post(
-        `/revenue/campaigns/meta/${campaign.id}/status`,
-        { action },
-        { withCredentials: true }
-      );
-      setActionResult(prev => ({ ...prev, [campaign.id]: { ok: true, msg: res.data.message } }));
-      setCampaigns(prev => prev.map(c =>
-        c.id === campaign.id ? { ...c, status: res.data.newStatus, effectiveStatus: res.data.newStatus } : c
-      ));
+      const res = await axiosWithAuth.post(`/revenue/campaigns/meta/${campaign.id}/status`, { action }, { withCredentials: true });
+      setActionResult(p => ({ ...p, [campaign.id]: { ok: true, msg: res.data.message } }));
+      setCampaigns(p => p.map(c => c.id === campaign.id ? { ...c, status: res.data.newStatus, effectiveStatus: res.data.newStatus } : c));
     } catch (err) {
-      setActionResult(prev => ({ ...prev, [campaign.id]: { ok: false, msg: err.response?.data?.error || err.message } }));
-    } finally {
-      setActionLoading(prev => ({ ...prev, [campaign.id]: null }));
-    }
+      setActionResult(p => ({ ...p, [campaign.id]: { ok: false, msg: err.response?.data?.error || err.message } }));
+    } finally { setActionLoading(p => ({ ...p, [campaign.id]: null })); }
   };
 
-  const handleBudgetSave = async (campaignId) => {
+  const handleBudgetSave = async (id) => {
     const value = editBudget?.value;
     if (!value || isNaN(value)) return;
-    setActionLoading(prev => ({ ...prev, [campaignId]: 'budget' }));
+    setActionLoading(p => ({ ...p, [id]: 'budget' }));
     try {
-      const res = await axiosWithAuth.post(
-        `/revenue/campaigns/meta/${campaignId}/budget`,
-        { dailyBudget: parseFloat(value) },
-        { withCredentials: true }
-      );
-      setActionResult(prev => ({ ...prev, [campaignId]: { ok: true, msg: res.data.message } }));
-      setCampaigns(prev => prev.map(c =>
-        c.id === campaignId ? { ...c, dailyBudget: res.data.newDailyBudget } : c
-      ));
+      const res = await axiosWithAuth.post(`/revenue/campaigns/meta/${id}/budget`, { dailyBudget: parseFloat(value) }, { withCredentials: true });
+      setActionResult(p => ({ ...p, [id]: { ok: true, msg: res.data.message } }));
+      setCampaigns(p => p.map(c => c.id === id ? { ...c, dailyBudget: res.data.newDailyBudget } : c));
       setEditBudget(null);
     } catch (err) {
-      setActionResult(prev => ({ ...prev, [campaignId]: { ok: false, msg: err.response?.data?.error || err.message } }));
-    } finally {
-      setActionLoading(prev => ({ ...prev, [campaignId]: null }));
+      setActionResult(p => ({ ...p, [id]: { ok: false, msg: err.response?.data?.error || err.message } }));
+    } finally { setActionLoading(p => ({ ...p, [id]: null })); }
+  };
+
+  const handleApplyRecommendation = async (campaign, rec) => {
+    if (rec.type === 'pause') {
+      await handleStatusToggle(campaign);
+    } else if (rec.type === 'resume') {
+      await handleStatusToggle(campaign);
+    } else if (rec.type === 'budget_up' || rec.type === 'budget_down') {
+      setActionLoading(p => ({ ...p, [campaign.id]: 'budget' }));
+      try {
+        const res = await axiosWithAuth.post(`/revenue/campaigns/meta/${campaign.id}/budget`, { dailyBudget: rec.value }, { withCredentials: true });
+        setActionResult(p => ({ ...p, [campaign.id]: { ok: true, msg: res.data.message } }));
+        setCampaigns(p => p.map(c => c.id === campaign.id ? { ...c, dailyBudget: res.data.newDailyBudget } : c));
+      } catch (err) {
+        setActionResult(p => ({ ...p, [campaign.id]: { ok: false, msg: err.response?.data?.error || err.message } }));
+      } finally { setActionLoading(p => ({ ...p, [campaign.id]: null })); }
     }
   };
 
-  // ── Computed values ──
+  /* ── Computed ── */
   const totalSpend = totals?.spend || 0;
   const totalImpressions = totals?.impressions || 0;
   const totalClicks = totals?.clicks || 0;
   const totalConversions = totals?.conversions || 0;
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100) : 0;
+  const avgCPC = totalClicks > 0 ? (totalSpend / totalClicks) : 0;
   const avgCPL = totalConversions > 0 ? (totalSpend / totalConversions) : 0;
   const activeCampaigns = campaigns.filter(c => c.status === 'ACTIVE').length;
   const pausedCampaigns = campaigns.filter(c => c.status === 'PAUSED').length;
+  const sorted = [...campaigns].sort((a, b) => (b.insights?.spend || 0) - (a.insights?.spend || 0));
 
-  // ── Sort campaigns by spend desc ──
-  const sortedCampaigns = [...campaigns].sort((a, b) => (b.insights?.spend || 0) - (a.insights?.spend || 0));
+  // Run analysis engine
+  const campaignAnalysis = useMemo(() => {
+    const map = {};
+    campaigns.forEach(c => { map[c.id] = analyzeCampaign(c); });
+    return map;
+  }, [campaigns]);
+
+  const portfolio = useMemo(() => analyzePortfolio(campaigns), [campaigns]);
+
+  // Count total alerts
+  const totalAlerts = useMemo(() => {
+    let count = (portfolio?.alerts?.length || 0);
+    Object.values(campaignAnalysis).forEach(a => { count += (a.alerts?.length || 0); });
+    return count;
+  }, [campaignAnalysis, portfolio]);
+
+  // Campaigns that need action
+  const criticalCampaigns = useMemo(() =>
+    sorted.filter(c => campaignAnalysis[c.id]?.score != null && campaignAnalysis[c.id].score < 40),
+  [sorted, campaignAnalysis]);
+
+  // WhatsApp Integration Analysis (client-side, no backend needed)
+  const waAnalysis = useMemo(() => {
+    if (campaigns.length === 0) return null;
+    const waCampaigns = campaigns.filter(c => /whatsapp|wa\b|ctwa/i.test(c.name || '') || /MESSAGES/i.test(c.objective || ''));
+    const otherCampaigns = campaigns.filter(c => !waCampaigns.includes(c));
+    const waActive = waCampaigns.filter(c => c.status === 'ACTIVE');
+    const waWithInsights = waCampaigns.filter(c => c.insights);
+    const waSpend = waWithInsights.reduce((s, c) => s + (c.insights?.spend || 0), 0);
+    const waLeads = waWithInsights.reduce((s, c) => s + (c.insights?.conversions || 0), 0);
+    const waClicks = waWithInsights.reduce((s, c) => s + (c.insights?.clicks || 0), 0);
+    const waImpressions = waWithInsights.reduce((s, c) => s + (c.insights?.impressions || 0), 0);
+    const waCPL = waLeads > 0 ? waSpend / waLeads : 0;
+    const waCTR = waImpressions > 0 ? (waClicks / waImpressions) * 100 : 0;
+    const waConvRate = waClicks > 0 ? (waLeads / waClicks) * 100 : 0;
+
+    const checks = [];
+    // 1. ¿Hay campañas de WhatsApp?
+    checks.push({
+      pass: waCampaigns.length > 0,
+      label: 'Campañas de WhatsApp detectadas',
+      detail: waCampaigns.length > 0 ? `${waCampaigns.length} campaña(s) de WhatsApp encontradas` : 'No se detectaron campañas Click-to-WhatsApp',
+    });
+    // 2. ¿Al menos una activa?
+    if (waCampaigns.length > 0) {
+      checks.push({
+        pass: waActive.length > 0,
+        label: 'Campañas activas',
+        detail: waActive.length > 0 ? `${waActive.length} campaña(s) activa(s) generando leads` : 'Todas las campañas de WhatsApp están pausadas — no se están generando leads',
+      });
+    }
+    // 3. ¿Están generando leads?
+    if (waWithInsights.length > 0) {
+      checks.push({
+        pass: waLeads > 0,
+        label: 'Conversiones registradas',
+        detail: waLeads > 0 ? `${waLeads} lead(s) generados vía WhatsApp con CPL ${fmt(waCPL, 2)}` : `Se han gastado ${fmt(waSpend, 0)} sin registrar conversiones — verificar que Meta está contando las conversaciones`,
+      });
+    }
+    // 4. Tasa de conversión click→lead
+    if (waClicks > 50) {
+      const convOk = waConvRate > 2;
+      checks.push({
+        pass: convOk,
+        label: 'Tasa click → conversación',
+        detail: convOk
+          ? `${waConvRate.toFixed(1)}% de los clics inician conversación en WhatsApp — buena tasa`
+          : `Solo ${waConvRate.toFixed(1)}% de los clics inician conversación — revisar mensaje de bienvenida y creativos`,
+      });
+    }
+    // 5. Diversificación
+    if (waCampaigns.length > 0 && otherCampaigns.length === 0) {
+      checks.push({
+        pass: false,
+        label: 'Diversificación de canales',
+        detail: 'Todas las campañas dependen de WhatsApp. Considera probar landing page con formulario como canal alternativo.',
+        warn: true,
+      });
+    }
+
+    const tips = [];
+    if (waLeads > 0 && waCPL > THRESHOLDS.cpl.high) {
+      tips.push('Tu CPL de WhatsApp (' + fmt(waCPL, 2) + ') está alto. Considera segmentar mejor o probar nuevos creativos.');
+    }
+    if (waCTR > 0 && waCTR < 1.0) {
+      tips.push('El CTR de campañas WhatsApp (' + fmtPct(waCTR) + ') es bajo. Los creativos no generan suficiente interés.');
+    }
+    if (waActive.length > 0 && waLeads === 0 && waSpend > 200) {
+      tips.push('Campañas activas gastando sin leads. Verifica que WhatsApp Business esté correctamente vinculado a tu página de Facebook.');
+    }
+    if (waLeads > 0 && waCPL <= THRESHOLDS.cpl.good) {
+      tips.push('Buen CPL (' + fmt(waCPL, 2) + '). Considera escalar presupuesto en las campañas con mejor rendimiento.');
+    }
+
+    return { waCampaigns, waActive, waSpend, waLeads, waCPL, waCTR, waConvRate, waClicks, checks, tips };
+  }, [campaigns]);
 
   return (
-    <div className="ac-root">
+    <div className={`mc ${dark ? 'mc-dark' : 'mc-light'}`}>
 
-      {/* ─── Header ─── */}
-      <div className="ac-header">
-        <div className="ac-header-left">
-          <div className="ac-header-icon"><FaFacebookF /></div>
+      {/* ═══════════════ TOP BAR ═══════════════ */}
+      <div className="mc-topbar">
+        <div className="mc-topbar-left">
+          <div className="mc-logo"><FaFacebookF /></div>
           <div>
-            <h1 className="ac-title">Campañas Meta Ads</h1>
-            <p className="ac-subtitle">Rendimiento, gestión y análisis AI de campañas Facebook & Instagram</p>
+            <h1 className="mc-h1">Campañas Meta Ads</h1>
+            <p className="mc-subtitle">Rendimiento, control y optimización automática</p>
           </div>
         </div>
-        <div className="ac-header-controls">
-          <select value={selectedMonth} onChange={e => setSelectedMonth(+e.target.value)} className="ac-select">
-            {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
-          </select>
-          <select value={selectedYear} onChange={e => setSelectedYear(+e.target.value)} className="ac-select">
-            {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <button className="ac-btn-refresh" onClick={fetchCampaigns} disabled={loading}>
-            <FaSync className={loading ? 'spinning' : ''} /> Actualizar
+        <div className="mc-topbar-right">
+          <button className="mc-theme-toggle" onClick={() => setDark(!dark)} title={dark ? 'Modo claro' : 'Modo oscuro'}>
+            {dark ? <FaSun /> : <FaMoon />}
           </button>
-          {campaigns.length > 0 && (
-            <button className="ac-btn-analyze" onClick={handleAnalyze} disabled={analyzing}>
-              <FaRobot /> {analyzing ? 'Analizando...' : 'Analizar con AI'}
-            </button>
-          )}
+          <div className="mc-period-sel">
+            <select value={month} onChange={e => setMonth(+e.target.value)} className="mc-select">
+              {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            </select>
+            <select value={year} onChange={e => setYear(+e.target.value)} className="mc-select">
+              {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+          <button className="mc-btn mc-btn-ghost" onClick={fetchCampaigns} disabled={loading}>
+            <FaSync className={loading ? 'mc-spin' : ''} /> Actualizar
+          </button>
         </div>
       </div>
 
-      {/* ─── Error Banner ─── */}
+      {/* ═══════════════ ERROR ═══════════════ */}
       {error && (
-        <div className="ac-error-banner">
+        <div className="mc-alert mc-alert-error">
           <FaExclamationTriangle />
-          <span>{error}</span>
+          <div className="mc-alert-body">
+            <strong>Error al cargar campañas</strong>
+            <span>{error}</span>
+          </div>
+          <button className="mc-btn mc-btn-sm mc-btn-ghost" onClick={fetchCampaigns}>Reintentar</button>
         </div>
       )}
 
-      {/* ─── KPIs ─── */}
+      {/* ═══════════════ KPIs ═══════════════ */}
       {!loading && campaigns.length > 0 && (
-        <div className="ac-kpi-grid">
-          <KpiCard icon={FaDollarSign}    label="Gasto del período"  value={fmt(totalSpend, 2)}        sub={`${MONTHS[selectedMonth]} ${selectedYear}`} color="#1877F2" />
-          <KpiCard icon={FaEye}           label="Impresiones"         value={fmtN(totalImpressions)}    sub="total período"      color="#8B5CF6" />
-          <KpiCard icon={FaMousePointer}  label="Clics"               value={fmtN(totalClicks)}         sub={`CTR ${fmtPct(avgCTR)}`} color="#10b981" />
-          <KpiCard icon={FaBullseye}      label="Conversiones/Leads"  value={fmtN(totalConversions)}    sub={avgCPL > 0 ? `CPL ${fmt(avgCPL, 2)}` : '—'} color="#f59e0b" />
-          <KpiCard icon={FaChartBar}      label="Campañas activas"    value={activeCampaigns}           sub={`${pausedCampaigns} pausadas`} color="#10b981" />
-        </div>
-      )}
-
-      {/* ─── AI Analysis Panel ─── */}
-      {showAiPanel && (
-        <div className="ac-ai-panel">
-          <div className="ac-ai-panel-header">
-            <div className="ac-ai-title">
-              <FaBrain /> Análisis AI de Campañas
-              <span className="ac-ai-badge">Claude Haiku</span>
+        <>
+          <div className="mc-kpis">
+            <div className="mc-kpi">
+              <div className="mc-kpi-top">
+                <span className="mc-kpi-icon" style={{background:'rgba(24,119,242,0.1)',color:'#1877F2'}}><FaDollarSign /></span>
+                <span className="mc-kpi-label">Gasto total</span>
+              </div>
+              <div className="mc-kpi-value">{fmt(totalSpend, 2)}</div>
+              <div className="mc-kpi-sub">{MONTHS[month]} {year}</div>
             </div>
-            <button className="ac-ai-close" onClick={() => setShowAiPanel(false)}><FaTimes /></button>
+            <div className="mc-kpi">
+              <div className="mc-kpi-top">
+                <span className="mc-kpi-icon" style={{background:'rgba(139,92,246,0.1)',color:'#8B5CF6'}}><FaEye /></span>
+                <span className="mc-kpi-label">Impresiones</span>
+              </div>
+              <div className="mc-kpi-value">{fmtN(totalImpressions)}</div>
+              <div className="mc-kpi-sub">alcance del período</div>
+            </div>
+            <div className="mc-kpi">
+              <div className="mc-kpi-top">
+                <span className="mc-kpi-icon" style={{background:'rgba(16,185,129,0.1)',color:'#10b981'}}><FaMousePointer /></span>
+                <span className="mc-kpi-label">Clics / CTR</span>
+              </div>
+              <div className="mc-kpi-value">{fmtN(totalClicks)}</div>
+              <div className="mc-kpi-sub">CTR {fmtPct(avgCTR)} · CPC {fmt(avgCPC, 2)}</div>
+            </div>
+            <div className="mc-kpi">
+              <div className="mc-kpi-top">
+                <span className="mc-kpi-icon" style={{background:'rgba(245,158,11,0.1)',color:'#f59e0b'}}><FaBullseye /></span>
+                <span className="mc-kpi-label">Leads / Conv.</span>
+              </div>
+              <div className="mc-kpi-value">{fmtN(totalConversions)}</div>
+              <div className="mc-kpi-sub">{avgCPL > 0 ? `CPL ${fmt(avgCPL, 2)}` : 'Sin leads registrados'}</div>
+            </div>
+            <div className="mc-kpi">
+              <div className="mc-kpi-top">
+                <span className="mc-kpi-icon" style={{background:'rgba(16,185,129,0.1)',color:'#10b981'}}><FaChartBar /></span>
+                <span className="mc-kpi-label">Campañas</span>
+              </div>
+              <div className="mc-kpi-value">{activeCampaigns}<small style={{fontSize:'0.6em',color:'#9ca3af'}}>/{campaigns.length}</small></div>
+              <div className="mc-kpi-sub">{activeCampaigns} activas · {pausedCampaigns} pausadas</div>
+            </div>
           </div>
 
-          {/* Context input before analysis */}
-          {!analysis && !analyzing && (
-            <div className="ac-ai-context">
-              <label>Contexto adicional para el análisis (opcional):</label>
-              <textarea
-                className="ac-ai-textarea"
-                placeholder="Ej: Tenemos una promoción activa para abril, el CRM muestra baja en leads orgánicos, el presupuesto máximo mensual es $15,000 MXN..."
-                value={aiContext}
-                onChange={e => setAiContext(e.target.value)}
-                rows={3}
-              />
-              <button className="ac-btn-analyze ac-btn-analyze-lg" onClick={handleAnalyze}>
-                <FaRobot /> Generar análisis completo
-              </button>
-            </div>
-          )}
+          {/* ═══════════════ DIAGNOSTICS TOGGLE ═══════════════ */}
+          <div className="mc-diag-toggle-bar">
+            <button className={`mc-diag-toggle ${showDiag ? 'active' : ''}`} onClick={() => setShowDiag(!showDiag)}>
+              <FaShieldAlt /> Diagnóstico automático
+              {totalAlerts > 0 && <span className="mc-diag-badge">{totalAlerts}</span>}
+              {showDiag ? <FaAngleUp /> : <FaAngleDown />}
+            </button>
+          </div>
 
-          {/* Loading state */}
-          {analyzing && (
-            <div className="ac-ai-loading">
-              <div className="ac-ai-loading-dots">
-                <span /><span /><span />
-              </div>
-              <p>Claude está analizando {campaigns.length} campañas y {totalImpressions.toLocaleString()} impresiones...</p>
-              <small>Esto tarda entre 10-30 segundos</small>
-            </div>
-          )}
-
-          {/* Error */}
-          {analyzeError && (
-            <div className="ac-error-banner">
-              <FaTimesCircle />
-              <span>Error al analizar: {analyzeError}</span>
-              <button className="ac-retry-btn" onClick={handleAnalyze}>Reintentar</button>
-            </div>
-          )}
-
-          {/* Analysis Results */}
-          {analysis && !analysis.parseError && (
-            <div className="ac-analysis">
-
-              {/* Resumen ejecutivo + Score */}
-              <div className="ac-analysis-overview">
-                <div className="ac-analysis-summary">
-                  <h3>Resumen Ejecutivo</h3>
-                  <p>{analysis.resumenEjecutivo}</p>
-                </div>
-                {analysis.scoreGeneral !== undefined && (
-                  <div className="ac-score-section">
-                    <div className="ac-score-label-top">Score General</div>
-                    <ScoreRing score={analysis.scoreGeneral} />
-                  </div>
-                )}
-              </div>
-
-              {/* KPIs Objetivo */}
-              {analysis.kpisObjetivo && (
-                <div className="ac-kpis-objetivo">
-                  <h4><FaBullseye /> KPIs Objetivo recomendados</h4>
-                  <div className="ac-kpis-obj-grid">
-                    {analysis.kpisObjetivo.ctrMeta && <div className="ac-kpi-obj"><span>CTR meta</span><strong>{analysis.kpisObjetivo.ctrMeta}</strong></div>}
-                    {analysis.kpisObjetivo.cplMeta && <div className="ac-kpi-obj"><span>CPL meta</span><strong>{analysis.kpisObjetivo.cplMeta}</strong></div>}
-                    {analysis.kpisObjetivo.cpcMeta && <div className="ac-kpi-obj"><span>CPC meta</span><strong>{analysis.kpisObjetivo.cpcMeta}</strong></div>}
-                    {analysis.kpisObjetivo.frecuenciaMax && <div className="ac-kpi-obj"><span>Frecuencia máx</span><strong>{analysis.kpisObjetivo.frecuenciaMax}x</strong></div>}
-                  </div>
-                  {analysis.kpisObjetivo.justificacion && <p className="ac-kpis-justif">{analysis.kpisObjetivo.justificacion}</p>}
-                </div>
-              )}
-
-              {/* Nav tabs */}
-              <div className="ac-analysis-tabs">
-                {['alertas', 'campañas', 'presupuesto', 'audiencias', 'creativos', 'plan'].map(tab => (
-                  <button
-                    key={tab}
-                    className={`ac-analysis-tab ${expandedSection === tab ? 'active' : ''}`}
-                    onClick={() => setExpandedSection(tab)}
-                  >
-                    {tab === 'alertas' && '🚨 Alertas'}
-                    {tab === 'campañas' && '📊 Campañas'}
-                    {tab === 'presupuesto' && '💰 Presupuesto'}
-                    {tab === 'audiencias' && '👥 Audiencias'}
-                    {tab === 'creativos' && '🎨 Creativos'}
-                    {tab === 'plan' && '📋 Plan de acción'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab content */}
-              <div className="ac-analysis-tab-content">
-
-                {/* Alertas */}
-                {expandedSection === 'alertas' && analysis.alertasCriticas && (
-                  <div className="ac-alerts-list">
-                    {analysis.alertasCriticas.length === 0 ? (
-                      <div className="ac-no-alerts"><FaCheckCircle /> No se detectaron alertas críticas</div>
-                    ) : (
-                      analysis.alertasCriticas.map((alert, i) => <AlertBanner key={i} alert={alert} />)
-                    )}
-                  </div>
-                )}
-
-                {/* Análisis por campaña */}
-                {expandedSection === 'campañas' && analysis.analisisPorCampana && (
-                  <div className="ac-campaigns-analysis">
-                    {analysis.analisisPorCampana.map((c, i) => (
-                      <div key={i} className="ac-campaign-analysis-card">
-                        <div
-                          className="ac-campaign-analysis-header"
-                          onClick={() => setExpandedCampaignAnalysis(expandedCampaignAnalysis === i ? null : i)}
-                        >
-                          <div className="ac-campaign-analysis-name">
-                            {c.nombre}
-                          </div>
-                          <div className="ac-campaign-analysis-right">
-                            <div className={`ac-campaign-score ${c.score >= 75 ? 'good' : c.score >= 50 ? 'ok' : 'bad'}`}>
-                              {c.score}/100
-                            </div>
-                            {expandedCampaignAnalysis === i ? <FaAngleUp /> : <FaAngleDown />}
-                          </div>
-                        </div>
-
-                        {expandedCampaignAnalysis === i && (
-                          <div className="ac-campaign-analysis-body">
-                            <p className="ac-campaign-diagnostico">{c.diagnostico}</p>
-
-                            <div className="ac-strengths-weaknesses">
-                              {c.fortalezas?.length > 0 && (
-                                <div className="ac-strengths">
-                                  <h5><FaThumbsUp /> Fortalezas</h5>
-                                  <ul>{c.fortalezas.map((f, j) => <li key={j}>{f}</li>)}</ul>
-                                </div>
-                              )}
-                              {c.debilidades?.length > 0 && (
-                                <div className="ac-weaknesses">
-                                  <h5><FaThumbsDown /> Debilidades</h5>
-                                  <ul>{c.debilidades.map((d, j) => <li key={j}>{d}</li>)}</ul>
-                                </div>
-                              )}
-                            </div>
-
-                            {c.recomendacionPrincipal && (
-                              <div className="ac-main-recommendation">
-                                <FaLightbulb /> <strong>Recomendación principal:</strong> {c.recomendacionPrincipal}
-                              </div>
-                            )}
-
-                            {c.accionesConcretas?.length > 0 && (
-                              <div className="ac-actions-list">
-                                <h5>Acciones concretas:</h5>
-                                {c.accionesConcretas.map((a, j) => <ActionCard key={j} action={a} />)}
-                              </div>
-                            )}
-                          </div>
-                        )}
+          {/* ═══════════════ DIAGNOSTIC PANEL ═══════════════ */}
+          {showDiag && (
+            <div className="mc-diag-panel">
+              {/* Portfolio-level alerts */}
+              {portfolio?.alerts?.length > 0 && (
+                <div className="mc-diag-section">
+                  <h3><FaExclamationCircle /> Alertas generales</h3>
+                  <div className="mc-diag-alerts">
+                    {portfolio.alerts.map((a, i) => (
+                      <div key={i} className={`mc-diag-alert ${a.type}`}>
+                        {a.type === 'error' ? <FaExclamationCircle /> : a.type === 'warning' ? <FaExclamationTriangle /> : <FaInfoCircle />}
+                        <div><strong>{a.title}</strong><p>{a.detail}</p></div>
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Estrategia de presupuesto */}
-                {expandedSection === 'presupuesto' && analysis.estrategiaPresupuesto && (
-                  <div className="ac-budget-strategy">
-                    <p className="ac-budget-analysis">{analysis.estrategiaPresupuesto.analisis}</p>
-                    {analysis.estrategiaPresupuesto.redistribucion?.length > 0 && (
-                      <div className="ac-redistribucion">
-                        <h4>Redistribución recomendada:</h4>
-                        <div className="ac-redistrib-list">
-                          {analysis.estrategiaPresupuesto.redistribucion.map((r, i) => {
-                            const accionConfig = {
-                              aumentar: { color: '#10b981', bg: '#d1fae5', icon: FaArrowUp },
-                              reducir:  { color: '#ef4444', bg: '#fee2e2', icon: FaArrowDown },
-                              pausar:   { color: '#f59e0b', bg: '#fef3c7', icon: FaPause },
-                              mantener: { color: '#6b7280', bg: '#f3f4f6', icon: FaMinus },
-                            };
-                            const cfg = accionConfig[r.accion] || accionConfig.mantener;
-                            const Icon = cfg.icon;
-                            return (
-                              <div key={i} className="ac-redistrib-item">
-                                <div className="ac-redistrib-left">
-                                  <span className="ac-redistrib-badge" style={{ color: cfg.color, background: cfg.bg }}>
-                                    <Icon /> {r.accion.charAt(0).toUpperCase() + r.accion.slice(1)}
-                                    {r.porcentaje ? ` ${r.porcentaje}%` : ''}
-                                  </span>
-                                  <strong>{r.campana}</strong>
-                                </div>
-                                <p className="ac-redistrib-just">{r.justificacion}</p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Audiencias */}
-                {expandedSection === 'audiencias' && analysis.optimizacionAudiencias && (
-                  <div className="ac-audiencias">
-                    <p>{analysis.optimizacionAudiencias.observaciones}</p>
-                    {analysis.optimizacionAudiencias.recomendaciones?.length > 0 && (
-                      <div className="ac-rec-list">
-                        <h4>Recomendaciones:</h4>
-                        <ul>
-                          {analysis.optimizacionAudiencias.recomendaciones.map((r, i) => (
-                            <li key={i}><FaChevronRight /> {r}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Creativos */}
-                {expandedSection === 'creativos' && analysis.creativosYMensajes && (
-                  <div className="ac-creativos">
-                    {analysis.creativosYMensajes.hipotesisDeBaja && (
-                      <div className="ac-hipotesis">
-                        <h4><FaLightbulb /> Hipótesis sobre el rendimiento</h4>
-                        <p>{analysis.creativosYMensajes.hipotesisDeBaja}</p>
-                      </div>
-                    )}
-                    {analysis.creativosYMensajes.recomendaciones?.length > 0 && (
-                      <div className="ac-rec-list">
-                        <h4>Recomendaciones de creativos:</h4>
-                        <ul>
-                          {analysis.creativosYMensajes.recomendaciones.map((r, i) => (
-                            <li key={i}><FaLightbulb /> {r}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Plan de acción */}
-                {expandedSection === 'plan' && analysis.planDeAccion && (
-                  <div className="ac-plan">
-                    <div className="ac-plan-list">
-                      {analysis.planDeAccion.map((item, i) => (
-                        <div key={i} className="ac-plan-item">
-                          <div className="ac-plan-num">{item.orden || i + 1}</div>
-                          <div className="ac-plan-body">
-                            <div className="ac-plan-week">{item.semana}</div>
-                            <div className="ac-plan-action">{item.accion}</div>
-                            <div className="ac-plan-meta">
-                              {item.responsable && <span className="ac-plan-resp">👤 {item.responsable}</span>}
-                              {item.metrica && <span className="ac-plan-metric">📈 {item.metrica}</span>}
-                            </div>
+              {/* Critical campaigns */}
+              {criticalCampaigns.length > 0 && (
+                <div className="mc-diag-section">
+                  <h3><FaFire /> Campañas que requieren acción inmediata</h3>
+                  <div className="mc-diag-criticals">
+                    {criticalCampaigns.map(c => {
+                      const a = campaignAnalysis[c.id];
+                      return (
+                        <div key={c.id} className="mc-diag-critical-card">
+                          <div className="mc-diag-critical-head">
+                            <span className="mc-diag-critical-name">{c.name}</span>
+                            <span className={`mc-score-pill bad`}>{a.score}/100</span>
                           </div>
+                          <p className="mc-diag-critical-rec">{a.recommendation}</p>
+                          {a.recommendedAction && (
+                            <button
+                              className={`mc-btn mc-btn-sm ${a.recommendedAction.type === 'pause' ? 'mc-btn-warn' : 'mc-btn-danger'}`}
+                              onClick={() => handleApplyRecommendation(c, a.recommendedAction)}
+                              disabled={!!actionLoading[c.id]}
+                            >
+                              {a.recommendedAction.type === 'pause' && <><FaPause /> Pausar campaña</>}
+                              {a.recommendedAction.type === 'budget_down' && <><FaArrowDown /> Reducir a {fmt(a.recommendedAction.value)}/día</>}
+                            </button>
+                          )}
                         </div>
-                      ))}
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Per-campaign scores summary */}
+              <div className="mc-diag-section">
+                <h3><FaChartLine /> Score por campaña</h3>
+                <div className="mc-diag-scores">
+                  {sorted.map(c => {
+                    const a = campaignAnalysis[c.id];
+                    if (a.score == null) return null;
+                    const pct = a.score;
+                    const color = pct >= 75 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+                    return (
+                      <div key={c.id} className="mc-diag-score-row">
+                        <span className="mc-diag-score-name">{c.name}</span>
+                        <div className="mc-diag-score-bar-wrap">
+                          <div className="mc-diag-score-bar" style={{width: pct + '%', background: color}} />
+                        </div>
+                        <span className="mc-diag-score-val" style={{color}}>{pct}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {totalAlerts === 0 && (
+                <div className="mc-diag-ok">
+                  <FaCheckCircle /> Todas las campañas están dentro de los parámetros normales. Sin alertas.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══════════════ WHATSAPP INTEGRATION TOGGLE ═══════════════ */}
+          {waAnalysis && (
+            <>
+              <div className="mc-diag-toggle-bar">
+                <button className={`mc-diag-toggle mc-wa-toggle ${showWA ? 'active' : ''}`} onClick={() => setShowWA(!showWA)}>
+                  <FaWhatsapp /> Integración WhatsApp
+                  <span className={`mc-wa-badge ${waAnalysis.waLeads > 0 ? 'ok' : waAnalysis.waCampaigns.length > 0 ? 'warn' : 'off'}`}>
+                    {waAnalysis.waLeads > 0 ? '●' : waAnalysis.waCampaigns.length > 0 ? '◐' : '○'}
+                  </span>
+                  {showWA ? <FaAngleUp /> : <FaAngleDown />}
+                </button>
+              </div>
+
+              {showWA && (
+                <div className="mc-pixel-panel">
+                  <div className="mc-pixel-content">
+
+                    {/* WA KPI mini cards */}
+                    <div className="mc-wa-kpis">
+                      <div className="mc-wa-kpi">
+                        <FaWhatsapp className="mc-wa-kpi-icon" />
+                        <div>
+                          <span className="mc-wa-kpi-value">{waAnalysis.waCampaigns.length}</span>
+                          <span className="mc-wa-kpi-label">Campañas WA</span>
+                        </div>
+                      </div>
+                      <div className="mc-wa-kpi">
+                        <FaUsers className="mc-wa-kpi-icon" />
+                        <div>
+                          <span className="mc-wa-kpi-value">{waAnalysis.waLeads}</span>
+                          <span className="mc-wa-kpi-label">Leads WhatsApp</span>
+                        </div>
+                      </div>
+                      <div className="mc-wa-kpi">
+                        <FaDollarSign className="mc-wa-kpi-icon" />
+                        <div>
+                          <span className="mc-wa-kpi-value">{waAnalysis.waCPL > 0 ? fmt(waAnalysis.waCPL, 2) : '—'}</span>
+                          <span className="mc-wa-kpi-label">CPL WhatsApp</span>
+                        </div>
+                      </div>
+                      <div className="mc-wa-kpi">
+                        <FaMousePointer className="mc-wa-kpi-icon" />
+                        <div>
+                          <span className="mc-wa-kpi-value">{waAnalysis.waConvRate > 0 ? waAnalysis.waConvRate.toFixed(1) + '%' : '—'}</span>
+                          <span className="mc-wa-kpi-label">Click → Lead</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Health checks */}
+                    <div className="mc-pixel-landing">
+                      <h4><FaCheckCircle /> Verificación de integración</h4>
+                      <div className="mc-pixel-landing-grid">
+                        {waAnalysis.checks.map((ck, i) => (
+                          <div key={i} className={`mc-pixel-check ${ck.pass ? 'pass' : ck.warn ? 'warn-check' : 'fail'}`}>
+                            {ck.pass ? <FaCheckCircle /> : ck.warn ? <FaExclamationTriangle /> : <FaTimesCircle />}
+                            <span>{ck.label}</span>
+                            <small>{ck.detail}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tips */}
+                    {waAnalysis.tips.length > 0 && (
+                      <div className="mc-pixel-recs">
+                        <h4><FaLightbulb /> Recomendaciones WhatsApp</h4>
+                        {waAnalysis.tips.map((tip, i) => (
+                          <div key={i} className="mc-diag-alert warning">
+                            <FaLightbulb />
+                            <div><p>{tip}</p></div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {waAnalysis.checks.every(c => c.pass) && waAnalysis.tips.length === 0 && (
+                      <div className="mc-diag-ok">
+                        <FaCheckCircle /> La integración WhatsApp–Meta está funcionando correctamente. Tus campañas generan leads.
+                      </div>
+                    )}
+
+                    {/* Quick links */}
+                    <div className="mc-pixel-footer">
+                      <a href="https://business.facebook.com/latest/whatsapp_manager/phone_numbers" target="_blank" rel="noreferrer" className="mc-btn mc-btn-primary" style={{background:'#25D366'}}>
+                        <FaWhatsapp /> WhatsApp Manager
+                      </a>
+                      <a href="https://business.facebook.com/latest/settings/whatsapp_business_accounts" target="_blank" rel="noreferrer" className="mc-btn mc-btn-ghost">
+                        <FaLink /> Configuración WA Business
+                      </a>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Re-analyze button */}
-              <div className="ac-reanalyze-row">
-                <button className="ac-btn-refresh" onClick={handleAnalyze} disabled={analyzing}>
-                  <FaSync /> Regenerar análisis
-                </button>
-                <span className="ac-reanalyze-note">El análisis consume ~$0.01 USD de la API de Claude</span>
-              </div>
-            </div>
+                </div>
+              )}
+            </>
           )}
-
-          {/* Raw response fallback */}
-          {analysis?.parseError && (
-            <div className="ac-ai-raw">
-              <p>El análisis fue generado pero no pudo parsearse automáticamente:</p>
-              <pre>{analysis.raw}</pre>
-            </div>
-          )}
-        </div>
+        </>
       )}
 
-      {/* ─── Campaign Table ─── */}
-      <div className="ac-table-card">
-        <div className="ac-table-header">
-          <h2>Campañas ({campaigns.length})</h2>
-          <div className="ac-table-header-right">
-            <span className="ac-period-label">{MONTHS[selectedMonth]} {selectedYear}</span>
-            {!showAiPanel && campaigns.length > 0 && (
-              <button className="ac-btn-analyze ac-btn-analyze-sm" onClick={() => { setShowAiPanel(true); }}>
-                <FaRobot /> Análisis AI
-              </button>
-            )}
-          </div>
+      {/* ═══════════════════════════════════════
+           CAMPAIGN TABLE
+         ═══════════════════════════════════════ */}
+      <div className="mc-card">
+        <div className="mc-card-head">
+          <h2>Todas las campañas <span className="mc-badge-count">{campaigns.length}</span></h2>
+          <span className="mc-pill-period">{MONTHS[month]} {year}</span>
         </div>
 
         {loading ? (
-          <div className="ac-loading"><div className="ac-spinner" /><span>Cargando campañas...</span></div>
+          <div className="mc-loader"><div className="mc-spinner" /> Cargando campañas...</div>
         ) : campaigns.length === 0 && !error ? (
-          <div className="ac-empty"><FaFacebookF /><p>No se encontraron campañas para este período.</p></div>
+          <div className="mc-empty">
+            <FaFacebookF />
+            <p>No se encontraron campañas para este período</p>
+            <span>Cambia el mes/año o verifica tu cuenta de Meta Ads</span>
+          </div>
         ) : (
-          <div className="ac-table-wrapper">
-            <table className="ac-table">
+          <div className="mc-table-wrap">
+            <table className="mc-table">
               <thead>
                 <tr>
-                  <th>Campaña</th>
+                  <th className="mc-th-name">Campaña</th>
                   <th>Estado</th>
-                  <th>Presupuesto/día</th>
+                  <th>Score</th>
+                  <th>Presupuesto</th>
                   <th>Gasto</th>
-                  <th>Alcance</th>
                   <th>Impresiones</th>
                   <th>Clics</th>
                   <th>CTR</th>
                   <th>CPC</th>
-                  <th>CPM</th>
                   <th>Leads</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {sortedCampaigns.map(campaign => {
-                  const ins = campaign.insights;
-                  const isExpanded = expandedId === campaign.id;
-                  const isEditing = editBudget?.campaignId === campaign.id;
-                  const isLoadingStatus = actionLoading[campaign.id] === 'status';
-                  const isLoadingBudget = actionLoading[campaign.id] === 'budget';
-                  const result = actionResult[campaign.id];
-
-                  // Find AI analysis for this campaign
-                  const aiData = analysis?.analisisPorCampana?.find(c =>
-                    campaign.name.includes(c.nombre) || c.nombre.includes(campaign.name.split(' ')[0])
-                  );
+                {sorted.map(c => {
+                  const ins = c.insights;
+                  const isExp = expandedId === c.id;
+                  const isEditing = editBudget?.campaignId === c.id;
+                  const loadingStatus = actionLoading[c.id] === 'status';
+                  const loadingBudget = actionLoading[c.id] === 'budget';
+                  const result = actionResult[c.id];
+                  const st = STATUS_MAP[c.effectiveStatus || c.status] || STATUS_MAP.PAUSED;
+                  const diag = campaignAnalysis[c.id];
 
                   return (
-                    <React.Fragment key={campaign.id}>
-                      <tr className={`ac-row ${isExpanded ? 'ac-row-expanded' : ''}`}>
-                        <td>
-                          <button
-                            className="ac-campaign-name-btn"
-                            onClick={() => setExpandedId(isExpanded ? null : campaign.id)}
-                          >
-                            {campaign.name}
+                    <React.Fragment key={c.id}>
+                      <tr className={isExp ? 'mc-row-active' : ''}>
+                        <td className="mc-td-name">
+                          <button className="mc-name-btn" onClick={() => setExpandedId(isExp ? null : c.id)}>
+                            <span className="mc-name-row">
+                              {isExp ? <FaAngleDown className="mc-chevron" /> : <FaChevronRight className="mc-chevron" />}
+                              <span>
+                                <span className="mc-name-text">{c.name}</span>
+                                <span className="mc-name-id">ID: {c.id}</span>
+                              </span>
+                            </span>
                           </button>
-                          <div className="ac-campaign-id">ID: {campaign.id}</div>
-                          {aiData && (
-                            <div className={`ac-ai-score-inline ${aiData.score >= 75 ? 'good' : aiData.score >= 50 ? 'ok' : 'bad'}`}>
-                              <FaStar /> Score AI: {aiData.score}/100
-                            </div>
+                        </td>
+                        <td><span className="mc-status" style={{color:st.color,background:st.bg}}>{st.label}</span></td>
+                        <td>
+                          {diag?.score != null && (
+                            <span className={`mc-score-pill ${diag.score >= 75 ? 'good' : diag.score >= 50 ? 'ok' : 'bad'}`}>
+                              <FaStar /> {diag.score}
+                            </span>
                           )}
                         </td>
                         <td>
-                          <span className="ac-status-badge"
-                            style={{
-                              color: (STATUS_CONFIG[campaign.effectiveStatus || campaign.status] || STATUS_CONFIG.PAUSED).color,
-                              background: (STATUS_CONFIG[campaign.effectiveStatus || campaign.status] || STATUS_CONFIG.PAUSED).bg,
-                            }}>
-                            {(STATUS_CONFIG[campaign.effectiveStatus || campaign.status] || STATUS_CONFIG.PAUSED).label}
-                          </span>
-                        </td>
-                        <td>
                           {isEditing ? (
-                            <div className="ac-budget-edit">
-                              <input type="number" className="ac-budget-input" value={editBudget.value}
-                                onChange={e => setEditBudget({ campaignId: campaign.id, value: e.target.value })}
-                                min="10" step="50" />
-                              <button className="ac-btn-icon ac-btn-save" onClick={() => handleBudgetSave(campaign.id)} disabled={isLoadingBudget}>
-                                {isLoadingBudget ? <div className="ac-spinner-sm" /> : <FaSave />}
+                            <div className="mc-budget-edit">
+                              <input type="number" value={editBudget.value}
+                                onChange={e => setEditBudget({campaignId:c.id, value:e.target.value})}
+                                min="10" step="50" className="mc-budget-input" />
+                              <button className="mc-ibtn mc-ibtn-ok" onClick={() => handleBudgetSave(c.id)} disabled={loadingBudget}>
+                                {loadingBudget ? <span className="mc-spinner-xs"/> : <FaSave />}
                               </button>
-                              <button className="ac-btn-icon ac-btn-cancel" onClick={() => setEditBudget(null)}><FaTimes /></button>
+                              <button className="mc-ibtn mc-ibtn-cancel" onClick={() => setEditBudget(null)}><FaTimes /></button>
                             </div>
                           ) : (
-                            <div className="ac-budget-display">
-                              <span>{campaign.dailyBudget ? fmt(campaign.dailyBudget, 0) + '/día' : campaign.lifetimeBudget ? fmt(campaign.lifetimeBudget, 0) + ' total' : '—'}</span>
-                              {(campaign.dailyBudget || campaign.lifetimeBudget) && (
-                                <button className="ac-btn-icon ac-btn-edit"
-                                  onClick={() => setEditBudget({ campaignId: campaign.id, value: campaign.dailyBudget || '' })}>
+                            <div className="mc-budget-show">
+                              <span>{c.dailyBudget ? fmt(c.dailyBudget,0)+'/día' : c.lifetimeBudget ? fmt(c.lifetimeBudget,0)+' total' : '—'}</span>
+                              {(c.dailyBudget || c.lifetimeBudget) && (
+                                <button className="mc-ibtn mc-ibtn-edit" onClick={() => setEditBudget({campaignId:c.id, value:c.dailyBudget||''})}>
                                   <FaEdit />
                                 </button>
                               )}
                             </div>
                           )}
                         </td>
-                        <td className="ac-metric-spend">{ins ? fmt(ins.spend, 2) : '—'}</td>
-                        <td>{ins ? fmtN(ins.reach) : '—'}</td>
+                        <td className="mc-td-spend">{ins ? fmt(ins.spend,2) : '—'}</td>
                         <td>{ins ? fmtN(ins.impressions) : '—'}</td>
                         <td>{ins ? fmtN(ins.clicks) : '—'}</td>
-                        <td className={ins?.ctr > 2 ? 'ac-good' : ins?.ctr > 0.5 ? 'ac-ok' : ''}>{ins ? fmtPct(ins.ctr) : '—'}</td>
-                        <td>{ins ? fmt(ins.cpc, 2) : '—'}</td>
-                        <td>{ins ? fmt(ins.cpm, 2) : '—'}</td>
-                        <td className={ins?.conversions > 0 ? 'ac-good' : ''}>
-                          {ins ? (ins.conversions || '—') : '—'}
-                          {ins?.costPerLead > 0 && <div className="ac-sub-metric">CPL {fmt(ins.costPerLead, 2)}</div>}
+                        <td><span className={ins?.ctr > 2 ? 'mc-good' : ins?.ctr > 0.5 ? 'mc-warn' : ins?.ctr > 0 ? 'mc-bad' : ''}>{ins ? fmtPct(ins.ctr) : '—'}</span></td>
+                        <td>{ins ? fmt(ins.cpc,2) : '—'}</td>
+                        <td>
+                          <span className={ins?.conversions > 0 ? 'mc-good' : ''}>{ins?.conversions || '—'}</span>
+                          {ins?.costPerLead > 0 && <div className="mc-sub">{fmt(ins.costPerLead,2)} CPL</div>}
                         </td>
                         <td>
-                          <div className="ac-actions">
-                            {(campaign.status === 'ACTIVE' || campaign.status === 'PAUSED') && (
+                          <div className="mc-actions-cell">
+                            {(c.status === 'ACTIVE' || c.status === 'PAUSED') && (
                               <button
-                                className={`ac-btn-action ${campaign.status === 'ACTIVE' ? 'ac-btn-pause' : 'ac-btn-play'}`}
-                                onClick={() => handleStatusToggle(campaign)}
-                                disabled={isLoadingStatus}
+                                className={`mc-action-btn ${c.status === 'ACTIVE' ? 'pause' : 'play'}`}
+                                onClick={() => handleStatusToggle(c)} disabled={loadingStatus}>
+                                {loadingStatus ? <span className="mc-spinner-xs"/> :
+                                  c.status === 'ACTIVE' ? <><FaPause /> Pausar</> : <><FaPlay /> Activar</>}
+                              </button>
+                            )}
+                            {/* Quick recommended action */}
+                            {diag?.recommendedAction && diag.recommendedAction.type !== 'pause' && (
+                              <button
+                                className="mc-action-btn rec"
+                                onClick={() => handleApplyRecommendation(c, diag.recommendedAction)}
+                                disabled={!!actionLoading[c.id]}
+                                title={diag.recommendedAction.reason}
                               >
-                                {isLoadingStatus ? <div className="ac-spinner-sm" /> :
-                                  campaign.status === 'ACTIVE' ? <><FaPause /> Pausar</> : <><FaPlay /> Activar</>}
+                                {diag.recommendedAction.type === 'budget_up' && <><FaArrowUp /> Escalar</>}
+                                {diag.recommendedAction.type === 'budget_down' && <><FaArrowDown /> Reducir</>}
                               </button>
                             )}
                           </div>
                           {result && (
-                            <div className={`ac-action-msg ${result.ok ? 'ac-action-ok' : 'ac-action-err'}`}>
-                              {result.ok ? <FaCheckCircle /> : <FaTimesCircle />}
-                              <span>{result.msg}</span>
+                            <div className={`mc-result ${result.ok ? 'ok' : 'err'}`}>
+                              {result.ok ? <FaCheckCircle /> : <FaTimesCircle />} {result.msg}
                             </div>
                           )}
                         </td>
                       </tr>
 
-                      {isExpanded && (
-                        <tr className="ac-detail-row">
-                          <td colSpan={12}>
-                            <div className="ac-detail-panel">
-                              <div className="ac-detail-grid">
-                                <div className="ac-detail-section">
-                                  <h4>Información general</h4>
-                                  <div className="ac-detail-items">
-                                    <div><span>Objetivo:</span> {campaign.objective || '—'}</div>
-                                    <div><span>Estado efectivo:</span> {campaign.effectiveStatus}</div>
-                                    <div><span>Creada:</span> {campaign.createdTime ? new Date(campaign.createdTime).toLocaleDateString('es-MX') : '—'}</div>
-                                    {campaign.startTime && <div><span>Inicio:</span> {new Date(campaign.startTime).toLocaleDateString('es-MX')}</div>}
-                                    {campaign.stopTime && <div><span>Fin planificado:</span> {new Date(campaign.stopTime).toLocaleDateString('es-MX')}</div>}
-                                    {campaign.budgetRemaining != null && <div><span>Presupuesto restante:</span> {fmt(campaign.budgetRemaining, 2)}</div>}
-                                  </div>
-                                </div>
-
-                                {ins && (
-                                  <div className="ac-detail-section">
-                                    <h4>Métricas del período</h4>
-                                    <div className="ac-detail-items">
-                                      <div><span>Gasto:</span> {fmt(ins.spend, 2)} MXN</div>
-                                      <div><span>Alcance:</span> {fmtN(ins.reach)} personas</div>
-                                      <div><span>Frecuencia:</span> {ins.frequency?.toFixed(2) || '—'}x</div>
-                                      <div><span>CTR:</span> {fmtPct(ins.ctr)}</div>
-                                      <div><span>CPC:</span> {fmt(ins.cpc, 2)}</div>
-                                      <div><span>CPM:</span> {fmt(ins.cpm, 2)}</div>
-                                      {ins.conversions > 0 && <div><span>Conversiones:</span> {ins.conversions}</div>}
-                                      {ins.costPerLead > 0 && <div><span>Costo por lead:</span> {fmt(ins.costPerLead, 2)}</div>}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {ins?.actions?.length > 0 && (
-                                  <div className="ac-detail-section">
-                                    <h4>Acciones registradas</h4>
-                                    <div className="ac-detail-items">
-                                      {ins.actions.map((a, i) => (
-                                        <div key={i}><span>{a.action_type.replace(/_/g, ' ')}:</span> {a.value}</div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {aiData && (
-                                  <div className="ac-detail-section ac-detail-ai">
-                                    <h4><FaRobot /> Análisis AI</h4>
-                                    <div className="ac-detail-items">
-                                      <div><span>Score:</span> <strong style={{ color: aiData.score >= 75 ? '#10b981' : aiData.score >= 50 ? '#f59e0b' : '#ef4444' }}>{aiData.score}/100</strong></div>
-                                      {aiData.diagnostico && <div style={{ whiteSpace: 'normal' }}><span>Diagnóstico:</span> {aiData.diagnostico}</div>}
-                                      {aiData.recomendacionPrincipal && <div style={{ whiteSpace: 'normal' }}><span>Rec. principal:</span> {aiData.recomendacionPrincipal}</div>}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
                     </React.Fragment>
                   );
                 })}
@@ -787,206 +860,146 @@ const AdminCampaigns = () => {
         )}
       </div>
 
-      {/* ─── Consumo de Servicios ─── */}
-      <div className="ac-services-section">
-        <div className="ac-services-header">
-          <div className="ac-services-title">
-            <FaServer /> Consumo de Servicios
-          </div>
-          <button className="ac-btn-refresh" onClick={fetchUsage} disabled={usageLoading}>
-            <FaSync className={usageLoading ? 'spinning' : ''} /> Actualizar
-          </button>
-        </div>
-
-        {usageLoading && (
-          <div className="ac-loading"><div className="ac-spinner" /><span>Cargando consumo...</span></div>
-        )}
-
-        {usageError && (
-          <div className="ac-error-banner"><FaExclamationTriangle /><span>Error cargando consumo: {usageError}</span></div>
-        )}
-
-        {usage && (
-          <div className="ac-services-grid">
-
-            {/* ── Anthropic ── */}
-            <div className="ac-service-card ac-service-anthropic">
-              <div className="ac-service-icon" style={{ background: '#7c3aed' }}>
-                <FaBrain />
+      {/* ═══════════════ EXPANDED DETAIL (outside table) ═══════════════ */}
+      {expandedId && (() => {
+        const c = campaigns.find(x => x.id === expandedId);
+        if (!c) return null;
+        const ins = c.insights;
+        const diag = campaignAnalysis[c.id];
+        return (
+          <div className="mc-detail-card" ref={detailRef}>
+            <div className="mc-detail-card-head">
+              <h3>{c.name}</h3>
+              <button className="mc-ibtn mc-ibtn-cancel" onClick={() => setExpandedId(null)}><FaTimes /></button>
+            </div>
+            <div className="mc-detail-grid">
+              {/* General info */}
+              <div className="mc-detail-block">
+                <h4>Información general</h4>
+                <dl className="mc-dl">
+                  <div><dt>Objetivo</dt><dd>{c.objective || '—'}</dd></div>
+                  <div><dt>Estado</dt><dd>{c.effectiveStatus}</dd></div>
+                  <div><dt>Creada</dt><dd>{c.createdTime ? new Date(c.createdTime).toLocaleDateString('es-MX') : '—'}</dd></div>
+                  {c.startTime && <div><dt>Inicio</dt><dd>{new Date(c.startTime).toLocaleDateString('es-MX')}</dd></div>}
+                  {c.stopTime && <div><dt>Fin</dt><dd>{new Date(c.stopTime).toLocaleDateString('es-MX')}</dd></div>}
+                  {c.budgetRemaining != null && <div><dt>Restante</dt><dd>{fmt(c.budgetRemaining,2)}</dd></div>}
+                </dl>
               </div>
-              <div className="ac-service-body">
-                <h3>Anthropic (Claude AI)</h3>
-                {usage.usage?.anthropic ? (
-                  <>
-                    <div className="ac-service-status" data-status={usage.usage.anthropic.status}>
-                      {usage.usage.anthropic.status === 'ok' ? 'Conectado' :
-                       usage.usage.anthropic.status === 'subscription_only' ? 'Suscripción fija' : 'Solo estimado'}
+
+              {/* Metrics */}
+              {ins && (
+                <div className="mc-detail-block">
+                  <h4>Métricas del período</h4>
+                  <dl className="mc-dl">
+                    <div><dt>Gasto</dt><dd className="mc-td-spend">{fmt(ins.spend,2)} MXN</dd></div>
+                    <div><dt>Alcance</dt><dd>{fmtN(ins.reach)} personas</dd></div>
+                    <div><dt>Frecuencia</dt><dd>{ins.frequency?.toFixed(2) || '—'}x</dd></div>
+                    <div><dt>CTR</dt><dd>{fmtPct(ins.ctr)}</dd></div>
+                    <div><dt>CPC</dt><dd>{fmt(ins.cpc,2)}</dd></div>
+                    <div><dt>CPM</dt><dd>{fmt(ins.cpm,2)}</dd></div>
+                    {ins.conversions > 0 && <div><dt>Conversiones</dt><dd>{ins.conversions}</dd></div>}
+                    {ins.costPerLead > 0 && <div><dt>CPL</dt><dd>{fmt(ins.costPerLead,2)}</dd></div>}
+                  </dl>
+                </div>
+              )}
+
+              {/* Diagnosis */}
+              {diag && diag.score != null && (
+                <div className="mc-detail-block mc-detail-analysis">
+                  <h4><FaChartLine /> Diagnóstico</h4>
+                  <div className="mc-diag-inline-score">
+                    <div className={`mc-score-big ${diag.score >= 75 ? 'good' : diag.score >= 50 ? 'ok' : 'bad'}`}>
+                      {diag.score}<small>/100</small>
                     </div>
-                    <div className="ac-service-metrics">
-                      <div className="ac-service-metric">
-                        <span>Suscripción mensual</span>
-                        <strong>${usage.usage.anthropic.data?.subscriptionCostUSD || 200} USD</strong>
-                        <small>{fmt(usage.usage.anthropic.data?.subscriptionCostMXN || 4100)} MXN</small>
+                    <span className="mc-diag-inline-label">
+                      {diag.score >= 75 ? 'Buen rendimiento' : diag.score >= 50 ? 'Rendimiento regular' : 'Rendimiento crítico'}
+                    </span>
+                  </div>
+                  <p className="mc-diag-rec">{diag.recommendation}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Full width sections below the grid */}
+            {diag && diag.score != null && (
+              <div className="mc-detail-full">
+                {/* Strengths & Weaknesses */}
+                {(diag.strengths.length > 0 || diag.weaknesses.length > 0) && (
+                  <div className="mc-sw-grid">
+                    {diag.strengths.length > 0 && (
+                      <div className="mc-sw mc-sw-good">
+                        <h5><FaThumbsUp /> Fortalezas</h5>
+                        <ul>{diag.strengths.map((s,i) => <li key={i}>{s}</li>)}</ul>
                       </div>
-                      {usage.usage.anthropic.data?.balance !== undefined && (
-                        <div className="ac-service-metric">
-                          <span>Balance créditos</span>
-                          <strong>${usage.usage.anthropic.data.balance}</strong>
-                        </div>
-                      )}
-                      {usage.usage.anthropic.data?.currentUsage !== undefined && (
-                        <div className="ac-service-metric">
-                          <span>Uso del mes</span>
-                          <strong>${usage.usage.anthropic.data.currentUsage} USD</strong>
-                        </div>
-                      )}
-                      {usage.usage.anthropic.data?.note && (
-                        <div className="ac-service-note">{usage.usage.anthropic.data.note}</div>
-                      )}
-                    </div>
-                    <div className="ac-service-link">
-                      <a href="https://platform.claude.com/settings/billing" target="_blank" rel="noreferrer">
-                        Ver consumo detallado en Anthropic →
-                      </a>
-                    </div>
-                  </>
-                ) : (
-                  <div className="ac-service-not-configured">
-                    <FaExclamationTriangle /> No configurado — agrega ANTHROPIC_API_KEY y ANTHROPIC_ORG_ID al .env
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Railway ── */}
-            <div className="ac-service-card ac-service-railway">
-              <div className="ac-service-icon" style={{ background: '#0B0D0E' }}>
-                <FaServer />
-              </div>
-              <div className="ac-service-body">
-                <h3>Railway (Backend)</h3>
-                {usage.usage?.railway ? (
-                  <>
-                    <div className="ac-service-status" data-status={usage.usage.railway.status}>
-                      {usage.usage.railway.status === 'ok' ? 'Conectado' : 'Estimado'}
-                    </div>
-                    <div className="ac-service-metrics">
-                      {usage.usage.railway.data?.totalCostUSD !== undefined && (
-                        <div className="ac-service-metric">
-                          <span>Costo del mes</span>
-                          <strong>${usage.usage.railway.data.totalCostUSD} USD</strong>
-                          <small>{fmt(usage.usage.railway.data.totalCostMXN)} MXN</small>
-                        </div>
-                      )}
-                      {usage.usage.railway.data?.planCostUSD !== undefined && (
-                        <div className="ac-service-metric">
-                          <span>Costo plan base</span>
-                          <strong>${usage.usage.railway.data.planCostUSD} USD</strong>
-                          <small>{fmt(usage.usage.railway.data.planCostMXN)} MXN</small>
-                        </div>
-                      )}
-                      {usage.usage.railway.data?.estimatedTotalUSD !== undefined && (
-                        <div className="ac-service-metric">
-                          <span>Estimado fin de mes</span>
-                          <strong>${usage.usage.railway.data.estimatedTotalUSD} USD</strong>
-                        </div>
-                      )}
-                      {usage.usage.railway.data?.workspaceName && (
-                        <div className="ac-service-note">Workspace: {usage.usage.railway.data.workspaceName}</div>
-                      )}
-                    </div>
-                    <div className="ac-service-link">
-                      <a href="https://railway.com/project/d0b63978-adf7-4267-b488-aef9af1e84e6" target="_blank" rel="noreferrer">
-                        Ver en Railway →
-                      </a>
-                    </div>
-                  </>
-                ) : (
-                  <div className="ac-service-not-configured">
-                    <FaExclamationTriangle /> No configurado — agrega RAILWAY_API_TOKEN al .env
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Netlify ── */}
-            <div className="ac-service-card ac-service-netlify">
-              <div className="ac-service-icon" style={{ background: '#00C7B7' }}>
-                <FaGlobe />
-              </div>
-              <div className="ac-service-body">
-                <h3>Netlify (Frontend)</h3>
-                {usage.usage?.netlify ? (
-                  <>
-                    <div className="ac-service-status" data-status={usage.usage.netlify.status}>
-                      {usage.usage.netlify.status === 'ok' ? 'Conectado' : 'Estimado'}
-                    </div>
-                    <div className="ac-service-metrics">
-                      <div className="ac-service-metric">
-                        <span>Costo plan mensual</span>
-                        <strong>${usage.usage.netlify.data?.planCostUSD || 9} USD</strong>
-                        <small>{fmt(usage.usage.netlify.data?.planCostMXN || 185)} MXN</small>
+                    )}
+                    {diag.weaknesses.length > 0 && (
+                      <div className="mc-sw mc-sw-bad">
+                        <h5><FaThumbsDown /> Debilidades</h5>
+                        <ul>{diag.weaknesses.map((w,i) => <li key={i}>{w}</li>)}</ul>
                       </div>
-                      {usage.usage.netlify.data?.planType && (
-                        <div className="ac-service-metric">
-                          <span>Plan</span>
-                          <strong>{usage.usage.netlify.data.planType}</strong>
+                    )}
+                  </div>
+                )}
+
+                {/* Alerts */}
+                {diag.alerts.length > 0 && (
+                  <div className="mc-detail-alerts">
+                    {diag.alerts.map((a,i) => (
+                      <div key={i} className={`mc-diag-alert ${a.type}`}>
+                        {a.type === 'error' ? <FaExclamationCircle /> : <FaExclamationTriangle />}
+                        <div><strong>{a.title}</strong><p>{a.detail}</p></div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Recommended actions */}
+                {diag.actions.length > 0 && (
+                  <div className="mc-detail-actions-list">
+                    <h5>Acciones recomendadas</h5>
+                    {diag.actions.map((a,i) => (
+                      <div key={i} className="mc-detail-action-item">
+                        <span className={`mc-impact-badge ${a.impact}`}>
+                          {a.impact === 'alto' ? <FaFire /> : a.impact === 'medio' ? <FaBolt /> : <FaChevronRight />}
+                          {a.impact}
+                        </span>
+                        <div>
+                          <strong>{a.action}</strong>
+                          {a.detail && <p>{a.detail}</p>}
                         </div>
-                      )}
-                      {usage.usage.netlify.data?.bandwidth && (
-                        <div className="ac-service-metric">
-                          <span>Bandwidth</span>
-                          <strong>{typeof usage.usage.netlify.data.bandwidth === 'object'
-                            ? JSON.stringify(usage.usage.netlify.data.bandwidth).slice(0, 50)
-                            : usage.usage.netlify.data.bandwidth}</strong>
-                        </div>
-                      )}
-                    </div>
-                    <div className="ac-service-link">
-                      <a href="https://app.netlify.com" target="_blank" rel="noreferrer">
-                        Ver en Netlify →
-                      </a>
-                    </div>
-                  </>
-                ) : (
-                  <div className="ac-service-not-configured">
-                    <FaExclamationTriangle /> No configurado — agrega NETLIFY_ACCESS_TOKEN al .env
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Apply recommendation */}
+                {diag.recommendedAction && (
+                  <div className="mc-detail-apply">
+                    <button
+                      className={`mc-btn ${diag.recommendedAction.type === 'budget_up' ? 'mc-btn-success' : 'mc-btn-warn'}`}
+                      onClick={() => handleApplyRecommendation(c, diag.recommendedAction)}
+                      disabled={!!actionLoading[c.id]}
+                    >
+                      {diag.recommendedAction.type === 'pause' && <><FaPause /> Pausar campaña</>}
+                      {diag.recommendedAction.type === 'budget_up' && <><FaArrowUp /> Aumentar a {fmt(diag.recommendedAction.value)}/día</>}
+                      {diag.recommendedAction.type === 'budget_down' && <><FaArrowDown /> Reducir a {fmt(diag.recommendedAction.value)}/día</>}
+                    </button>
+                    <span className="mc-detail-apply-reason">{diag.recommendedAction.reason}</span>
                   </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
-        )}
+        );
+      })()}
 
-        {/* Resumen de costos totales */}
-        {usage && (
-          <div className="ac-services-total">
-            <FaWallet />
-            <div>
-              <strong>Costo total mensual de infraestructura (estimado):</strong>
-              {' '}
-              {(() => {
-                const exRate = usage.exchangeRate || 20.5;
-                const anthropicUSD = usage.usage?.anthropic?.data?.subscriptionCostUSD || 200;
-                const railwayUSD = usage.usage?.railway?.data?.totalCostUSD || usage.usage?.railway?.data?.planCostUSD || 20;
-                const netlifyUSD = usage.usage?.netlify?.data?.planCostUSD || 9;
-                const totalUSD = anthropicUSD + railwayUSD + netlifyUSD;
-                const totalMXN = Math.round(totalUSD * exRate);
-                return <span>${totalUSD} USD ≈ {fmt(totalMXN)} MXN</span>;
-              })()}
-              <small> (Anthropic + Railway + Netlify — sin Meta Ads)</small>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Permissions note */}
-      <div className="ac-permissions-note">
-        <FaExclamationTriangle />
-        <div>
-          <strong>Permisos requeridos:</strong> Para pausar/activar campañas y cambiar presupuestos, el sistema user <code>tsprevenue</code> necesita el permiso <strong>ads_management</strong> en Meta Business.
+      {/* ═══════════════ PERMISSIONS NOTE ═══════════════ */}
+      <div className="mc-permissions">
+        <FaInfoCircle />
+        <span>
+          Para pausar/activar campañas y cambiar presupuestos, el system user <code>tsprevenue</code> necesita <strong>ads_management</strong> en Meta Business.
           {' '}<a href="https://business.facebook.com/latest/settings/system_users?business_id=1427930065561956" target="_blank" rel="noreferrer">Configurar permisos →</a>
-        </div>
+        </span>
       </div>
     </div>
   );
