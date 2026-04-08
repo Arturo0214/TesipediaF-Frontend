@@ -1324,20 +1324,12 @@ const AdminWhatsApp = () => {
     );
   }).sort((a, b) => {
     // ── PRIORIDAD 1: Mensajes nuevos del cliente (no leídos) SIEMPRE arriba ──
-    const countUnread = (lead) => {
-      const hist = parseHistorial(lead.historial_chat);
-      let c = 0;
-      for (let i = hist.length - 1; i >= 0; i--) {
-        if (hist[i].role === 'user') c++; else break;
-      }
-      return c;
-    };
-    const unreadA = countUnread(a);
-    const unreadB = countUnread(b);
-    if (unreadA > 0 && unreadB === 0) return -1;
-    if (unreadA === 0 && unreadB > 0) return 1;
+    // Usar _lastMsgIsUser del backend (confiable, cubre todos los leads del lote)
+    const aUnread = a._lastMsgIsUser ? 1 : 0;
+    const bUnread = b._lastMsgIsUser ? 1 : 0;
+    if (aUnread !== bUnread) return bUnread - aUnread;
     // Ambos con mensajes nuevos → el más reciente primero
-    if (unreadA > 0 && unreadB > 0) {
+    if (aUnread && bUnread) {
       const dateA = new Date(a.updated_at || 0).getTime();
       const dateB = new Date(b.updated_at || 0).getTime();
       return dateB - dateA;
