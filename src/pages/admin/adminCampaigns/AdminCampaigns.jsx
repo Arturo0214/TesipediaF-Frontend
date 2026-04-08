@@ -7,11 +7,10 @@ import {
   FaMinus, FaFire, FaThumbsDown, FaThumbsUp, FaBolt, FaAngleDown,
   FaAngleUp, FaChevronRight, FaSpinner, FaInfoCircle, FaStar,
   FaExclamationCircle, FaChartLine, FaBrain, FaClipboardList,
+  FaServer, FaCloud, FaCreditCard, FaGlobe, FaTrain, FaWallet,
 } from 'react-icons/fa';
-import axios from 'axios';
+import axiosWithAuth from '../../../utils/axioswithAuth';
 import './AdminCampaigns.css';
-
-const API_BASE = import.meta.env.VITE_BACKEND_URL || 'https://tesipedia.onrender.com';
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const STATUS_CONFIG = {
@@ -121,6 +120,11 @@ const AdminCampaigns = () => {
   const [actionLoading, setActionLoading] = useState({});
   const [actionResult, setActionResult] = useState({});
   const [editBudget, setEditBudget] = useState(null);
+
+  // Service usage (Anthropic, Railway, Netlify)
+  const [usage, setUsage] = useState(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [usageError, setUsageError] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
 
   // AI Analysis
@@ -137,9 +141,9 @@ const AdminCampaigns = () => {
     setError(null);
     setAnalysis(null);
     try {
-      const res = await axios.get(`${API_BASE}/api/revenue/campaigns/meta/detail`, {
+      const res = await axiosWithAuth.get(`/revenue/campaigns/meta/detail`, {
         params: { year: selectedYear, month: selectedMonth },
-        withCredentials: true,
+
       });
       setCampaigns(res.data.campaigns || []);
       setTotals(res.data.totals || null);
@@ -151,7 +155,20 @@ const AdminCampaigns = () => {
     }
   }, [selectedMonth, selectedYear]);
 
-  useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+  const fetchUsage = useCallback(async () => {
+    setUsageLoading(true);
+    setUsageError(null);
+    try {
+      const res = await axiosWithAuth.get(`/revenue/usage`);
+      setUsage(res.data);
+    } catch (err) {
+      setUsageError(err.response?.data?.error || err.message);
+    } finally {
+      setUsageLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchCampaigns(); fetchUsage(); }, [fetchCampaigns, fetchUsage]);
 
   const handleAnalyze = async () => {
     if (!campaigns.length) return;
@@ -159,8 +176,8 @@ const AdminCampaigns = () => {
     setAnalyzeError(null);
     setShowAiPanel(true);
     try {
-      const res = await axios.post(
-        `${API_BASE}/api/revenue/campaigns/meta/analyze`,
+      const res = await axiosWithAuth.post(
+        `/revenue/campaigns/meta/analyze`,
         {
           campaigns,
           totals,
@@ -182,8 +199,8 @@ const AdminCampaigns = () => {
     setActionLoading(prev => ({ ...prev, [campaign.id]: 'status' }));
     setActionResult(prev => ({ ...prev, [campaign.id]: null }));
     try {
-      const res = await axios.post(
-        `${API_BASE}/api/revenue/campaigns/meta/${campaign.id}/status`,
+      const res = await axiosWithAuth.post(
+        `/revenue/campaigns/meta/${campaign.id}/status`,
         { action },
         { withCredentials: true }
       );
@@ -203,8 +220,8 @@ const AdminCampaigns = () => {
     if (!value || isNaN(value)) return;
     setActionLoading(prev => ({ ...prev, [campaignId]: 'budget' }));
     try {
-      const res = await axios.post(
-        `${API_BASE}/api/revenue/campaigns/meta/${campaignId}/budget`,
+      const res = await axiosWithAuth.post(
+        `/revenue/campaigns/meta/${campaignId}/budget`,
         { dailyBudget: parseFloat(value) },
         { withCredentials: true }
       );
@@ -766,6 +783,199 @@ const AdminCampaigns = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Consumo de Servicios ─── */}
+      <div className="ac-services-section">
+        <div className="ac-services-header">
+          <div className="ac-services-title">
+            <FaServer /> Consumo de Servicios
+          </div>
+          <button className="ac-btn-refresh" onClick={fetchUsage} disabled={usageLoading}>
+            <FaSync className={usageLoading ? 'spinning' : ''} /> Actualizar
+          </button>
+        </div>
+
+        {usageLoading && (
+          <div className="ac-loading"><div className="ac-spinner" /><span>Cargando consumo...</span></div>
+        )}
+
+        {usageError && (
+          <div className="ac-error-banner"><FaExclamationTriangle /><span>Error cargando consumo: {usageError}</span></div>
+        )}
+
+        {usage && (
+          <div className="ac-services-grid">
+
+            {/* ── Anthropic ── */}
+            <div className="ac-service-card ac-service-anthropic">
+              <div className="ac-service-icon" style={{ background: '#7c3aed' }}>
+                <FaBrain />
+              </div>
+              <div className="ac-service-body">
+                <h3>Anthropic (Claude AI)</h3>
+                {usage.usage?.anthropic ? (
+                  <>
+                    <div className="ac-service-status" data-status={usage.usage.anthropic.status}>
+                      {usage.usage.anthropic.status === 'ok' ? 'Conectado' :
+                       usage.usage.anthropic.status === 'subscription_only' ? 'Suscripción fija' : 'Solo estimado'}
+                    </div>
+                    <div className="ac-service-metrics">
+                      <div className="ac-service-metric">
+                        <span>Suscripción mensual</span>
+                        <strong>${usage.usage.anthropic.data?.subscriptionCostUSD || 200} USD</strong>
+                        <small>{fmt(usage.usage.anthropic.data?.subscriptionCostMXN || 4100)} MXN</small>
+                      </div>
+                      {usage.usage.anthropic.data?.balance !== undefined && (
+                        <div className="ac-service-metric">
+                          <span>Balance créditos</span>
+                          <strong>${usage.usage.anthropic.data.balance}</strong>
+                        </div>
+                      )}
+                      {usage.usage.anthropic.data?.currentUsage !== undefined && (
+                        <div className="ac-service-metric">
+                          <span>Uso del mes</span>
+                          <strong>${usage.usage.anthropic.data.currentUsage} USD</strong>
+                        </div>
+                      )}
+                      {usage.usage.anthropic.data?.note && (
+                        <div className="ac-service-note">{usage.usage.anthropic.data.note}</div>
+                      )}
+                    </div>
+                    <div className="ac-service-link">
+                      <a href="https://platform.claude.com/settings/billing" target="_blank" rel="noreferrer">
+                        Ver consumo detallado en Anthropic →
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <div className="ac-service-not-configured">
+                    <FaExclamationTriangle /> No configurado — agrega ANTHROPIC_API_KEY y ANTHROPIC_ORG_ID al .env
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Railway ── */}
+            <div className="ac-service-card ac-service-railway">
+              <div className="ac-service-icon" style={{ background: '#0B0D0E' }}>
+                <FaServer />
+              </div>
+              <div className="ac-service-body">
+                <h3>Railway (Backend)</h3>
+                {usage.usage?.railway ? (
+                  <>
+                    <div className="ac-service-status" data-status={usage.usage.railway.status}>
+                      {usage.usage.railway.status === 'ok' ? 'Conectado' : 'Estimado'}
+                    </div>
+                    <div className="ac-service-metrics">
+                      {usage.usage.railway.data?.totalCostUSD !== undefined && (
+                        <div className="ac-service-metric">
+                          <span>Costo del mes</span>
+                          <strong>${usage.usage.railway.data.totalCostUSD} USD</strong>
+                          <small>{fmt(usage.usage.railway.data.totalCostMXN)} MXN</small>
+                        </div>
+                      )}
+                      {usage.usage.railway.data?.planCostUSD !== undefined && (
+                        <div className="ac-service-metric">
+                          <span>Costo plan base</span>
+                          <strong>${usage.usage.railway.data.planCostUSD} USD</strong>
+                          <small>{fmt(usage.usage.railway.data.planCostMXN)} MXN</small>
+                        </div>
+                      )}
+                      {usage.usage.railway.data?.estimatedTotalUSD !== undefined && (
+                        <div className="ac-service-metric">
+                          <span>Estimado fin de mes</span>
+                          <strong>${usage.usage.railway.data.estimatedTotalUSD} USD</strong>
+                        </div>
+                      )}
+                      {usage.usage.railway.data?.workspaceName && (
+                        <div className="ac-service-note">Workspace: {usage.usage.railway.data.workspaceName}</div>
+                      )}
+                    </div>
+                    <div className="ac-service-link">
+                      <a href="https://railway.com/project/d0b63978-adf7-4267-b488-aef9af1e84e6" target="_blank" rel="noreferrer">
+                        Ver en Railway →
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <div className="ac-service-not-configured">
+                    <FaExclamationTriangle /> No configurado — agrega RAILWAY_API_TOKEN al .env
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Netlify ── */}
+            <div className="ac-service-card ac-service-netlify">
+              <div className="ac-service-icon" style={{ background: '#00C7B7' }}>
+                <FaGlobe />
+              </div>
+              <div className="ac-service-body">
+                <h3>Netlify (Frontend)</h3>
+                {usage.usage?.netlify ? (
+                  <>
+                    <div className="ac-service-status" data-status={usage.usage.netlify.status}>
+                      {usage.usage.netlify.status === 'ok' ? 'Conectado' : 'Estimado'}
+                    </div>
+                    <div className="ac-service-metrics">
+                      <div className="ac-service-metric">
+                        <span>Costo plan mensual</span>
+                        <strong>${usage.usage.netlify.data?.planCostUSD || 9} USD</strong>
+                        <small>{fmt(usage.usage.netlify.data?.planCostMXN || 185)} MXN</small>
+                      </div>
+                      {usage.usage.netlify.data?.planType && (
+                        <div className="ac-service-metric">
+                          <span>Plan</span>
+                          <strong>{usage.usage.netlify.data.planType}</strong>
+                        </div>
+                      )}
+                      {usage.usage.netlify.data?.bandwidth && (
+                        <div className="ac-service-metric">
+                          <span>Bandwidth</span>
+                          <strong>{typeof usage.usage.netlify.data.bandwidth === 'object'
+                            ? JSON.stringify(usage.usage.netlify.data.bandwidth).slice(0, 50)
+                            : usage.usage.netlify.data.bandwidth}</strong>
+                        </div>
+                      )}
+                    </div>
+                    <div className="ac-service-link">
+                      <a href="https://app.netlify.com" target="_blank" rel="noreferrer">
+                        Ver en Netlify →
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <div className="ac-service-not-configured">
+                    <FaExclamationTriangle /> No configurado — agrega NETLIFY_ACCESS_TOKEN al .env
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Resumen de costos totales */}
+        {usage && (
+          <div className="ac-services-total">
+            <FaWallet />
+            <div>
+              <strong>Costo total mensual de infraestructura (estimado):</strong>
+              {' '}
+              {(() => {
+                const exRate = usage.exchangeRate || 20.5;
+                const anthropicUSD = usage.usage?.anthropic?.data?.subscriptionCostUSD || 200;
+                const railwayUSD = usage.usage?.railway?.data?.totalCostUSD || usage.usage?.railway?.data?.planCostUSD || 20;
+                const netlifyUSD = usage.usage?.netlify?.data?.planCostUSD || 9;
+                const totalUSD = anthropicUSD + railwayUSD + netlifyUSD;
+                const totalMXN = Math.round(totalUSD * exRate);
+                return <span>${totalUSD} USD ≈ {fmt(totalMXN)} MXN</span>;
+              })()}
+              <small> (Anthropic + Railway + Netlify — sin Meta Ads)</small>
+            </div>
           </div>
         )}
       </div>
