@@ -5,7 +5,7 @@
 .wa-panel {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 40px);
   background: #f0f2f5;
   border-radius: 12px;
   overflow: hidden;

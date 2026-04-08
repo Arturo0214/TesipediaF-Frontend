@@ -35,6 +35,13 @@
     flex-direction: column;
 }
 
+/* Main content area — fills parent so children can use height: 100% */
+.admin-layout-content {
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
 /* Navbar Styles */
 .tesipedia-admin-navbar {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
