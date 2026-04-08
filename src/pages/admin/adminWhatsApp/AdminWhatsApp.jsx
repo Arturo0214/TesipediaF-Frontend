@@ -1278,8 +1278,10 @@ const AdminWhatsApp = () => {
 
   // Filtrar leads (origen ya filtrado por el backend, aquí solo filtros locales)
   const filteredLeads = leads.filter(lead => {
-    // Filtro por estado
-    if (estadoFilter !== 'all') {
+    // Filtro por estado (incluye filtro especial _no_leidos)
+    if (estadoFilter === '_no_leidos') {
+      if (!lead._lastMsgIsUser) return false;
+    } else if (estadoFilter !== 'all') {
       const estado = lead.estado_sofia || 'sin_estado';
       if (estado !== estadoFilter) return false;
     }
@@ -1859,8 +1861,12 @@ const AdminWhatsApp = () => {
               className="wa-filter-select"
               value={estadoFilter}
               onChange={(e) => setEstadoFilter(e.target.value)}
+              style={estadoFilter === '_no_leidos' ? { borderColor: '#25d366', color: '#25d366', fontWeight: 600 } : {}}
             >
               <option value="all">Estado: Todos ({filteredLeads.length})</option>
+              <option value="_no_leidos" style={{ fontWeight: 'bold', color: '#25d366' }}>
+                No leídos ({leads.filter(l => l._lastMsgIsUser).length})
+              </option>
               {estadosUnicos.map(est => {
                 const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
                 return (
