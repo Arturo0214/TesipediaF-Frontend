@@ -352,13 +352,61 @@ const AdminWhatsApp = () => {
       let moreAvailable;
 
       if (silent) {
-        // Polling silencioso: traer el mismo número de leads cargados actualmente
-        const limit = Math.max(100, leadsLengthRef.current);
-        const result = await getLeads(origenRef.current, limit, 0);
-        allData = Array.isArray(result) ? result : (result.leads || []);
-        totalCount = result.total || allData.length;
+        // Polling silencioso: traer los 200 leads más recientes (max del backend)
+        // y MERGEAR con los existentes para no perder leads ya cargados
+        const result = await getLeads(origenRef.current, 200, 0);
+        const freshLeads = Array.isArray(result) ? result : (result.leads || []);
+        totalCount = result.total || freshLeads.length;
         moreAvailable = result.hasMore || false;
-        checkNewMessages(allData);
+        checkNewMessages(freshLeads);
+
+        // Merge: actualizar leads existentes con datos frescos, conservar el resto
+        const freshMap = new Map(freshLeads.map(l => [l.wa_id, l]));
+        setLeads(prev => {
+          const updated = prev.map(l => freshMap.get(l.wa_id) || l);
+          // Agregar leads completamente nuevos (no existían antes)
+          freshLeads.forEach(l => {
+            if (!updated.some(existing => existing.wa_id === l.wa_id)) {
+              updated.push(l);
+            }
+          });
+          return updated;
+        });
+        setTotalLeads(totalCount);
+        hasMoreRef.current = moreAvailable;
+        setHasMore(moreAvailable);
+
+        // Actualizar el lead seleccionado
+        const currentSelected = selectedLeadRef.current;
+        if (currentSelected) {
+          const updatedLead = freshMap.get(currentSelected.wa_id);
+          if (updatedLead) {
+            const metaChanged = updatedLead.estado_sofia !== currentSelected.estado_sofia
+              || updatedLead.modo_humano !== currentSelected.modo_humano
+              || updatedLead.precio !== currentSelected.precio
+              || updatedLead.nombre !== currentSelected.nombre
+              || updatedLead.atendido_por !== currentSelected.atendido_por;
+            const hasNewMessages = updatedLead.updated_at !== currentSelected.updated_at
+              || (updatedLead.ultimo_mensaje_preview && updatedLead.ultimo_mensaje_preview !== currentSelected.ultimo_mensaje_preview);
+
+            if (hasNewMessages) {
+              try {
+                const fresh = await getLeadByWaId(currentSelected.wa_id);
+                if (fresh) setSelectedLead(fresh);
+              } catch (e) {
+                console.warn('Error refrescando historial completo:', e);
+              }
+            } else if (metaChanged) {
+              setSelectedLead(prev => ({
+                ...prev,
+                ...updatedLead,
+                historial_chat: prev.historial_chat,
+              }));
+            }
+          }
+        }
+        setError(null);
+        return; // Skip shared logic below (ya se manejó todo arriba)
       } else {
         // Carga inicial: traer TODAS las páginas automáticamente
         const limit = 100;
@@ -852,7 +900,7 @@ const AdminWhatsApp = () => {
       } catch (refreshErr) {
         console.warn('No se pudo refrescar después de audio:', refreshErr);
       }
-      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 200, 0); const fresh = Array.isArray(r) ? r : (r.leads || []); const fm = new Map(fresh.map(l => [l.wa_id, l])); setLeads(prev => { const merged = prev.map(l => fm.get(l.wa_id) || l); fresh.forEach(l => { if (!merged.some(e => e.wa_id === l.wa_id)) merged.push(l); }); return merged; }); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar nota de voz: ' + err.message);
     } finally {
@@ -947,7 +995,7 @@ const AdminWhatsApp = () => {
         console.warn('No se pudo refrescar después de enviar, mensaje optimista se mantiene:', refreshErr);
       }
       // Actualizar sidebar sin tocar selectedLead
-      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 200, 0); const fresh = Array.isArray(r) ? r : (r.leads || []); const fm = new Map(fresh.map(l => [l.wa_id, l])); setLeads(prev => { const merged = prev.map(l => fm.get(l.wa_id) || l); fresh.forEach(l => { if (!merged.some(e => e.wa_id === l.wa_id)) merged.push(l); }); return merged; }); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
       inputRef.current?.focus();
     } catch (err) {
       toast.error('Error al enviar: ' + err.message);
@@ -967,7 +1015,7 @@ const AdminWhatsApp = () => {
       // Refrescar historial completo + sidebar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
-      try { const r = await getLeads(origenRef.current, 100, 0); setLeads(Array.isArray(r) ? r : (r.leads || [])); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
+      try { const r = await getLeads(origenRef.current, 200, 0); const fresh = Array.isArray(r) ? r : (r.leads || []); const fm = new Map(fresh.map(l => [l.wa_id, l])); setLeads(prev => { const merged = prev.map(l => fm.get(l.wa_id) || l); fresh.forEach(l => { if (!merged.some(e => e.wa_id === l.wa_id)) merged.push(l); }); return merged; }); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
     } catch (err) {
       toast.error('Error al enviar plantilla: ' + err.message);
     } finally {
