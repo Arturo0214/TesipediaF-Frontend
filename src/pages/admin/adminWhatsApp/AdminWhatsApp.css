@@ -2037,3 +2037,33 @@
     padding: 3px 10px;
   }
 }
+
+/* ── Section headers in conversation list ── */
+.wa-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.wa-section-new {
+  background: #dcfce7;
+  color: #15803d;
+  border-bottom: 1px solid #bbf7d0;
+}
+.wa-section-approval {
+  background: #fef9c3;
+  color: #a16207;
+  border-bottom: 1px solid #fde68a;
+}
+.wa-section-rest {
+  background: #f1f5f9;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+}

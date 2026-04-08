@@ -1323,8 +1323,7 @@ const AdminWhatsApp = () => {
       chatText.includes(q)
     );
   }).sort((a, b) => {
-    // Siempre mostrar primero los leads con mensajes nuevos (no leídos)
-    // Inline: contar mensajes del user al final del historial
+    // ── PRIORIDAD 1: Mensajes nuevos del cliente (no leídos) SIEMPRE arriba ──
     const countUnread = (lead) => {
       const hist = parseHistorial(lead.historial_chat);
       let c = 0;
@@ -1337,7 +1336,26 @@ const AdminWhatsApp = () => {
     const unreadB = countUnread(b);
     if (unreadA > 0 && unreadB === 0) return -1;
     if (unreadA === 0 && unreadB > 0) return 1;
-    // Dentro de cada grupo, ordenar por updated_at más reciente
+    // Ambos con mensajes nuevos → el más reciente primero
+    if (unreadA > 0 && unreadB > 0) {
+      const dateA = new Date(a.updated_at || 0).getTime();
+      const dateB = new Date(b.updated_at || 0).getTime();
+      return dateB - dateA;
+    }
+
+    // ── PRIORIDAD 2: Leads esperando aprobación ──
+    const PRIORITY_ESTADOS = ['esperando_aprobacion', 'cotizacion_enviada', 'cotizacion_confirmada', 'cliente_acepto'];
+    const isPriorityA = PRIORITY_ESTADOS.includes(a.estado_sofia);
+    const isPriorityB = PRIORITY_ESTADOS.includes(b.estado_sofia);
+    if (isPriorityA && !isPriorityB) return -1;
+    if (!isPriorityA && isPriorityB) return 1;
+
+    // ── PRIORIDAD 3: Modo humano activo (alguien está atendiendo) ──
+    const humanoA = a.modo_humano ? 1 : 0;
+    const humanoB = b.modo_humano ? 1 : 0;
+    if (humanoA !== humanoB) return humanoB - humanoA;
+
+    // ── Dentro de cada grupo, ordenar por updated_at más reciente ──
     const dateA = new Date(a.updated_at || 0).getTime();
     const dateB = new Date(b.updated_at || 0).getTime();
     return dateB - dateA;
@@ -1905,66 +1923,88 @@ const AdminWhatsApp = () => {
               </div>
             ) : (
               <>
-                {filteredLeads.map((lead) => {
-                  const unread = getUnreadCount(lead);
-                  const isSelected = selectedLead?.wa_id === lead.wa_id;
-                  const attendedInfo = getAttendedColor(lead);
-                  return (
-                    <div
-                      key={lead.wa_id}
-                      className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
-                      style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
-                      onClick={() => handleSelectLead(lead)}
-                    >
-                      <div className="wa-conv-avatar">
-                        <FaUser />
-                        {lead.modo_humano && (
-                          <span className="wa-human-badge" title="Modo humano activo">
-                            <FaUserTie />
-                          </span>
-                        )}
-                      </div>
-                      <div className="wa-conv-info">
-                        <div className="wa-conv-header">
-                          <span className="wa-conv-name">{lead.nombre || 'Sin nombre'}</span>
-                          <span className="wa-conv-time">{formatDate(lead.updated_at)}</span>
-                        </div>
-                        <div className="wa-conv-preview">
-                          <span className="wa-conv-last-msg">{getLastMessage(lead)}</span>
-                          {unread > 0 && (
-                            <Badge bg="success" pill className="wa-unread-badge">{unread}</Badge>
-                          )}
-                        </div>
-                        <div className="wa-conv-meta">
-                          <Badge bg={getEstadoBadge(lead.estado_sofia)} className="wa-estado-badge">
-                            {getEstadoIcon(lead.estado_sofia)}{lead.estado_sofia || 'nuevo'}
-                          </Badge>
-                          {attendedInfo.label !== 'Sin atender' && (
-                            <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
-                              <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
-                              {attendedInfo.label}
-                            </span>
-                          )}
-                          {lead.origen === 'manychat' && (
-                            <Badge bg="light" text="dark" style={{ fontSize: '0.55rem', border: '1px solid #c4b5fd', color: '#7c3aed' }}>
-                              MC{lead.manychat_segment ? `: ${lead.manychat_segment}` : ''}
-                            </Badge>
-                          )}
-                          {lead.bloqueado && (
-                            <Badge bg="danger" className="wa-blocked-badge">
-                              <FaBan className="me-1" />Bloqueado
-                            </Badge>
-                          )}
-                          {lead.estado_sofia === 'cotizacion_lista' && (
-                            <span className="wa-pending-send-tag">
-                              <FaExclamationTriangle className="me-1" />Sin enviar
+                {(() => {
+                  const APPROVAL_ESTADOS = ['esperando_aprobacion', 'cotizacion_enviada', 'cotizacion_confirmada', 'cliente_acepto'];
+                  const elements = [];
+                  let shownNewHdr = false, shownApprovalHdr = false, shownRestHdr = false;
+
+                  filteredLeads.forEach((lead) => {
+                    const unread = getUnreadCount(lead);
+                    const isPriority = APPROVAL_ESTADOS.includes(lead.estado_sofia);
+
+                    if (unread > 0 && !shownNewHdr) {
+                      shownNewHdr = true;
+                      elements.push(<div key="__hdr_new" className="wa-section-header wa-section-new"><FaEnvelope /> Mensajes nuevos</div>);
+                    }
+                    if (unread === 0 && isPriority && !shownApprovalHdr) {
+                      shownApprovalHdr = true;
+                      elements.push(<div key="__hdr_approval" className="wa-section-header wa-section-approval"><FaClock /> Esperando aprobación / respuesta</div>);
+                    }
+                    if (unread === 0 && !isPriority && !shownRestHdr) {
+                      shownRestHdr = true;
+                      elements.push(<div key="__hdr_rest" className="wa-section-header wa-section-rest"><FaWhatsapp /> Otras conversaciones</div>);
+                    }
+
+                    const isSelected = selectedLead?.wa_id === lead.wa_id;
+                    const attendedInfo = getAttendedColor(lead);
+                    elements.push(
+                      <div
+                        key={lead.wa_id}
+                        className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
+                        style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
+                        onClick={() => handleSelectLead(lead)}
+                      >
+                        <div className="wa-conv-avatar">
+                          <FaUser />
+                          {lead.modo_humano && (
+                            <span className="wa-human-badge" title="Modo humano activo">
+                              <FaUserTie />
                             </span>
                           )}
                         </div>
+                        <div className="wa-conv-info">
+                          <div className="wa-conv-header">
+                            <span className="wa-conv-name">{lead.nombre || 'Sin nombre'}</span>
+                            <span className="wa-conv-time">{formatDate(lead.updated_at)}</span>
+                          </div>
+                          <div className="wa-conv-preview">
+                            <span className="wa-conv-last-msg">{getLastMessage(lead)}</span>
+                            {unread > 0 && (
+                              <Badge bg="success" pill className="wa-unread-badge">{unread}</Badge>
+                            )}
+                          </div>
+                          <div className="wa-conv-meta">
+                            <Badge bg={getEstadoBadge(lead.estado_sofia)} className="wa-estado-badge">
+                              {getEstadoIcon(lead.estado_sofia)}{lead.estado_sofia || 'nuevo'}
+                            </Badge>
+                            {attendedInfo.label !== 'Sin atender' && (
+                              <span className="wa-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
+                                <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
+                                {attendedInfo.label}
+                              </span>
+                            )}
+                            {lead.origen === 'manychat' && (
+                              <Badge bg="light" text="dark" style={{ fontSize: '0.55rem', border: '1px solid #c4b5fd', color: '#7c3aed' }}>
+                                MC{lead.manychat_segment ? `: ${lead.manychat_segment}` : ''}
+                              </Badge>
+                            )}
+                            {lead.bloqueado && (
+                              <Badge bg="danger" className="wa-blocked-badge">
+                                <FaBan className="me-1" />Bloqueado
+                              </Badge>
+                            )}
+                            {lead.estado_sofia === 'cotizacion_lista' && (
+                              <span className="wa-pending-send-tag">
+                                <FaExclamationTriangle className="me-1" />Sin enviar
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                  return elements;
+                })()}
                 {/* Load more button */}
                 {hasMore && (
                   <div style={{ textAlign: 'center', padding: '10px 0' }}>
