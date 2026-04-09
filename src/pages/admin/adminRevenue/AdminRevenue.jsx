@@ -293,6 +293,17 @@ const AdminRevenue = () => {
             </span>
           </div>
         </div>
+
+        <div className="rev-kpi">
+          <div className="rev-kpi-icon" style={{ background: '#E0E7FF', color: '#3730a3' }}>
+            <FaDollarSign />
+          </div>
+          <div className="rev-kpi-body">
+            <span className="rev-kpi-label">Total histórico</span>
+            <span className="rev-kpi-value positive">{fmt(income?.allTime?.total)}</span>
+            <span className="rev-kpi-sub">{income?.allTime?.count || 0} pagos totales</span>
+          </div>
+        </div>
       </div>
     );
   };
@@ -420,10 +431,11 @@ const AdminRevenue = () => {
                   <span className="rev-payment-client">{p.clientName || p.title || 'Venta sin nombre'}</span>
                   <span className="rev-payment-meta">
                     {p.vendedor && `${p.vendedor} · `}
-                    {new Date(p.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                    {new Date(p.paymentDate || p.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {p.currency && p.currency !== 'MXN' && ` · ${p.currency}`}
                   </span>
                 </div>
-                <span className="rev-method-badge">{METHOD_LABELS[p.method] || p.method}</span>
+                <span className="rev-method-badge">{METHOD_LABELS[p.method] || p.method || '—'}</span>
                 <span className="rev-payment-amount positive">{fmt(p.amount)}</span>
               </div>
             ))

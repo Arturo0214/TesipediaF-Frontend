@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllProjects, updateProjectStatus, updateProgress, addComment } from '../../../features/projects/projectSlice';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import projectService from '../../../services/projectService';
-import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus, FaUserPlus, FaUpload, FaTrash, FaDownload, FaCloudUploadAlt } from 'react-icons/fa';
+import { FaGoogle, FaSearch, FaChevronLeft, FaChevronRight, FaCalendar, FaClock, FaFlag, FaTimes, FaUser, FaFileAlt, FaSync, FaCheckCircle, FaExternalLinkAlt, FaPlus, FaUserPlus, FaUpload, FaTrash, FaDownload, FaCloudUploadAlt, FaHistory, FaComment, FaPaperPlane, FaEdit, FaEye, FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import './ManageProjects.css';
 
@@ -39,6 +39,20 @@ function ManageProjects() {
     const [uploadingFile, setUploadingFile] = useState(false);
     const [deletingDeliverable, setDeletingDeliverable] = useState(null);
     const fileInputRef = useRef(null);
+    const revisionFileRef = useRef(null);
+
+    // Status filter
+    const [statusFilter, setStatusFilter] = useState('active'); // 'all' | 'active' | specific status
+
+    // Revision upload
+    const [uploadingRevision, setUploadingRevision] = useState(false);
+    const [revisionForm, setRevisionForm] = useState({ label: '', type: 'revision', notes: '' });
+    const [showRevisionForm, setShowRevisionForm] = useState(false);
+    const [updatingRevStatus, setUpdatingRevStatus] = useState(null);
+    const [correctionNotes, setCorrectionNotes] = useState('');
+
+    // Detail panel tab
+    const [detailTab, setDetailTab] = useState('overview'); // overview | revisions | files | comments
 
     // Handler para subir archivo entregable
     const handleUploadDeliverable = async (e) => {
@@ -77,6 +91,60 @@ function ManageProjects() {
             setDeletingDeliverable(null);
         }
     };
+
+    // Upload revision
+    const handleUploadRevision = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedProject) return;
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('El archivo no puede superar 10 MB');
+            return;
+        }
+        setUploadingRevision(true);
+        try {
+            const updated = await projectService.uploadRevision(
+                selectedProject._id, file, revisionForm.label, revisionForm.type, revisionForm.notes
+            );
+            setSelectedProject(updated);
+            dispatch(getAllProjects());
+            toast.success(`Revisión v${updated.revisions?.length || '?'} subida`);
+            setShowRevisionForm(false);
+            setRevisionForm({ label: '', type: 'revision', notes: '' });
+        } catch (err) {
+            toast.error('Error al subir revisión: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setUploadingRevision(false);
+            if (revisionFileRef.current) revisionFileRef.current.value = '';
+        }
+    };
+
+    // Update revision status
+    const handleUpdateRevisionStatus = async (version, newStatus) => {
+        if (!selectedProject) return;
+        setUpdatingRevStatus(version);
+        try {
+            const updated = await projectService.updateRevisionStatus(
+                selectedProject._id, version, newStatus,
+                newStatus === 'corrections_requested' ? correctionNotes : ''
+            );
+            setSelectedProject(updated);
+            dispatch(getAllProjects());
+            toast.success(`Revisión v${version}: ${newStatus.replace(/_/g, ' ')}`);
+            setCorrectionNotes('');
+        } catch (err) {
+            toast.error('Error: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setUpdatingRevStatus(null);
+        }
+    };
+
+    // Refresh selected project detail
+    const refreshProject = useCallback(async (id) => {
+        try {
+            const data = await projectService.getProjectById(id);
+            setSelectedProject(data);
+        } catch (_) {}
+    }, []);
 
     const formatFileSize = (bytes) => {
         if (!bytes) return '';
@@ -231,11 +299,20 @@ function ManageProjects() {
     };
 
     const filteredProjects = projects.filter((project) => {
+        // Status filter
+        if (statusFilter === 'active') {
+            if (project.status === 'completed' || project.status === 'cancelled') return false;
+        } else if (statusFilter !== 'all') {
+            if (project.status !== statusFilter) return false;
+        }
+        // Search
         const term = searchTerm.toLowerCase();
+        if (!term) return true;
         return (
             project.taskTitle?.toLowerCase().includes(term) ||
             project.clientName?.toLowerCase().includes(term) ||
-            project.taskType?.toLowerCase().includes(term)
+            project.taskType?.toLowerCase().includes(term) ||
+            project.career?.toLowerCase().includes(term)
         );
     });
 
@@ -592,206 +669,271 @@ function ManageProjects() {
         </div>
     );
 
-    // Project Detail Modal
-    const renderModal = () => {
+    const REV_STATUS_LABELS = {
+        delivered: { label: 'Entregado', color: '#3b82f6', bg: '#dbeafe' },
+        pending_review: { label: 'En revisión', color: '#f59e0b', bg: '#fef3c7' },
+        corrections_requested: { label: 'Correcciones', color: '#ef4444', bg: '#fef2f2' },
+        approved: { label: 'Aprobado', color: '#10b981', bg: '#d1fae5' },
+    };
+
+    const REV_TYPE_LABELS = {
+        preliminary: 'Preliminar',
+        correction: 'Corrección',
+        revision: 'Revisión',
+        final: 'Final',
+    };
+
+    // Detail panel (replaces modal for selected project)
+    const renderDetailPanel = () => {
         if (!selectedProject || !showModal) return null;
+        const p = selectedProject;
+        const revisions = (p.revisions || []).slice().sort((a, b) => b.version - a.version);
 
         return (
-            <div className="mp-modal-overlay" onClick={() => setShowModal(false)}>
-                <div className="mp-modal" onClick={(e) => e.stopPropagation()}>
-                    <div className="mp-modal-header">
-                        <h2>{selectedProject.taskTitle}</h2>
-                        <button className="mp-close" onClick={() => setShowModal(false)}>
-                            <FaTimes />
-                        </button>
+            <div className="mp-detail-panel">
+                <div className="mp-detail-panel-header">
+                    <button className="mp-back-btn" onClick={() => setShowModal(false)}>
+                        <FaArrowLeft /> Volver
+                    </button>
+                    <div className="mp-detail-title-row">
+                        <h2>{p.taskTitle}</h2>
+                        <span className="mp-status-badge" style={{ backgroundColor: statusColumns[p.status]?.color }}>
+                            {statusColumns[p.status]?.label}
+                        </span>
                     </div>
+                    <div className="mp-detail-meta-row">
+                        <span><FaUser /> {p.clientName || 'Sin cliente'}</span>
+                        <span>{p.taskType}</span>
+                        <span>{p.career || ''}</span>
+                        <span><FaCalendar /> {formatDate(p.dueDate)} {isOverdue(p.dueDate) && <span style={{ color: '#ef4444' }}>(Vencido)</span>}</span>
+                        <span>{p.pages || '?'} págs</span>
+                    </div>
+                </div>
 
-                    <div className="mp-modal-body">
-                        <div className="mp-modal-section">
-                            <h3 className="mp-section-title">Detalles del Proyecto</h3>
-                            <div className="mp-detail-grid">
-                                <div className="mp-detail-item">
-                                    <label>Cliente</label>
-                                    <p>{selectedProject.clientName || '-'}</p>
+                {/* Tabs */}
+                <div className="mp-detail-tabs">
+                    {[
+                        { key: 'overview', label: 'Resumen', icon: <FaEye /> },
+                        { key: 'revisions', label: `Versiones (${revisions.length})`, icon: <FaHistory /> },
+                        { key: 'files', label: `Archivos (${(p.deliverables?.length || 0)})`, icon: <FaFileAlt /> },
+                        { key: 'comments', label: `Mensajes (${(p.comments?.length || 0)})`, icon: <FaComment /> },
+                    ].map(tab => (
+                        <button key={tab.key} className={`mp-detail-tab ${detailTab === tab.key ? 'active' : ''}`}
+                            onClick={() => setDetailTab(tab.key)}>
+                            {tab.icon} {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="mp-detail-body">
+                    {/* === OVERVIEW TAB === */}
+                    {detailTab === 'overview' && (
+                        <div className="mp-overview">
+                            <div className="mp-overview-grid">
+                                <div className="mp-overview-card">
+                                    <label>Estado</label>
+                                    <select className="mp-select" value={p.status}
+                                        onChange={async (e) => {
+                                            await dispatch(updateProjectStatus({ projectId: p._id, status: e.target.value }));
+                                            refreshProject(p._id);
+                                        }}>
+                                        {Object.entries(statusColumns).map(([k, v]) => (
+                                            <option key={k} value={k}>{v.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <div className="mp-detail-item">
-                                    <label>Tipo</label>
-                                    <p>{selectedProject.taskType || '-'}</p>
+                                <div className="mp-overview-card">
+                                    <label>Prioridad</label>
+                                    <span className="mp-priority-badge" style={{ backgroundColor: getPriorityColor(p.priority) }}>
+                                        {getPriorityLabel(p.priority)}
+                                    </span>
                                 </div>
-                                <div className="mp-detail-item">
-                                    <label>Carrera</label>
-                                    <p>{selectedProject.career || '-'}</p>
+                                <div className="mp-overview-card">
+                                    <label>Progreso: {p.progress || 0}%</label>
+                                    <input type="range" min="0" max="100" value={p.progress || 0}
+                                        className="mp-slider"
+                                        onChange={(e) => {
+                                            dispatch(updateProgress({ projectId: p._id, progress: parseInt(e.target.value) }));
+                                            setSelectedProject(prev => ({ ...prev, progress: parseInt(e.target.value) }));
+                                        }} />
+                                    <div className="mp-progress-bar"><div className="mp-progress-fill" style={{ width: `${p.progress || 0}%` }} /></div>
                                 </div>
-                                <div className="mp-detail-item">
-                                    <label>Área de Estudio</label>
-                                    <p>{selectedProject.studyArea || '-'}</p>
+                                <div className="mp-overview-card">
+                                    <label>Nivel</label>
+                                    <p>{p.educationLevel || '-'}</p>
                                 </div>
                             </div>
 
-                            {/* Sección Crear Usuario Cliente */}
-                            <div className="mp-client-user-section">
-                                {selectedProject.client ? (
+                            {p.requirements?.text && (
+                                <div className="mp-requirements-block">
+                                    <h4>Requisitos / Descripción</h4>
+                                    <p>{p.requirements.text}</p>
+                                </div>
+                            )}
+
+                            {/* Client section */}
+                            <div className="mp-client-section-detail">
+                                <h4>Cliente</h4>
+                                {p.client ? (
                                     <div className="mp-client-exists">
                                         <FaCheckCircle style={{ color: '#22c55e' }} />
-                                        <span>Usuario cliente vinculado: <strong>{selectedProject.client.email || selectedProject.clientEmail}</strong></span>
+                                        <span>Vinculado: <strong>{p.client.email || p.clientEmail}</strong></span>
                                     </div>
-                                ) : (selectedProject.clientEmail || selectedProject.clientPhone) ? (
-                                    <button
-                                        className="mp-btn mp-btn-create-client"
-                                        onClick={(e) => handleCreateClient(e, selectedProject)}
-                                        disabled={creatingClient === selectedProject._id}
-                                    >
-                                        <FaUserPlus />
-                                        {creatingClient === selectedProject._id
-                                            ? 'Creando usuario...'
-                                            : 'Crear Usuario y Contraseña'}
+                                ) : (
+                                    <button className="mp-btn mp-btn-create-client"
+                                        onClick={(e) => handleCreateClient(e, p)}
+                                        disabled={creatingClient === p._id}>
+                                        <FaUserPlus /> {creatingClient === p._id ? 'Creando...' : 'Crear Usuario'}
                                     </button>
-                                ) : !showManualClientForm ? (
-                                    <button
-                                        className="mp-btn mp-btn-create-client"
-                                        onClick={() => setShowManualClientForm(true)}
-                                    >
-                                        <FaUserPlus /> Crear Usuario Manualmente
+                                )}
+                                {p.clientPhone && <p style={{ fontSize: '0.8rem', color: '#6b7280' }}>Tel: {p.clientPhone}</p>}
+                                {p.clientEmail && <p style={{ fontSize: '0.8rem', color: '#6b7280' }}>Email: {p.clientEmail}</p>}
+                            </div>
+
+                            {/* Google Calendar */}
+                            <div className="mp-gcal-section-detail">
+                                <h4>Google Calendar</h4>
+                                {p.googleCalendarEventId ? (
+                                    <span><FaCheckCircle style={{ color: '#22c55e' }} /> Sincronizado</span>
+                                ) : (
+                                    <button className="mp-btn mp-btn-secondary mp-btn-sm"
+                                        onClick={() => handleSyncProject(p._id)}
+                                        disabled={syncingProject === p._id}>
+                                        <FaGoogle /> {syncingProject === p._id ? 'Sincronizando...' : 'Sincronizar'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* === REVISIONS TAB === */}
+                    {detailTab === 'revisions' && (
+                        <div className="mp-revisions-tab">
+                            {/* Upload new revision */}
+                            <div className="mp-revision-upload-area">
+                                {!showRevisionForm ? (
+                                    <button className="mp-btn mp-btn-primary" onClick={() => setShowRevisionForm(true)}>
+                                        <FaPlus /> Subir nueva versión
                                     </button>
                                 ) : (
-                                    <div className="mp-manual-client-form">
-                                        <h4 className="mp-form-title">Crear cuenta de cliente</h4>
-                                        <div className="mp-form-row">
-                                            <div className="mp-form-field">
-                                                <label>Email del cliente *</label>
-                                                <input
-                                                    type="email"
-                                                    className="mp-input"
-                                                    placeholder="cliente@email.com"
-                                                    value={manualClientData.email}
-                                                    onChange={(e) => setManualClientData(prev => ({ ...prev, email: e.target.value }))}
-                                                />
+                                    <div className="mp-revision-form">
+                                        <div className="mp-revision-form-row">
+                                            <div className="mp-revision-form-field">
+                                                <label>Etiqueta</label>
+                                                <input type="text" placeholder="Ej: Capítulo 1 completo" value={revisionForm.label}
+                                                    onChange={(e) => setRevisionForm(f => ({ ...f, label: e.target.value }))} />
                                             </div>
-                                            <div className="mp-form-field">
-                                                <label>Contraseña (opcional)</label>
-                                                <input
-                                                    type="text"
-                                                    className="mp-input"
-                                                    placeholder="Se genera automática si vacío"
-                                                    value={manualClientData.password}
-                                                    onChange={(e) => setManualClientData(prev => ({ ...prev, password: e.target.value }))}
-                                                />
+                                            <div className="mp-revision-form-field">
+                                                <label>Tipo</label>
+                                                <select value={revisionForm.type}
+                                                    onChange={(e) => setRevisionForm(f => ({ ...f, type: e.target.value }))}>
+                                                    <option value="preliminary">Preliminar</option>
+                                                    <option value="revision">Revisión</option>
+                                                    <option value="correction">Corrección</option>
+                                                    <option value="final">Final</option>
+                                                </select>
                                             </div>
                                         </div>
-                                        <div className="mp-form-actions">
-                                            <button
-                                                className="mp-btn mp-btn-primary"
-                                                onClick={(e) => handleCreateClient(e, selectedProject, manualClientData)}
-                                                disabled={!manualClientData.email.trim() || creatingClient === selectedProject._id}
-                                            >
-                                                <FaUserPlus />
-                                                {creatingClient === selectedProject._id ? 'Creando...' : 'Crear Usuario'}
+                                        <div className="mp-revision-form-field">
+                                            <label>Notas (opcional)</label>
+                                            <textarea rows="2" placeholder="Notas sobre esta versión..." value={revisionForm.notes}
+                                                onChange={(e) => setRevisionForm(f => ({ ...f, notes: e.target.value }))} />
+                                        </div>
+                                        <div className="mp-revision-form-actions">
+                                            <input type="file" ref={revisionFileRef} onChange={handleUploadRevision} style={{ display: 'none' }}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt,.zip,.rar" />
+                                            <button className="mp-btn mp-btn-primary"
+                                                onClick={() => revisionFileRef.current?.click()} disabled={uploadingRevision}>
+                                                {uploadingRevision ? <><FaSync className="spinning" /> Subiendo...</> : <><FaCloudUploadAlt /> Seleccionar archivo y subir</>}
                                             </button>
-                                            <button
-                                                className="mp-btn mp-btn-ghost"
-                                                onClick={() => { setShowManualClientForm(false); setManualClientData({ email: '', password: '' }); }}
-                                            >
-                                                Cancelar
-                                            </button>
+                                            <button className="mp-btn mp-btn-ghost" onClick={() => setShowRevisionForm(false)}>Cancelar</button>
                                         </div>
                                     </div>
                                 )}
                             </div>
+
+                            {/* Revision timeline */}
+                            {revisions.length === 0 ? (
+                                <div className="mp-empty-revisions">
+                                    <FaHistory style={{ fontSize: '2rem', color: '#d1d5db' }} />
+                                    <p>No hay versiones todavía</p>
+                                </div>
+                            ) : (
+                                <div className="mp-revision-timeline">
+                                    {revisions.map((rev) => {
+                                        const statusInfo = REV_STATUS_LABELS[rev.status] || REV_STATUS_LABELS.delivered;
+                                        return (
+                                            <div key={rev._id || rev.version} className="mp-revision-card">
+                                                <div className="mp-revision-card-header">
+                                                    <div className="mp-revision-version">v{rev.version}</div>
+                                                    <div className="mp-revision-info">
+                                                        <span className="mp-revision-label">{rev.label || `Versión ${rev.version}`}</span>
+                                                        <span className="mp-revision-type-badge">{REV_TYPE_LABELS[rev.type] || rev.type}</span>
+                                                        <span className="mp-revision-status-badge" style={{ color: statusInfo.color, background: statusInfo.bg }}>
+                                                            {statusInfo.label}
+                                                        </span>
+                                                    </div>
+                                                    <div className="mp-revision-date">
+                                                        {rev.createdAt && new Date(rev.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </div>
+                                                </div>
+
+                                                {rev.notes && <p className="mp-revision-notes">{rev.notes}</p>}
+
+                                                {rev.correctionNotes && (
+                                                    <div className="mp-revision-correction-notes">
+                                                        <strong>Correcciones solicitadas:</strong> {rev.correctionNotes}
+                                                    </div>
+                                                )}
+
+                                                <div className="mp-revision-card-actions">
+                                                    {rev.file && (
+                                                        <a href={rev.file.path} target="_blank" rel="noopener noreferrer"
+                                                            className="mp-btn mp-btn-sm mp-btn-secondary">
+                                                            <FaDownload /> {rev.file.originalname} ({formatFileSize(rev.file.size)})
+                                                        </a>
+                                                    )}
+
+                                                    {/* Status actions */}
+                                                    <div className="mp-revision-status-actions">
+                                                        {rev.status !== 'approved' && (
+                                                            <button className="mp-btn mp-btn-sm" style={{ background: '#d1fae5', color: '#065f46' }}
+                                                                onClick={() => handleUpdateRevisionStatus(rev.version, 'approved')}
+                                                                disabled={updatingRevStatus === rev.version}>
+                                                                <FaCheckCircle /> Aprobar
+                                                            </button>
+                                                        )}
+                                                        {rev.status !== 'corrections_requested' && rev.status !== 'approved' && (
+                                                            <>
+                                                                <input type="text" placeholder="Notas de corrección..."
+                                                                    className="mp-correction-input"
+                                                                    value={updatingRevStatus === rev.version ? correctionNotes : ''}
+                                                                    onChange={(e) => { setUpdatingRevStatus(rev.version); setCorrectionNotes(e.target.value); }}
+                                                                    onFocus={() => setUpdatingRevStatus(rev.version)} />
+                                                                <button className="mp-btn mp-btn-sm" style={{ background: '#fef2f2', color: '#991b1b' }}
+                                                                    onClick={() => handleUpdateRevisionStatus(rev.version, 'corrections_requested')}
+                                                                    disabled={updatingRevStatus !== rev.version}>
+                                                                    Pedir correcciones
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
+                    )}
 
-                        <div className="mp-modal-section">
-                            <h3 className="mp-section-title">Estado y Progreso</h3>
-                            <div className="mp-detail-grid">
-                                <div className="mp-detail-item">
-                                    <label>Estado Actual</label>
-                                    <select
-                                        className="mp-select"
-                                        value={selectedProject.status}
-                                        onChange={(e) => {
-                                            dispatch(updateProjectStatus({
-                                                projectId: selectedProject._id,
-                                                status: e.target.value
-                                            }));
-                                        }}
-                                    >
-                                        {Object.entries(statusColumns).map(([key, val]) => (
-                                            <option key={key} value={key}>
-                                                {val.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mp-detail-item">
-                                    <label>Prioridad</label>
-                                    <select className="mp-select" defaultValue={selectedProject.priority}>
-                                        <option value="low">Bajo</option>
-                                        <option value="medium">Medio</option>
-                                        <option value="high">Alto</option>
-                                        <option value="urgent">Urgente</option>
-                                    </select>
-                                </div>
-                                <div className="mp-detail-item">
-                                    <label>Progreso: {selectedProject.progress || 0}%</label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="100"
-                                        defaultValue={selectedProject.progress || 0}
-                                        className="mp-slider"
-                                        onChange={(e) => {
-                                            dispatch(updateProgress({
-                                                projectId: selectedProject._id,
-                                                progress: parseInt(e.target.value)
-                                            }));
-                                        }}
-                                    />
-                                </div>
-                                <div className="mp-detail-item">
-                                    <label>Fecha de Entrega</label>
-                                    <p>{formatDate(selectedProject.dueDate)} {isOverdue(selectedProject.dueDate) && '(Vencido)'}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mp-modal-section">
-                            <h3 className="mp-section-title">Comentarios</h3>
-                            <div className="mp-comments">
-                                {selectedProject.comments && selectedProject.comments.map((comment, idx) => (
-                                    <div key={idx} className="mp-comment">
-                                        <p className="mp-comment-text">{comment.text}</p>
-                                        <small className="mp-comment-date">
-                                            {new Date(comment.createdAt).toLocaleDateString('es-ES')}
-                                        </small>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mp-comment-input">
-                                <textarea
-                                    placeholder="Añade un comentario..."
-                                    value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                ></textarea>
-                                <button
-                                    className="mp-btn mp-btn-primary"
-                                    onClick={handleAddComment}
-                                    disabled={!commentText.trim()}
-                                >
-                                    Comentar
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="mp-modal-section">
-                            <h3 className="mp-section-title">
-                                <FaFileAlt style={{ marginRight: 6 }} />
-                                Archivos del Proyecto
-                            </h3>
-
-                            {/* Lista de archivos entregados */}
-                            {selectedProject.deliverables && selectedProject.deliverables.length > 0 ? (
+                    {/* === FILES TAB === */}
+                    {detailTab === 'files' && (
+                        <div className="mp-files-tab">
+                            <h4>Archivos entregables</h4>
+                            {p.deliverables && p.deliverables.length > 0 ? (
                                 <div className="mp-deliverables-list">
-                                    {selectedProject.deliverables.map((del) => (
+                                    {p.deliverables.map((del) => (
                                         <div key={del._id} className="mp-deliverable-item">
                                             <div className="mp-deliverable-info">
                                                 <FaFileAlt className="mp-deliverable-icon" />
@@ -803,129 +945,68 @@ function ManageProjects() {
                                                 </div>
                                             </div>
                                             <div className="mp-deliverable-actions">
-                                                <a
-                                                    href={del.path}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="mp-btn mp-btn-sm mp-btn-secondary"
-                                                    title="Descargar"
-                                                >
-                                                    <FaDownload />
-                                                </a>
-                                                <button
-                                                    className="mp-btn mp-btn-sm mp-btn-danger"
+                                                <a href={del.path} target="_blank" rel="noopener noreferrer" className="mp-btn mp-btn-sm mp-btn-secondary"><FaDownload /></a>
+                                                <button className="mp-btn mp-btn-sm mp-btn-danger"
                                                     onClick={() => handleRemoveDeliverable(del._id, del.originalname)}
-                                                    disabled={deletingDeliverable === del._id}
-                                                    title="Eliminar"
-                                                >
+                                                    disabled={deletingDeliverable === del._id}>
                                                     {deletingDeliverable === del._id ? '...' : <FaTrash />}
                                                 </button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <p className="mp-no-deliverables">No hay archivos cargados todavia.</p>
-                            )}
+                            ) : <p className="mp-no-deliverables">No hay archivos cargados.</p>}
 
-                            {/* Revisions files */}
-                            {selectedProject.revisions && selectedProject.revisions.length > 0 && (
-                                <div className="mp-revisions-files">
-                                    <h4 className="mp-subsection-title">Revisiones</h4>
-                                    {selectedProject.revisions.filter(r => r.file).map((rev) => (
-                                        <div key={rev._id || rev.version} className="mp-deliverable-item">
-                                            <div className="mp-deliverable-info">
-                                                <FaFileAlt className="mp-deliverable-icon" style={{ color: '#8b5cf6' }} />
-                                                <div>
-                                                    <span className="mp-deliverable-name">{rev.label || `v${rev.version}`} — {rev.file.originalname}</span>
-                                                    <span className="mp-deliverable-meta">
-                                                        {formatFileSize(rev.file.size)} &middot; {rev.type} &middot;
-                                                        <span className={`mp-rev-status mp-rev-${rev.status}`}> {rev.status}</span>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <a
-                                                href={rev.file.path}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="mp-btn mp-btn-sm mp-btn-secondary"
-                                                title="Descargar"
-                                            >
-                                                <FaDownload />
-                                            </a>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Upload button */}
                             <div className="mp-upload-section">
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleUploadDeliverable}
-                                    style={{ display: 'none' }}
-                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt,.zip,.rar"
-                                />
-                                <button
-                                    className="mp-btn mp-btn-primary mp-btn-upload"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploadingFile}
-                                >
-                                    {uploadingFile ? (
-                                        <><FaSync className="spinning" /> Subiendo...</>
-                                    ) : (
-                                        <><FaCloudUploadAlt /> Subir Archivo</>
-                                    )}
+                                <input type="file" ref={fileInputRef} onChange={handleUploadDeliverable} style={{ display: 'none' }}
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt,.zip,.rar" />
+                                <button className="mp-btn mp-btn-primary mp-btn-upload"
+                                    onClick={() => fileInputRef.current?.click()} disabled={uploadingFile}>
+                                    {uploadingFile ? <><FaSync className="spinning" /> Subiendo...</> : <><FaCloudUploadAlt /> Subir Archivo</>}
                                 </button>
                                 <span className="mp-upload-hint">PDF, Word, Excel, imagen o ZIP (max 10 MB)</span>
                             </div>
-                        </div>
 
-                        <div className="mp-modal-section">
-                            <h3 className="mp-section-title">Google Calendar</h3>
-                            {googleConnected ? (
-                                <div className="mp-gcal-sync-section">
-                                    {selectedProject.googleCalendarEventId ? (
-                                        <div className="mp-gcal-synced">
-                                            <FaCheckCircle className="mp-gcal-synced-icon" />
-                                            <span>Sincronizado con Google Calendar</span>
-                                            <button
-                                                className="mp-btn mp-btn-secondary mp-btn-sm"
-                                                onClick={() => handleSyncProject(selectedProject._id)}
-                                                disabled={syncingProject === selectedProject._id}
-                                            >
-                                                <FaSync className={syncingProject === selectedProject._id ? 'spinning' : ''} />
-                                                {syncingProject === selectedProject._id ? 'Actualizando...' : 'Actualizar evento'}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            className="mp-btn mp-btn-secondary"
-                                            onClick={() => handleSyncProject(selectedProject._id)}
-                                            disabled={syncingProject === selectedProject._id}
-                                        >
-                                            <FaGoogle />
-                                            {syncingProject === selectedProject._id ? 'Sincronizando...' : 'Sincronizar con Google Calendar'}
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="mp-gcal-not-connected">
-                                    <p>Google Calendar no conectado</p>
-                                    <button className="mp-btn mp-btn-secondary mp-btn-sm" onClick={handleConnectGoogle}>
-                                        <FaGoogle /> Conectar ahora
-                                    </button>
+                            {/* Requirements file */}
+                            {p.requirements?.file && (
+                                <div style={{ marginTop: 16 }}>
+                                    <h4>Archivo de requisitos</h4>
+                                    <a href={p.requirements.file.path} target="_blank" rel="noopener noreferrer" className="mp-btn mp-btn-secondary">
+                                        <FaDownload /> {p.requirements.file.originalname}
+                                    </a>
                                 </div>
                             )}
                         </div>
-                    </div>
+                    )}
 
-                    <div className="mp-modal-footer">
-                        <button className="mp-btn mp-btn-ghost" onClick={() => setShowModal(false)}>
-                            Cerrar
-                        </button>
-                    </div>
+                    {/* === COMMENTS TAB === */}
+                    {detailTab === 'comments' && (
+                        <div className="mp-comments-tab">
+                            <div className="mp-comments-list">
+                                {(!p.comments || p.comments.length === 0) ? (
+                                    <p className="mp-no-deliverables">Sin comentarios</p>
+                                ) : p.comments.map((comment, idx) => (
+                                    <div key={idx} className="mp-comment">
+                                        <div className="mp-comment-header">
+                                            <FaUser style={{ fontSize: '0.7rem' }} />
+                                            <span className="mp-comment-author">{comment.user?.name || 'Admin'}</span>
+                                            <small className="mp-comment-date">
+                                                {new Date(comment.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                            </small>
+                                        </div>
+                                        <p className="mp-comment-text">{comment.text}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mp-comment-input">
+                                <textarea placeholder="Escribe un comentario..." value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)} />
+                                <button className="mp-btn mp-btn-primary" onClick={handleAddComment} disabled={!commentText.trim()}>
+                                    <FaPaperPlane /> Enviar
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1020,11 +1101,31 @@ function ManageProjects() {
                 </div>
             )}
 
-            {view === 'kanban' && renderKanbanView()}
-            {view === 'calendar' && renderCalendarView()}
-            {view === 'list' && renderListView()}
+            {/* Status filter row */}
+            <div className="mp-status-filters">
+                {[
+                    { key: 'active', label: 'Activos' },
+                    { key: 'all', label: 'Todos' },
+                    ...Object.entries(statusColumns).map(([k, v]) => ({ key: k, label: v.label, color: v.color })),
+                ].map(f => (
+                    <button key={f.key}
+                        className={`mp-status-filter-btn ${statusFilter === f.key ? 'active' : ''}`}
+                        style={statusFilter === f.key && f.color ? { borderColor: f.color, color: f.color } : {}}
+                        onClick={() => setStatusFilter(f.key)}>
+                        {f.label} {f.key !== 'all' && f.key !== 'active' ? `(${projects.filter(p => p.status === f.key).length})` : f.key === 'active' ? `(${projects.filter(p => p.status !== 'completed' && p.status !== 'cancelled').length})` : `(${projects.length})`}
+                    </button>
+                ))}
+            </div>
 
-            {renderModal()}
+            {showModal && selectedProject ? (
+                renderDetailPanel()
+            ) : (
+                <>
+                    {view === 'kanban' && renderKanbanView()}
+                    {view === 'calendar' && renderCalendarView()}
+                    {view === 'list' && renderListView()}
+                </>
+            )}
 
             {/* Add Project Modal */}
             {showAddProject && (

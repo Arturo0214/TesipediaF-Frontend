@@ -26,6 +26,7 @@ import {
     FaChartPie,
     FaClipboardCheck,
     FaFacebookF,
+    FaFunnelDollar,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -59,6 +60,7 @@ const SalesQuote = lazy(() => import('../../SalesQuote/SalesQuote.jsx'));
 const AdminRevenue = lazy(() => import('../adminRevenue/AdminRevenue.jsx'));
 const AdminInformes = lazy(() => import('../adminInformes/AdminInformes.jsx'));
 const AdminCampaigns = lazy(() => import('../adminCampaigns/AdminCampaigns.jsx'));
+const AdminFunnel = lazy(() => import('../adminFunnel/AdminFunnel.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -132,6 +134,7 @@ const AdminPanel = () => {
         if (path.includes('/revenue')) return 'revenue';
         if (path.includes('/informes')) return 'informes';
         if (path.includes('/campaigns')) return 'campaigns';
+        if (path.includes('/funnel')) return 'funnel';
         return 'dashboard';
     };
 
@@ -149,6 +152,7 @@ const AdminPanel = () => {
         { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones' },
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
+        { key: 'funnel', icon: FaFunnelDollar, label: 'Funnel', section: 'gestion', path: '/admin/funnel' },
         { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue' },
         { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes' },
         { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns' },
@@ -287,6 +291,7 @@ const AdminPanel = () => {
         whatsapp: AdminWhatsApp,
         manychat: AdminManyChat,
         automatizaciones: AdminAutomations,
+        funnel: AdminFunnel,
         revenue: AdminRevenue,
         informes: AdminInformes,
         campaigns: AdminCampaigns,

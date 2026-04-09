@@ -189,6 +189,11 @@ const AdminWhatsApp = () => {
   const hasMoreRef = useRef(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingMoreRef = useRef(false);
+  const PAGE_SIZE = 100;
+  // "Leídos" — wa_ids que el admin ha marcado como leídos en esta sesión
+  const [readLeads, setReadLeads] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('wa_read_leads') || '[]')); } catch { return new Set(); }
+  });
   const [selectedLead, setSelectedLead] = useState(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -343,95 +348,61 @@ const AdminWhatsApp = () => {
   const origenRef = useRef(origenFilter);
   useEffect(() => { origenRef.current = origenFilter; }, [origenFilter]);
 
+  // Refs para filtros server-side (evitar stale closures en polling)
+  const estadoFilterRef = useRef(estadoFilter);
+  const attendedFilterRef = useRef(attendedFilter);
+  const dateFilterRef = useRef(dateFilter);
+  const searchQueryRef = useRef(searchQuery);
+  useEffect(() => { estadoFilterRef.current = estadoFilter; }, [estadoFilter]);
+  useEffect(() => { attendedFilterRef.current = attendedFilter; }, [attendedFilter]);
+  useEffect(() => { dateFilterRef.current = dateFilter; }, [dateFilter]);
+  useEffect(() => { searchQueryRef.current = searchQuery; }, [searchQuery]);
+
+  const buildFilters = useCallback(() => ({
+    estado: estadoFilterRef.current,
+    atendido: attendedFilterRef.current,
+    fecha: dateFilterRef.current,
+    search: searchQueryRef.current,
+  }), []);
+
   const fetchLeads = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
 
+      const filters = buildFilters();
       let allData;
       let totalCount;
       let moreAvailable;
 
       if (silent) {
-        // Polling silencioso: traer los 200 leads más recientes (max del backend)
-        // y MERGEAR con los existentes para no perder leads ya cargados
-        const result = await getLeads(origenRef.current, 200, 0);
-        const freshLeads = Array.isArray(result) ? result : (result.leads || []);
-        totalCount = result.total || freshLeads.length;
+        // Polling silencioso: traer solo la primera página para detectar nuevos mensajes
+        // No traer todo lo que está cargado para evitar egress excesivo
+        const result = await getLeads(origenRef.current, PAGE_SIZE, 0, filters);
+        const freshData = Array.isArray(result) ? result : (result.leads || []);
+        totalCount = result.total || freshData.length;
         moreAvailable = result.hasMore || false;
-        checkNewMessages(freshLeads);
+        checkNewMessages(freshData);
 
-        // Merge: actualizar leads existentes con datos frescos, conservar el resto
-        const freshMap = new Map(freshLeads.map(l => [l.wa_id, l]));
-        setLeads(prev => {
-          const updated = prev.map(l => freshMap.get(l.wa_id) || l);
-          // Agregar leads completamente nuevos (no existían antes)
-          freshLeads.forEach(l => {
-            if (!updated.some(existing => existing.wa_id === l.wa_id)) {
-              updated.push(l);
-            }
-          });
-          return updated;
-        });
-        setTotalLeads(totalCount);
-        hasMoreRef.current = moreAvailable;
-        setHasMore(moreAvailable);
-
-        // Actualizar el lead seleccionado
-        const currentSelected = selectedLeadRef.current;
-        if (currentSelected) {
-          const updatedLead = freshMap.get(currentSelected.wa_id);
-          if (updatedLead) {
-            const metaChanged = updatedLead.estado_sofia !== currentSelected.estado_sofia
-              || updatedLead.modo_humano !== currentSelected.modo_humano
-              || updatedLead.precio !== currentSelected.precio
-              || updatedLead.nombre !== currentSelected.nombre
-              || updatedLead.atendido_por !== currentSelected.atendido_por;
-            const hasNewMessages = updatedLead.updated_at !== currentSelected.updated_at
-              || (updatedLead.ultimo_mensaje_preview && updatedLead.ultimo_mensaje_preview !== currentSelected.ultimo_mensaje_preview);
-
-            if (hasNewMessages) {
-              try {
-                const fresh = await getLeadByWaId(currentSelected.wa_id);
-                if (fresh) setSelectedLead(fresh);
-              } catch (e) {
-                console.warn('Error refrescando historial completo:', e);
-              }
-            } else if (metaChanged) {
-              setSelectedLead(prev => ({
-                ...prev,
-                ...updatedLead,
-                historial_chat: prev.historial_chat,
-              }));
+        // Merge: actualizar los leads que ya tenemos con datos frescos, sin perder los extras del "cargar más"
+        const freshMap = new Map(freshData.map(l => [l.wa_id, l]));
+        const currentLeads = leadsRef.current;
+        if (leadsLengthRef.current > PAGE_SIZE) {
+          allData = currentLeads.map(l => freshMap.get(l.wa_id) || l);
+          // Agregar leads nuevos que no existían antes
+          for (const fl of freshData) {
+            if (!allData.find(l => l.wa_id === fl.wa_id)) {
+              allData.unshift(fl);
             }
           }
+        } else {
+          allData = freshData;
         }
-        setError(null);
-        return; // Skip shared logic below (ya se manejó todo arriba)
       } else {
-        // Carga inicial: traer TODAS las páginas automáticamente
-        const limit = 100;
-        let offset = 0;
-        allData = [];
-        moreAvailable = false;
-        totalCount = 0;
-
-        let keepLoading = true;
-        while (keepLoading) {
-          const result = await getLeads(origenRef.current, limit, offset);
-          const page = Array.isArray(result) ? result : (result.leads || []);
-          allData = [...allData, ...page];
-          totalCount = result.total || allData.length;
-
-          // Mostrar primera página de inmediato para UX más rápida
-          if (offset === 0 && page.length > 0) {
-            setLeads([...page]);
-            setTotalLeads(totalCount);
-          }
-
-          const more = result.hasMore || false;
-          offset += page.length;
-          if (!more || page.length === 0) keepLoading = false;
-        }
+        // Carga inicial: solo traer la primera página (100 leads)
+        const result = await getLeads(origenRef.current, PAGE_SIZE, 0, filters);
+        allData = Array.isArray(result) ? result : (result.leads || []);
+        totalCount = result.total || allData.length;
+        moreAvailable = result.hasMore || false;
 
         // Inicializar mapa sin notificar (primera carga)
         const map = new Map();
@@ -444,23 +415,27 @@ const AdminWhatsApp = () => {
       hasMoreRef.current = moreAvailable;
       setHasMore(moreAvailable);
 
-      // Actualizar el lead seleccionado usando el REF (no el state, que puede estar stale)
+      // Actualizar el lead seleccionado usando el REF
       const currentSelected = selectedLeadRef.current;
       if (currentSelected) {
         const updated = allData.find(l => l.wa_id === currentSelected.wa_id);
         if (updated) {
-          // getLeads trae historial parcial (optimización egress) → preservar historial del lead seleccionado.
           const metaChanged = updated.estado_sofia !== currentSelected.estado_sofia
             || updated.modo_humano !== currentSelected.modo_humano
             || updated.precio !== currentSelected.precio
             || updated.nombre !== currentSelected.nombre
             || updated.atendido_por !== currentSelected.atendido_por;
-          // Comparar updated_at Y ultimo_mensaje_preview para detectar nuevos mensajes
           const hasNewMessages = updated.updated_at !== currentSelected.updated_at
             || (updated.ultimo_mensaje_preview && updated.ultimo_mensaje_preview !== currentSelected.ultimo_mensaje_preview);
 
           if (hasNewMessages) {
-            // Hay mensajes nuevos → traer historial completo de getLeadByWaId
+            // Invalidar read status — hay mensajes nuevos
+            setReadLeads(prev => {
+              const next = new Set(prev);
+              next.delete(currentSelected.wa_id);
+              localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+              return next;
+            });
             try {
               const fresh = await getLeadByWaId(currentSelected.wa_id);
               if (fresh) setSelectedLead(fresh);
@@ -468,7 +443,6 @@ const AdminWhatsApp = () => {
               console.warn('Error refrescando historial completo:', e);
             }
           } else if (metaChanged) {
-            // Solo metadata cambió → preservar historial completo
             setSelectedLead(prev => ({
               ...prev,
               ...updated,
@@ -484,10 +458,50 @@ const AdminWhatsApp = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []); // sin dependencias — usa refs en vez de state
+  }, [buildFilters]);
 
-  // Mantener ref sincronizado con leads.length
-  useEffect(() => { leadsLengthRef.current = leads.length; }, [leads.length]);
+  // Mantener refs sincronizados con leads
+  const leadsRef = useRef(leads);
+  useEffect(() => { leadsLengthRef.current = leads.length; leadsRef.current = leads; }, [leads]);
+
+  // Helper: refrescar sidebar después de acciones (enviar, bloquear, etc.)
+  const refreshSidebar = useCallback(async () => {
+    try {
+      const limit = Math.max(PAGE_SIZE, leadsLengthRef.current);
+      const filters = buildFilters();
+      const r = await getLeads(origenRef.current, limit, 0, filters);
+      setLeads(Array.isArray(r) ? r : (r.leads || []));
+      setTotalLeads(r.total || 0);
+      hasMoreRef.current = r.hasMore || false;
+      setHasMore(hasMoreRef.current);
+    } catch (_) {}
+  }, [buildFilters]);
+
+  // Marcar lead como leído
+  const markAsRead = useCallback((waId) => {
+    setReadLeads(prev => {
+      const next = new Set(prev);
+      next.add(waId);
+      localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+
+  // Marcar como no leído
+  const markAsUnread = useCallback((waId) => {
+    setReadLeads(prev => {
+      const next = new Set(prev);
+      next.delete(waId);
+      localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+
+  // Auto-marcar como leído al seleccionar un lead
+  const handleSelectLeadWithRead = useCallback((lead) => {
+    handleSelectLead(lead);
+    markAsRead(lead.wa_id);
+  }, [markAsRead]);
 
   // Cargar más leads (infinite scroll)
   const loadMoreLeads = useCallback(async () => {
@@ -495,7 +509,8 @@ const AdminWhatsApp = () => {
     try {
       loadingMoreRef.current = true;
       setLoadingMore(true);
-      const result = await getLeads(origenRef.current, 100, leadsLengthRef.current);
+      const filters = buildFilters();
+      const result = await getLeads(origenRef.current, PAGE_SIZE, leadsLengthRef.current, filters);
       const moreData = Array.isArray(result) ? result : (result.leads || []);
       if (moreData.length > 0) {
         setLeads(prev => [...prev, ...moreData]);
@@ -578,10 +593,20 @@ const AdminWhatsApp = () => {
     return () => clearInterval(pollRef.current);
   }, [fetchLeads]);
 
-  // Re-cargar leads cuando cambie el filtro de origen
+  // Re-cargar leads cuando cambie cualquier filtro
   useEffect(() => {
     fetchLeads();
-  }, [origenFilter]);
+  }, [origenFilter, estadoFilter, attendedFilter, dateFilter]);
+
+  // Debounce para búsqueda por texto (evitar spam al backend)
+  const searchTimerRef = useRef(null);
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      fetchLeads();
+    }, 400);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [searchQuery]);
 
   // Scroll inteligente: al cambiar de lead, al cargar historial completo, o al llegar mensajes nuevos
   useEffect(() => {
@@ -900,7 +925,7 @@ const AdminWhatsApp = () => {
       } catch (refreshErr) {
         console.warn('No se pudo refrescar después de audio:', refreshErr);
       }
-      try { const r = await getLeads(origenRef.current, 200, 0); const fresh = Array.isArray(r) ? r : (r.leads || []); const fm = new Map(fresh.map(l => [l.wa_id, l])); setLeads(prev => { const merged = prev.map(l => fm.get(l.wa_id) || l); fresh.forEach(l => { if (!merged.some(e => e.wa_id === l.wa_id)) merged.push(l); }); return merged; }); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
+      await refreshSidebar();
     } catch (err) {
       toast.error('Error al enviar nota de voz: ' + err.message);
     } finally {
@@ -995,7 +1020,7 @@ const AdminWhatsApp = () => {
         console.warn('No se pudo refrescar después de enviar, mensaje optimista se mantiene:', refreshErr);
       }
       // Actualizar sidebar sin tocar selectedLead
-      try { const r = await getLeads(origenRef.current, 200, 0); const fresh = Array.isArray(r) ? r : (r.leads || []); const fm = new Map(fresh.map(l => [l.wa_id, l])); setLeads(prev => { const merged = prev.map(l => fm.get(l.wa_id) || l); fresh.forEach(l => { if (!merged.some(e => e.wa_id === l.wa_id)) merged.push(l); }); return merged; }); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
+      await refreshSidebar();
       inputRef.current?.focus();
     } catch (err) {
       toast.error('Error al enviar: ' + err.message);
@@ -1015,7 +1040,7 @@ const AdminWhatsApp = () => {
       // Refrescar historial completo + sidebar
       const fresh = await getLeadByWaId(selectedLead.wa_id);
       if (fresh) setSelectedLead(fresh);
-      try { const r = await getLeads(origenRef.current, 200, 0); const fresh = Array.isArray(r) ? r : (r.leads || []); const fm = new Map(fresh.map(l => [l.wa_id, l])); setLeads(prev => { const merged = prev.map(l => fm.get(l.wa_id) || l); fresh.forEach(l => { if (!merged.some(e => e.wa_id === l.wa_id)) merged.push(l); }); return merged; }); setTotalLeads(r.total || 0); hasMoreRef.current = r.hasMore || false; setHasMore(hasMoreRef.current); } catch (_) {}
+      await refreshSidebar();
     } catch (err) {
       toast.error('Error al enviar plantilla: ' + err.message);
     } finally {
@@ -1321,65 +1346,46 @@ const AdminWhatsApp = () => {
     setQuoteGenerating(false);
   };
 
-  // Obtener estados únicos para el filtro
-  const estadosUnicos = [...new Set(leads.map(l => l.estado_sofia || 'sin_estado').filter(Boolean))];
+  // Obtener estados únicos para el filtro (hardcoded para no depender de datos cargados)
+  const estadosUnicos = ['bienvenida', 'cotizando', 'cotizacion_iniciada', 'cotizacion_lista', 'cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion', 'cliente_acepto', 'pagado', 'descartado', 'no_interesado', 'sin_estado'];
 
-  // Filtrar leads (origen ya filtrado por el backend, aquí solo filtros locales)
+  // Filtros client-side (fallback mientras el backend se despliega con soporte server-side)
   const filteredLeads = leads.filter(lead => {
-    // Filtro por estado (incluye filtro especial _no_leidos)
-    if (estadoFilter === '_no_leidos') {
-      if (!lead._lastMsgIsUser) return false;
-    } else if (estadoFilter !== 'all') {
+    if (estadoFilter !== 'all') {
       const estado = lead.estado_sofia || 'sin_estado';
       if (estado !== estadoFilter) return false;
     }
-    // Filtro por atendido / admin específico
     if (attendedFilter !== 'all') {
       const who = getLeadAttendedBy(lead);
       if (attendedFilter === 'atendido' && !who) return false;
       if (attendedFilter === 'sin_atender' && who) return false;
       if (!['all', 'atendido', 'sin_atender'].includes(attendedFilter)) {
-        // Filtro por admin específico (arturo, sandy, hugo)
         if (who !== attendedFilter) return false;
       }
     }
-    // Filtro por fecha (día específico, usando created_at o updated_at)
     if (dateFilter) {
       const leadDate = lead.created_at || lead.updated_at;
       if (!leadDate) return false;
       const leadDay = new Date(leadDate).toISOString().split('T')[0];
       if (leadDay !== dateFilter) return false;
     }
-    // Filtro por búsqueda — busca en todos los campos de texto del lead
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    // También buscar en el contenido del historial de chat disponible en la lista
-    const hist = parseHistorial(lead.historial_chat);
-    const chatText = hist.map(m => (m.content || '')).join(' ').toLowerCase();
-    return (
-      (lead.nombre || '').toLowerCase().includes(q) ||
-      (lead.wa_id || '').includes(q) ||
-      (lead.estado_sofia || '').toLowerCase().includes(q) ||
-      (lead.carrera || '').toLowerCase().includes(q) ||
-      (lead.tema || '').toLowerCase().includes(q) ||
-      (lead.atendido_por || '').toLowerCase().includes(q) ||
-      (lead.tipo_servicio || '').toLowerCase().includes(q) ||
-      (SERVICIO_LABEL[lead.tipo_servicio] || '').toLowerCase().includes(q) ||
-      (lead.tipo_proyecto || '').toLowerCase().includes(q) ||
-      (PROYECTO_MAP[lead.tipo_proyecto] || '').toLowerCase().includes(q) ||
-      (lead.nivel || '').toLowerCase().includes(q) ||
-      (NIVEL_MAP[lead.nivel] || '').toLowerCase().includes(q) ||
-      (lead.ultimo_mensaje_preview || '').toLowerCase().includes(q) ||
-      chatText.includes(q)
-    );
+    return true;
   }).sort((a, b) => {
     // ── PRIORIDAD 1: Mensajes nuevos del cliente (no leídos) SIEMPRE arriba ──
-    // Usar _lastMsgIsUser del backend (confiable, cubre todos los leads del lote)
-    const aUnread = a._lastMsgIsUser ? 1 : 0;
-    const bUnread = b._lastMsgIsUser ? 1 : 0;
-    if (aUnread !== bUnread) return bUnread - aUnread;
+    const countUnread = (lead) => {
+      const hist = parseHistorial(lead.historial_chat);
+      let c = 0;
+      for (let i = hist.length - 1; i >= 0; i--) {
+        if (hist[i].role === 'user') c++; else break;
+      }
+      return c;
+    };
+    const unreadA = countUnread(a);
+    const unreadB = countUnread(b);
+    if (unreadA > 0 && unreadB === 0) return -1;
+    if (unreadA === 0 && unreadB > 0) return 1;
     // Ambos con mensajes nuevos → el más reciente primero
-    if (aUnread && bUnread) {
+    if (unreadA > 0 && unreadB > 0) {
       const dateA = new Date(a.updated_at || 0).getTime();
       const dateB = new Date(b.updated_at || 0).getTime();
       return dateB - dateA;
@@ -1901,22 +1907,20 @@ const AdminWhatsApp = () => {
               onChange={(e) => setOrigenFilter(e.target.value)}
               style={origenFilter === 'manychat' ? { borderColor: '#7c3aed', color: '#7c3aed', fontWeight: 600 } : origenFilter === 'regular' ? { borderColor: '#25d366', color: '#25d366', fontWeight: 600 } : {}}
             >
-              <option value="regular">WhatsApp ({filteredLeads.length})</option>
-              <option value="manychat">ManyChat</option>
-              <option value="all">Todos</option>
+              <option value="regular">WhatsApp ({filteredLeads.length} de {totalLeads})</option>
+              <option value="manychat">ManyChat ({filteredLeads.length} de {totalLeads})</option>
+              <option value="all">Todos ({filteredLeads.length} de {totalLeads})</option>
             </select>
             <select
               className="wa-filter-select"
               value={estadoFilter}
               onChange={(e) => setEstadoFilter(e.target.value)}
-              style={estadoFilter === '_no_leidos' ? { borderColor: '#25d366', color: '#25d366', fontWeight: 600 } : {}}
+              style={estadoFilter !== 'all' ? { borderColor: '#3b82f6', color: '#3b82f6', fontWeight: 600 } : {}}
             >
-              <option value="all">Estado: Todos ({filteredLeads.length})</option>
-              <option value="_no_leidos" style={{ fontWeight: 'bold', color: '#25d366' }}>
-                No leídos ({leads.filter(l => l._lastMsgIsUser).length})
-              </option>
+              <option value="all">Estado: Todos ({leads.length})</option>
               {estadosUnicos.map(est => {
                 const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
+                if (count === 0) return null;
                 return (
                   <option key={est} value={est}>{est.replace(/_/g, ' ')} ({count})</option>
                 );
@@ -1978,15 +1982,15 @@ const AdminWhatsApp = () => {
                     const unread = getUnreadCount(lead);
                     const isPriority = APPROVAL_ESTADOS.includes(lead.estado_sofia);
 
-                    if (unread > 0 && !shownNewHdr) {
+                    if (unread > 0 && !readLeads.has(lead.wa_id) && !shownNewHdr) {
                       shownNewHdr = true;
                       elements.push(<div key="__hdr_new" className="wa-section-header wa-section-new"><FaEnvelope /> Mensajes nuevos</div>);
                     }
-                    if (unread === 0 && isPriority && !shownApprovalHdr) {
+                    if ((unread === 0 || readLeads.has(lead.wa_id)) && isPriority && !shownApprovalHdr) {
                       shownApprovalHdr = true;
                       elements.push(<div key="__hdr_approval" className="wa-section-header wa-section-approval"><FaClock /> Esperando aprobación / respuesta</div>);
                     }
-                    if (unread === 0 && !isPriority && !shownRestHdr) {
+                    if ((unread === 0 || readLeads.has(lead.wa_id)) && !isPriority && !shownRestHdr) {
                       shownRestHdr = true;
                       elements.push(<div key="__hdr_rest" className="wa-section-header wa-section-rest"><FaWhatsapp /> Otras conversaciones</div>);
                     }
@@ -1998,7 +2002,7 @@ const AdminWhatsApp = () => {
                         key={lead.wa_id}
                         className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
                         style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
-                        onClick={() => handleSelectLead(lead)}
+                        onClick={() => handleSelectLeadWithRead(lead)}
                       >
                         <div className="wa-conv-avatar">
                           <FaUser />
@@ -2015,7 +2019,7 @@ const AdminWhatsApp = () => {
                           </div>
                           <div className="wa-conv-preview">
                             <span className="wa-conv-last-msg">{getLastMessage(lead)}</span>
-                            {unread > 0 && (
+                            {unread > 0 && !readLeads.has(lead.wa_id) && (
                               <Badge bg="success" pill className="wa-unread-badge">{unread}</Badge>
                             )}
                           </div>
@@ -2131,6 +2135,15 @@ const AdminWhatsApp = () => {
                     onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
                     title={selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
                     {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano ? <><FaToggleOn className="me-1" /> Humano</> : <><FaToggleOff className="me-1" /> Bot</>}
+                  </Button>
+                  <Button
+                    variant={readLeads.has(selectedLead.wa_id) ? 'outline-warning' : 'outline-info'}
+                    size="sm"
+                    onClick={() => readLeads.has(selectedLead.wa_id) ? markAsUnread(selectedLead.wa_id) : markAsRead(selectedLead.wa_id)}
+                    title={readLeads.has(selectedLead.wa_id) ? 'Marcar como no leído' : 'Marcar como leído'}
+                    style={{ fontSize: '0.7rem', padding: '2px 8px' }}
+                  >
+                    {readLeads.has(selectedLead.wa_id) ? <><FaEnvelope className="me-1" /> No leído</> : <><FaEnvelopeOpen className="me-1" /> Leído</>}
                   </Button>
                 </div>
               </div>

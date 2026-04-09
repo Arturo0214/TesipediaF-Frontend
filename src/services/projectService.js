@@ -88,6 +88,31 @@ const removeDeliverable = async (projectId, deliverableId) => {
     return response.data;
 };
 
+// Upload a revision (version) to project
+const uploadRevision = async (projectId, file, label, type, notes) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (label) formData.append('label', label);
+    if (type) formData.append('type', type);
+    if (notes) formData.append('notes', notes);
+    const response = await axiosWithAuth.post(`${API_URL}/${projectId}/revisions`, formData);
+    return response.data;
+};
+
+// Get revisions for a project
+const getRevisions = async (projectId) => {
+    const response = await axiosWithAuth.get(`${API_URL}/${projectId}/revisions`);
+    return response.data;
+};
+
+// Update revision status (admin only)
+const updateRevisionStatus = async (projectId, version, status, correctionNotes) => {
+    const response = await axiosWithAuth.put(`${API_URL}/${projectId}/revisions/${version}/status`, {
+        status, correctionNotes
+    });
+    return response.data;
+};
+
 const projectService = {
     getAllProjects,
     getWriterProjects,
@@ -102,7 +127,10 @@ const projectService = {
     updateProject,
     deleteProject,
     uploadDeliverable,
-    removeDeliverable
+    removeDeliverable,
+    uploadRevision,
+    getRevisions,
+    updateRevisionStatus
 };
 
 export default projectService; 

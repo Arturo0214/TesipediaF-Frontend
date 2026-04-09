@@ -11,8 +11,13 @@ const BASE = '/api/v1/whatsapp';
 /**
  * Obtener todos los leads con conversaciones
  */
-export async function getLeads(origen = 'regular', limit = 100, offset = 0) {
-  const { data } = await axiosWithAuth.get(`${BASE}/leads?origen=${origen}&limit=${limit}&offset=${offset}`);
+export async function getLeads(origen = 'regular', limit = 100, offset = 0, filters = {}) {
+  const params = new URLSearchParams({ origen, limit, offset });
+  if (filters.estado && filters.estado !== 'all') params.set('estado', filters.estado);
+  if (filters.atendido && filters.atendido !== 'all') params.set('atendido', filters.atendido);
+  if (filters.fecha) params.set('fecha', filters.fecha);
+  if (filters.search) params.set('search', filters.search);
+  const { data } = await axiosWithAuth.get(`${BASE}/leads?${params.toString()}`);
   return data; // { leads: [...], total, limit, offset, hasMore }
 }
 
@@ -266,8 +271,8 @@ export async function getManyChatLeads(filter = 'respondieron', page = 1, limit 
 /**
  * Obtener métricas completas de leads para el panel de informes
  */
-export async function getLeadsStats() {
-  const { data } = await axiosWithAuth.get(`${BASE}/leads-stats`);
+export async function getLeadsStats(origen = 'all') {
+  const { data } = await axiosWithAuth.get(`${BASE}/leads-stats?origen=${origen}`);
   return data;
 }
 
