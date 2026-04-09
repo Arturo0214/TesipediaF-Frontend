@@ -398,11 +398,30 @@ const AdminWhatsApp = () => {
           allData = freshData;
         }
       } else {
-        // Carga inicial: solo traer la primera página (100 leads)
-        const result = await getLeads(origenRef.current, PAGE_SIZE, 0, filters);
-        allData = Array.isArray(result) ? result : (result.leads || []);
-        totalCount = result.total || allData.length;
-        moreAvailable = result.hasMore || false;
+        const hasActiveFilter = filters.estado !== 'all' || filters.atendido !== 'all' || filters.fecha || filters.search;
+
+        if (hasActiveFilter) {
+          // Con filtro activo: cargar TODAS las páginas para que el filtro client-side tenga todos los datos
+          const limit = PAGE_SIZE;
+          let offset = 0;
+          allData = [];
+          let keepLoading = true;
+          while (keepLoading) {
+            const result = await getLeads(origenRef.current, limit, offset, filters);
+            const page = Array.isArray(result) ? result : (result.leads || []);
+            allData = [...allData, ...page];
+            totalCount = result.total || allData.length;
+            offset += page.length;
+            if (!result.hasMore || page.length === 0) keepLoading = false;
+          }
+          moreAvailable = false;
+        } else {
+          // Sin filtro: solo traer la primera página (100 leads)
+          const result = await getLeads(origenRef.current, PAGE_SIZE, 0, filters);
+          allData = Array.isArray(result) ? result : (result.leads || []);
+          totalCount = result.total || allData.length;
+          moreAvailable = result.hasMore || false;
+        }
 
         // Inicializar mapa sin notificar (primera carga)
         const map = new Map();
