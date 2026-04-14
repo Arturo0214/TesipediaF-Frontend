@@ -1704,17 +1704,23 @@ const AdminWhatsApp = () => {
             {/* Si hay archivo/media */}
             {msg.mediaUrl && (
               <div className="wa-message-media mt-2 mb-2">
-                {msg.mimetype?.startsWith('image/') || msg.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                {msg.mimetype?.startsWith('image/') || msg.mediaUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
                     <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" loading="lazy" />
                   </a>
                 ) : msg.mimetype?.startsWith('audio/') || msg.mediaUrl.match(/\.(ogg|mp3|wav|webm|aac|opus|m4a)$/i) ? (
-                  <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
-                    <FaMicrophone className="me-2" /> Escuchar audio
-                  </a>
+                  <div>
+                    <audio controls preload="none" style={{ width: '100%', maxWidth: 280, borderRadius: 8 }}>
+                      <source src={msg.mediaUrl} type={msg.mimetype || 'audio/ogg'} />
+                    </audio>
+                  </div>
+                ) : msg.mimetype?.startsWith('video/') || msg.mediaUrl.match(/\.(mp4|mov|avi|mkv)$/i) ? (
+                  <video controls preload="none" style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8 }}>
+                    <source src={msg.mediaUrl} type={msg.mimetype || 'video/mp4'} />
+                  </video>
                 ) : (
                   <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
-                    <FaFile className="me-2" /> {msg.filename || 'Ver documento'}
+                    <FaFile className="me-2" /> {msg.filename || 'Descargar archivo'}
                   </a>
                 )}
               </div>
