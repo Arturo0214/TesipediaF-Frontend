@@ -1702,29 +1702,37 @@ const AdminWhatsApp = () => {
             </div>
 
             {/* Si hay archivo/media */}
-            {msg.mediaUrl && (
-              <div className="wa-message-media mt-2 mb-2">
-                {msg.mimetype?.startsWith('image/') || msg.mediaUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                  <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
-                    <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" loading="lazy" />
-                  </a>
-                ) : msg.mimetype?.startsWith('audio/') || msg.mediaUrl.match(/\.(ogg|mp3|wav|webm|aac|opus|m4a)$/i) ? (
-                  <div>
-                    <audio controls preload="none" style={{ width: '100%', maxWidth: 280, borderRadius: 8 }}>
-                      <source src={msg.mediaUrl} type={msg.mimetype || 'audio/ogg'} />
-                    </audio>
-                  </div>
-                ) : msg.mimetype?.startsWith('video/') || msg.mediaUrl.match(/\.(mp4|mov|avi|mkv)$/i) ? (
-                  <video controls preload="none" style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8 }}>
-                    <source src={msg.mediaUrl} type={msg.mimetype || 'video/mp4'} />
-                  </video>
-                ) : (
-                  <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
-                    <FaFile className="me-2" /> {msg.filename || 'Descargar archivo'}
-                  </a>
-                )}
-              </div>
-            )}
+            {msg.mediaUrl && (() => {
+              const isImage = msg.mimetype?.startsWith('image/') || msg.mediaUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+              const isAudio = msg.mimetype?.startsWith('audio/') || msg.mediaUrl.match(/\.(ogg|mp3|wav|webm|aac|opus|m4a)$/i);
+              const isVideo = msg.mimetype?.startsWith('video/') || msg.mediaUrl.match(/\.(mp4|mov|avi|mkv)$/i);
+              return (
+                <div className="wa-message-media mt-2 mb-2">
+                  {isImage ? (
+                    <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
+                      <img src={msg.mediaUrl} alt="Adjunto" className="wa-media-img" loading="lazy" />
+                    </a>
+                  ) : isAudio ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <audio controls preload="metadata" style={{ width: '100%', maxWidth: 280 }}>
+                        <source src={msg.mediaUrl} type={msg.mimetype || 'audio/ogg'} />
+                      </audio>
+                      <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#0066cc' }}>
+                        <FaMicrophone size={10} className="me-1" />Descargar audio
+                      </a>
+                    </div>
+                  ) : isVideo ? (
+                    <video controls preload="metadata" style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8 }}>
+                      <source src={msg.mediaUrl} type={msg.mimetype || 'video/mp4'} />
+                    </video>
+                  ) : (
+                    <a href={msg.mediaUrl} target="_blank" rel="noreferrer" className="wa-media-doc">
+                      <FaFile className="me-2" /> {msg.filename || 'Descargar archivo'}
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
 
             {content && <div className="wa-message-text">{formatLabel(content)}</div>}
 
