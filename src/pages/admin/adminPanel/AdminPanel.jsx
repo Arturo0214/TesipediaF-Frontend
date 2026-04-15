@@ -27,6 +27,7 @@ import {
     FaClipboardCheck,
     FaFacebookF,
     FaFunnelDollar,
+    FaCalendarAlt,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -61,6 +62,7 @@ const AdminRevenue = lazy(() => import('../adminRevenue/AdminRevenue.jsx'));
 const AdminInformes = lazy(() => import('../adminInformes/AdminInformes.jsx'));
 const AdminCampaigns = lazy(() => import('../adminCampaigns/AdminCampaigns.jsx'));
 const AdminFunnel = lazy(() => import('../adminFunnel/AdminFunnel.jsx'));
+const AdminCalendars = lazy(() => import('../adminCalendars/AdminCalendars.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -135,6 +137,7 @@ const AdminPanel = () => {
         if (path.includes('/informes')) return 'informes';
         if (path.includes('/campaigns')) return 'campaigns';
         if (path.includes('/funnel')) return 'funnel';
+        if (path.includes('/calendarios')) return 'calendarios';
         return 'dashboard';
     };
 
@@ -147,6 +150,7 @@ const AdminPanel = () => {
         { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones' },
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
+        { key: 'calendarios', icon: FaCalendarAlt, label: 'Calendarios', section: 'principal', path: '/admin/calendarios' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
         { key: 'manychat', icon: FaRocket, label: 'ManyChat', section: 'gestion', path: '/admin/manychat' },
         { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones' },
@@ -295,6 +299,7 @@ const AdminPanel = () => {
         revenue: AdminRevenue,
         informes: AdminInformes,
         campaigns: AdminCampaigns,
+        calendarios: AdminCalendars,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
