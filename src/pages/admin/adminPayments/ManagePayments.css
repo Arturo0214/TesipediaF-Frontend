@@ -726,6 +726,14 @@
 /* Upcoming items hover */
 .mp-pay-upcoming-item:hover { background: #f0f5ff; }
 .mp-pay-upcoming-item { transition: background 0.15s; border-radius: 6px; }
+.mp-pay-upcoming-toggle {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px; margin-top: 4px;
+  background: #f0f5ff; border: 1px dashed #93c5fd; border-radius: 8px;
+  color: #2563eb; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.mp-pay-upcoming-toggle:hover { background: #dbeafe; border-color: #3b82f6; }
 
 /* Installment paid state */
 .mp-pay-installment.paid { background: #f0fdf4; border-left: 3px solid #16a34a; }

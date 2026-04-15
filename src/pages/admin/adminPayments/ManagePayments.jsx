@@ -75,6 +75,7 @@ function ManagePayments() {
         setAddingPayment(false);
     };
 
+    const [upcomingExpanded, setUpcomingExpanded] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(null); // { _id, source, clientName }
     const [deleting, setDeleting] = useState(false);
     const [editingVendedor, setEditingVendedor] = useState(null); // payment _id being edited
@@ -592,7 +593,7 @@ function ManagePayments() {
                         <div className="mp-pay-upcoming">
                             <h3><FaClock /> Próximos pagos (30 días)</h3>
                             <div className="mp-pay-upcoming-list">
-                                {upcoming.slice(0, 5).map((inst, idx) => (
+                                {(upcomingExpanded ? upcoming : upcoming.slice(0, 5)).map((inst, idx) => (
                                     <div key={idx} className="mp-pay-upcoming-item"
                                         style={{ cursor: 'pointer' }}
                                         onClick={() => {
@@ -607,7 +608,17 @@ function ManagePayments() {
                                         <div className="mp-pay-upcoming-amount">{formatMoney(inst.amount)}</div>
                                     </div>
                                 ))}
-                                {upcoming.length > 5 && <p className="mp-pay-upcoming-more">+{upcoming.length - 5} pagos más</p>}
+                                {upcoming.length > 5 && (
+                                    <button
+                                        className="mp-pay-upcoming-toggle"
+                                        onClick={() => setUpcomingExpanded(!upcomingExpanded)}
+                                    >
+                                        {upcomingExpanded
+                                            ? <><FaChevronUp /> Mostrar menos</>
+                                            : <><FaChevronDown /> +{upcoming.length - 5} pagos más</>
+                                        }
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
