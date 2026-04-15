@@ -1239,13 +1239,33 @@ const AdminWhatsApp = () => {
 
   const handleGenerateQuotePDF = async () => {
     const f = quoteFields;
-    if (!f.clientName || !f.extensionEstimada || !f.nivelAcademico || !f.carrera) {
-      toast.error('Completa al menos: nombre, páginas, nivel y carrera');
+
+    // Validación completa con mensajes específicos
+    const missing = [];
+    if (!f.clientName?.trim()) missing.push('Nombre del cliente');
+    if (!f.tipoTrabajo?.trim()) missing.push('Tipo de trabajo');
+    if (!f.tipoServicio) missing.push('Tipo de servicio');
+    if (!f.nivelAcademico?.trim()) missing.push('Nivel académico');
+    if (!f.carrera?.trim()) missing.push('Carrera');
+    if (!f.extensionEstimada || Number(f.extensionEstimada) <= 0) missing.push('Número de páginas');
+    if (!f.fechaEntregaDate) missing.push('Fecha de entrega');
+
+    if (missing.length > 0) {
+      toast.error(`Faltan campos para generar la cotización:\n• ${missing.join('\n• ')}`, { duration: 5000, style: { whiteSpace: 'pre-line' } });
       return;
     }
+
+    // Alertas de campos opcionales que mejoran la cotización
+    const warnings = [];
+    if (!f.tituloTrabajo?.trim() && !f.tema?.trim()) warnings.push('título/tema del trabajo');
+    if (!f.area && !quotePrice?.area) warnings.push('área de estudio');
+    if (warnings.length > 0) {
+      toast(`La cotización se verá mejor si agregas: ${warnings.join(', ')}`, { icon: '💡', duration: 4000 });
+    }
+
     const precioBase = f.precioManual ? Number(f.precioManual) : (quotePrice?.precioBase || 0);
     if (precioBase <= 0) {
-      toast.error('El precio debe ser mayor a 0');
+      toast.error('El precio debe ser mayor a 0. Calcula el precio o ingresa uno manual.');
       return;
     }
     setQuoteGenerating(true);
