@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA } from '../../services/eventService';
+import { getUTMParams, detectLeadSource, trackMetaLead } from '../../utils/tracking';
 import {
   FaWhatsapp, FaCheckCircle, FaClock, FaLaptop,
   FaUserGraduate, FaStar, FaShieldAlt, FaGraduationCap,
@@ -115,6 +116,9 @@ function CotizarLanding() {
     setStatus('loading');
     const phone = normalizePhone(form.telefono);
 
+    const utms = getUTMParams();
+    const source = detectLeadSource();
+
     const payload = {
       nombre: form.nombre.trim(),
       telefono: phone.clean,
@@ -124,10 +128,14 @@ function CotizarLanding() {
       tipo_proyecto: form.tipo_proyecto,
       num_paginas: Number(form.num_paginas),
       fecha_entrega: form.fecha_entrega,
-      source: 'landing_tesipedia_instagram',
+      source,
       page: '/cotizar',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      ...utms, // utm_source, utm_medium, utm_campaign, utm_content, fbclid, gclid
     };
+
+    // Disparar evento Lead en Meta Pixel
+    trackMetaLead({ tipo_proyecto: form.tipo_proyecto, nivel: form.nivel_estudios });
 
     try {
       // Enviar a ambos en paralelo: backend (MongoDB) + webhook (n8n)

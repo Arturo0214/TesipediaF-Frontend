@@ -256,6 +256,37 @@
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 
+  <!-- Meta Pixel -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1427949458689006');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1427949458689006&ev=PageView&noscript=1"/></noscript>
+
+  <!-- UTM Parameter Capture — guarda en sessionStorage para atribución de leads -->
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'];
+      utmKeys.forEach(function(key) {
+        var val = params.get(key);
+        if (val) sessionStorage.setItem(key, val);
+      });
+      // Guardar referrer si no hay UTMs
+      if (!sessionStorage.getItem('utm_source') && document.referrer && !document.referrer.includes(window.location.hostname)) {
+        sessionStorage.setItem('referrer', document.referrer);
+      }
+    })();
+  </script>
+
   <!-- Google tag (gtag.js) - Deferred to not block rendering -->
   <script>
     // Load GA after page is interactive
