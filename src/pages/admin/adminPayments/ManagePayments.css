@@ -740,8 +740,25 @@
 /* Installment paid state */
 .mp-pay-installment.paid { background: #f0fdf4; border-left: 3px solid #16a34a; }
 .mp-pay-installment.past { border-left: 3px solid #f59e0b; }
-.mp-pay-installment-clickable { cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
-.mp-pay-installment-clickable:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+/* Toggle switch para parcialidades */
+.mp-pay-toggle {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  user-select: none; flex-shrink: 0;
+}
+.mp-pay-toggle input { display: none; }
+.mp-pay-toggle-slider {
+  width: 34px; height: 18px; background: #d1d5db; border-radius: 9px;
+  position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.mp-pay-toggle-slider::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; background: #fff; border-radius: 50%;
+  transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.mp-pay-toggle input:checked + .mp-pay-toggle-slider { background: #16a34a; }
+.mp-pay-toggle input:checked + .mp-pay-toggle-slider::after { transform: translateX(16px); }
+.mp-pay-toggle-label { font-size: 0.68rem; font-weight: 600; color: #6b7280; white-space: nowrap; }
+.mp-pay-toggle input:checked ~ .mp-pay-toggle-label { color: #16a34a; }
 
 /* Progress bar en tabla */
 .mp-pay-progress-mini { margin-top: 4px; }
