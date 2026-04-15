@@ -7,7 +7,8 @@ import {
     FaCreditCard, FaMoneyBillWave, FaPercentage, FaTrash,
     FaExclamationTriangle, FaCheckCircle, FaClock, FaFileInvoiceDollar,
     FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight,
-    FaProjectDiagram
+    FaProjectDiagram, FaWhatsapp, FaEnvelope, FaPhone, FaUser,
+    FaClipboardList, FaCalendarCheck, FaExternalLinkAlt
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import VentasPorVendedor from '../adminSalesByVendedor/VentasPorVendedor';
@@ -79,6 +80,8 @@ function ManagePayments() {
     const [editingVendedor, setEditingVendedor] = useState(null); // payment _id being edited
     const [savingVendedor, setSavingVendedor] = useState(false);
     const [creatingProject, setCreatingProject] = useState(null); // payment _id being processed
+    const [detailPayment, setDetailPayment] = useState(null); // payment object for detail modal
+    const [calDayDetail, setCalDayDetail] = useState(null); // { date, installments, payments } for day-click
 
     const handleAssignVendedor = async (payment, newVendedor) => {
         setSavingVendedor(true);
@@ -539,18 +542,33 @@ function ManagePayments() {
                                             p.date && new Date(p.date).toDateString() === day.toDateString()
                                         ) : [];
 
+                                        const hasEvents = installmentsOnDay.length > 0 || paymentsOnDay.length > 0;
                                         return (
-                                            <div key={idx} className={`mp-pay-cal-day ${isToday ? 'today' : ''} ${!day ? 'empty' : ''}`}>
+                                            <div key={idx}
+                                                className={`mp-pay-cal-day ${isToday ? 'today' : ''} ${!day ? 'empty' : ''} ${hasEvents ? 'has-events' : ''}`}
+                                                onClick={() => hasEvents && setCalDayDetail({
+                                                    date: day,
+                                                    installments: installmentsOnDay,
+                                                    payments: paymentsOnDay,
+                                                })}
+                                                style={hasEvents ? { cursor: 'pointer' } : {}}
+                                            >
                                                 {day && <span className="mp-pay-cal-day-num">{day.getDate()}</span>}
                                                 <div className="mp-pay-cal-events">
                                                     {installmentsOnDay.slice(0, 3).map((inst, i) => (
-                                                        <div key={i} className="mp-pay-cal-chip installment">
+                                                        <div key={i} className="mp-pay-cal-chip installment"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const parent = payments.find(p => p.schedule?.some(s => s.dueDate === inst.dueDate && s.amount === inst.amount) && p.clientName === inst.clientName);
+                                                                if (parent) setDetailPayment(parent);
+                                                            }}>
                                                             <strong>{inst.clientName?.split(' ')[0]}</strong>
                                                             <span>{formatMoney(inst.amount)}</span>
                                                         </div>
                                                     ))}
                                                     {paymentsOnDay.length > 0 && installmentsOnDay.length === 0 && paymentsOnDay.slice(0, 3).map((p, i) => (
-                                                        <div key={i} className={`mp-pay-cal-chip source-${p.source}`}>
+                                                        <div key={i} className={`mp-pay-cal-chip source-${p.source}`}
+                                                            onClick={(e) => { e.stopPropagation(); setDetailPayment(p); }}>
                                                             <strong>{p.clientName?.split(' ')[0]}</strong>
                                                             <span>{formatMoney(p.amount)}</span>
                                                         </div>
@@ -575,7 +593,12 @@ function ManagePayments() {
                             <h3><FaClock /> Próximos pagos (30 días)</h3>
                             <div className="mp-pay-upcoming-list">
                                 {upcoming.slice(0, 5).map((inst, idx) => (
-                                    <div key={idx} className="mp-pay-upcoming-item">
+                                    <div key={idx} className="mp-pay-upcoming-item"
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => {
+                                            const parent = payments.find(p => p.schedule?.some(s => s.dueDate === inst.dueDate && s.amount === inst.amount) && p.clientName === inst.clientName);
+                                            if (parent) setDetailPayment(parent);
+                                        }}>
                                         <div className="mp-pay-upcoming-date">{formatDate(inst.dueDate)}</div>
                                         <div className="mp-pay-upcoming-info">
                                             <strong>{inst.clientName}</strong>
@@ -865,6 +888,221 @@ function ManagePayments() {
             {/* ===== VENDEDORES VIEW ===== */}
             {view === 'vendedores' && (
                 <VentasPorVendedor payments={payments} onRefresh={fetchDashboard} />
+            )}
+
+            {/* ===== PAYMENT DETAIL MODAL ===== */}
+            {detailPayment && (
+                <div className="mp-pay-modal-overlay" onClick={() => setDetailPayment(null)}>
+                    <div className="mp-pay-modal mp-pay-modal-detail" onClick={(e) => e.stopPropagation()}>
+                        <div className="mp-pay-modal-header">
+                            <h2><FaClipboardList /> Detalle del Pago</h2>
+                            <button className="mp-pay-modal-close" onClick={() => setDetailPayment(null)}><FaTimes /></button>
+                        </div>
+                        <div className="mp-pay-modal-body" style={{ padding: '16px 20px' }}>
+                            {/* Client Info */}
+                            <div className="mp-detail-section">
+                                <h4 className="mp-detail-section-title"><FaUser /> Cliente</h4>
+                                <div className="mp-detail-client-grid">
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Nombre</span>
+                                        <span className="mp-detail-value">{detailPayment.clientName}</span>
+                                    </div>
+                                    {detailPayment.clientPhone && (
+                                        <div className="mp-detail-field">
+                                            <span className="mp-detail-label">Teléfono</span>
+                                            <a href={`https://wa.me/${detailPayment.clientPhone.replace(/\D/g, '')}`}
+                                                target="_blank" rel="noopener noreferrer"
+                                                className="mp-detail-phone-link">
+                                                <FaWhatsapp style={{ color: '#25d366' }} /> {detailPayment.clientPhone}
+                                            </a>
+                                        </div>
+                                    )}
+                                    {detailPayment.clientEmail && (
+                                        <div className="mp-detail-field">
+                                            <span className="mp-detail-label">Email</span>
+                                            <a href={`mailto:${detailPayment.clientEmail}`} className="mp-detail-email-link">
+                                                <FaEnvelope /> {detailPayment.clientEmail}
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Project Info */}
+                            <div className="mp-detail-section">
+                                <h4 className="mp-detail-section-title"><FaProjectDiagram /> Proyecto</h4>
+                                <div className="mp-detail-client-grid">
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Título</span>
+                                        <span className="mp-detail-value">{detailPayment.title}</span>
+                                    </div>
+                                    {detailPayment.tipoServicio && (
+                                        <div className="mp-detail-field">
+                                            <span className="mp-detail-label">Servicio</span>
+                                            <span className="mp-detail-value">{detailPayment.tipoServicio}</span>
+                                        </div>
+                                    )}
+                                    {detailPayment.carrera && (
+                                        <div className="mp-detail-field">
+                                            <span className="mp-detail-label">Carrera</span>
+                                            <span className="mp-detail-value">{detailPayment.carrera}</span>
+                                        </div>
+                                    )}
+                                    {detailPayment.dueDate && (
+                                        <div className="mp-detail-field">
+                                            <span className="mp-detail-label">Fecha Entrega</span>
+                                            <span className="mp-detail-value">{formatDate(detailPayment.dueDate)}</span>
+                                        </div>
+                                    )}
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Proyecto Creado</span>
+                                        <span className="mp-detail-value">
+                                            {detailPayment.hasProject
+                                                ? <span style={{ color: '#16a34a' }}><FaCheckCircle /> Sí</span>
+                                                : <span style={{ color: '#9ca3af' }}>No vinculado</span>}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Payment Info */}
+                            <div className="mp-detail-section">
+                                <h4 className="mp-detail-section-title"><FaDollarSign /> Pago</h4>
+                                <div className="mp-detail-client-grid">
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Monto Total</span>
+                                        <span className="mp-detail-value mp-detail-amount">{formatMoney(detailPayment.amount)}</span>
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Esquema</span>
+                                        <span className="mp-detail-value">{getEsquemaLabel(detailPayment.esquema)}</span>
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Método</span>
+                                        <span className="mp-detail-value" style={{ textTransform: 'capitalize' }}>{detailPayment.method}</span>
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Fuente</span>
+                                        <span className="mp-detail-value">{getSourceIcon(detailPayment.source)} {getSourceLabel(detailPayment.source)}</span>
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Vendedor</span>
+                                        <span className="mp-detail-value">{detailPayment.vendedor || 'Sin asignar'}</span>
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Comisión (15%)</span>
+                                        <span className="mp-detail-value">{formatMoney(detailPayment.commission)}</span>
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Estado</span>
+                                        {getStatusBadge(detailPayment.status)}
+                                    </div>
+                                    <div className="mp-detail-field">
+                                        <span className="mp-detail-label">Fecha de Pago</span>
+                                        <span className="mp-detail-value">{formatDate(detailPayment.date)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Installment Schedule */}
+                            {detailPayment.schedule?.length > 1 && (
+                                <div className="mp-detail-section">
+                                    <h4 className="mp-detail-section-title"><FaCalendarCheck /> Calendario de Parcialidades</h4>
+                                    <div className="mp-pay-schedule-grid">
+                                        {detailPayment.schedule.map((inst, idx) => {
+                                            const isPast = new Date(inst.dueDate) < new Date();
+                                            const isPaid = inst.status === 'paid';
+                                            return (
+                                                <div key={idx} className={`mp-pay-installment ${isPaid ? 'paid' : isPast ? 'past' : 'upcoming'}`}>
+                                                    <div className="mp-pay-inst-icon">{isPaid ? <FaCheckCircle style={{ color: '#16a34a' }} /> : isPast ? <FaExclamationTriangle style={{ color: '#f59e0b' }} /> : <FaClock />}</div>
+                                                    <div className="mp-pay-inst-info">
+                                                        <strong>{inst.label}</strong>
+                                                        <span>{formatDate(inst.dueDate)}</span>
+                                                    </div>
+                                                    <div className="mp-pay-inst-amount">{formatMoney(inst.amount)}</div>
+                                                    <span className={`mp-pay-badge mp-pay-badge-${isPaid ? 'success' : isPast ? 'warning' : 'info'}`} style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
+                                                        {isPaid ? 'Pagado' : isPast ? 'Vencido' : 'Pendiente'}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {detailPayment.notes && (
+                                <div className="mp-detail-section">
+                                    <h4 className="mp-detail-section-title">Notas</h4>
+                                    <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>{detailPayment.notes}</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="mp-pay-modal-footer">
+                            {detailPayment.clientPhone && (
+                                <a href={`https://wa.me/${detailPayment.clientPhone.replace(/\D/g, '')}`}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className="mp-pay-btn-save" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                    <FaWhatsapp /> WhatsApp
+                                </a>
+                            )}
+                            <button type="button" className="mp-pay-btn-cancel" onClick={() => setDetailPayment(null)}>Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== CALENDAR DAY DETAIL MODAL ===== */}
+            {calDayDetail && (
+                <div className="mp-pay-modal-overlay" onClick={() => setCalDayDetail(null)}>
+                    <div className="mp-pay-modal mp-pay-modal-sm" onClick={(e) => e.stopPropagation()}>
+                        <div className="mp-pay-modal-header">
+                            <h2><FaCalendarAlt /> {calDayDetail.date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h2>
+                            <button className="mp-pay-modal-close" onClick={() => setCalDayDetail(null)}><FaTimes /></button>
+                        </div>
+                        <div className="mp-pay-modal-body" style={{ padding: '12px 16px', maxHeight: '60vh', overflowY: 'auto' }}>
+                            {calDayDetail.installments.length > 0 && (
+                                <>
+                                    <h4 style={{ fontSize: '0.85rem', color: '#2563eb', marginBottom: 8 }}>Parcialidades</h4>
+                                    {calDayDetail.installments.map((inst, i) => {
+                                        const parent = payments.find(p => p.schedule?.some(s => s.dueDate === inst.dueDate && s.amount === inst.amount) && p.clientName === inst.clientName);
+                                        return (
+                                            <div key={i} className="mp-pay-upcoming-item" style={{ cursor: 'pointer' }}
+                                                onClick={() => { if (parent) { setCalDayDetail(null); setDetailPayment(parent); } }}>
+                                                <div className="mp-pay-upcoming-info" style={{ flex: 1 }}>
+                                                    <strong>{inst.clientName}</strong>
+                                                    <span>{inst.label} — {inst.title}</span>
+                                                    {parent?.clientPhone && <small style={{ color: '#6b7280' }}><FaPhone style={{ fontSize: '0.65rem' }} /> {parent.clientPhone}</small>}
+                                                </div>
+                                                <div className="mp-pay-upcoming-amount">{formatMoney(inst.amount)}</div>
+                                                <FaExternalLinkAlt style={{ fontSize: '0.7rem', color: '#9ca3af', marginLeft: 4 }} />
+                                            </div>
+                                        );
+                                    })}
+                                </>
+                            )}
+                            {calDayDetail.payments.length > 0 && calDayDetail.installments.length === 0 && (
+                                <>
+                                    <h4 style={{ fontSize: '0.85rem', color: '#16a34a', marginBottom: 8 }}>Pagos Registrados</h4>
+                                    {calDayDetail.payments.map((p, i) => (
+                                        <div key={i} className="mp-pay-upcoming-item" style={{ cursor: 'pointer' }}
+                                            onClick={() => { setCalDayDetail(null); setDetailPayment(p); }}>
+                                            <div className="mp-pay-upcoming-info" style={{ flex: 1 }}>
+                                                <strong>{p.clientName}</strong>
+                                                <span>{p.title}</span>
+                                                {p.clientPhone && <small style={{ color: '#6b7280' }}><FaPhone style={{ fontSize: '0.65rem' }} /> {p.clientPhone}</small>}
+                                            </div>
+                                            <div className="mp-pay-upcoming-amount">{formatMoney(p.amount)}</div>
+                                            <FaExternalLinkAlt style={{ fontSize: '0.7rem', color: '#9ca3af', marginLeft: 4 }} />
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                        <div className="mp-pay-modal-footer">
+                            <button type="button" className="mp-pay-btn-cancel" onClick={() => setCalDayDetail(null)}>Cerrar</button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* ===== DELETE CONFIRMATION MODAL ===== */}

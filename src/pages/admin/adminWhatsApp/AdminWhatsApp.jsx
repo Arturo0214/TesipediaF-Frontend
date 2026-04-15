@@ -604,17 +604,12 @@ const AdminWhatsApp = () => {
     setAutoReminderLoading(false);
   };
 
-  // Polling para actualizaciones en tiempo real
+  // Polling para actualizaciones en tiempo real + re-cargar al cambiar filtros
   useEffect(() => {
     fetchLeads();
     fetchAutoReminderStatus();
     pollRef.current = setInterval(() => fetchLeads(true), POLL_INTERVAL);
     return () => clearInterval(pollRef.current);
-  }, [fetchLeads]);
-
-  // Re-cargar leads cuando cambie cualquier filtro
-  useEffect(() => {
-    fetchLeads();
   }, [origenFilter, estadoFilter, attendedFilter, dateFilter]);
 
   // Debounce para búsqueda por texto (evitar spam al backend)
@@ -1368,12 +1363,10 @@ const AdminWhatsApp = () => {
   // Obtener estados únicos para el filtro (hardcoded para no depender de datos cargados)
   const estadosUnicos = ['bienvenida', 'cotizando', 'cotizacion_iniciada', 'cotizacion_lista', 'cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion', 'cliente_acepto', 'pagado', 'descartado', 'no_interesado', 'sin_estado'];
 
-  // Filtros client-side (fallback mientras el backend se despliega con soporte server-side)
+  // Filtros aplicados server-side — client-side solo para atendido_por (que depende de historial parsing)
   const filteredLeads = leads.filter(lead => {
-    if (estadoFilter !== 'all') {
-      const estado = lead.estado_sofia || 'sin_estado';
-      if (estado !== estadoFilter) return false;
-    }
+    // Estado y fecha ya se filtran en el servidor, no duplicar
+    // Solo filtrar atendido client-side como fallback por si atendido_por no está en Supabase
     if (attendedFilter !== 'all') {
       const who = getLeadAttendedBy(lead);
       if (attendedFilter === 'atendido' && !who) return false;
@@ -1381,12 +1374,6 @@ const AdminWhatsApp = () => {
       if (!['all', 'atendido', 'sin_atender'].includes(attendedFilter)) {
         if (who !== attendedFilter) return false;
       }
-    }
-    if (dateFilter) {
-      const leadDate = lead.created_at || lead.updated_at;
-      if (!leadDate) return false;
-      const leadDay = new Date(leadDate).toISOString().split('T')[0];
-      if (leadDay !== dateFilter) return false;
     }
     return true;
   }).sort((a, b) => {

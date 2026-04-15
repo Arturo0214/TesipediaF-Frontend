@@ -691,3 +691,47 @@
   outline: none;
   text-transform: capitalize;
 }
+
+/* ===== PAYMENT DETAIL MODAL ===== */
+.mp-pay-modal-detail { max-width: 560px; width: 95%; max-height: 85vh; overflow-y: auto; }
+
+.mp-detail-section { margin-bottom: 16px; }
+.mp-detail-section-title {
+  font-size: 0.82rem; font-weight: 700; color: #374151;
+  margin: 0 0 10px 0; padding-bottom: 6px;
+  border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 6px;
+}
+.mp-detail-section-title svg { color: #3b82f6; }
+.mp-detail-client-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+.mp-detail-field { display: flex; flex-direction: column; gap: 2px; }
+.mp-detail-label { font-size: 0.7rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+.mp-detail-value { font-size: 0.88rem; color: #1f2937; }
+.mp-detail-amount { font-size: 1.1rem; font-weight: 700; color: #16a34a; }
+
+.mp-detail-phone-link, .mp-detail-email-link {
+  font-size: 0.88rem; color: #2563eb; text-decoration: none;
+  display: flex; align-items: center; gap: 5px;
+}
+.mp-detail-phone-link:hover, .mp-detail-email-link:hover { text-decoration: underline; }
+
+/* Calendar day clickable */
+.mp-pay-cal-day.has-events:hover { background: #dbeafe; transform: scale(1.02); }
+.mp-pay-cal-day.has-events { transition: background 0.15s, transform 0.15s; }
+.mp-pay-cal-chip { cursor: pointer; transition: transform 0.1s; }
+.mp-pay-cal-chip:hover { transform: scale(1.05); filter: brightness(0.95); }
+
+/* Upcoming items hover */
+.mp-pay-upcoming-item:hover { background: #f0f5ff; }
+.mp-pay-upcoming-item { transition: background 0.15s; border-radius: 6px; }
+
+/* Installment paid state */
+.mp-pay-installment.paid { background: #f0fdf4; border-left: 3px solid #16a34a; }
+.mp-pay-installment.past { border-left: 3px solid #f59e0b; }
+
+@media (max-width: 480px) {
+  .mp-detail-client-grid { grid-template-columns: 1fr; }
+  .mp-pay-modal-detail { max-width: 100%; }
+}

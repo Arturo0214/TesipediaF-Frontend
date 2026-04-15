@@ -21,7 +21,43 @@ export const generateSalesQuotePDF = async (rawData) => {
         recargoMonto: parseFloat(rawData.recargoMonto) || parseFloat(rawData._surcharge) || 0,
         recargoPorcentaje: parseFloat(rawData.recargoPorcentaje) || parseFloat(rawData._surchargePercent) || 0,
         metodoPago: rawData.metodoPago || rawData._paymentMethod || 'tarjeta-nu',
-        esquemaPago: rawData.esquemaPago || rawData._paymentScheme || '',
+        esquemaPago: (() => {
+            const raw = rawData.esquemaPago || rawData._paymentScheme || '';
+            // Si es un tipo corto (no expandido), generar texto completo con montos y fechas
+            const shortKeys = ['33-33-34', '50-50', '6-quincenales', '6-mensuales', 'unico'];
+            if (raw && shortKeys.some(k => raw.toLowerCase().includes(k)) && raw.length < 50) {
+                const total = parseFloat(rawData.precioConDescuento) || parseFloat(rawData._price) || parseFloat(rawData.precioBase) || parseFloat(rawData._basePrice) || 0;
+                const fmt = (v) => '$' + new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+                const fmtDate = (d) => d.toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
+                const hoy = new Date();
+                const fechaEntrega = rawData.fechaEntregaDate || rawData.fechaEntrega || rawData._dueDate || '';
+                const entregaDate = fechaEntrega ? new Date(fechaEntrega + (fechaEntrega.length === 10 ? 'T12:00:00' : '')) : new Date(Date.now() + 21*24*60*60*1000);
+                const avanceDate = new Date(Date.now() + 14*24*60*60*1000);
+                const lower = raw.toLowerCase();
+                if (lower.includes('33-33-34')) {
+                    const p1 = Math.round(total * 0.33 * 100) / 100;
+                    const p2 = Math.round(total * 0.33 * 100) / 100;
+                    const p3 = Math.round((total - p1 - p2) * 100) / 100;
+                    return `33% (${fmt(p1)}) al iniciar el proyecto (${fmtDate(hoy)}), 33% (${fmt(p2)}) al entregar avance (${fmtDate(avanceDate)}) y 34% (${fmt(p3)}) al finalizar (${fmtDate(entregaDate)}), previo a la entrega de la versión final del documento.`;
+                } else if (lower.includes('6-quincenales') || lower.includes('6-mensuales')) {
+                    const mp = Math.round((total / 6) * 100) / 100;
+                    const last = Math.round((total - mp * 5) * 100) / 100;
+                    const isQ = lower.includes('quincenal');
+                    let texto = `Esquema de 6 pagos ${isQ ? 'quincenales' : 'mensuales'}: `;
+                    texto += Array.from({ length: 6 }, (_, i) => {
+                        const d = new Date(hoy);
+                        if (isQ) d.setDate(d.getDate() + i * 15); else d.setMonth(d.getMonth() + i);
+                        return `Pago ${i + 1}: ${fmt(i === 5 ? last : mp)} (${fmtDate(d)})`;
+                    }).join(', ') + '.';
+                    return texto;
+                }
+                // 50-50 default
+                const m = Math.round(total * 0.50 * 100) / 100;
+                const m2 = Math.round((total - m) * 100) / 100;
+                return `50% (${fmt(m)}) al iniciar el proyecto (${fmtDate(hoy)}) y 50% (${fmt(m2)}) al finalizar (${fmtDate(entregaDate)}), previo a la entrega de la versión final del documento.`;
+            }
+            return raw;
+        })(),
         tiempoEntrega: rawData.tiempoEntrega || rawData._deliveryTime || '',
         fechaEntrega: rawData.fechaEntrega || rawData._dueDate || '',
         serviciosIncluidos: Array.isArray(rawData.serviciosIncluidos) ? rawData.serviciosIncluidos : [],
@@ -559,6 +595,21 @@ export const generateSalesQuotePDF = async (rawData) => {
 
     yPos += 3; // Menor espacio desde la tabla
 
+    // Verificar si la sección de totales + pagos + esquema cabe en esta página
+    if (yPos + 90 > pageHeight) {
+        const footerYCurr = pageHeight - 20;
+        doc.setFillColor(...darkBlue);
+        doc.triangle(0, pageHeight, 0, footerYCurr + 5, pageWidth, footerYCurr, 'F');
+        doc.triangle(0, pageHeight, pageWidth, footerYCurr, pageWidth, pageHeight, 'F');
+        doc.setFillColor(...accentOrange);
+        doc.triangle(0, footerYCurr + 5, pageWidth, footerYCurr, pageWidth, footerYCurr - 3, 'F');
+        doc.triangle(0, footerYCurr + 5, 0, footerYCurr + 2, pageWidth, footerYCurr - 3, 'F');
+        doc.triangle(0, footerYCurr + 5, 0, footerYCurr, pageWidth, footerYCurr - 3, 'F');
+
+        doc.addPage();
+        yPos = margin;
+    }
+
     // ============ SECCIÓN DE TOTALES Y CTA (Compacta) ============
     const boxHeight = 24; // Altura muy compacta (antes 32)
     const ctaWidth = contentWidth * 0.35;
@@ -937,25 +988,36 @@ export const generateSalesQuotePDF = async (rawData) => {
     // Col 1: Esquema de Pago
     // Col 2: Firma (Centrada entre PayPal y Mercado Pago)
 
-    const columnGap = 10;
     const colWidth = contentWidth * 0.65; // Más ancho para esquema de pago con montos
     const col1X = margin;
 
-    // Calcular centro entre PayPal (index 3) y Mercado Pago (index 4)
-    // LogoStartX = margin + 10. Spacing = 34.
-    // PayPal X = margin + 10 + (3 * 34) = margin + 112
-    // MP X = margin + 10 + (4 * 34) = margin + 146
-    // Width logo = 28.
-    // Centro visual: Entre el centro de PayPal y el centro de MP, o entre los dos logos?
-    // "entre paypal y mercado pago" -> Asumiremos el espacio entre ambos logos, o el centro del bloque formado por ellos.
-    // Centro de PayPal = margin + 112 + 14 = margin + 126
-    // Centro de MP = margin + 146 + 14 = margin + 160
-    // Promedio: margin + 143.
-    // O tal vez se refiere al hueco entre ellos (margin + 112 + 28 = 140 start MP). Hueco es de 140 a 146 (6mm).
-    // Probablemente quiere que la firma esté alineada visualmente bajo esos dos últimos logos.
-    // Usaré X = margin + 135 (aprox centro de los dos últimos logos).
-    // Usaré X = margin + 135 (aprox centro de los dos últimos logos) + 7mm solicitado
     const firmaCenterX = margin + 145;
+
+    // --- Calcular espacio necesario para esquema + firma + nota + footer ---
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    const esquemaLines = doc.splitTextToSize(quoteData.esquemaPago, colWidth);
+    const paymentLineHeight = 3.5 * 1.15;
+    const esquemaHeight = 5 + (esquemaLines.length * paymentLineHeight) + 5;
+    const firmaHeight = 20;
+    const notaFooterHeight = 30;
+    const spaceNeeded = Math.max(esquemaHeight, firmaHeight) + notaFooterHeight;
+    const spaceAvailable = pageHeight - yPos;
+
+    // Si no cabe, agregar nueva página y dibujar footer en la actual
+    if (spaceNeeded > spaceAvailable) {
+        const footerY1 = pageHeight - 20;
+        doc.setFillColor(...darkBlue);
+        doc.triangle(0, pageHeight, 0, footerY1 + 5, pageWidth, footerY1, 'F');
+        doc.triangle(0, pageHeight, pageWidth, footerY1, pageWidth, pageHeight, 'F');
+        doc.setFillColor(...accentOrange);
+        doc.triangle(0, footerY1 + 5, pageWidth, footerY1, pageWidth, footerY1 - 3, 'F');
+        doc.triangle(0, footerY1 + 5, 0, footerY1 + 2, pageWidth, footerY1 - 3, 'F');
+        doc.triangle(0, footerY1 + 5, 0, footerY1, pageWidth, footerY1 - 3, 'F');
+
+        doc.addPage();
+        yPos = margin;
+    }
 
     const startSectionY = yPos;
 
@@ -971,8 +1033,6 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...darkGray);
 
-    const esquemaLines = doc.splitTextToSize(quoteData.esquemaPago, colWidth);
-    const paymentLineHeight = 3.5 * 1.15;
     esquemaLines.forEach((line, i) => {
         doc.text(line, col1X, col1Y + 5 + (i * paymentLineHeight));
     });
@@ -989,7 +1049,7 @@ export const generateSalesQuotePDF = async (rawData) => {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...darkBlue);
-    doc.setFontSize(12); // Aumentado a 1.5x (de 10 a 15)
+    doc.setFontSize(12);
     doc.text('TESIPEDIA', firmaCenterX, col2Y, { align: 'center' });
 
     doc.setFontSize(8);
@@ -997,12 +1057,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.text('Servicios Académicos Profesionales', firmaCenterX, col2Y + 5, { align: 'center' });
 
     // --- Sección Final: Nota de Validez (Posición fija) ---
-    // Bajada 30px adicionales para evitar sobreposición con las columnas
-    // Footer empieza en pageHeight - 15.
-    // Posición nota = pageHeight - 15 - 10 - 30 = pageHeight - 55.
-
-    // pageHeight ya existe en el scope superior
-    const finalNoteY = pageHeight - 25; // Bajado 30px (de -25 a -55)
+    const finalNoteY = pageHeight - 25;
 
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
@@ -1015,15 +1070,13 @@ export const generateSalesQuotePDF = async (rawData) => {
 
     // Fondo azul oscuro diagonal (Completo hasta abajo)
     doc.setFillColor(...darkBlue);
-    // Triángulo 1 (Parte superior del corte)
     doc.triangle(0, pageHeight, 0, footerY + 5, pageWidth, footerY, 'F');
-    // Triángulo 2 (Relleno esquina inferior derecha restante)
     doc.triangle(0, pageHeight, pageWidth, footerY, pageWidth, pageHeight, 'F');
 
     // Línea naranja diagonal
     doc.setFillColor(...accentOrange);
     doc.triangle(0, footerY + 5, pageWidth, footerY, pageWidth, footerY - 3, 'F');
-    doc.triangle(0, footerY + 5, 0, footerY + 2, pageWidth, footerY - 3, 'F'); // Completar grosor si es necesario
+    doc.triangle(0, footerY + 5, 0, footerY + 2, pageWidth, footerY - 3, 'F');
     doc.triangle(0, footerY + 5, 0, footerY, pageWidth, footerY - 3, 'F');
 
     // ============ GUARDAR PDF Y SUBIR A CLOUDINARY ============
