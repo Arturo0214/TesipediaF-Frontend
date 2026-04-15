@@ -2068,7 +2068,20 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-/* ===== ETIQUETAS ===== */
+/* ===== ETIQUETAS BAR (siempre visible en chat header) ===== */
+.wa-tags-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  padding: 4px 12px 6px; background: #fafafa; border-bottom: 1px solid #e5e7eb;
+  min-height: 28px;
+}
+.wa-tag-inline-input {
+  border: none; background: transparent; font-size: 0.72rem; color: #7c3aed;
+  padding: 2px 4px; width: 80px; outline: none;
+}
+.wa-tag-inline-input::placeholder { color: #c4b5fd; }
+.wa-tag-inline-input:focus { background: #ede9fe; border-radius: 8px; }
+
+/* ===== ETIQUETAS (shared) ===== */
 .wa-tags-section { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }
 .wa-tags-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
 .wa-tag {
