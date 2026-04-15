@@ -1027,6 +1027,17 @@ const AdminWhatsApp = () => {
         toast.success(hadFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
       }
 
+      // Si se envió un PDF y el lead está en cotizacion_lista → marcar como cotizacion_enviada
+      const isPdfSent = fileToSend && (fileToSend.type === 'application/pdf' || fileToSend.name?.endsWith('.pdf'));
+      const estadoActual = selectedLead?.estado_sofia;
+      if (isPdfSent && ['cotizacion_lista', 'cotizando', 'cotizacion_iniciada'].includes(estadoActual)) {
+        try {
+          await updateLeadEstado(selectedLead.wa_id, 'cotizacion_enviada');
+          setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, estado_sofia: 'cotizacion_enviada' } : l));
+          console.log('✅ Cotización enviada — estado actualizado');
+        } catch (e) { console.warn('No se pudo actualizar estado a cotizacion_enviada:', e); }
+      }
+
       // Refrescar con datos reales del servidor (reemplaza el optimistic)
       try {
         const fresh = await getLeadByWaId(selectedLead.wa_id);
@@ -1333,23 +1344,16 @@ const AdminWhatsApp = () => {
         console.error('⚠️ Error al guardar cotización en BD:', saveErr);
       }
 
-      // 3. Actualizar estado del lead a cotizacion_enviada
+      // 3. Marcar como cotizacion_lista (PDF generado, pendiente de enviar)
       const waId = f.clientPhone || selectedLead?.wa_id;
       if (waId) {
         try {
-          await updateLeadEstado(waId, 'cotizacion_enviada');
-          console.log('✅ Estado actualizado a cotizacion_enviada para:', waId);
-          // Actualizar lead local para reflejar el cambio inmediatamente
-          setLeads(prev => prev.map(l => l.wa_id === waId ? { ...l, estado_sofia: 'cotizacion_enviada' } : l));
+          await updateLeadEstado(waId, 'cotizacion_lista');
+          setLeads(prev => prev.map(l => l.wa_id === waId ? { ...l, estado_sofia: 'cotizacion_lista' } : l));
           if (selectedLead?.wa_id === waId) {
-            setSelectedLead(prev => prev ? { ...prev, estado_sofia: 'cotizacion_enviada' } : prev);
+            setSelectedLead(prev => prev ? { ...prev, estado_sofia: 'cotizacion_lista' } : prev);
           }
-        } catch (e) {
-          console.error('❌ Error actualizando estado a cotizacion_enviada:', e);
-          toast.error('No se pudo marcar como cotización enviada');
-        }
-      } else {
-        console.error('❌ No hay wa_id para actualizar estado');
+        } catch (e) { console.warn('No se pudo actualizar estado:', e); }
       }
 
       // 4. Abrir el PDF — en mobile usamos un link en vez de window.open (que se bloquea)
