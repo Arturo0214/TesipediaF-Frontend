@@ -247,23 +247,38 @@ function ManagePayments() {
             {/* Summary Cards — owner sees everything, others see only their own */}
             {(() => {
                 if (isOwner) {
+                    const pctCobrado = summary.totalIngresos > 0 ? Math.round((summary.cobrado / summary.totalIngresos) * 100) : 0;
                     return (
                         <div className="mp-pay-summary">
                             <div className="mp-pay-card mp-pay-card-green">
                                 <div className="mp-pay-card-icon"><FaDollarSign /></div>
-                                <div><p className="mp-pay-card-label">Ingresos Totales</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalIngresos)}</h2></div>
+                                <div>
+                                    <p className="mp-pay-card-label">Cobrado</p>
+                                    <h2 className="mp-pay-card-value">{formatMoney(summary.cobrado || 0)}</h2>
+                                    <p className="mp-pay-card-sub">de {formatMoney(summary.totalIngresos)} total ({pctCobrado}%)</p>
+                                </div>
+                            </div>
+                            <div className="mp-pay-card mp-pay-card-yellow">
+                                <div className="mp-pay-card-icon"><FaClock /></div>
+                                <div>
+                                    <p className="mp-pay-card-label">Por Cobrar</p>
+                                    <h2 className="mp-pay-card-value">{formatMoney(summary.pendiente || 0)}</h2>
+                                    <p className="mp-pay-card-sub">{summary.totalPagos} ventas registradas</p>
+                                </div>
                             </div>
                             <div className="mp-pay-card mp-pay-card-orange">
                                 <div className="mp-pay-card-icon"><FaPercentage /></div>
-                                <div><p className="mp-pay-card-label">Comisión Ventas (15%)</p><h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2></div>
+                                <div>
+                                    <p className="mp-pay-card-label">Comisión Ventas (15%)</p>
+                                    <h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2>
+                                </div>
                             </div>
                             <div className="mp-pay-card mp-pay-card-blue">
                                 <div className="mp-pay-card-icon"><FaChartLine /></div>
-                                <div><p className="mp-pay-card-label">Neto Empresa</p><h2 className="mp-pay-card-value">{formatMoney(summary.netoEmpresa)}</h2></div>
-                            </div>
-                            <div className="mp-pay-card mp-pay-card-purple">
-                                <div className="mp-pay-card-icon"><FaUsers /></div>
-                                <div><p className="mp-pay-card-label">Total Ventas</p><h2 className="mp-pay-card-value">{summary.totalPagos}</h2></div>
+                                <div>
+                                    <p className="mp-pay-card-label">Neto Empresa</p>
+                                    <h2 className="mp-pay-card-value">{formatMoney(summary.netoEmpresa)}</h2>
+                                </div>
                             </div>
                         </div>
                     );

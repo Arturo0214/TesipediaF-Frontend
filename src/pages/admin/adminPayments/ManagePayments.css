@@ -96,9 +96,11 @@
   font-size: 1.3rem; flex-shrink: 0;
 }
 .mp-pay-card-green .mp-pay-card-icon { background: #dcfce7; color: #16a34a; }
+.mp-pay-card-yellow .mp-pay-card-icon { background: #fef9c3; color: #ca8a04; }
 .mp-pay-card-orange .mp-pay-card-icon { background: #ffedd5; color: #ea580c; }
 .mp-pay-card-blue .mp-pay-card-icon { background: #dbeafe; color: #2563eb; }
 .mp-pay-card-purple .mp-pay-card-icon { background: #f3e8ff; color: #9333ea; }
+.mp-pay-card-sub { font-size: 0.72rem; color: #9ca3af; margin: 2px 0 0; }
 .mp-pay-card-label { font-size: 0.78rem; color: #6b7280; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
 .mp-pay-card-value { font-size: 1.4rem; font-weight: 700; color: #1f2937; margin: 4px 0 0; }
 
