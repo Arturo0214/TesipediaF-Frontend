@@ -53,6 +53,7 @@ import {
   createLeadNote,
   deleteLeadNote,
   toggleBlockLead,
+  updateLeadNotes,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -2082,6 +2083,10 @@ const AdminWhatsApp = () => {
                                 <FaExclamationTriangle className="me-1" />Sin enviar
                               </span>
                             )}
+                            {(lead.etiquetas || []).slice(0, 2).map((tag, ti) => (
+                              <span key={ti} className="wa-lead-tag-mini">{tag}</span>
+                            ))}
+                            {(lead.etiquetas || []).length > 2 && <span className="wa-lead-tag-mini wa-lead-tag-more">+{lead.etiquetas.length - 2}</span>}
                           </div>
                         </div>
                       </div>
@@ -2243,13 +2248,69 @@ const AdminWhatsApp = () => {
                 </div>
               </div>
 
-              {/* Panel de notas colapsable */}
+              {/* Panel de notas y etiquetas colapsable */}
               {showNotes && (
                 <div className="wa-notes-panel">
                   <div className="wa-notes-header">
-                    <span><FaStickyNote className="me-1" /> Notas internas</span>
+                    <span><FaStickyNote className="me-1" /> Notas y Etiquetas</span>
                     <button className="wa-notes-close" onClick={() => setShowNotes(false)}>&times;</button>
                   </div>
+
+                  {/* Etiquetas */}
+                  <div className="wa-tags-section">
+                    <div className="wa-tags-list">
+                      {(selectedLead.etiquetas || []).map((tag, i) => (
+                        <span key={i} className="wa-tag">
+                          {tag}
+                          <button className="wa-tag-remove" onClick={async () => {
+                            const updated = (selectedLead.etiquetas || []).filter((_, j) => j !== i);
+                            try {
+                              await updateLeadNotes(selectedLead.wa_id, { etiquetas: updated });
+                              setSelectedLead(prev => ({ ...prev, etiquetas: updated }));
+                              setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, etiquetas: updated } : l));
+                            } catch (err) { toast.error('Error al quitar etiqueta'); }
+                          }}>&times;</button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="wa-tags-add">
+                      <input
+                        type="text"
+                        className="wa-tags-input"
+                        placeholder="Nueva etiqueta + Enter"
+                        onKeyDown={async (e) => {
+                          if (e.key === 'Enter' && e.target.value.trim()) {
+                            const tag = e.target.value.trim();
+                            const current = selectedLead.etiquetas || [];
+                            if (current.includes(tag)) { toast.error('Etiqueta ya existe'); return; }
+                            const updated = [...current, tag];
+                            try {
+                              await updateLeadNotes(selectedLead.wa_id, { etiquetas: updated });
+                              setSelectedLead(prev => ({ ...prev, etiquetas: updated }));
+                              setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, etiquetas: updated } : l));
+                              e.target.value = '';
+                            } catch (err) { toast.error('Error al agregar etiqueta'); }
+                          }
+                        }}
+                      />
+                      <div className="wa-tags-presets">
+                        {['VIP', 'Urgente', 'Referido', 'Seguimiento', 'Pagó parcial'].map(preset => (
+                          <button key={preset} className="wa-tag-preset"
+                            onClick={async () => {
+                              const current = selectedLead.etiquetas || [];
+                              if (current.includes(preset)) return;
+                              const updated = [...current, preset];
+                              try {
+                                await updateLeadNotes(selectedLead.wa_id, { etiquetas: updated });
+                                setSelectedLead(prev => ({ ...prev, etiquetas: updated }));
+                                setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, etiquetas: updated } : l));
+                              } catch (err) { toast.error('Error al agregar etiqueta'); }
+                            }}>{preset}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="wa-notes-add">
                     <textarea
                       className="wa-notes-input"

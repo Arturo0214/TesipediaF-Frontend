@@ -2067,3 +2067,37 @@
   color: #64748b;
   border-bottom: 1px solid #e2e8f0;
 }
+
+/* ===== ETIQUETAS ===== */
+.wa-tags-section { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }
+.wa-tags-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.wa-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 12px;
+  background: #ede9fe; color: #7c3aed; font-size: 0.72rem; font-weight: 600;
+}
+.wa-tag-remove {
+  background: none; border: none; color: #7c3aed; cursor: pointer;
+  font-size: 0.85rem; padding: 0; line-height: 1; opacity: 0.6;
+}
+.wa-tag-remove:hover { opacity: 1; }
+.wa-tags-add { display: flex; flex-direction: column; gap: 4px; }
+.wa-tags-input {
+  width: 100%; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px;
+  font-size: 0.78rem; box-sizing: border-box;
+}
+.wa-tags-input:focus { border-color: #7c3aed; outline: none; }
+.wa-tags-presets { display: flex; flex-wrap: wrap; gap: 3px; }
+.wa-tag-preset {
+  padding: 1px 6px; border-radius: 10px; border: 1px dashed #d1d5db;
+  background: #fafafa; color: #6b7280; font-size: 0.65rem; cursor: pointer;
+}
+.wa-tag-preset:hover { background: #ede9fe; border-color: #7c3aed; color: #7c3aed; }
+
+/* Mini tags en lista de leads */
+.wa-lead-tag-mini {
+  display: inline-block; padding: 0 4px; border-radius: 6px;
+  background: #ede9fe; color: #7c3aed; font-size: 0.55rem; font-weight: 600;
+  max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wa-lead-tag-more { background: #f3f4f6; color: #9ca3af; }

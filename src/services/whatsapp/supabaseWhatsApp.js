@@ -73,6 +73,14 @@ export async function updateLeadEstado(waId, estado_sofia) {
 }
 
 /**
+ * Actualizar notas y etiquetas de un lead
+ */
+export async function updateLeadNotes(waId, { notas_admin, etiquetas }) {
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/notes`, { notas_admin, etiquetas });
+  return data;
+}
+
+/**
  * Verificar estado de ventana de 24h para un lead
  */
 export async function getWindowStatus(waId) {

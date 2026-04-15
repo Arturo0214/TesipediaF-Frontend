@@ -112,6 +112,30 @@ function ManagePayments() {
         setCreatingProject(null);
     };
 
+    const handleToggleInstallment = async (payment, instIndex) => {
+        const inst = payment.schedule?.[instIndex];
+        if (!inst) return;
+        const newStatus = inst.status === 'paid' ? 'pending' : 'paid';
+        try {
+            await axiosWithAuth.patch(
+                `/payments/dashboard/${payment._id}/installment?source=${payment.source}`,
+                { installmentIndex: instIndex, status: newStatus }
+            );
+            toast.success(newStatus === 'paid' ? 'Marcado como cobrado' : 'Marcado como pendiente');
+            fetchDashboard();
+            // Actualizar detailPayment si está abierto
+            if (detailPayment?._id === payment._id) {
+                setDetailPayment(prev => {
+                    const updated = { ...prev, schedule: [...prev.schedule] };
+                    updated.schedule[instIndex] = { ...updated.schedule[instIndex], status: newStatus };
+                    return updated;
+                });
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al actualizar parcialidad');
+        }
+    };
+
     const handleDeletePayment = async (payment) => {
         setDeleting(true);
         try {
@@ -760,15 +784,22 @@ function ManagePayments() {
                                                         <h4>Calendario de Pagos — {getEsquemaLabel(payment.esquema)}</h4>
                                                         <div className="mp-pay-schedule-grid">
                                                             {payment.schedule.map((inst, idx) => {
+                                                                const isPaid = inst.status === 'paid';
                                                                 const isPast = new Date(inst.dueDate) < now;
                                                                 return (
-                                                                    <div key={idx} className={`mp-pay-installment ${isPast ? 'past' : 'upcoming'}`}>
-                                                                        <div className="mp-pay-inst-icon">{isPast ? <FaCheckCircle /> : <FaClock />}</div>
+                                                                    <div key={idx}
+                                                                        className={`mp-pay-installment ${isPaid ? 'paid' : isPast ? 'past' : 'upcoming'} mp-pay-installment-clickable`}
+                                                                        onClick={(e) => { e.stopPropagation(); handleToggleInstallment(payment, idx); }}
+                                                                        title={isPaid ? 'Clic para marcar como pendiente' : 'Clic para marcar como cobrado'}>
+                                                                        <div className="mp-pay-inst-icon">{isPaid ? <FaCheckCircle style={{ color: '#16a34a' }} /> : isPast ? <FaExclamationTriangle style={{ color: '#f59e0b' }} /> : <FaClock />}</div>
                                                                         <div className="mp-pay-inst-info">
                                                                             <strong>{inst.label}</strong>
                                                                             <span>{formatDate(inst.dueDate)}</span>
                                                                         </div>
                                                                         <div className="mp-pay-inst-amount">{formatMoney(inst.amount)}</div>
+                                                                        <span className={`mp-pay-badge mp-pay-badge-${isPaid ? 'success' : isPast ? 'warning' : 'info'}`} style={{ fontSize: '0.62rem', padding: '2px 5px' }}>
+                                                                            {isPaid ? 'Cobrado' : 'Pendiente'}
+                                                                        </span>
                                                                     </div>
                                                                 );
                                                             })}
@@ -1034,20 +1065,24 @@ function ManagePayments() {
                             {detailPayment.schedule?.length > 1 && (
                                 <div className="mp-detail-section">
                                     <h4 className="mp-detail-section-title"><FaCalendarCheck /> Calendario de Parcialidades</h4>
+                                    <p style={{ fontSize: '0.72rem', color: '#9ca3af', margin: '-6px 0 8px' }}>Haz clic en una parcialidad para marcarla como cobrada</p>
                                     <div className="mp-pay-schedule-grid">
                                         {detailPayment.schedule.map((inst, idx) => {
                                             const isPast = new Date(inst.dueDate) < new Date();
                                             const isPaid = inst.status === 'paid';
                                             return (
-                                                <div key={idx} className={`mp-pay-installment ${isPaid ? 'paid' : isPast ? 'past' : 'upcoming'}`}>
+                                                <div key={idx}
+                                                    className={`mp-pay-installment ${isPaid ? 'paid' : isPast ? 'past' : 'upcoming'} mp-pay-installment-clickable`}
+                                                    onClick={() => handleToggleInstallment(detailPayment, idx)}
+                                                    title={isPaid ? 'Clic para marcar como pendiente' : 'Clic para marcar como cobrado'}>
                                                     <div className="mp-pay-inst-icon">{isPaid ? <FaCheckCircle style={{ color: '#16a34a' }} /> : isPast ? <FaExclamationTriangle style={{ color: '#f59e0b' }} /> : <FaClock />}</div>
                                                     <div className="mp-pay-inst-info">
                                                         <strong>{inst.label}</strong>
                                                         <span>{formatDate(inst.dueDate)}</span>
                                                     </div>
                                                     <div className="mp-pay-inst-amount">{formatMoney(inst.amount)}</div>
-                                                    <span className={`mp-pay-badge mp-pay-badge-${isPaid ? 'success' : isPast ? 'warning' : 'info'}`} style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
-                                                        {isPaid ? 'Pagado' : isPast ? 'Vencido' : 'Pendiente'}
+                                                    <span className={`mp-pay-badge mp-pay-badge-${isPaid ? 'success' : isPast ? 'warning' : 'info'}`} style={{ fontSize: '0.65rem', padding: '2px 6px', cursor: 'pointer' }}>
+                                                        {isPaid ? 'Cobrado' : isPast ? 'Vencido' : 'Pendiente'}
                                                     </span>
                                                 </div>
                                             );

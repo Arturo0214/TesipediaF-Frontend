@@ -740,6 +740,8 @@
 /* Installment paid state */
 .mp-pay-installment.paid { background: #f0fdf4; border-left: 3px solid #16a34a; }
 .mp-pay-installment.past { border-left: 3px solid #f59e0b; }
+.mp-pay-installment-clickable { cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
+.mp-pay-installment-clickable:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
 @media (max-width: 480px) {
   .mp-detail-client-grid { grid-template-columns: 1fr; }
