@@ -1333,9 +1333,23 @@ const AdminWhatsApp = () => {
       }
 
       // 3. Actualizar estado del lead a cotizacion_enviada
-      try {
-        await updateLeadEstado(f.clientPhone, 'cotizacion_enviada');
-      } catch (e) { console.warn('No se pudo actualizar estado:', e); }
+      const waId = f.clientPhone || selectedLead?.wa_id;
+      if (waId) {
+        try {
+          await updateLeadEstado(waId, 'cotizacion_enviada');
+          console.log('✅ Estado actualizado a cotizacion_enviada para:', waId);
+          // Actualizar lead local para reflejar el cambio inmediatamente
+          setLeads(prev => prev.map(l => l.wa_id === waId ? { ...l, estado_sofia: 'cotizacion_enviada' } : l));
+          if (selectedLead?.wa_id === waId) {
+            setSelectedLead(prev => prev ? { ...prev, estado_sofia: 'cotizacion_enviada' } : prev);
+          }
+        } catch (e) {
+          console.error('❌ Error actualizando estado a cotizacion_enviada:', e);
+          toast.error('No se pudo marcar como cotización enviada');
+        }
+      } else {
+        console.error('❌ No hay wa_id para actualizar estado');
+      }
 
       // 4. Abrir el PDF — en mobile usamos un link en vez de window.open (que se bloquea)
       if (pdfUrl) {
