@@ -2288,6 +2288,30 @@ const AdminWhatsApp = () => {
                 />
               </div>
 
+              {/* Ficha resumen del lead — auto-notas + origen */}
+              {(() => {
+                const l = selectedLead;
+                const hasData = l.tipo_servicio || l.tipo_proyecto || l.carrera || l.tema || l.precio || l.paginas || l.fecha_entrega || l.origen;
+                if (!hasData) return null;
+                const origenLabel = l.origen === 'manychat' ? 'ManyChat' : l.origen || 'WhatsApp directo';
+                return (
+                  <div className="wa-lead-summary">
+                    <div className="wa-lead-summary-grid">
+                      {l.tipo_servicio && <div className="wa-summary-item"><span className="wa-summary-label">Servicio</span><span className="wa-summary-value">{SERVICIO_LABEL[l.tipo_servicio] || formatLabel(l.tipo_servicio)}</span></div>}
+                      {l.tipo_proyecto && <div className="wa-summary-item"><span className="wa-summary-label">Proyecto</span><span className="wa-summary-value">{PROYECTO_MAP[l.tipo_proyecto] || l.tipo_proyecto}</span></div>}
+                      {l.carrera && <div className="wa-summary-item"><span className="wa-summary-label">Carrera</span><span className="wa-summary-value">{l.carrera}</span></div>}
+                      {l.nivel && <div className="wa-summary-item"><span className="wa-summary-label">Nivel</span><span className="wa-summary-value">{NIVEL_MAP[l.nivel] || l.nivel}</span></div>}
+                      {l.tema && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Tema</span><span className="wa-summary-value">{l.tema}</span></div>}
+                      {l.paginas && <div className="wa-summary-item"><span className="wa-summary-label">Páginas</span><span className="wa-summary-value">{l.paginas}</span></div>}
+                      {l.precio && <div className="wa-summary-item"><span className="wa-summary-label">Precio</span><span className="wa-summary-value wa-summary-price">{l.precio}</span></div>}
+                      {l.fecha_entrega && <div className="wa-summary-item"><span className="wa-summary-label">Entrega</span><span className="wa-summary-value">{l.fecha_entrega}</span></div>}
+                      <div className="wa-summary-item"><span className="wa-summary-label">Origen</span><span className="wa-summary-value wa-summary-origin">{origenLabel}</span></div>
+                      <div className="wa-summary-item"><span className="wa-summary-label">Llegó</span><span className="wa-summary-value">{l.created_at ? new Date(l.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</span></div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Panel de notas colapsable */}
               {showNotes && (
                 <div className="wa-notes-panel">

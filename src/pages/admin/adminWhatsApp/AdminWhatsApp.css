@@ -2068,6 +2068,26 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+/* ===== FICHA RESUMEN DEL LEAD ===== */
+.wa-lead-summary {
+  padding: 6px 12px 8px; background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%);
+  border-bottom: 1px solid #e0e7ff;
+}
+.wa-lead-summary-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 4px 12px;
+}
+.wa-summary-item { display: flex; flex-direction: column; }
+.wa-summary-wide { grid-column: span 2; }
+.wa-summary-label { font-size: 0.58rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+.wa-summary-value { font-size: 0.78rem; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-summary-price { color: #16a34a; font-weight: 700; }
+.wa-summary-origin {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 6px; border-radius: 8px; background: #dbeafe; color: #2563eb;
+  font-size: 0.7rem; font-weight: 600; width: fit-content;
+}
+
 /* ===== ETIQUETAS BAR (siempre visible en chat header) ===== */
 .wa-tags-bar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
