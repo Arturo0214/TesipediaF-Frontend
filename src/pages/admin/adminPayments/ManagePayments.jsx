@@ -720,7 +720,21 @@ function ManagePayments() {
                                                 </div>
                                             </td>
                                             <td className="mp-pay-title-cell">{payment.title}</td>
-                                            <td className="mp-pay-amount">{formatMoney(payment.amount)}</td>
+                                            <td className="mp-pay-amount">
+                                                {formatMoney(payment.amount)}
+                                                {payment.schedule?.length > 1 && (() => {
+                                                    const paid = payment.schedule.filter(s => s.status === 'paid').length;
+                                                    const total = payment.schedule.length;
+                                                    return (
+                                                        <div className="mp-pay-progress-mini">
+                                                            <div className="mp-pay-progress-bar">
+                                                                <div className="mp-pay-progress-fill" style={{ width: `${(paid / total) * 100}%` }} />
+                                                            </div>
+                                                            <span className="mp-pay-progress-label">{paid}/{total} cobrados</span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </td>
                                             <td><span className="mp-pay-esquema-badge">{getEsquemaLabel(payment.esquema)}</span></td>
                                             <td onClick={(e) => e.stopPropagation()}>
                                                 {editingVendedor === payment._id ? (
@@ -753,6 +767,13 @@ function ManagePayments() {
                                             <td>{getStatusBadge(payment.status)}</td>
                                             <td>{formatDate(payment.date)}</td>
                                             <td className="mp-pay-actions-cell">
+                                                <button
+                                                    className="mp-pay-detail-btn"
+                                                    title="Ver detalle completo"
+                                                    onClick={(e) => { e.stopPropagation(); setDetailPayment(payment); }}
+                                                >
+                                                    <FaExternalLinkAlt />
+                                                </button>
                                                 {!payment.hasProject && (
                                                     <button
                                                         className="mp-pay-create-project-btn"
@@ -773,7 +794,13 @@ function ManagePayments() {
                                                     </button>
                                                 )}
                                                 {payment.schedule?.length > 1 && (
-                                                    expandedPayment === payment._id ? <FaChevronUp className="mp-pay-expand-icon" /> : <FaChevronDown className="mp-pay-expand-icon" />
+                                                    <button
+                                                        className={`mp-pay-cobrar-btn ${expandedPayment === payment._id ? 'active' : ''}`}
+                                                        onClick={(e) => { e.stopPropagation(); setExpandedPayment(expandedPayment === payment._id ? null : payment._id); }}
+                                                        title="Ver y marcar parcialidades"
+                                                    >
+                                                        <FaDollarSign /> {expandedPayment === payment._id ? <FaChevronUp /> : <FaChevronDown />}
+                                                    </button>
                                                 )}
                                             </td>
                                         </tr>

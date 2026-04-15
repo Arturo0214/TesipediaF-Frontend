@@ -743,6 +743,32 @@
 .mp-pay-installment-clickable { cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
 .mp-pay-installment-clickable:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
+/* Progress bar en tabla */
+.mp-pay-progress-mini { margin-top: 4px; }
+.mp-pay-progress-bar {
+  width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;
+}
+.mp-pay-progress-fill { height: 100%; background: #16a34a; border-radius: 2px; transition: width 0.3s; }
+.mp-pay-progress-label { font-size: 0.62rem; color: #6b7280; display: block; margin-top: 1px; }
+
+/* Botón cobrar en tabla */
+.mp-pay-cobrar-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 8px; border-radius: 6px; border: 1px solid #16a34a;
+  background: #f0fdf4; color: #16a34a; font-size: 0.72rem; cursor: pointer;
+  transition: all 0.15s;
+}
+.mp-pay-cobrar-btn:hover { background: #dcfce7; }
+.mp-pay-cobrar-btn.active { background: #16a34a; color: #fff; }
+
+/* Botón detalle en tabla */
+.mp-pay-detail-btn {
+  display: inline-flex; align-items: center; padding: 3px 6px;
+  border-radius: 5px; border: 1px solid #d1d5db; background: #f9fafb;
+  color: #6b7280; font-size: 0.7rem; cursor: pointer; transition: all 0.15s;
+}
+.mp-pay-detail-btn:hover { background: #dbeafe; border-color: #3b82f6; color: #2563eb; }
+
 @media (max-width: 480px) {
   .mp-detail-client-grid { grid-template-columns: 1fr; }
   .mp-pay-modal-detail { max-width: 100%; }
