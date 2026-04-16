@@ -15,7 +15,7 @@ const SalesQuote = () => {
     const manualPriceLocked = useRef(false);
     const manualDiscountLocked = useRef(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
-    const [metodoPago, setMetodoPago] = useState('efectivo'); // 'efectivo' o 'tarjeta'
+    const [metodoPago, setMetodoPago] = useState('tarjeta-nu'); // 'tarjeta-nu', 'tarjeta-bbva', 'efectivo'
     const [formData, setFormData] = useState({
         clientName: '',
         clientEmail: '',
@@ -29,7 +29,7 @@ const SalesQuote = () => {
         area: '',
         carrera: '',
         extensionEstimada: '',
-        descripcionServicio: 'El servicio contempla la elaboración integral de la tesina conforme a los lineamientos institucionales aplicables, con acompañamiento académico durante todo el proceso hasta contar con una versión lista para entrega y revisión final.',
+        descripcionServicio: '',
         fechaEntrega: (() => {
             const fecha = new Date();
             fecha.setDate(fecha.getDate() + 21);
@@ -37,7 +37,7 @@ const SalesQuote = () => {
         })(),
         precioRegular: '',
         descuentoEfectivo: 10,
-        esquemaTipo: '50-50', // '50-50' o '33-33-34'
+        esquemaTipo: '33-33-34', // '33-33-34', '50-50', '6-quincenales', '6-mensuales'
         fechaPago1: new Date().toISOString().split('T')[0],
         fechaAvance: (() => {
             const fecha = new Date();
