@@ -205,6 +205,7 @@ const AdminWhatsApp = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
+  const [leadInfoOpen, setLeadInfoOpen] = useState(false);
   const [estadoFilter, setEstadoFilter] = useState('all');
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
   const [dateFilter, setDateFilter] = useState(''); // '' = all, 'YYYY-MM-DD' = specific day
@@ -2215,7 +2216,19 @@ const AdminWhatsApp = () => {
                 </div>
               </div>
 
-              {/* Row 2: Etiquetas del lead */}
+              {/* Toggle bar — siempre visible, colapsa los detalles debajo */}
+              <div className="wa-lead-toggle-bar" onClick={() => setLeadInfoOpen(!leadInfoOpen)}>
+                <div className="wa-lead-toggle-summary">
+                  {selectedLead.estado_sofia && <span className={`wa-toggle-badge wa-badge-${getEstadoBadge(selectedLead.estado_sofia)}`}>{selectedLead.estado_sofia.replace(/_/g, ' ')}</span>}
+                  {selectedLead.precio && <span className="wa-toggle-price">{selectedLead.precio}</span>}
+                  {selectedLead.tipo_servicio && <span className="wa-toggle-info">{SERVICIO_LABEL[selectedLead.tipo_servicio] || selectedLead.tipo_servicio}</span>}
+                  {(selectedLead.etiquetas || []).slice(0, 2).map((t, i) => <span key={i} className="wa-lead-tag-mini">{t}</span>)}
+                </div>
+                <span className="wa-lead-toggle-icon">{leadInfoOpen ? '▲' : '▼'} {leadInfoOpen ? 'Ocultar' : 'Ver detalles'}</span>
+              </div>
+
+              {/* Sección colapsable: pills + etiquetas + ficha resumen */}
+              {leadInfoOpen && <>
               <div className="wa-chat-row2">
                 <div className="wa-lead-info-pills">
                   {selectedLead.estado_sofia && (
@@ -2335,6 +2348,8 @@ const AdminWhatsApp = () => {
                   </div>
                 );
               })()}
+
+              </>}
 
               {/* Panel de notas colapsable */}
               {showNotes && (

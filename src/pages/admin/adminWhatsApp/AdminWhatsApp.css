@@ -2068,6 +2068,23 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+/* ===== TOGGLE BAR — colapsa detalles del lead ===== */
+.wa-lead-toggle-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+  cursor: pointer; user-select: none; min-height: 28px;
+}
+.wa-lead-toggle-bar:hover { background: #f1f5f9; }
+.wa-lead-toggle-summary { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow: hidden; }
+.wa-toggle-badge {
+  font-size: 0.65rem; padding: 1px 6px; border-radius: 8px;
+  font-weight: 600; text-transform: capitalize;
+  background: #fef3c7; color: #92400e;
+}
+.wa-toggle-price { font-size: 0.72rem; font-weight: 700; color: #16a34a; }
+.wa-toggle-info { font-size: 0.68rem; color: #6b7280; }
+.wa-lead-toggle-icon { font-size: 0.65rem; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
+
 /* ===== FICHA RESUMEN DEL LEAD ===== */
 .wa-lead-summary {
   padding: 6px 12px 8px; background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%);
