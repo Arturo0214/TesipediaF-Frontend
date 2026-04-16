@@ -206,6 +206,7 @@ const AdminWhatsApp = () => {
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
   const [leadInfoOpen, setLeadInfoOpen] = useState(false);
+  const [tagFilter, setTagFilter] = useState('all');
   const [estadoFilter, setEstadoFilter] = useState('all');
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
   const [dateFilter, setDateFilter] = useState(''); // '' = all, 'YYYY-MM-DD' = specific day
@@ -1407,10 +1408,11 @@ const AdminWhatsApp = () => {
   // Obtener estados únicos para el filtro (hardcoded para no depender de datos cargados)
   const estadosUnicos = ['bienvenida', 'cotizando', 'cotizacion_iniciada', 'cotizacion_lista', 'cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion', 'cliente_acepto', 'pagado', 'descartado', 'no_interesado', 'sin_estado'];
 
-  // Filtros aplicados server-side — client-side solo para atendido_por (que depende de historial parsing)
+  // Obtener todas las etiquetas únicas de los leads cargados
+  const allTags = [...new Set(leads.flatMap(l => l.etiquetas || []))].sort();
+
+  // Filtros aplicados server-side — client-side para atendido_por y etiquetas
   const filteredLeads = leads.filter(lead => {
-    // Estado y fecha ya se filtran en el servidor, no duplicar
-    // Solo filtrar atendido client-side como fallback por si atendido_por no está en Supabase
     if (attendedFilter !== 'all') {
       const who = getLeadAttendedBy(lead);
       if (attendedFilter === 'atendido' && !who) return false;
@@ -1418,6 +1420,9 @@ const AdminWhatsApp = () => {
       if (!['all', 'atendido', 'sin_atender'].includes(attendedFilter)) {
         if (who !== attendedFilter) return false;
       }
+    }
+    if (tagFilter !== 'all') {
+      if (!(lead.etiquetas || []).includes(tagFilter)) return false;
     }
     return true;
   }).sort((a, b) => {
@@ -2007,6 +2012,20 @@ const AdminWhatsApp = () => {
                 );
               })}
             </select>
+            {allTags.length > 0 && (
+              <select
+                className="wa-filter-select"
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+                style={tagFilter !== 'all' ? { borderColor: '#7c3aed', color: '#7c3aed', fontWeight: 600 } : {}}
+              >
+                <option value="all">Etiqueta: Todas</option>
+                {allTags.map(tag => {
+                  const count = leads.filter(l => (l.etiquetas || []).includes(tag)).length;
+                  return <option key={tag} value={tag}>{tag} ({count})</option>;
+                })}
+              </select>
+            )}
             <div className="wa-date-filter">
               <FaCalendarDay className="wa-date-icon" style={{ color: dateFilter ? '#25d366' : '#888' }} />
               <input
