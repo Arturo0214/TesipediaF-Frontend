@@ -403,8 +403,8 @@ const AdminWhatsApp = () => {
       } else {
         const hasActiveFilter = filters.estado !== 'all' || filters.atendido !== 'all' || filters.fecha || filters.search;
 
-        if (hasActiveFilter) {
-          // Con filtro activo: cargar TODAS las páginas para que el filtro client-side tenga todos los datos
+        if (hasActiveFilter && !filters.search) {
+          // Con filtro de estado/atendido/fecha: cargar todas las páginas
           const limit = PAGE_SIZE;
           let offset = 0;
           allData = [];
@@ -418,6 +418,12 @@ const AdminWhatsApp = () => {
             if (!result.hasMore || page.length === 0) keepLoading = false;
           }
           moreAvailable = false;
+        } else if (hasActiveFilter && filters.search) {
+          // Búsqueda de texto: solo primera página (server-side filtra)
+          const result = await getLeads(origenRef.current, PAGE_SIZE, 0, filters);
+          allData = Array.isArray(result) ? result : (result.leads || []);
+          totalCount = result.total || allData.length;
+          moreAvailable = result.hasMore || false;
         } else {
           // Sin filtro: solo traer la primera página (100 leads)
           const result = await getLeads(origenRef.current, PAGE_SIZE, 0, filters);
@@ -618,6 +624,8 @@ const AdminWhatsApp = () => {
   // Debounce para búsqueda por texto (evitar spam al backend)
   const searchTimerRef = useRef(null);
   useEffect(() => {
+    // Actualizar ref inmediatamente para que fetchLeads use el valor correcto
+    searchQueryRef.current = searchQuery;
     clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
       fetchLeads();
