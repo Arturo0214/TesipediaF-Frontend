@@ -65,6 +65,17 @@ export async function sendWhatsAppMessage(waId, mensaje, file = null) {
 }
 
 /**
+ * Pausar/reanudar automatizaciones (revival, follow-up, reengagement) para un lead.
+ * DISTINTO a modo_humano — este campo NO detiene a Sofia bot.
+ */
+export async function toggleAutoPaused(waId, autoPaused) {
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/auto-paused`, {
+    auto_paused: autoPaused,
+  });
+  return data;
+}
+
+/**
  * Actualizar estado_sofia de un lead
  */
 export async function updateLeadEstado(waId, estado_sofia) {

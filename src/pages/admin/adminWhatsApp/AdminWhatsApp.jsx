@@ -36,11 +36,14 @@ import {
   FaBan,
   FaUnlock,
   FaCalendarDay,
+  FaPauseCircle,
+  FaPlayCircle,
 } from 'react-icons/fa';
 import {
   getLeads,
   getLeadByWaId,
   toggleModoHumano,
+  toggleAutoPaused,
   updateLeadEstado,
   sendWhatsAppMessage,
   parseHistorial,
@@ -202,6 +205,7 @@ const AdminWhatsApp = () => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [togglingHuman, setTogglingHuman] = useState(false);
+  const [togglingAutoPaused, setTogglingAutoPaused] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
@@ -743,7 +747,7 @@ const AdminWhatsApp = () => {
     return ADMIN_COLORS[owner]?.label || owner;
   };
 
-  // Toggle modo humano
+  // Toggle modo humano (controla si Sofia bot responde o no)
   const handleToggleHuman = async () => {
     if (!selectedLead || togglingHuman) return;
     setTogglingHuman(true);
@@ -751,12 +755,30 @@ const AdminWhatsApp = () => {
       const nuevoModo = !selectedLead.modo_humano;
       await toggleModoHumano(selectedLead.wa_id, nuevoModo);
       setSelectedLead(prev => ({ ...prev, modo_humano: nuevoModo }));
-      toast.success(nuevoModo ? 'Modo humano activado — Sofía no responderá' : 'Modo bot activado — Sofía responderá');
+      toast.success(nuevoModo ? '🤐 Sofia silenciada — no responderá a este lead' : '🤖 Sofia reactivada — responderá al lead');
       fetchLeads(true);
     } catch (err) {
       toast.error('Error al cambiar modo: ' + err.message);
     } finally {
       setTogglingHuman(false);
+    }
+  };
+
+  // Toggle auto_paused (pausa/reanuda automatizaciones: revival, follow-up, reengagement)
+  // NO afecta a Sofia bot (para eso está modo_humano)
+  const handleToggleAutoPaused = async () => {
+    if (!selectedLead || togglingAutoPaused) return;
+    setTogglingAutoPaused(true);
+    try {
+      const nuevoPaused = !selectedLead.auto_paused;
+      await toggleAutoPaused(selectedLead.wa_id, nuevoPaused);
+      setSelectedLead(prev => ({ ...prev, auto_paused: nuevoPaused }));
+      setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, auto_paused: nuevoPaused } : l));
+      toast.success(nuevoPaused ? '⏸ Automatizaciones pausadas para este lead' : '▶ Automatizaciones reanudadas para este lead');
+    } catch (err) {
+      toast.error('Error al cambiar automatizaciones: ' + err.message);
+    } finally {
+      setTogglingAutoPaused(false);
     }
   };
 
@@ -2098,8 +2120,13 @@ const AdminWhatsApp = () => {
                         <div className="wa-conv-avatar">
                           <FaUser />
                           {lead.modo_humano && (
-                            <span className="wa-human-badge" title="Modo humano activo">
+                            <span className="wa-human-badge" title="Sofia silenciada">
                               <FaUserTie />
+                            </span>
+                          )}
+                          {lead.auto_paused && (
+                            <span className="wa-auto-paused-badge" title="Automatizaciones pausadas" style={{ position: 'absolute', bottom: 0, right: 0, fontSize: '0.65rem', color: '#f59e0b' }}>
+                              <FaPauseCircle />
                             </span>
                           )}
                         </div>
@@ -2226,10 +2253,30 @@ const AdminWhatsApp = () => {
                     <option value="descartado">❌ Descartado</option>
                     <option value="no_interesado">🚫 No interesado</option>
                   </select>
-                  <Button variant={selectedLead.modo_humano ? 'success' : 'outline-secondary'} size="sm"
-                    onClick={handleToggleHuman} disabled={togglingHuman} className="wa-human-toggle"
-                    title={selectedLead.modo_humano ? 'Desactivar modo humano' : 'Activar modo humano'}>
-                    {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano ? <><FaToggleOn className="me-1" /> Humano</> : <><FaToggleOff className="me-1" /> Bot</>}
+                  <Button
+                    variant={selectedLead.modo_humano ? 'danger' : 'outline-success'}
+                    size="sm"
+                    onClick={handleToggleHuman}
+                    disabled={togglingHuman}
+                    className="wa-human-toggle"
+                    title={selectedLead.modo_humano ? 'Sofia SILENCIADA — clic para reactivarla' : 'Clic para silenciar a Sofia bot (no responderá a este lead)'}
+                    style={selectedLead.modo_humano ? { fontWeight: 700, animation: 'none' } : {}}
+                  >
+                    {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano
+                      ? <><FaBan className="me-1" /> Sofia OFF</>
+                      : <><FaRobot className="me-1" /> Sofia ON</>}
+                  </Button>
+                  <Button
+                    variant={selectedLead.auto_paused ? 'warning' : 'outline-secondary'}
+                    size="sm"
+                    onClick={handleToggleAutoPaused}
+                    disabled={togglingAutoPaused}
+                    title={selectedLead.auto_paused ? 'Automatizaciones PAUSADAS — clic para reanudar (revival, follow-up, reengagement)' : 'Clic para pausar automatizaciones (revival, follow-up, reengagement) — Sofia sigue activa'}
+                    style={selectedLead.auto_paused ? { fontWeight: 700 } : {}}
+                  >
+                    {togglingAutoPaused ? <Spinner size="sm" /> : selectedLead.auto_paused
+                      ? <><FaPauseCircle className="me-1" /> Autos OFF</>
+                      : <><FaPlayCircle className="me-1" /> Autos ON</>}
                   </Button>
                   <Button
                     variant={readLeads.has(selectedLead.wa_id) ? 'outline-warning' : 'outline-info'}
@@ -2471,8 +2518,14 @@ const AdminWhatsApp = () => {
                 )}
                 {selectedLead.modo_humano && (
                   <div className="wa-human-mode-banner">
-                    <FaUserTie className="me-2" />
-                    Modo humano activo — Sofía no responderá automáticamente
+                    <FaBan className="me-2" />
+                    Sofia silenciada — no responderá automáticamente a este lead
+                  </div>
+                )}
+                {selectedLead.auto_paused && (
+                  <div className="wa-human-mode-banner" style={{ background: '#fffbeb', color: '#92400e', borderColor: '#fcd34d' }}>
+                    <FaPauseCircle className="me-2" />
+                    Automatizaciones pausadas — revival, follow-up y reengagement desactivados para este lead
                   </div>
                 )}
                 {renderMessages()}
