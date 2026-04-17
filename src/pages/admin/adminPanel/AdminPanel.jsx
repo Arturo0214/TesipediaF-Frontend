@@ -262,14 +262,7 @@ const AdminPanel = () => {
             dispatch(removeNotification(notificationId));
         });
 
-        // Polling de respaldo cada 30 segundos para detectar nuevas notificaciones
-        const pollInterval = setInterval(() => {
-            dispatch(fetchNotifications());
-        }, 30000);
-
-        return () => {
-            clearInterval(pollInterval);
-        };
+        // Socket.IO push handles real-time updates — no polling needed
         // eslint-disable-next-line
     }, [authUser?._id]);
 

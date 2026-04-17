@@ -180,7 +180,7 @@ function formatLabel(text) {
   );
 }
 
-const POLL_INTERVAL = 12000; // 12 segundos — balance entre egress y tiempo real
+const POLL_INTERVAL = 60000; // 60 segundos — reducido para bajar egress y costos
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();

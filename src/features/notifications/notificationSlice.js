@@ -4,11 +4,10 @@ import axiosWithAuth from '../../utils/axioswithAuth';
 // Obtener mis notificaciones
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetchNotifications',
-  async (_, { rejectWithValue }) => {
+  async ({ limit = 50, offset = 0 } = {}, { rejectWithValue }) => {
     try {
-      // Agregar un parámetro de timestamp para evitar el uso de caché
       const timestamp = new Date().getTime();
-      const response = await axiosWithAuth.get(`/notifications?t=${timestamp}`);
+      const response = await axiosWithAuth.get(`/notifications?limit=${limit}&offset=${offset}&_t=${timestamp}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al cargar notificaciones');
@@ -112,6 +111,8 @@ export const createNotification = createAsyncThunk(
 const initialState = {
   notifications: [],
   unreadCount: 0,
+  total: 0,
+  hasMore: false,
   loading: false,
   error: null
 };
@@ -151,11 +152,18 @@ const notificationSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchNotifications.fulfilled, (state, action) => {
-        console.log('Notificaciones recibidas:', action.payload);
+        const { notifications, total, unreadCount, hasMore } = action.payload;
         state.loading = false;
-        state.notifications = action.payload;
-        state.unreadCount = action.payload.filter(notification => !notification.isRead).length;
-        console.log('Contador de notificaciones no leídas actualizado:', state.unreadCount);
+        // Si offset > 0, append; si no, reemplazar
+        const offset = action.meta.arg?.offset || 0;
+        if (offset > 0) {
+          state.notifications = [...state.notifications, ...notifications];
+        } else {
+          state.notifications = notifications;
+        }
+        state.total = total;
+        state.unreadCount = unreadCount;
+        state.hasMore = hasMore;
       })
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
         console.log('Notificación marcada como leída:', action.payload);
