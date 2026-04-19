@@ -1,17 +1,24 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   FaWhatsapp, FaUpload, FaPaperPlane, FaSync, FaEye, FaCheck,
   FaExclamationTriangle, FaChevronDown, FaChevronUp,
   FaComments, FaUser, FaRobot, FaUserTie, FaFilter,
-  FaUsers, FaReply, FaClock, FaInbox,
+  FaUsers, FaReply, FaClock, FaInbox, FaSearch,
+  FaCalendarDay, FaTimes, FaLock, FaTag,
+  FaPauseCircle, FaEnvelope, FaBan, FaUnlock,
+  FaStickyNote, FaTrash, FaMicrophone, FaStop,
 } from 'react-icons/fa';
 import {
   getManyChatStatus, importManyChatLeads, sendManyChatReactivation,
   previewManyChatMessages, getManyChatLeads, getLeadByWaId,
   parseHistorial, sendWhatsAppMessage, toggleModoHumano,
+  updateLeadEstado, claimLead, updateLeadNotes, toggleBlockLead,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import './AdminManyChat.css';
 
+/* ── Constantes ── */
 const SEGMENTS = ['SUPER_HOT', 'HOT', 'WARM', 'TIBIO_1', 'TIBIO_2', 'FRIO', 'NEVER'];
 const SEG_COLOR = {
   SUPER_HOT: '#ef4444', HOT: '#f59e0b', WARM: '#06b6d4', TIBIO_1: '#6b7280',
@@ -21,20 +28,105 @@ const SEG_LABEL = {
   SUPER_HOT: 'Super Hot', HOT: 'Hot', WARM: 'Warm',
   TIBIO_1: 'Tibio 1', TIBIO_2: 'Tibio 2', FRIO: 'Frío', NEVER: 'Never',
 };
+
 const ESTADO_COLOR = {
   bienvenida: '#94a3b8', calificando: '#3b82f6', cotizando: '#8b5cf6',
   cotizacion_lista: '#a855f7', cotizacion_enviada: '#f59e0b', cotizacion_confirmada: '#22c55e',
   esperando_aprobacion: '#06b6d4', cliente_acepto: '#10b981', pagado: '#059669',
   descartado: '#ef4444', no_interesado: '#6b7280',
 };
-const FILTERS = [
-  { key: 'respondieron', label: 'Respondieron', icon: FaReply, color: '#22c55e' },
-  { key: 'enviados', label: 'Enviados (sin respuesta)', icon: FaClock, color: '#f59e0b' },
-  { key: 'pendientes', label: 'Pendientes', icon: FaInbox, color: '#94a3b8' },
-  { key: 'todos', label: 'Todos', icon: FaUsers, color: '#6366f1' },
+
+const ESTADOS_LIST = [
+  'bienvenida', 'calificando', 'cotizando', 'cotizacion_lista',
+  'cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion',
+  'cliente_acepto', 'pagado', 'descartado', 'no_interesado',
 ];
 
+const ADMIN_COLORS = {
+  arturo: { color: '#f59e0b', bg: '#fef3c7', label: 'Arturo', border: '#f59e0b' },
+  sandy: { color: '#9b8afb', bg: '#ede9fe', label: 'Sandy', border: '#9b8afb' },
+  hugo: { color: '#3b82f6', bg: '#dbeafe', label: 'Hugo', border: '#3b82f6' },
+  _attended: { color: '#10b981', bg: '#d1fae5', label: 'Atendido', border: '#10b981' },
+  _default: { color: '#d1d5db', bg: '#f9fafb', label: 'Sin atender', border: '#d1d5db' },
+};
+
+const SERVICIO_LABEL = {
+  servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría',
+  modalidad1: 'Redacción completa', correccion: 'Correcciones', modalidad2: 'Asesoría',
+};
+const PROYECTO_MAP = { proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro' };
+const NIVEL_MAP = {
+  nivel_1: 'Preparatoria', nivel_2: 'Licenciatura', nivel_3: 'Maestría',
+  nivel_4: 'Especialidad', nivel_5: 'Diplomado', nivel_6: 'Doctorado',
+};
+
+const POLL_INTERVAL = 60000;
+
+/* ── Helpers ── */
+function normalizeAdminName(raw) {
+  if (!raw) return null;
+  const lower = raw.toLowerCase().trim();
+  if (lower.includes('arturo')) return 'arturo';
+  if (lower.includes('sandy')) return 'sandy';
+  if (lower.includes('hugo')) return 'hugo';
+  return lower.split(' ')[0];
+}
+
+function getLeadAttendedBy(lead) {
+  if (lead?.atendido_por) return normalizeAdminName(lead.atendido_por);
+  const hist = parseHistorial(lead?.historial_chat);
+  for (let i = hist.length - 1; i >= 0; i--) {
+    const c = hist[i]?.content || '';
+    const match = c.match(/^\[HUMANO:([^\]]+)\]/);
+    if (match) return normalizeAdminName(match[1]);
+    if (c.startsWith('[HUMANO]')) return '_attended';
+  }
+  return null;
+}
+
+function getAttendedColor(lead) {
+  const who = getLeadAttendedBy(lead);
+  if (!who) return ADMIN_COLORS._default;
+  return ADMIN_COLORS[who] || ADMIN_COLORS._attended;
+}
+
+function fmt(ts) {
+  if (!ts) return '';
+  const d = new Date(ts), diff = Date.now() - d;
+  if (diff < 86400000) return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  if (diff < 172800000) return 'Ayer';
+  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+}
+
+function fmtFull(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function getLastMessage(lead) {
+  const hist = parseHistorial(lead?.historial_chat);
+  if (hist.length === 0) return lead?.ultimo_mensaje_preview || '';
+  const last = hist[hist.length - 1];
+  let content = last?.content || '';
+  content = content.replace(/\[HUMANO:.*?\]\s*/, '').replace(/\[STATE:\{.*?\}\]/g, '').trim();
+  if (content.length > 60) content = content.slice(0, 60) + '...';
+  return content;
+}
+
+function getUnreadCount(lead) {
+  const hist = parseHistorial(lead?.historial_chat);
+  let count = 0;
+  for (let i = hist.length - 1; i >= 0; i--) {
+    if (hist[i]?.role === 'user') count++;
+    else break;
+  }
+  return count;
+}
+
 export default function AdminManyChat() {
+  const { user: authUser } = useSelector((state) => state.auth || {});
+  const currentAdminKey = normalizeAdminName(authUser?.name || authUser?.nombre || '');
+
   /* ── Status / Campaign state ── */
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +143,6 @@ export default function AdminManyChat() {
   const [showCampaign, setShowCampaign] = useState(false);
 
   /* ── Leads / Chat state ── */
-  const [activeFilter, setActiveFilter] = useState('respondieron');
   const [leads, setLeads] = useState([]);
   const [leadsLoading, setLeadsLoading] = useState(false);
   const [leadsStats, setLeadsStats] = useState({});
@@ -63,6 +154,27 @@ export default function AdminManyChat() {
   const [togglingHumano, setTogglingHumano] = useState(false);
   const chatEndRef = useRef(null);
   const msgInputRef = useRef(null);
+  const pollRef = useRef(null);
+
+  /* ── Filters ── */
+  const [searchQuery, setSearchQuery] = useState('');
+  const [estadoFilter, setEstadoFilter] = useState('all');
+  const [attendedFilter, setAttendedFilter] = useState('all');
+  const [segmentFilter, setSegmentFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('');
+
+  /* ── Lead detail state ── */
+  const [updatingEstado, setUpdatingEstado] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [leadInfoOpen, setLeadInfoOpen] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [newNote, setNewNote] = useState('');
+  const [blocking, setBlocking] = useState(false);
+
+  /* ── Read tracking ── */
+  const [readLeads, setReadLeads] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('mc_read_leads') || '[]')); } catch { return new Set(); }
+  });
 
   /* ── Fetch helpers ── */
   const fetchStatus = useCallback(async () => {
@@ -74,20 +186,105 @@ export default function AdminManyChat() {
     finally { setLoading(false); }
   }, []);
 
-  const fetchLeads = useCallback(async (filter) => {
+  const fetchLeads = useCallback(async () => {
     try {
       setLeadsLoading(true);
-      const data = await getManyChatLeads(filter || activeFilter, 1, 100);
+      // Fetch ALL ManyChat leads (we filter client-side for rich filtering)
+      const data = await getManyChatLeads('todos', 1, 500);
       setLeads(data.leads || data || []);
       if (data.stats) setLeadsStats(data.stats);
-    } catch (err) { toast.error('Error: ' + err.message); }
+    } catch (err) { toast.error('Error cargando leads: ' + err.message); }
     finally { setLeadsLoading(false); }
-  }, [activeFilter]);
+  }, []);
 
-  useEffect(() => { fetchStatus(); }, [fetchStatus]);
-  useEffect(() => { fetchLeads(activeFilter); }, [activeFilter]); // eslint-disable-line
+  useEffect(() => { fetchStatus(); fetchLeads(); }, []); // eslint-disable-line
 
-  const handleFilterChange = (f) => { setActiveFilter(f); setSelectedLead(null); setChatMessages([]); };
+  // Polling
+  useEffect(() => {
+    pollRef.current = setInterval(() => { fetchLeads(); }, POLL_INTERVAL);
+    return () => clearInterval(pollRef.current);
+  }, [fetchLeads]);
+
+  // Persist read state
+  useEffect(() => {
+    localStorage.setItem('mc_read_leads', JSON.stringify([...readLeads]));
+  }, [readLeads]);
+
+  /* ── Client-side filtering & sorting ── */
+  const filteredLeads = useMemo(() => {
+    let result = [...leads];
+
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(l => {
+        const name = (l.nombre || '').toLowerCase();
+        const phone = (l.wa_id || '').toLowerCase();
+        const tema = (l.tema || '').toLowerCase();
+        const carrera = (l.carrera || '').toLowerCase();
+        const preview = (l.ultimo_mensaje_preview || '').toLowerCase();
+        return name.includes(q) || phone.includes(q) || tema.includes(q) || carrera.includes(q) || preview.includes(q);
+      });
+    }
+
+    // Estado filter
+    if (estadoFilter !== 'all') {
+      result = result.filter(l => (l.estado_sofia || 'sin_estado') === estadoFilter);
+    }
+
+    // Attended filter
+    if (attendedFilter !== 'all') {
+      if (attendedFilter === 'sin_atender') {
+        result = result.filter(l => !getLeadAttendedBy(l));
+      } else if (attendedFilter === 'atendido') {
+        result = result.filter(l => !!getLeadAttendedBy(l));
+      } else {
+        result = result.filter(l => getLeadAttendedBy(l) === attendedFilter);
+      }
+    }
+
+    // Segment filter
+    if (segmentFilter !== 'all') {
+      result = result.filter(l => l.manychat_segment === segmentFilter);
+    }
+
+    // Date filter
+    if (dateFilter) {
+      result = result.filter(l => {
+        if (!l.created_at) return false;
+        return l.created_at.startsWith(dateFilter);
+      });
+    }
+
+    // Sort: unread first, then by updated_at desc
+    result.sort((a, b) => {
+      const aUnread = getUnreadCount(a) > 0 && !readLeads.has(a.wa_id) ? 1 : 0;
+      const bUnread = getUnreadCount(b) > 0 && !readLeads.has(b.wa_id) ? 1 : 0;
+      if (bUnread !== aUnread) return bUnread - aUnread;
+      // Priority estados
+      const PRIORITY = ['esperando_aprobacion', 'cotizacion_enviada', 'cotizacion_confirmada', 'cliente_acepto'];
+      const aPri = PRIORITY.includes(a.estado_sofia) ? 1 : 0;
+      const bPri = PRIORITY.includes(b.estado_sofia) ? 1 : 0;
+      if (bPri !== aPri) return bPri - aPri;
+      // Human mode active = higher priority
+      if (a.modo_humano && !b.modo_humano) return -1;
+      if (!a.modo_humano && b.modo_humano) return 1;
+      return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
+    });
+
+    return result;
+  }, [leads, searchQuery, estadoFilter, attendedFilter, segmentFilter, dateFilter, readLeads]);
+
+  /* ── Derived data for filters ── */
+  const estadosUnicos = useMemo(() => {
+    const set = new Set(leads.map(l => l.estado_sofia || 'sin_estado'));
+    return ESTADOS_LIST.filter(e => set.has(e));
+  }, [leads]);
+
+  const segmentsPresent = useMemo(() => {
+    const set = new Set(leads.map(l => l.manychat_segment).filter(Boolean));
+    return SEGMENTS.filter(s => set.has(s));
+  }, [leads]);
 
   /* ── Campaign actions ── */
   const toggleSegment = (seg) => setSelectedSegments(p => p.includes(seg) ? p.filter(s => s !== seg) : [...p, seg]);
@@ -120,12 +317,22 @@ export default function AdminManyChat() {
     finally { setPreviewing(false); }
   };
 
-  /* ── Chat actions ── */
+  /* ── Chat / Lead actions ── */
   const handleSelectLead = async (lead) => {
-    setSelectedLead(lead); setChatLoading(true);
+    setSelectedLead(lead);
+    setChatLoading(true);
+    setLeadInfoOpen(false);
+    setShowNotes(false);
+    // Mark as read
+    setReadLeads(prev => {
+      const next = new Set(prev);
+      next.add(lead.wa_id);
+      return next;
+    });
     try {
       const data = await getLeadByWaId(lead.wa_id);
       const ld = data.lead || data;
+      setSelectedLead(ld);
       setChatMessages(parseHistorial(ld.historial_chat));
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch { setChatMessages([]); }
@@ -159,313 +366,622 @@ export default function AdminManyChat() {
     finally { setSendingMsg(false); msgInputRef.current?.focus(); }
   };
 
-  const isHuman = (c) => c?.startsWith?.('[HUMANO');
-  const fmt = (ts) => {
-    if (!ts) return '';
-    const d = new Date(ts), diff = Date.now() - d;
-    if (diff < 86400000) return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-    if (diff < 172800000) return 'Ayer';
-    return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+  const handleUpdateEstado = async (nuevoEstado) => {
+    if (!selectedLead || updatingEstado) return;
+    try {
+      setUpdatingEstado(true);
+      await updateLeadEstado(selectedLead.wa_id, nuevoEstado);
+      setSelectedLead(p => ({ ...p, estado_sofia: nuevoEstado }));
+      setLeads(p => p.map(l => l.wa_id === selectedLead.wa_id ? { ...l, estado_sofia: nuevoEstado } : l));
+      toast.success(`Estado → ${nuevoEstado.replace(/_/g, ' ')}`);
+    } catch (err) { toast.error(err.message); }
+    finally { setUpdatingEstado(false); }
   };
+
+  const handleClaimLead = async () => {
+    if (!selectedLead || claiming) return;
+    const adminName = authUser?.name || authUser?.nombre || 'Admin';
+    try {
+      setClaiming(true);
+      await claimLead(selectedLead.wa_id, adminName);
+      setSelectedLead(p => ({ ...p, atendido_por: adminName }));
+      setLeads(p => p.map(l => l.wa_id === selectedLead.wa_id ? { ...l, atendido_por: adminName } : l));
+      toast.success(`Lead asignado a ${adminName}`);
+    } catch (err) { toast.error(err.message); }
+    finally { setClaiming(false); }
+  };
+
+  const handleToggleBlock = async () => {
+    if (!selectedLead || blocking) return;
+    try {
+      setBlocking(true);
+      const newVal = !selectedLead.bloqueado;
+      await toggleBlockLead(selectedLead.wa_id, newVal);
+      setSelectedLead(p => ({ ...p, bloqueado: newVal }));
+      setLeads(p => p.map(l => l.wa_id === selectedLead.wa_id ? { ...l, bloqueado: newVal } : l));
+      toast.success(newVal ? 'Contacto bloqueado' : 'Contacto desbloqueado');
+    } catch (err) { toast.error(err.message); }
+    finally { setBlocking(false); }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!selectedLead) return;
+    try {
+      await updateLeadNotes(selectedLead.wa_id, {
+        notas_admin: selectedLead.notas_admin || '',
+        etiquetas: selectedLead.etiquetas || [],
+      });
+      toast.success('Notas guardadas');
+    } catch (err) { toast.error(err.message); }
+  };
+
+  /* ── Render helpers ── */
+  const isHuman = (c) => c?.startsWith?.('[HUMANO');
 
   const segBadge = (seg) => {
     if (!seg) return null;
-    return <span style={{ background: SEG_COLOR[seg] || '#ccc', color: seg === 'NEVER' ? '#333' : '#fff', padding: '1px 6px', borderRadius: 8, fontSize: '0.6rem', fontWeight: 700 }}>{SEG_LABEL[seg] || seg}</span>;
+    return (
+      <span className="mc-badge" style={{ background: SEG_COLOR[seg] || '#ccc', color: seg === 'NEVER' ? '#333' : '#fff' }}>
+        {SEG_LABEL[seg] || seg}
+      </span>
+    );
   };
 
   const estadoBadge = (estado) => {
     if (!estado) return null;
-    const label = estado.replace(/_/g, ' ');
-    return <span style={{ background: ESTADO_COLOR[estado] || '#94a3b8', color: '#fff', padding: '1px 6px', borderRadius: 8, fontSize: '0.6rem', fontWeight: 600 }}>{label}</span>;
+    return (
+      <span className="mc-badge" style={{ background: ESTADO_COLOR[estado] || '#94a3b8', color: '#fff' }}>
+        {estado.replace(/_/g, ' ')}
+      </span>
+    );
   };
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}><div className="mc-spin" /><style>{`.mc-spin{width:28px;height:28px;border:3px solid #e5e7eb;border-top-color:#22c55e;border-radius:50%;animation:mcs .7s linear infinite}@keyframes mcs{to{transform:rotate(360deg)}}`}</style></div>;
+  const hasActiveFilters = estadoFilter !== 'all' || attendedFilter !== 'all' || segmentFilter !== 'all' || dateFilter || searchQuery.trim();
+
+  const clearAllFilters = () => {
+    setEstadoFilter('all');
+    setAttendedFilter('all');
+    setSegmentFilter('all');
+    setDateFilter('');
+    setSearchQuery('');
+  };
+
+  if (loading && leads.length === 0) {
+    return (
+      <div className="mc-loading-screen">
+        <div className="mc-spinner" />
+        <p>Cargando ManyChat...</p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <style>{`
-        .mc{display:flex;flex-direction:column;height:100%;background:#f8fafc;overflow:hidden}
-        .mc-top{padding:12px 16px;border-bottom:1px solid #e2e8f0;background:#fff;flex-shrink:0}
-        .mc-top h4{margin:0;font-size:1.1rem;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8px}
-        .mc-top-acts{display:flex;gap:6px;margin-left:auto;align-items:center}
-        .mc-stats{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid #e2e8f0;background:#fff;flex-shrink:0;overflow-x:auto}
-        .mc-stat{display:flex;flex-direction:column;align-items:center;padding:8px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;min-width:90px;cursor:pointer;transition:all .15s}
-        .mc-stat.active{background:#f0fdf4;border-color:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.15)}
-        .mc-stat:hover{border-color:#22c55e}
-        .mc-stat-num{font-size:1.4rem;font-weight:800;line-height:1}
-        .mc-stat-label{font-size:0.65rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;text-align:center}
-        .mc-body{display:flex;flex:1;overflow:hidden}
-        .mc-left{width:320px;min-width:260px;display:flex;flex-direction:column;border-right:1px solid #e2e8f0;background:#fff;flex-shrink:0}
-        .mc-list{flex:1;overflow-y:auto}
-        .mc-item{display:flex;gap:8px;padding:10px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .12s}
-        .mc-item:hover{background:#f8fafc}
-        .mc-item.sel{background:#f0fdf4;border-left:3px solid #22c55e}
-        .mc-item-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.8rem;flex-shrink:0}
-        .mc-item-info{flex:1;min-width:0;overflow:hidden}
-        .mc-item-name{font-weight:600;font-size:.85rem;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .mc-item-preview{font-size:.72rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .mc-item-meta{display:flex;gap:4px;margin-top:3px;align-items:center;flex-wrap:wrap}
-        .mc-item-time{font-size:.65rem;color:#94a3b8;white-space:nowrap;margin-left:auto}
-        .mc-right{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#e5ddd5;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cec4' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
-        .mc-ch-head{background:#fff;padding:8px 12px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
-        .mc-ch-name{font-weight:700;font-size:.9rem;color:#0f172a}
-        .mc-ch-sub{font-size:.7rem;color:#64748b}
-        .mc-msgs{flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:4px}
-        .mc-m{max-width:70%;padding:7px 11px;border-radius:8px;font-size:.84rem;line-height:1.4;word-wrap:break-word;box-shadow:0 1px 1px rgba(0,0,0,.08);white-space:pre-wrap;word-break:break-word;margin-bottom:1px}
-        .mc-m.u{align-self:flex-start;background:#fff;border-top-left-radius:2px}
-        .mc-m.a{align-self:flex-end;background:#d4edff;border-top-right-radius:2px}
-        .mc-m.h{align-self:flex-end;background:#dcf8c6;border-top-right-radius:2px}
-        .mc-m-sender{font-size:.66rem;font-weight:600;margin-bottom:1px}
-        .mc-m-time{font-size:.6rem;color:#888;text-align:right;margin-top:2px}
-        .mc-input{background:#f0f2f5;padding:6px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
-        .mc .mc-input input{flex:1;border:none;border-radius:20px;padding:8px 14px;font-size:.84rem;outline:none;background:#fff;font-family:inherit}
-        .mc-send-btn{background:#25D366;color:#fff;border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .mc-send-btn:disabled{background:#cbd5e1;cursor:not-allowed}
-        .mc-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#94a3b8;text-align:center;padding:16px}
-        .mc-campaign{border-bottom:1px solid #e2e8f0;background:#fefce8;flex-shrink:0}
-        .mc-campaign-hdr{padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;font-size:.85rem;color:#92400e}
-        .mc-campaign-body{padding:0 16px 12px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
-        .mc-seg{padding:3px 10px;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .12s;display:inline-flex;align-items:center;gap:4px}
-        .mc-seg.on{border-color:currentColor;opacity:1}
-        .mc-seg.off{opacity:.45}
-        .mc-btn{padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid #d1d5db;background:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;font-family:inherit}
-        .mc-btn:hover{border-color:#22c55e;color:#22c55e}
-        .mc-btn:disabled{opacity:.5;cursor:not-allowed}
-        .mc-btn.primary{background:#22c55e;color:#fff;border-color:#22c55e}
-        .mc-btn.primary:hover{background:#16a34a}
-        .mc-result{font-size:.78rem;padding:4px 10px;border-radius:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
-        .mc-back-btn{display:none;background:none;border:none;cursor:pointer;color:#0f172a;padding:4px}
-        @media(max-width:768px){
-          .mc-body{flex-direction:column}
-          .mc-left{display:${selectedLead ? 'none' : 'flex'} !important;width:100% !important;min-width:auto !important;border-right:none;height:100%}
-          .mc-right{display:${selectedLead ? 'flex' : 'none'} !important;width:100% !important;height:100%}
-          .mc-back-btn{display:flex !important}
-          .mc-stats{gap:6px;padding:8px 12px}
-          .mc-stat{padding:6px 10px;min-width:70px}
-          .mc-stat-num{font-size:1.1rem}
-          .mc-stat-label{font-size:.58rem}
-          .mc-m{max-width:85%}
-          .mc-campaign-body{flex-direction:column;gap:8px}
-          .mc-item{padding:8px 10px}
-        }
-        @media(max-width:480px){
-          .mc-top{padding:8px 12px}
-          .mc-top h4{font-size:.95rem}
-          .mc-stats{flex-wrap:nowrap}
-        }
-      `}</style>
-
-      <div className="mc">
-        {/* Header */}
-        <div className="mc-top">
-          <h4>
-            <FaWhatsapp style={{ color: '#25D366' }} />
-            ManyChat
-            <span style={{ fontSize: '.7rem', color: '#64748b', fontWeight: 400 }}>
-              {status?.importedToSupabase || 0} importados de {status?.totalContacts || 0}
-            </span>
-            <div className="mc-top-acts">
-              <button className="mc-btn" onClick={() => setShowCampaign(!showCampaign)} style={{ fontSize: '.72rem' }}>
-                <FaPaperPlane /> Campaña {showCampaign ? <FaChevronUp size={10} /> : <FaChevronDown size={10} />}
-              </button>
-              <button className="mc-btn" onClick={() => { fetchStatus(); fetchLeads(); }}>
-                <FaSync size={12} />
-              </button>
-            </div>
-          </h4>
+    <div className="mc-panel">
+      {/* ═══ LEFT HEADER ═══ */}
+      <div className="mc-header">
+        <FaWhatsapp className="mc-header-icon" />
+        <span className="mc-header-title">ManyChat</span>
+        <span className="mc-header-count">
+          {filteredLeads.length} de {leads.length} leads
+        </span>
+        <div className="mc-header-actions">
+          <button
+            className="mc-header-btn mc-campaign-toggle"
+            onClick={() => setShowCampaign(!showCampaign)}
+            title="Panel de campaña"
+          >
+            <FaPaperPlane /> Campaña {showCampaign ? <FaChevronUp size={10} /> : <FaChevronDown size={10} />}
+          </button>
+          <button className="mc-header-btn" onClick={() => { fetchStatus(); fetchLeads(); }} title="Refrescar">
+            <FaSync size={12} />
+          </button>
         </div>
+      </div>
 
-        {/* Campaign panel (collapsible) */}
-        {showCampaign && (
-          <div className="mc-campaign">
-            <div className="mc-campaign-body" style={{ paddingTop: 10 }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: '.72rem', fontWeight: 600, color: '#92400e', marginBottom: 6 }}>SEGMENTOS</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {SEGMENTS.map(seg => (
-                    <span key={seg} className={`mc-seg ${selectedSegments.includes(seg) ? 'on' : 'off'}`}
-                      style={{ color: SEG_COLOR[seg], background: selectedSegments.includes(seg) ? SEG_COLOR[seg] + '18' : '#f1f5f9' }}
-                      onClick={() => toggleSegment(seg)}>
-                      {selectedSegments.includes(seg) && <FaCheck size={9} />}
-                      {SEG_LABEL[seg]} ({status?.segmentCounts?.[seg] || 0})
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <label style={{ fontSize: '.72rem', fontWeight: 600, color: '#92400e', whiteSpace: 'nowrap' }}>Max:</label>
-                  <input type="number" value={maxPerRun} onChange={e => setMaxPerRun(Math.max(1, parseInt(e.target.value) || 1))}
-                    min={1} max={200} style={{ width: 60, padding: '3px 6px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: '.8rem', fontFamily: 'inherit' }} />
-                  <label style={{ fontSize: '.72rem', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} />
-                    {dryRun ? 'Sim' : <span style={{ color: '#dc2626', fontWeight: 700 }}>REAL</span>}
-                  </label>
-                </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <button className="mc-btn" onClick={handleImport} disabled={importing || selectedSegments.length === 0}>
-                    {importing ? '...' : <><FaUpload size={11} /> Importar</>}
-                  </button>
-                  <button className={`mc-btn ${dryRun ? '' : 'primary'}`} onClick={handleSend} disabled={sending || selectedSegments.length === 0}>
-                    {sending ? '...' : <><FaPaperPlane size={11} /> Enviar</>}
-                  </button>
-                </div>
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <select value={previewSegment} onChange={e => setPreviewSegment(e.target.value)}
-                    style={{ fontSize: '.72rem', padding: '3px 6px', borderRadius: 6, border: '1px solid #d1d5db', fontFamily: 'inherit' }}>
-                    {SEGMENTS.map(s => <option key={s} value={s}>{SEG_LABEL[s]}</option>)}
-                  </select>
-                  <button className="mc-btn" onClick={handlePreview} disabled={previewing} style={{ fontSize: '.72rem' }}>
-                    <FaEye size={11} /> Preview
-                  </button>
-                </div>
-                {importResult && <span className="mc-result">{importResult.created} creados, {importResult.updated} actualizados</span>}
-                {sendResult && <span className="mc-result">{sendResult.sent} enviados, {sendResult.skipped} saltados</span>}
-              </div>
-            </div>
-            {previews && (
-              <div style={{ padding: '0 16px 10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontWeight: 600, fontSize: '.8rem' }}>Preview: {SEG_LABEL[previews.segment]}</span>
-                  <button className="mc-btn" onClick={() => setPreviews(null)} style={{ fontSize: '.7rem', padding: '2px 8px' }}>Cerrar</button>
-                </div>
-                {previews.previews.map((p, i) => (
-                  <div key={i} style={{ background: '#fff', borderRadius: 8, padding: 8, marginBottom: 4, border: '1px solid #e5e7eb', fontSize: '.78rem' }}>
-                    <strong>{p.nombre || p.wa_id}</strong>
-                    <div style={{ whiteSpace: 'pre-wrap', marginTop: 4, color: '#374151' }}>{p.message || '(no se enviaría)'}</div>
-                  </div>
+      {/* ═══ CAMPAIGN PANEL (collapsible) ═══ */}
+      {showCampaign && (
+        <div className="mc-campaign-panel">
+          <div className="mc-campaign-inner">
+            <div className="mc-campaign-segments">
+              <div className="mc-campaign-section-title">SEGMENTOS</div>
+              <div className="mc-segments-grid">
+                {SEGMENTS.map(seg => (
+                  <span
+                    key={seg}
+                    className={`mc-seg-chip ${selectedSegments.includes(seg) ? 'on' : 'off'}`}
+                    style={{
+                      '--seg-color': SEG_COLOR[seg],
+                      background: selectedSegments.includes(seg) ? SEG_COLOR[seg] + '18' : '#f1f5f9',
+                      color: SEG_COLOR[seg],
+                    }}
+                    onClick={() => toggleSegment(seg)}
+                  >
+                    {selectedSegments.includes(seg) && <FaCheck size={9} />}
+                    {SEG_LABEL[seg]} ({status?.segmentCounts?.[seg] || 0})
+                  </span>
                 ))}
               </div>
+            </div>
+            <div className="mc-campaign-controls">
+              <div className="mc-campaign-row">
+                <label className="mc-campaign-label">Max:</label>
+                <input type="number" value={maxPerRun} onChange={e => setMaxPerRun(Math.max(1, parseInt(e.target.value) || 1))}
+                  min={1} max={200} className="mc-campaign-input" />
+                <label className="mc-campaign-checkbox">
+                  <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} />
+                  {dryRun ? 'Sim' : <span className="mc-real-label">REAL</span>}
+                </label>
+              </div>
+              <div className="mc-campaign-row">
+                <button className="mc-btn mc-btn-outline" onClick={handleImport} disabled={importing || selectedSegments.length === 0}>
+                  {importing ? '...' : <><FaUpload size={11} /> Importar</>}
+                </button>
+                <button className={`mc-btn ${dryRun ? 'mc-btn-outline' : 'mc-btn-primary'}`} onClick={handleSend} disabled={sending || selectedSegments.length === 0}>
+                  {sending ? '...' : <><FaPaperPlane size={11} /> Enviar</>}
+                </button>
+              </div>
+              <div className="mc-campaign-row">
+                <select value={previewSegment} onChange={e => setPreviewSegment(e.target.value)} className="mc-campaign-select">
+                  {SEGMENTS.map(s => <option key={s} value={s}>{SEG_LABEL[s]}</option>)}
+                </select>
+                <button className="mc-btn mc-btn-outline" onClick={handlePreview} disabled={previewing}>
+                  <FaEye size={11} /> Preview
+                </button>
+              </div>
+              {importResult && <div className="mc-result-badge">{importResult.created} creados, {importResult.updated} actualizados</div>}
+              {sendResult && <div className="mc-result-badge">{sendResult.sent} enviados, {sendResult.skipped} saltados</div>}
+            </div>
+          </div>
+          {previews && (
+            <div className="mc-preview-panel">
+              <div className="mc-preview-header">
+                <span>Preview: {SEG_LABEL[previews.segment]}</span>
+                <button className="mc-btn mc-btn-sm" onClick={() => setPreviews(null)}>Cerrar</button>
+              </div>
+              {previews.previews.map((p, i) => (
+                <div key={i} className="mc-preview-card">
+                  <strong>{p.nombre || p.wa_id}</strong>
+                  <div className="mc-preview-msg">{p.message || '(no se enviaría)'}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ MAIN BODY ═══ */}
+      <div className="mc-body">
+        {/* ── LEFT COLUMN: Search + Filters + Lead List ── */}
+        <div className={`mc-left-col ${selectedLead ? 'mc-hide-mobile' : ''}`}>
+          {/* Search */}
+          <div className="mc-search-box">
+            <FaSearch className="mc-search-icon" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, teléfono, tema..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mc-search-input"
+            />
+            {searchQuery && (
+              <button className="mc-search-clear" onClick={() => setSearchQuery('')}>
+                <FaTimes size={10} />
+              </button>
             )}
           </div>
-        )}
 
-        {/* Filter tabs */}
-        <div className="mc-stats">
-          {FILTERS.map(f => {
-            const Icon = f.icon;
-            const count = f.key === 'todos' ? (leadsStats.total || leads.length)
-              : f.key === 'respondieron' ? (leadsStats.respondieron || 0)
-              : f.key === 'enviados' ? (leadsStats.enviados || 0)
-              : (leadsStats.pendientes || 0);
-            return (
-              <div key={f.key} className={`mc-stat ${activeFilter === f.key ? 'active' : ''}`} onClick={() => handleFilterChange(f.key)}>
-                <span className="mc-stat-num" style={{ color: f.color }}>{count}</span>
-                <span className="mc-stat-label"><Icon size={9} style={{ marginRight: 2 }} />{f.label}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Main body: list + chat */}
-        <div className="mc-body">
-          {/* Lead list */}
-          <div className="mc-left">
-            <div className="mc-list">
-              {leadsLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: 30 }}><div className="mc-spin" /></div>
-              ) : leads.length === 0 ? (
-                <div className="mc-empty" style={{ padding: 40 }}>
-                  <FaFilter size={28} style={{ opacity: .3 }} />
-                  <p style={{ margin: 0, fontSize: '.85rem' }}>Sin leads en "{FILTERS.find(f => f.key === activeFilter)?.label}"</p>
-                </div>
-              ) : leads.map(lead => {
-                const sel = selectedLead?.wa_id === lead.wa_id;
-                const colors = ['#25D366','#0088E0','#7C3AED','#F59E0B','#EF4444','#10B981','#8B5CF6','#3B82F6'];
-                const avCol = colors[(lead.nombre || lead.wa_id || '?').charCodeAt(0) % colors.length];
-                return (
-                  <div key={lead.wa_id} className={`mc-item${sel ? ' sel' : ''}`} onClick={() => handleSelectLead(lead)}>
-                    <div className="mc-item-av" style={{ background: avCol }}>{(lead.nombre || lead.wa_id || '?')[0].toUpperCase()}</div>
-                    <div className="mc-item-info">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span className="mc-item-name">{lead.nombre || lead.wa_id}</span>
-                        <span className="mc-item-time">{fmt(lead.updated_at)}</span>
-                      </div>
-                      <div className="mc-item-preview">{lead.ultimo_mensaje_preview || lead.estado_sofia || ''}</div>
-                      <div className="mc-item-meta">
-                        {segBadge(lead.manychat_segment)}
-                        {estadoBadge(lead.estado_sofia)}
-                        {lead.modo_humano && <span style={{ background: '#ff9800', color: '#fff', padding: '1px 5px', borderRadius: 8, fontSize: '.58rem', fontWeight: 700 }}>H</span>}
-                        {lead.atendido_por && <span style={{ fontSize: '.58rem', color: '#64748b' }}>{lead.atendido_por}</span>}
-                      </div>
-                    </div>
-                  </div>
-                );
+          {/* Filters */}
+          <div className="mc-filters">
+            <select
+              className="mc-filter-select"
+              value={estadoFilter}
+              onChange={(e) => setEstadoFilter(e.target.value)}
+              style={estadoFilter !== 'all' ? { borderColor: '#3b82f6', color: '#3b82f6', fontWeight: 600 } : {}}
+            >
+              <option value="all">Estado: Todos ({leads.length})</option>
+              {estadosUnicos.map(est => {
+                const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
+                return <option key={est} value={est}>{est.replace(/_/g, ' ')} ({count})</option>;
               })}
+            </select>
+            <select
+              className="mc-filter-select"
+              value={attendedFilter}
+              onChange={(e) => setAttendedFilter(e.target.value)}
+              style={attendedFilter !== 'all' && ADMIN_COLORS[attendedFilter] ? { borderColor: ADMIN_COLORS[attendedFilter].color, color: ADMIN_COLORS[attendedFilter].color, fontWeight: 600 } : {}}
+            >
+              <option value="all">Atención: Todos</option>
+              <option value="sin_atender">Sin atender ({leads.filter(l => !getLeadAttendedBy(l)).length})</option>
+              <option value="atendido">Atendidos ({leads.filter(l => !!getLeadAttendedBy(l)).length})</option>
+              <option disabled>──────────</option>
+              {['arturo', 'sandy', 'hugo'].map(admin => {
+                const count = leads.filter(l => getLeadAttendedBy(l) === admin).length;
+                return <option key={admin} value={admin}>{ADMIN_COLORS[admin].label} ({count})</option>;
+              })}
+            </select>
+            <select
+              className="mc-filter-select"
+              value={segmentFilter}
+              onChange={(e) => setSegmentFilter(e.target.value)}
+              style={segmentFilter !== 'all' ? { borderColor: SEG_COLOR[segmentFilter] || '#7c3aed', color: SEG_COLOR[segmentFilter] || '#7c3aed', fontWeight: 600 } : {}}
+            >
+              <option value="all">Segmento: Todos</option>
+              {segmentsPresent.map(seg => {
+                const count = leads.filter(l => l.manychat_segment === seg).length;
+                return <option key={seg} value={seg}>{SEG_LABEL[seg]} ({count})</option>;
+              })}
+            </select>
+            <div className="mc-date-filter">
+              <FaCalendarDay className="mc-date-icon" style={{ color: dateFilter ? '#7c3aed' : '#888' }} />
+              <input
+                type="date"
+                className="mc-filter-select"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                style={{ color: dateFilter ? '#333' : '#888' }}
+                title="Filtrar por día de creación"
+              />
+              {dateFilter && (
+                <button className="mc-date-clear" onClick={() => setDateFilter('')}><FaTimes size={9} /></button>
+              )}
             </div>
           </div>
 
-          {/* Chat panel */}
-          <div className="mc-right">
-            {!selectedLead ? (
-              <div className="mc-empty">
-                <FaComments size={40} style={{ color: '#25D366', opacity: .4 }} />
-                <p style={{ margin: 0, fontWeight: 600, color: '#0f172a', fontSize: '.95rem' }}>Selecciona un lead</p>
-                <p style={{ margin: 0, fontSize: '.8rem', color: '#64748b' }}>Elige un contacto de la lista</p>
+          {/* Active filters indicator */}
+          {hasActiveFilters && (
+            <div className="mc-active-filters">
+              <span>{filteredLeads.length} resultado{filteredLeads.length !== 1 ? 's' : ''}</span>
+              <button className="mc-clear-filters" onClick={clearAllFilters}>
+                <FaTimes size={9} /> Limpiar filtros
+              </button>
+            </div>
+          )}
+
+          {/* Lead List */}
+          <div className="mc-lead-list">
+            {leadsLoading && leads.length === 0 ? (
+              <div className="mc-loading-inline"><div className="mc-spinner" /></div>
+            ) : filteredLeads.length === 0 ? (
+              <div className="mc-empty-state">
+                <FaFilter size={28} />
+                <p>Sin leads{hasActiveFilters ? ' con estos filtros' : ''}</p>
+                {hasActiveFilters && <button className="mc-btn mc-btn-outline" onClick={clearAllFilters}>Limpiar filtros</button>}
               </div>
             ) : (
               <>
-                <div className="mc-ch-head">
-                  <button className="mc-back-btn" onClick={() => setSelectedLead(null)}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                  </button>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span className="mc-ch-name">{selectedLead.nombre || selectedLead.wa_id}</span>
-                    <span className="mc-ch-sub" style={{ marginLeft: 6 }}>+{selectedLead.wa_id}</span>
-                    <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>{segBadge(selectedLead.manychat_segment)} {estadoBadge(selectedLead.estado_sofia)}</div>
-                  </div>
-                  <button className={`mc-btn ${selectedLead.modo_humano ? 'primary' : ''}`} onClick={handleToggleHumano} disabled={togglingHumano} style={{ fontSize: '.72rem' }}>
-                    {togglingHumano ? '...' : <>{selectedLead.modo_humano ? <><FaUserTie size={11} /> Humano</> : <><FaRobot size={11} /> AI</>}</>}
-                  </button>
-                </div>
+                {(() => {
+                  const elements = [];
+                  let shownNewHdr = false, shownPriorityHdr = false, shownRestHdr = false;
+                  const PRIORITY_ESTADOS = ['esperando_aprobacion', 'cotizacion_enviada', 'cotizacion_confirmada', 'cliente_acepto'];
 
-                <div className="mc-msgs">
-                  {chatLoading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}><div className="mc-spin" /></div>
-                  ) : chatMessages.length === 0 ? (
-                    <div className="mc-empty"><FaComments size={28} style={{ opacity: .3 }} /><p style={{ margin: 0 }}>Sin mensajes</p></div>
-                  ) : chatMessages.map((msg, i) => {
-                    const isUser = msg.role === 'user';
-                    const isH = isHuman(msg.content);
-                    const content = msg.content || '';
-                    if (content.startsWith('[STATE:')) return null;
-                    const cleanContent = isH ? content.replace(/\[HUMANO:.*?\]\s*/, '') : content.replace(/\[STATE:\{.*?\}\]/g, '').trim();
-                    if (!cleanContent) return null;
-                    return (
-                      <div key={i} className={`mc-m ${isUser ? 'u' : isH ? 'h' : 'a'}`}>
-                        <div className="mc-m-sender" style={{ color: isUser ? '#2e7d32' : isH ? '#e65100' : '#1565c0' }}>
-                          {isUser ? <><FaUser size={9} /> {selectedLead.nombre || 'Lead'}</> : isH ? <><FaUserTie size={9} /> {content.match(/\[HUMANO:(.*?)\]/)?.[1] || 'Admin'}</> : <><FaRobot size={9} /> Sofia</>}
+                  filteredLeads.forEach((lead) => {
+                    const unread = getUnreadCount(lead);
+                    const isPriority = PRIORITY_ESTADOS.includes(lead.estado_sofia);
+                    const isRead = readLeads.has(lead.wa_id);
+
+                    // Section headers
+                    if (unread > 0 && !isRead && !shownNewHdr) {
+                      shownNewHdr = true;
+                      elements.push(
+                        <div key="__hdr_new" className="mc-section-header mc-section-new">
+                          <FaEnvelope /> Mensajes nuevos
                         </div>
-                        {cleanContent}
-                        {msg.mediaUrl && msg.mimetype?.includes('audio') && <audio controls src={msg.mediaUrl} style={{ width: '100%', maxWidth: 260, marginTop: 4 }} />}
-                        {msg.mediaUrl && msg.mimetype?.includes('image') && <img src={msg.mediaUrl} alt="" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 6, marginTop: 4 }} />}
-                        <div className="mc-m-time">{fmt(msg.timestamp)}</div>
+                      );
+                    }
+                    if ((unread === 0 || isRead) && isPriority && !shownPriorityHdr) {
+                      shownPriorityHdr = true;
+                      elements.push(
+                        <div key="__hdr_priority" className="mc-section-header mc-section-priority">
+                          <FaClock /> Esperando respuesta
+                        </div>
+                      );
+                    }
+                    if ((unread === 0 || isRead) && !isPriority && !shownRestHdr) {
+                      shownRestHdr = true;
+                      elements.push(
+                        <div key="__hdr_rest" className="mc-section-header mc-section-rest">
+                          <FaComments /> Otras conversaciones
+                        </div>
+                      );
+                    }
+
+                    const isSelected = selectedLead?.wa_id === lead.wa_id;
+                    const attendedInfo = getAttendedColor(lead);
+                    const colors = ['#7c3aed', '#0088E0', '#ef4444', '#F59E0B', '#10B981', '#8B5CF6', '#3B82F6', '#25D366'];
+                    const avCol = colors[(lead.nombre || lead.wa_id || '?').charCodeAt(0) % colors.length];
+
+                    elements.push(
+                      <div
+                        key={lead.wa_id}
+                        className={`mc-lead-item ${isSelected ? 'mc-selected' : ''} ${lead.modo_humano ? 'mc-human-mode' : ''} ${lead.bloqueado ? 'mc-blocked' : ''}`}
+                        style={{ borderLeftColor: attendedInfo.color }}
+                        onClick={() => handleSelectLead(lead)}
+                      >
+                        <div className="mc-lead-avatar" style={{ background: avCol }}>
+                          {(lead.nombre || lead.wa_id || '?')[0].toUpperCase()}
+                          {lead.modo_humano && <span className="mc-human-badge"><FaUserTie size={8} /></span>}
+                        </div>
+                        <div className="mc-lead-info">
+                          <div className="mc-lead-header">
+                            <span className="mc-lead-name">{lead.nombre || lead.wa_id}</span>
+                            <span className="mc-lead-time">{fmt(lead.updated_at)}</span>
+                          </div>
+                          <div className="mc-lead-preview">
+                            <span className="mc-lead-last-msg">{getLastMessage(lead)}</span>
+                            {unread > 0 && !isRead && (
+                              <span className="mc-unread-badge">{unread}</span>
+                            )}
+                          </div>
+                          <div className="mc-lead-meta">
+                            {segBadge(lead.manychat_segment)}
+                            {estadoBadge(lead.estado_sofia)}
+                            {attendedInfo.label !== 'Sin atender' && (
+                              <span className="mc-attended-tag" style={{ color: attendedInfo.color, background: attendedInfo.bg }}>
+                                <FaLock style={{ fontSize: '0.5rem', marginRight: 2 }} />
+                                {attendedInfo.label}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     );
-                  })}
-                  <div ref={chatEndRef} />
-                </div>
-
-                <div className="mc-input">
-                  {!selectedLead.modo_humano ? (
-                    <div style={{ flex: 1, textAlign: 'center', fontSize: '.78rem', color: '#64748b', padding: '4px 0' }}>
-                      <FaRobot style={{ marginRight: 4 }} /> Sofia atiende. Activa <strong>modo humano</strong> para responder.
-                    </div>
-                  ) : (
-                    <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 8, flex: 1, alignItems: 'center' }}>
-                      <input ref={msgInputRef} type="text" placeholder="Escribe un mensaje..." value={msgText}
-                        onChange={e => setMsgText(e.target.value)} disabled={sendingMsg} />
-                      <button type="submit" className="mc-send-btn" disabled={sendingMsg || !msgText.trim()}>
-                        <FaPaperPlane size={14} />
-                      </button>
-                    </form>
-                  )}
-                </div>
+                  });
+                  return elements;
+                })()}
               </>
             )}
           </div>
         </div>
+
+        {/* ── RIGHT COLUMN: Chat Panel ── */}
+        <div className={`mc-right-col ${!selectedLead ? 'mc-hide-mobile' : ''}`}>
+          {!selectedLead ? (
+            <div className="mc-empty-chat">
+              <FaComments size={48} className="mc-empty-icon" />
+              <p className="mc-empty-title">Selecciona un lead</p>
+              <p className="mc-empty-subtitle">Elige un contacto de la lista para ver su conversación</p>
+            </div>
+          ) : (
+            <>
+              {/* Chat header */}
+              <div className="mc-chat-header">
+                <button className="mc-back-btn" onClick={() => setSelectedLead(null)}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
+                  </svg>
+                </button>
+                <div className="mc-chat-lead-info">
+                  <div className="mc-chat-name-row">
+                    <span className="mc-chat-name">{selectedLead.nombre || selectedLead.wa_id}</span>
+                    <span className="mc-chat-phone">+{selectedLead.wa_id}</span>
+                  </div>
+                  <div className="mc-chat-badges">
+                    {segBadge(selectedLead.manychat_segment)}
+                    {estadoBadge(selectedLead.estado_sofia)}
+                    {selectedLead.bloqueado && <span className="mc-badge mc-badge-blocked"><FaBan size={8} /> Bloqueado</span>}
+                  </div>
+                </div>
+                <div className="mc-chat-actions">
+                  {/* Estado dropdown */}
+                  <select
+                    className="mc-estado-select"
+                    value={selectedLead.estado_sofia || ''}
+                    onChange={(e) => handleUpdateEstado(e.target.value)}
+                    disabled={updatingEstado}
+                    title="Cambiar estado"
+                  >
+                    {ESTADOS_LIST.map(est => (
+                      <option key={est} value={est}>{est.replace(/_/g, ' ')}</option>
+                    ))}
+                  </select>
+                  {/* Claim button */}
+                  {!selectedLead.atendido_por && (
+                    <button className="mc-btn mc-btn-claim" onClick={handleClaimLead} disabled={claiming} title="Reclamar lead">
+                      {claiming ? '...' : <><FaLock size={10} /> Reclamar</>}
+                    </button>
+                  )}
+                  {/* Human/AI toggle */}
+                  <button
+                    className={`mc-btn ${selectedLead.modo_humano ? 'mc-btn-human-active' : 'mc-btn-outline'}`}
+                    onClick={handleToggleHumano}
+                    disabled={togglingHumano}
+                    title={selectedLead.modo_humano ? 'Modo humano activo' : 'Sofia atendiendo'}
+                  >
+                    {togglingHumano ? '...' : selectedLead.modo_humano ? <><FaUserTie size={11} /> Humano</> : <><FaRobot size={11} /> AI</>}
+                  </button>
+                  {/* Info toggle */}
+                  <button
+                    className={`mc-btn mc-btn-outline ${leadInfoOpen ? 'mc-btn-active' : ''}`}
+                    onClick={() => setLeadInfoOpen(!leadInfoOpen)}
+                    title="Info del lead"
+                  >
+                    <FaUser size={11} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Lead info sidebar (collapsible) */}
+              {leadInfoOpen && (
+                <div className="mc-lead-detail">
+                  <div className="mc-detail-section">
+                    <div className="mc-detail-title">Información del lead</div>
+                    <div className="mc-detail-grid">
+                      <div className="mc-detail-item">
+                        <span className="mc-detail-label">Teléfono</span>
+                        <span className="mc-detail-value">+{selectedLead.wa_id}</span>
+                      </div>
+                      {selectedLead.carrera && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Carrera</span>
+                          <span className="mc-detail-value">{selectedLead.carrera}</span>
+                        </div>
+                      )}
+                      {selectedLead.tema && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Tema</span>
+                          <span className="mc-detail-value">{selectedLead.tema}</span>
+                        </div>
+                      )}
+                      {selectedLead.tipo_servicio && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Servicio</span>
+                          <span className="mc-detail-value">{SERVICIO_LABEL[selectedLead.tipo_servicio] || selectedLead.tipo_servicio}</span>
+                        </div>
+                      )}
+                      {selectedLead.tipo_proyecto && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Proyecto</span>
+                          <span className="mc-detail-value">{PROYECTO_MAP[selectedLead.tipo_proyecto] || selectedLead.tipo_proyecto}</span>
+                        </div>
+                      )}
+                      {selectedLead.nivel && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Nivel</span>
+                          <span className="mc-detail-value">{NIVEL_MAP[selectedLead.nivel] || selectedLead.nivel}</span>
+                        </div>
+                      )}
+                      {selectedLead.paginas && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Páginas</span>
+                          <span className="mc-detail-value">{selectedLead.paginas}</span>
+                        </div>
+                      )}
+                      {selectedLead.precio && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Precio</span>
+                          <span className="mc-detail-value">${selectedLead.precio?.toLocaleString?.() || selectedLead.precio}</span>
+                        </div>
+                      )}
+                      {selectedLead.fecha_entrega && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Entrega</span>
+                          <span className="mc-detail-value">{selectedLead.fecha_entrega}</span>
+                        </div>
+                      )}
+                      <div className="mc-detail-item">
+                        <span className="mc-detail-label">Segmento</span>
+                        <span className="mc-detail-value">{segBadge(selectedLead.manychat_segment)}</span>
+                      </div>
+                      <div className="mc-detail-item">
+                        <span className="mc-detail-label">Creado</span>
+                        <span className="mc-detail-value">{fmtFull(selectedLead.created_at)}</span>
+                      </div>
+                      {selectedLead.atendido_por && (
+                        <div className="mc-detail-item">
+                          <span className="mc-detail-label">Atendido por</span>
+                          <span className="mc-detail-value">{selectedLead.atendido_por}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="mc-detail-section">
+                    <div className="mc-detail-title" style={{ cursor: 'pointer' }} onClick={() => setShowNotes(!showNotes)}>
+                      <FaStickyNote size={11} /> Notas {showNotes ? <FaChevronUp size={10} /> : <FaChevronDown size={10} />}
+                    </div>
+                    {showNotes && (
+                      <div className="mc-notes-area">
+                        <textarea
+                          className="mc-notes-textarea"
+                          value={selectedLead.notas_admin || ''}
+                          onChange={(e) => setSelectedLead(p => ({ ...p, notas_admin: e.target.value }))}
+                          placeholder="Escribe notas sobre este lead..."
+                          rows={3}
+                        />
+                        <button className="mc-btn mc-btn-sm mc-btn-primary" onClick={handleSaveNotes}>Guardar notas</button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick actions */}
+                  <div className="mc-detail-section">
+                    <div className="mc-detail-title">Acciones</div>
+                    <div className="mc-detail-actions">
+                      <button
+                        className={`mc-btn mc-btn-sm ${selectedLead.bloqueado ? 'mc-btn-danger' : 'mc-btn-outline'}`}
+                        onClick={handleToggleBlock}
+                        disabled={blocking}
+                      >
+                        {selectedLead.bloqueado ? <><FaUnlock size={10} /> Desbloquear</> : <><FaBan size={10} /> Bloquear</>}
+                      </button>
+                      <button
+                        className="mc-btn mc-btn-sm mc-btn-danger"
+                        onClick={() => handleUpdateEstado('descartado')}
+                        disabled={updatingEstado || selectedLead.estado_sofia === 'descartado'}
+                      >
+                        <FaTimes size={10} /> Descartar
+                      </button>
+                      <button
+                        className="mc-btn mc-btn-sm mc-btn-outline"
+                        onClick={() => handleUpdateEstado('no_interesado')}
+                        disabled={updatingEstado || selectedLead.estado_sofia === 'no_interesado'}
+                      >
+                        No interesado
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Messages */}
+              <div className="mc-messages">
+                {chatLoading ? (
+                  <div className="mc-loading-inline"><div className="mc-spinner" /></div>
+                ) : chatMessages.length === 0 ? (
+                  <div className="mc-empty-messages">
+                    <FaComments size={28} />
+                    <p>Sin mensajes</p>
+                  </div>
+                ) : chatMessages.map((msg, i) => {
+                  const isUser = msg.role === 'user';
+                  const isH = isHuman(msg.content);
+                  const content = msg.content || '';
+                  if (content.startsWith('[STATE:')) return null;
+                  const cleanContent = isH ? content.replace(/\[HUMANO:.*?\]\s*/, '') : content.replace(/\[STATE:\{.*?\}\]/g, '').trim();
+                  if (!cleanContent) return null;
+                  return (
+                    <div key={i} className={`mc-msg ${isUser ? 'mc-msg-user' : isH ? 'mc-msg-human' : 'mc-msg-ai'}`}>
+                      <div className="mc-msg-sender" style={{ color: isUser ? '#2e7d32' : isH ? '#e65100' : '#1565c0' }}>
+                        {isUser ? <><FaUser size={9} /> {selectedLead.nombre || 'Lead'}</> : isH ? <><FaUserTie size={9} /> {content.match(/\[HUMANO:(.*?)\]/)?.[1] || 'Admin'}</> : <><FaRobot size={9} /> Sofia</>}
+                      </div>
+                      {cleanContent}
+                      {msg.mediaUrl && msg.mimetype?.includes('audio') && <audio controls src={msg.mediaUrl} style={{ width: '100%', maxWidth: 260, marginTop: 4 }} />}
+                      {msg.mediaUrl && msg.mimetype?.includes('image') && <img src={msg.mediaUrl} alt="" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 6, marginTop: 4 }} />}
+                      <div className="mc-msg-time">{fmt(msg.timestamp)}</div>
+                    </div>
+                  );
+                })}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Input */}
+              <div className="mc-input-bar">
+                {!selectedLead.modo_humano ? (
+                  <div className="mc-sofia-notice">
+                    <FaRobot /> Sofia atiende este lead. Activa <strong>modo humano</strong> para responder.
+                  </div>
+                ) : (
+                  <form onSubmit={handleSendMessage} className="mc-input-form">
+                    <input
+                      ref={msgInputRef}
+                      type="text"
+                      placeholder="Escribe un mensaje..."
+                      value={msgText}
+                      onChange={e => setMsgText(e.target.value)}
+                      disabled={sendingMsg}
+                      className="mc-msg-input"
+                    />
+                    <button type="submit" className="mc-send-btn" disabled={sendingMsg || !msgText.trim()}>
+                      <FaPaperPlane size={14} />
+                    </button>
+                  </form>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
