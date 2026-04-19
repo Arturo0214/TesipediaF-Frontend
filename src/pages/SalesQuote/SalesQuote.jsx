@@ -478,12 +478,28 @@ const SalesQuote = () => {
             if (pdfUrl) console.log('✅ URL pública del PDF:', pdfUrl);
 
             // 📥 3. Descargar/abrir el PDF generado
+            // En móvil, window.open() después de awaits se bloquea como popup.
+            // Usamos Swal con botón de descarga para que el usuario abra el link
+            // con un click directo (no bloqueado por el navegador).
             const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (pdfUrl) {
                 if (isMobile) {
-                    window.open(pdfUrl, '_blank');
+                    // En móvil: mostrar modal con link directo que el usuario toca
+                    Swal.fire({
+                        title: '¡PDF Generado!',
+                        html: `<p style="margin-bottom:12px">Tu cotización está lista.</p>
+                               <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer"
+                                  style="display:inline-block;background:#4F46E5;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem">
+                                  📄 Abrir PDF
+                               </a>
+                               <p style="margin-top:10px;font-size:0.8rem;color:#64748b">Toca el botón para ver y descargar tu cotización</p>`,
+                        icon: 'success',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Cerrar',
+                        confirmButtonColor: '#64748b',
+                    });
                 } else {
-                    // Descargar el PDF usando un link temporal
+                    // En desktop: descargar directamente
                     const link = document.createElement('a');
                     link.href = pdfUrl;
                     link.download = `${pdfFilename}.pdf`;
@@ -491,19 +507,16 @@ const SalesQuote = () => {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+
+                    Swal.fire({
+                        title: '¡PDF Generado!',
+                        text: 'La cotización ha sido descargada y guardada exitosamente.',
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
                 }
             }
-
-            // ✅ 4. Mostrar éxito
-            Swal.fire({
-                title: '¡PDF Generado!',
-                text: isMobile
-                    ? 'El PDF se abrió en una nueva pestaña. Si no lo ves, revisa tu navegador.'
-                    : 'La cotización ha sido descargada y guardada exitosamente.',
-                icon: 'success',
-                timer: isMobile ? 5000 : 3000,
-                timerProgressBar: true
-            });
         } catch (error) {
             console.error('Error al generar PDF:', error);
             Swal.fire({ title: 'Error', text: 'Hubo un error al generar el PDF. Por favor, intente de nuevo.', icon: 'error' });
