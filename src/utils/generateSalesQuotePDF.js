@@ -84,7 +84,7 @@ export const generateSalesQuotePDF = async (rawData) => {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 18;
     const contentWidth = pageWidth - (margin * 2);
 
     // Formatear precio
@@ -274,7 +274,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     let yPos = 40;
 
     // ============ CAJA DE DATOS DE COTIZACIÓN ============
-    const dataBoxHeight = 50;
+    const dataBoxHeight = 42;
 
     // Fondo de la caja
     doc.setFillColor(250, 250, 252);
@@ -297,8 +297,8 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.line(pageWidth / 2 - 25, yPos + 13, pageWidth / 2 + 25, yPos + 13);
 
     // ===== Datos del cliente (izquierda) - lista apilada =====
-    const dataY = yPos + 20;
-    const lineSpacing = 10;
+    const dataY = yPos + 18;
+    const lineSpacing = 8;
 
     // Cliente
     doc.setFontSize(7.5);
@@ -370,7 +370,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     const esEsquemaLargo = esquemasLargos.some(texto => quoteData.esquemaPago && quoteData.esquemaPago.toLowerCase().includes(texto));
 
     // Si es esquema largo, reducimos el margen drásticamente (2mm), sino dejamos el normal (8mm)
-    yPos += dataBoxHeight + (esEsquemaLargo ? 2 : 8);
+    yPos += dataBoxHeight + (esEsquemaLargo ? 1 : 4);
 
     // ============ DESCRIPCIÓN DEL SERVICIO ============
     // Header de la tabla con diseño diagonal
@@ -453,7 +453,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     const serviciosActualizados = quoteData.serviciosIncluidos.filter(s => s.trim());
 
     doc.setFontSize(7);
-    const rowHeight = 6;
+    const rowHeight = 5.5;
 
     serviciosActualizados.forEach((item, index) => {
         // Fondo alternado
@@ -593,10 +593,10 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.setLineWidth(0.5);
     doc.line(tableX, yPos, tableX + tableWidth, yPos);
 
-    yPos += 3; // Menor espacio desde la tabla
+    yPos += 2; // Menor espacio desde la tabla
 
     // Verificar si la sección de totales + pagos + esquema cabe en esta página
-    if (yPos + 90 > pageHeight) {
+    if (yPos + 105 > pageHeight) {
         const footerYCurr = pageHeight - 20;
         doc.setFillColor(...darkBlue);
         doc.triangle(0, pageHeight, 0, footerYCurr + 5, pageWidth, footerYCurr, 'F');
@@ -611,7 +611,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     }
 
     // ============ SECCIÓN DE TOTALES Y CTA (Compacta) ============
-    const boxHeight = 24; // Altura muy compacta (antes 32)
+    const boxHeight = 22; // Altura muy compacta
     const ctaWidth = contentWidth * 0.35;
     const totalsWidth = contentWidth * 0.6;
     const spacing = contentWidth * 0.05;
@@ -885,7 +885,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.setFontSize(10); // Ajustado
     doc.text(`$${formatPrice(granTotal)}`, alineacionDerecha, polyY + 5.5, { align: 'right' });
 
-    yPos += boxHeight + 8;
+    yPos += boxHeight + 4;
 
     // ============ FORMAS DE PAGO ============
     // Header
@@ -901,7 +901,7 @@ export const generateSalesQuotePDF = async (rawData) => {
 
     // Contenido
     doc.setFillColor(...lightGray);
-    doc.rect(margin, yPos, contentWidth, 22, 'F');
+    doc.rect(margin, yPos, contentWidth, 20, 'F');
 
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold'); // Negritas
@@ -909,9 +909,9 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.text('Aceptamos Visa, Mastercard, American Express, PayPal y Mercado Pago en Meses Sin Intereses.', margin + 5, yPos + 5);
 
     // Carga de Logos de métodos de pago
-    const logoY = yPos + 9;
+    const logoY = yPos + 7;
     const logoWidth = 28;
-    const logoHeight = 12;
+    const logoHeight = 11;
     const logoSpacing = 34;
     let currentLogoX = margin + 10;
 
@@ -982,7 +982,7 @@ export const generateSalesQuotePDF = async (rawData) => {
         // Fallback genérico si Promise.all falla catastróficamente
     }
 
-    yPos += 30; // Reducido de 35 a 15 para subir las columnas 20px
+    yPos += 24; // Compacto para caber en 1 página
 
     // ============ SECCIÓN FINAL ============
     // Col 1: Esquema de Pago
@@ -1000,7 +1000,7 @@ export const generateSalesQuotePDF = async (rawData) => {
     const paymentLineHeight = 3.5 * 1.15;
     const esquemaHeight = 5 + (esquemaLines.length * paymentLineHeight) + 5;
     const firmaHeight = 20;
-    const notaFooterHeight = 30;
+    const notaFooterHeight = 25;
     const spaceNeeded = Math.max(esquemaHeight, firmaHeight) + notaFooterHeight;
     const spaceAvailable = pageHeight - yPos;
 

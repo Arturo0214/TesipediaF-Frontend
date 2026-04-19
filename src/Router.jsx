@@ -23,6 +23,7 @@ const FAQ = lazy(() => import('./pages/FAQ/FAQ'));
 const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('./pages/PaymentCancel/PaymentCancel'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService/TermsOfService'));
 const Blog = lazy(() => import('./pages/Blog/Blog'));
 const BlogPost = lazy(() => import('./pages/Blog/BlogPost'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
@@ -74,6 +75,8 @@ const router = createBrowserRouter(
         { path: 'auth/reset-password/:token', element: <LazyPage><ResetPassword /></LazyPage> },
         { path: 'sobre-nosotros', element: <LazyPage><AboutUs /></LazyPage> },
         { path: 'politica-de-privacidad', element: <LazyPage><PrivacyPolicy /></LazyPage> },
+        { path: 'privacy', element: <LazyPage><PrivacyPolicy /></LazyPage> },
+        { path: 'terms', element: <LazyPage><TermsOfService /></LazyPage> },
         { path: 'preguntas-frecuentes', element: <LazyPage><FAQ /></LazyPage> },
         { path: 'blog', element: <LazyPage><Blog /></LazyPage> },
         { path: 'blog/:slug', element: <LazyPage><BlogPost /></LazyPage> },
