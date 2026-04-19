@@ -1,17 +1,90 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Spinner } from 'react-bootstrap';
 import {
   FaFilter, FaWhatsapp, FaRocket, FaUsers, FaExclamationTriangle,
   FaSync, FaChartBar, FaArrowRight, FaDollarSign, FaBan, FaClock,
+  FaUserTie, FaUser, FaChevronDown, FaChevronUp, FaPhone,
+  FaEnvelope, FaGraduationCap, FaFileAlt, FaTimes, FaCheckCircle,
+  FaTimesCircle, FaArrowDown, FaArrowUp, FaEye, FaColumns,
+  FaThLarge, FaList, FaSearch,
 } from 'react-icons/fa';
-import { getLeadsStats } from '../../../services/whatsapp/supabaseWhatsApp';
+import { getLeadsStats, getLeads } from '../../../services/whatsapp/supabaseWhatsApp';
+import { toast } from 'react-hot-toast';
 import './AdminFunnel.css';
 
+/* ── Constants ── */
+const ESTADO_CONFIG = {
+  bienvenida:            { label: 'Bienvenida',           color: '#94a3b8', icon: '👋', order: 0 },
+  calificando:           { label: 'Calificando',          color: '#3b82f6', icon: '🔍', order: 1 },
+  cotizando:             { label: 'Cotizando',            color: '#8b5cf6', icon: '📝', order: 2 },
+  cotizacion_lista:      { label: 'Cotización lista',     color: '#a855f7', icon: '📋', order: 3 },
+  cotizacion_enviada:    { label: 'Cotización enviada',   color: '#f59e0b', icon: '📤', order: 4 },
+  cotizacion_confirmada: { label: 'Cotización confirmada',color: '#22c55e', icon: '✅', order: 5 },
+  esperando_aprobacion:  { label: 'Esperando aprobación', color: '#06b6d4', icon: '⏳', order: 6 },
+  cliente_acepto:        { label: 'Cliente aceptó',       color: '#10b981', icon: '🤝', order: 7 },
+  pagado:                { label: 'Pagado',               color: '#059669', icon: '💰', order: 8 },
+  descartado:            { label: 'Descartado',           color: '#ef4444', icon: '❌', order: 90 },
+  no_interesado:         { label: 'No interesado',        color: '#6b7280', icon: '🚫', order: 91 },
+};
+
+const PIPELINE_ESTADOS = [
+  'bienvenida', 'calificando', 'cotizando', 'cotizacion_lista',
+  'cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion',
+  'cliente_acepto', 'pagado',
+];
+
+const LOST_ESTADOS = ['descartado', 'no_interesado'];
+
+const ADMIN_COLORS = {
+  arturo: { color: '#f59e0b', bg: '#fef3c7', label: 'Arturo' },
+  sandy:  { color: '#9b8afb', bg: '#ede9fe', label: 'Sandy' },
+  hugo:   { color: '#3b82f6', bg: '#dbeafe', label: 'Hugo' },
+};
+
+const SERVICIO_LABEL = {
+  servicio_1: 'Redacción', servicio_2: 'Correcciones', servicio_3: 'Asesoría',
+};
+const NIVEL_MAP = {
+  nivel_1: 'Prepa', nivel_2: 'Lic.', nivel_3: 'Mtría.',
+  nivel_4: 'Esp.', nivel_5: 'Dipl.', nivel_6: 'Doc.',
+};
+
+function normalizeAdmin(raw) {
+  if (!raw) return null;
+  const lower = raw.toLowerCase().trim();
+  if (lower.includes('arturo')) return 'arturo';
+  if (lower.includes('sandy')) return 'sandy';
+  if (lower.includes('hugo')) return 'hugo';
+  return lower.split(' ')[0];
+}
+
+function timeAgo(date) {
+  if (!date) return '';
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d`;
+  return `${Math.floor(days / 30)}mes`;
+}
+
+/* ═══════════════════════════════════════════════
+   CRM Dashboard Component
+   ═══════════════════════════════════════════════ */
 const AdminFunnel = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [origen, setOrigen] = useState('all'); // all | regular | manychat
+  const [origen, setOrigen] = useState('all');
+  const [allLeads, setAllLeads] = useState([]);
+  const [leadsLoading, setLeadsLoading] = useState(false);
+  const [view, setView] = useState('kanban'); // kanban | funnel | table
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedColumns, setExpandedColumns] = useState({});
+  const [selectedLead, setSelectedLead] = useState(null);
 
+  /* ── Fetch stats ── */
   const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
@@ -19,197 +92,654 @@ const AdminFunnel = () => {
       setStats(data);
     } catch (err) {
       console.error('Error fetching stats:', err);
+      toast.error('Error cargando estadísticas');
     } finally {
       setLoading(false);
     }
   }, [origen]);
 
-  useEffect(() => { fetchStats(); }, [fetchStats]);
+  /* ── Fetch all leads for Kanban ── */
+  const fetchAllLeads = useCallback(async () => {
+    setLeadsLoading(true);
+    try {
+      // Fetch leads from both origins
+      const origenParam = origen === 'all' ? 'all' : origen;
+      const result = await getLeads(origenParam, 500, 0, {});
+      setAllLeads(result.leads || []);
+    } catch (err) {
+      console.error('Error fetching leads:', err);
+    } finally {
+      setLeadsLoading(false);
+    }
+  }, [origen]);
+
+  useEffect(() => { fetchStats(); fetchAllLeads(); }, [fetchStats, fetchAllLeads]);
+
+  /* ── Derived data ── */
+  const filteredLeads = useMemo(() => {
+    if (!searchQuery.trim()) return allLeads;
+    const q = searchQuery.toLowerCase();
+    return allLeads.filter(l => {
+      return (l.nombre || '').toLowerCase().includes(q)
+        || (l.wa_id || '').includes(q)
+        || (l.tema || '').toLowerCase().includes(q)
+        || (l.carrera || '').toLowerCase().includes(q);
+    });
+  }, [allLeads, searchQuery]);
+
+  const leadsByEstado = useMemo(() => {
+    const map = {};
+    PIPELINE_ESTADOS.forEach(e => { map[e] = []; });
+    LOST_ESTADOS.forEach(e => { map[e] = []; });
+    map['sin_estado'] = [];
+
+    filteredLeads.forEach(lead => {
+      const estado = lead.estado_sofia || 'sin_estado';
+      if (!map[estado]) map[estado] = [];
+      map[estado].push(lead);
+    });
+
+    // Sort each column by updated_at desc
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+    });
+
+    return map;
+  }, [filteredLeads]);
+
+  // Pipeline value estimation
+  const pipelineValue = useMemo(() => {
+    let total = 0;
+    const CLOSING_ESTADOS = ['cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion', 'cliente_acepto', 'pagado'];
+    filteredLeads.forEach(l => {
+      if (CLOSING_ESTADOS.includes(l.estado_sofia) && l.precio) {
+        total += Number(l.precio) || 0;
+      }
+    });
+    return total;
+  }, [filteredLeads]);
+
+  // Admin workload
+  const adminWorkload = useMemo(() => {
+    const map = { sinAtender: 0 };
+    Object.keys(ADMIN_COLORS).forEach(k => { map[k] = 0; });
+    filteredLeads.forEach(l => {
+      if (!LOST_ESTADOS.includes(l.estado_sofia)) {
+        const admin = normalizeAdmin(l.atendido_por);
+        if (admin && map[admin] !== undefined) map[admin]++;
+        else if (admin) { map[admin] = (map[admin] || 0) + 1; }
+        else map.sinAtender++;
+      }
+    });
+    return map;
+  }, [filteredLeads]);
+
+  const toggleColumnExpand = (estado) => {
+    setExpandedColumns(prev => ({ ...prev, [estado]: !prev[estado] }));
+  };
+
+  const handleRefresh = () => {
+    fetchStats();
+    fetchAllLeads();
+  };
 
   if (loading && !stats) {
     return (
-      <div className="af-loading">
+      <div className="crm-loading">
         <Spinner animation="border" variant="primary" />
-        <p>Cargando funnel...</p>
+        <p>Cargando CRM...</p>
       </div>
     );
   }
 
-  if (!stats) return <div className="af-error">Error al cargar datos</div>;
+  if (!stats) return <div className="crm-error">Error al cargar datos</div>;
 
   const { general, porEstado, porAdmin, recientes, embudo, perdidos, alertas } = stats;
-  const maxFunnel = Math.max(...embudo.map(e => e.value), 1);
+  const maxFunnel = Math.max(...(embudo || []).map(e => e.value), 1);
 
   return (
-    <div className="af-container">
-      {/* Header */}
-      <div className="af-header">
-        <div className="af-header-left">
-          <FaChartBar className="af-header-icon" />
-          <h2>Funnel de Ventas</h2>
+    <div className="crm">
+      {/* ═══ HEADER ═══ */}
+      <div className="crm-header">
+        <div className="crm-header-left">
+          <FaChartBar className="crm-header-icon" />
+          <h2>CRM Dashboard</h2>
         </div>
-        <div className="af-header-actions">
-          <div className="af-campaign-filter">
-            <button
-              className={`af-filter-btn ${origen === 'all' ? 'active' : ''}`}
-              onClick={() => setOrigen('all')}
-            >
-              <FaUsers /> Todos
+        <div className="crm-header-center">
+          <div className="crm-origin-filter">
+            <button className={`crm-origin-btn ${origen === 'all' ? 'active' : ''}`} onClick={() => setOrigen('all')}>
+              <FaUsers size={11} /> Todos
             </button>
-            <button
-              className={`af-filter-btn af-filter-sofia ${origen === 'regular' ? 'active' : ''}`}
-              onClick={() => setOrigen('regular')}
-            >
-              <FaWhatsapp /> Sofia (WhatsApp)
+            <button className={`crm-origin-btn crm-origin-wa ${origen === 'regular' ? 'active' : ''}`} onClick={() => setOrigen('regular')}>
+              <FaWhatsapp size={11} /> WhatsApp
             </button>
-            <button
-              className={`af-filter-btn af-filter-manychat ${origen === 'manychat' ? 'active' : ''}`}
-              onClick={() => setOrigen('manychat')}
-            >
-              <FaRocket /> ManyChat
+            <button className={`crm-origin-btn crm-origin-mc ${origen === 'manychat' ? 'active' : ''}`} onClick={() => setOrigen('manychat')}>
+              <FaRocket size={11} /> ManyChat
             </button>
           </div>
-          <button className="af-refresh-btn" onClick={fetchStats} disabled={loading}>
-            <FaSync className={loading ? 'af-spin' : ''} />
+        </div>
+        <div className="crm-header-right">
+          <div className="crm-view-toggle">
+            <button className={`crm-view-btn ${view === 'kanban' ? 'active' : ''}`} onClick={() => setView('kanban')} title="Kanban">
+              <FaColumns size={12} />
+            </button>
+            <button className={`crm-view-btn ${view === 'funnel' ? 'active' : ''}`} onClick={() => setView('funnel')} title="Funnel">
+              <FaFilter size={12} />
+            </button>
+            <button className={`crm-view-btn ${view === 'table' ? 'active' : ''}`} onClick={() => setView('table')} title="Tabla">
+              <FaList size={12} />
+            </button>
+          </div>
+          <button className="crm-refresh-btn" onClick={handleRefresh} disabled={loading || leadsLoading}>
+            <FaSync className={loading || leadsLoading ? 'crm-spin' : ''} size={12} />
           </button>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="af-kpis">
-        <div className="af-kpi">
-          <span className="af-kpi-value">{general.total}</span>
-          <span className="af-kpi-label">Total leads</span>
+      {/* ═══ KPI STRIP ═══ */}
+      <div className="crm-kpis">
+        <div className="crm-kpi">
+          <div className="crm-kpi-icon" style={{ background: '#eff6ff' }}><FaUsers style={{ color: '#3b82f6' }} /></div>
+          <div className="crm-kpi-data">
+            <span className="crm-kpi-value">{general.total}</span>
+            <span className="crm-kpi-label">Total leads</span>
+          </div>
         </div>
-        <div className="af-kpi af-kpi-green">
-          <span className="af-kpi-value">{recientes.h24}</span>
-          <span className="af-kpi-label">Nuevos 24h</span>
+        <div className="crm-kpi">
+          <div className="crm-kpi-icon" style={{ background: '#f0fdf4' }}><FaArrowUp style={{ color: '#16a34a' }} /></div>
+          <div className="crm-kpi-data">
+            <span className="crm-kpi-value crm-kpi-green">{recientes.h24}</span>
+            <span className="crm-kpi-label">Nuevos 24h</span>
+          </div>
         </div>
-        <div className="af-kpi">
-          <span className="af-kpi-value">{recientes.d7}</span>
-          <span className="af-kpi-label">Nuevos 7d</span>
+        <div className="crm-kpi">
+          <div className="crm-kpi-icon" style={{ background: '#faf5ff' }}><FaClock style={{ color: '#7c3aed' }} /></div>
+          <div className="crm-kpi-data">
+            <span className="crm-kpi-value">{recientes.d7}</span>
+            <span className="crm-kpi-label">Nuevos 7d</span>
+          </div>
         </div>
-        <div className="af-kpi">
-          <span className="af-kpi-value">{recientes.d30}</span>
-          <span className="af-kpi-label">Nuevos 30d</span>
+        <div className="crm-kpi">
+          <div className="crm-kpi-icon" style={{ background: '#ecfdf5' }}><FaCheckCircle style={{ color: '#10b981' }} /></div>
+          <div className="crm-kpi-data">
+            <span className="crm-kpi-value crm-kpi-blue">{general.tasaConversion}%</span>
+            <span className="crm-kpi-label">Conversión</span>
+          </div>
         </div>
-        <div className="af-kpi af-kpi-blue">
-          <span className="af-kpi-value">{general.tasaConversion}%</span>
-          <span className="af-kpi-label">Tasa conversión</span>
+        <div className="crm-kpi">
+          <div className="crm-kpi-icon" style={{ background: '#fffbeb' }}><FaDollarSign style={{ color: '#d97706' }} /></div>
+          <div className="crm-kpi-data">
+            <span className="crm-kpi-value crm-kpi-gold">${general.precioPromedio?.toLocaleString() || 0}</span>
+            <span className="crm-kpi-label">Precio prom.</span>
+          </div>
         </div>
-        <div className="af-kpi af-kpi-gold">
-          <span className="af-kpi-value">${general.precioPromedio?.toLocaleString()}</span>
-          <span className="af-kpi-label">Precio prom.</span>
+        <div className="crm-kpi crm-kpi-highlight">
+          <div className="crm-kpi-icon" style={{ background: '#f0fdf4' }}><FaDollarSign style={{ color: '#059669' }} /></div>
+          <div className="crm-kpi-data">
+            <span className="crm-kpi-value crm-kpi-green">${pipelineValue.toLocaleString()}</span>
+            <span className="crm-kpi-label">Pipeline</span>
+          </div>
         </div>
       </div>
 
-      {/* Funnel visual */}
-      <div className="af-funnel-section">
-        <h3>Embudo de conversión</h3>
-        <div className="af-funnel">
-          {embudo.map((step, i) => {
-            const widthPct = Math.max((step.value / maxFunnel) * 100, 8);
-            const dropOff = i > 0 && embudo[i - 1].value > 0
-              ? Math.round(((embudo[i - 1].value - step.value) / embudo[i - 1].value) * 100)
-              : null;
+      {/* ═══ SEARCH BAR (for kanban/table) ═══ */}
+      {(view === 'kanban' || view === 'table') && (
+        <div className="crm-search-bar">
+          <FaSearch className="crm-search-icon" />
+          <input
+            type="text"
+            className="crm-search-input"
+            placeholder="Buscar por nombre, teléfono, tema, carrera..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="crm-search-clear" onClick={() => setSearchQuery('')}><FaTimes size={11} /></button>
+          )}
+          <span className="crm-search-count">{filteredLeads.length} leads</span>
+        </div>
+      )}
+
+      {/* ═══ ADMIN WORKLOAD BAR ═══ */}
+      <div className="crm-workload-bar">
+        <span className="crm-workload-title"><FaUserTie size={11} /> Carga de trabajo:</span>
+        <div className="crm-workload-items">
+          {Object.entries(adminWorkload).map(([admin, count]) => {
+            if (count === 0 && admin !== 'sinAtender') return null;
+            const info = ADMIN_COLORS[admin];
+            const isUnattended = admin === 'sinAtender';
             return (
-              <div key={step.etapa} className="af-funnel-row">
-                <div className="af-funnel-label">
-                  <span className="af-funnel-name">{step.etapa}</span>
-                  <span className="af-funnel-count">{step.value}</span>
-                </div>
-                <div className="af-funnel-bar-wrap">
-                  <div
-                    className="af-funnel-bar"
-                    style={{ width: `${widthPct}%`, background: step.color }}
-                  />
-                  {dropOff !== null && dropOff > 0 && (
-                    <span className="af-funnel-dropoff">-{dropOff}%</span>
-                  )}
-                </div>
+              <div
+                key={admin}
+                className={`crm-workload-chip ${isUnattended ? 'crm-workload-unattended' : ''}`}
+                style={info ? { background: info.bg, color: info.color, borderColor: info.color } : {}}
+              >
+                <span className="crm-workload-name">{info ? info.label : isUnattended ? 'Sin atender' : admin}</span>
+                <span className="crm-workload-count">{count}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Perdidos */}
-      {perdidos && perdidos.length > 0 && (
-        <div className="af-lost-section">
-          <h3><FaBan /> Perdidos</h3>
-          <div className="af-lost-grid">
-            {perdidos.map(p => (
-              <div key={p.etapa} className="af-lost-card">
-                <span className="af-lost-value" style={{ color: p.color }}>{p.value}</span>
-                <span className="af-lost-label">{p.etapa}</span>
+      {/* ═══ MAIN CONTENT ═══ */}
+      {view === 'kanban' && (
+        <div className="crm-kanban-wrapper">
+          <div className="crm-kanban">
+            {PIPELINE_ESTADOS.map(estado => {
+              const config = ESTADO_CONFIG[estado];
+              const leads = leadsByEstado[estado] || [];
+              const isExpanded = expandedColumns[estado] !== false; // default expanded
+              const SHOW_LIMIT = 8;
+              const visibleLeads = isExpanded ? leads.slice(0, SHOW_LIMIT) : [];
+              const hasMore = leads.length > SHOW_LIMIT;
+              // Pipeline value for this column
+              const colValue = leads.reduce((sum, l) => sum + (Number(l.precio) || 0), 0);
+
+              return (
+                <div key={estado} className="crm-kanban-col">
+                  <div className="crm-kanban-header" style={{ borderTopColor: config.color }}>
+                    <div className="crm-kanban-header-top">
+                      <span className="crm-kanban-icon">{config.icon}</span>
+                      <span className="crm-kanban-title">{config.label}</span>
+                      <span className="crm-kanban-count" style={{ background: config.color }}>{leads.length}</span>
+                    </div>
+                    {colValue > 0 && (
+                      <div className="crm-kanban-value">${colValue.toLocaleString()}</div>
+                    )}
+                  </div>
+                  <div className="crm-kanban-cards">
+                    {leads.length === 0 ? (
+                      <div className="crm-kanban-empty">Sin leads</div>
+                    ) : (
+                      <>
+                        {visibleLeads.map(lead => (
+                          <LeadCard key={lead.wa_id} lead={lead} onSelect={setSelectedLead} />
+                        ))}
+                        {hasMore && (
+                          <button className="crm-kanban-more" onClick={() => toggleColumnExpand(estado)}>
+                            +{leads.length - SHOW_LIMIT} más
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Lost column */}
+            {(() => {
+              const lostLeads = [...(leadsByEstado['descartado'] || []), ...(leadsByEstado['no_interesado'] || [])];
+              if (lostLeads.length === 0) return null;
+              return (
+                <div className="crm-kanban-col crm-kanban-col-lost">
+                  <div className="crm-kanban-header" style={{ borderTopColor: '#ef4444' }}>
+                    <div className="crm-kanban-header-top">
+                      <span className="crm-kanban-icon">❌</span>
+                      <span className="crm-kanban-title">Perdidos</span>
+                      <span className="crm-kanban-count" style={{ background: '#ef4444' }}>{lostLeads.length}</span>
+                    </div>
+                  </div>
+                  <div className="crm-kanban-cards">
+                    {lostLeads.slice(0, 5).map(lead => (
+                      <LeadCard key={lead.wa_id} lead={lead} onSelect={setSelectedLead} compact />
+                    ))}
+                    {lostLeads.length > 5 && (
+                      <div className="crm-kanban-more-label">+{lostLeads.length - 5} más</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {view === 'funnel' && (
+        <div className="crm-funnel-view">
+          {/* Visual funnel */}
+          <div className="crm-funnel-card">
+            <h3>Embudo de conversión</h3>
+            <div className="crm-funnel">
+              {(embudo || []).map((step, i) => {
+                const widthPct = Math.max((step.value / maxFunnel) * 100, 6);
+                const dropOff = i > 0 && embudo[i - 1].value > 0
+                  ? Math.round(((embudo[i - 1].value - step.value) / embudo[i - 1].value) * 100)
+                  : null;
+                const convFromTop = i > 0 && embudo[0].value > 0
+                  ? Math.round((step.value / embudo[0].value) * 100)
+                  : 100;
+                return (
+                  <div key={step.etapa} className="crm-funnel-row">
+                    <div className="crm-funnel-label">
+                      <span className="crm-funnel-emoji">{ESTADO_CONFIG[step.etapa]?.icon || '📊'}</span>
+                      <span className="crm-funnel-name">{ESTADO_CONFIG[step.etapa]?.label || step.etapa}</span>
+                    </div>
+                    <div className="crm-funnel-bar-area">
+                      <div className="crm-funnel-bar-track">
+                        <div
+                          className="crm-funnel-bar"
+                          style={{ width: `${widthPct}%`, background: `linear-gradient(135deg, ${step.color}, ${step.color}dd)` }}
+                        >
+                          <span className="crm-funnel-bar-count">{step.value}</span>
+                        </div>
+                      </div>
+                      <div className="crm-funnel-metrics">
+                        {dropOff !== null && dropOff > 0 && (
+                          <span className="crm-funnel-dropoff"><FaArrowDown size={8} /> {dropOff}%</span>
+                        )}
+                        <span className="crm-funnel-conv">{convFromTop}% del total</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Lost breakdown */}
+          {perdidos && perdidos.length > 0 && (
+            <div className="crm-lost-card">
+              <h3><FaBan /> Leads perdidos</h3>
+              <div className="crm-lost-grid">
+                {perdidos.map(p => (
+                  <div key={p.etapa} className="crm-lost-item">
+                    <span className="crm-lost-value" style={{ color: p.color }}>{p.value}</span>
+                    <span className="crm-lost-label">{p.etapa}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Breakdowns row */}
+          <div className="crm-breakdown-row">
+            <div className="crm-breakdown-card">
+              <h3>Desglose por estado</h3>
+              <div className="crm-estado-list">
+                {Object.entries(porEstado).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([estado, count]) => {
+                  const cfg = ESTADO_CONFIG[estado];
+                  const pct = general.total > 0 ? Math.round((count / general.total) * 100) : 0;
+                  return (
+                    <div key={estado} className="crm-estado-row">
+                      <span className="crm-estado-dot" style={{ background: cfg?.color || '#94a3b8' }} />
+                      <span className="crm-estado-name">{cfg?.label || estado.replace(/_/g, ' ')}</span>
+                      <div className="crm-estado-bar-wrap">
+                        <div className="crm-estado-bar" style={{ width: `${pct}%`, background: cfg?.color || '#94a3b8' }} />
+                      </div>
+                      <span className="crm-estado-count">{count}</span>
+                      <span className="crm-estado-pct">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="crm-breakdown-card">
+              <h3>Por asignación</h3>
+              <div className="crm-admin-list">
+                {Object.entries(porAdmin).map(([admin, count]) => {
+                  const info = ADMIN_COLORS[admin];
+                  const pct = general.total > 0 ? Math.round((count / general.total) * 100) : 0;
+                  return (
+                    <div key={admin} className="crm-admin-row">
+                      <div className="crm-admin-avatar" style={{ background: info?.bg || '#f3f4f6', color: info?.color || '#6b7280' }}>
+                        <FaUserTie size={10} />
+                      </div>
+                      <span className="crm-admin-name">{admin === 'sinAtender' ? 'Sin atender' : info?.label || admin}</span>
+                      <div className="crm-admin-bar-wrap">
+                        <div className="crm-admin-bar" style={{ width: `${pct}%`, background: info?.color || '#d1d5db' }} />
+                      </div>
+                      <span className="crm-admin-count">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="crm-origin-breakdown">
+                <h4>Por origen</h4>
+                <div className="crm-origin-row">
+                  <FaWhatsapp style={{ color: '#25d366' }} />
+                  <span>WhatsApp</span>
+                  <span className="crm-origin-count">{general.regular}</span>
+                </div>
+                <div className="crm-origin-row">
+                  <FaRocket style={{ color: '#7c3aed' }} />
+                  <span>ManyChat</span>
+                  <span className="crm-origin-count">{general.manychat}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view === 'table' && (
+        <div className="crm-table-wrapper">
+          <table className="crm-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Servicio</th>
+                <th>Nivel</th>
+                <th>Precio</th>
+                <th>Atendido por</th>
+                <th>Origen</th>
+                <th>Actualizado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLeads.length === 0 ? (
+                <tr><td colSpan={9} className="crm-table-empty">Sin leads</td></tr>
+              ) : filteredLeads.slice(0, 200).map(lead => {
+                const cfg = ESTADO_CONFIG[lead.estado_sofia];
+                const adminKey = normalizeAdmin(lead.atendido_por);
+                const adminInfo = ADMIN_COLORS[adminKey];
+                return (
+                  <tr key={lead.wa_id} className="crm-table-row" onClick={() => setSelectedLead(lead)}>
+                    <td className="crm-table-name">{lead.nombre || 'Sin nombre'}</td>
+                    <td className="crm-table-phone">+{lead.wa_id}</td>
+                    <td>
+                      <span className="crm-table-estado" style={{ background: cfg?.color || '#94a3b8' }}>
+                        {cfg?.label || lead.estado_sofia || 'nuevo'}
+                      </span>
+                    </td>
+                    <td className="crm-table-service">{SERVICIO_LABEL[lead.tipo_servicio] || lead.tipo_servicio || '-'}</td>
+                    <td>{NIVEL_MAP[lead.nivel] || lead.nivel || '-'}</td>
+                    <td className="crm-table-price">{lead.precio ? `$${Number(lead.precio).toLocaleString()}` : '-'}</td>
+                    <td>
+                      {lead.atendido_por ? (
+                        <span className="crm-table-admin" style={{ color: adminInfo?.color || '#374151', background: adminInfo?.bg || '#f3f4f6' }}>
+                          {adminInfo?.label || lead.atendido_por}
+                        </span>
+                      ) : (
+                        <span className="crm-table-unattended">Sin atender</span>
+                      )}
+                    </td>
+                    <td>
+                      {lead.origen === 'manychat' ? (
+                        <span className="crm-table-origin-mc"><FaRocket size={9} /> MC</span>
+                      ) : (
+                        <span className="crm-table-origin-wa"><FaWhatsapp size={9} /> WA</span>
+                      )}
+                    </td>
+                    <td className="crm-table-time">{timeAgo(lead.updated_at)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {filteredLeads.length > 200 && (
+            <div className="crm-table-footer">Mostrando 200 de {filteredLeads.length} leads</div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ ALERTS ═══ */}
+      {alertas && alertas.length > 0 && (
+        <div className="crm-alerts">
+          <h3><FaExclamationTriangle /> Alertas ({alertas.length})</h3>
+          <div className="crm-alerts-grid">
+            {alertas.map(a => (
+              <div key={a.id} className={`crm-alert crm-alert-${a.severidad}`}>
+                <div className="crm-alert-left">
+                  <span className="crm-alert-count">{a.count}</span>
+                </div>
+                <div className="crm-alert-right">
+                  <span className="crm-alert-title">{a.titulo}</span>
+                  <span className="crm-alert-desc">{a.descripcion}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Desglose por estado completo */}
-      <div className="af-breakdown-row">
-        <div className="af-breakdown-card">
-          <h3>Por estado</h3>
-          <div className="af-estado-list">
-            {Object.entries(porEstado).filter(([, v]) => v > 0).map(([estado, count]) => (
-              <div key={estado} className="af-estado-item">
-                <span className="af-estado-name">{estado.replace(/_/g, ' ')}</span>
-                <span className="af-estado-count">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="af-breakdown-card">
-          <h3>Por admin</h3>
-          <div className="af-admin-list">
-            {Object.entries(porAdmin).map(([admin, count]) => (
-              <div key={admin} className="af-admin-item">
-                <span className="af-admin-name">{admin === 'sinAtender' ? 'Sin atender' : admin.charAt(0).toUpperCase() + admin.slice(1)}</span>
-                <span className="af-admin-count">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="af-breakdown-card">
-          <h3>Origen</h3>
-          <div className="af-origin-list">
-            <div className="af-origin-item">
-              <FaWhatsapp style={{ color: '#25d366' }} />
-              <span>WhatsApp (Sofia)</span>
-              <span className="af-origin-count">{general.regular}</span>
+      {/* ═══ LEAD DETAIL MODAL ═══ */}
+      {selectedLead && (
+        <div className="crm-modal-overlay" onClick={() => setSelectedLead(null)}>
+          <div className="crm-modal" onClick={e => e.stopPropagation()}>
+            <div className="crm-modal-header">
+              <h3>{selectedLead.nombre || 'Sin nombre'}</h3>
+              <button className="crm-modal-close" onClick={() => setSelectedLead(null)}><FaTimes /></button>
             </div>
-            <div className="af-origin-item">
-              <FaRocket style={{ color: '#7c3aed' }} />
-              <span>ManyChat</span>
-              <span className="af-origin-count">{general.manychat}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Alertas */}
-      {alertas && alertas.length > 0 && (
-        <div className="af-alerts-section">
-          <h3><FaExclamationTriangle /> Alertas</h3>
-          <div className="af-alerts-grid">
-            {alertas.map(a => (
-              <div key={a.id} className={`af-alert-card af-alert-${a.severidad}`}>
-                <div className="af-alert-header">
-                  <span className="af-alert-count">{a.count}</span>
-                  <span className="af-alert-title">{a.titulo}</span>
+            <div className="crm-modal-body">
+              <div className="crm-modal-grid">
+                <div className="crm-modal-field">
+                  <label><FaPhone size={10} /> Teléfono</label>
+                  <span>+{selectedLead.wa_id}</span>
                 </div>
-                <p className="af-alert-desc">{a.descripcion}</p>
+                <div className="crm-modal-field">
+                  <label>Estado</label>
+                  <span className="crm-table-estado" style={{ background: ESTADO_CONFIG[selectedLead.estado_sofia]?.color || '#94a3b8' }}>
+                    {ESTADO_CONFIG[selectedLead.estado_sofia]?.icon} {ESTADO_CONFIG[selectedLead.estado_sofia]?.label || selectedLead.estado_sofia}
+                  </span>
+                </div>
+                {selectedLead.tipo_servicio && (
+                  <div className="crm-modal-field">
+                    <label><FaFileAlt size={10} /> Servicio</label>
+                    <span>{SERVICIO_LABEL[selectedLead.tipo_servicio] || selectedLead.tipo_servicio}</span>
+                  </div>
+                )}
+                {selectedLead.nivel && (
+                  <div className="crm-modal-field">
+                    <label><FaGraduationCap size={10} /> Nivel</label>
+                    <span>{NIVEL_MAP[selectedLead.nivel] || selectedLead.nivel}</span>
+                  </div>
+                )}
+                {selectedLead.carrera && (
+                  <div className="crm-modal-field crm-modal-field-full">
+                    <label>Carrera</label>
+                    <span>{selectedLead.carrera}</span>
+                  </div>
+                )}
+                {selectedLead.tema && (
+                  <div className="crm-modal-field crm-modal-field-full">
+                    <label>Tema</label>
+                    <span>{selectedLead.tema}</span>
+                  </div>
+                )}
+                {selectedLead.paginas && (
+                  <div className="crm-modal-field">
+                    <label>Páginas</label>
+                    <span>{selectedLead.paginas}</span>
+                  </div>
+                )}
+                {selectedLead.precio && (
+                  <div className="crm-modal-field">
+                    <label><FaDollarSign size={10} /> Precio</label>
+                    <span className="crm-modal-price">${Number(selectedLead.precio).toLocaleString()}</span>
+                  </div>
+                )}
+                {selectedLead.fecha_entrega && (
+                  <div className="crm-modal-field">
+                    <label>Fecha entrega</label>
+                    <span>{selectedLead.fecha_entrega}</span>
+                  </div>
+                )}
+                <div className="crm-modal-field">
+                  <label>Atendido por</label>
+                  <span>{selectedLead.atendido_por || 'Sin atender'}</span>
+                </div>
+                <div className="crm-modal-field">
+                  <label>Origen</label>
+                  <span>{selectedLead.origen === 'manychat' ? 'ManyChat' : 'WhatsApp'}</span>
+                </div>
+                {selectedLead.manychat_segment && (
+                  <div className="crm-modal-field">
+                    <label>Segmento MC</label>
+                    <span>{selectedLead.manychat_segment}</span>
+                  </div>
+                )}
+                <div className="crm-modal-field">
+                  <label>Creado</label>
+                  <span>{selectedLead.created_at ? new Date(selectedLead.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</span>
+                </div>
+                <div className="crm-modal-field">
+                  <label>Último contacto</label>
+                  <span>{selectedLead.updated_at ? new Date(selectedLead.updated_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</span>
+                </div>
               </div>
-            ))}
+              {selectedLead.notas_admin && (
+                <div className="crm-modal-notes">
+                  <label>Notas</label>
+                  <p>{selectedLead.notas_admin}</p>
+                </div>
+              )}
+              <div className="crm-modal-actions">
+                <a
+                  href={`/admin/whatsapp`}
+                  className="crm-modal-action-btn"
+                  onClick={(e) => { e.preventDefault(); window.open(`/admin/whatsapp`, '_blank'); }}
+                >
+                  <FaWhatsapp /> Ver en WhatsApp
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 };
+
+/* ═══ Lead Card Component ═══ */
+const LeadCard = React.memo(({ lead, onSelect, compact = false }) => {
+  const adminKey = normalizeAdmin(lead.atendido_por);
+  const adminInfo = ADMIN_COLORS[adminKey];
+
+  return (
+    <div className={`crm-lead-card ${compact ? 'crm-lead-compact' : ''}`} onClick={() => onSelect(lead)}>
+      <div className="crm-lead-card-header">
+        <span className="crm-lead-card-name">{lead.nombre || 'Sin nombre'}</span>
+        <span className="crm-lead-card-time">{timeAgo(lead.updated_at)}</span>
+      </div>
+      {!compact && (
+        <>
+          {lead.tema && <div className="crm-lead-card-tema">{lead.tema.length > 45 ? lead.tema.slice(0, 45) + '...' : lead.tema}</div>}
+          <div className="crm-lead-card-meta">
+            {lead.precio && <span className="crm-lead-card-price">${Number(lead.precio).toLocaleString()}</span>}
+            {lead.tipo_servicio && <span className="crm-lead-card-service">{SERVICIO_LABEL[lead.tipo_servicio] || ''}</span>}
+            {lead.nivel && <span className="crm-lead-card-nivel">{NIVEL_MAP[lead.nivel] || ''}</span>}
+          </div>
+        </>
+      )}
+      <div className="crm-lead-card-footer">
+        {lead.atendido_por ? (
+          <span className="crm-lead-card-admin" style={{ color: adminInfo?.color || '#6b7280', background: adminInfo?.bg || '#f3f4f6' }}>
+            {adminInfo?.label || lead.atendido_por}
+          </span>
+        ) : (
+          <span className="crm-lead-card-unattended">Sin atender</span>
+        )}
+        {lead.origen === 'manychat' && <span className="crm-lead-card-mc">MC</span>}
+        {lead.modo_humano && <span className="crm-lead-card-human">H</span>}
+      </div>
+    </div>
+  );
+});
 
 export default AdminFunnel;
