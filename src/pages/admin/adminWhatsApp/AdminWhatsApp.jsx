@@ -533,6 +533,11 @@ const AdminWhatsApp = () => {
   const handleSelectLeadWithRead = useCallback((lead) => {
     handleSelectLead(lead);
     markAsRead(lead.wa_id);
+    // Resetear badge localmente para que desaparezca inmediatamente
+    if (lead.mensajes_sin_leer > 0) {
+      lead.mensajes_sin_leer = 0;
+      setLeads(prev => prev.map(l => l.wa_id === lead.wa_id ? { ...l, mensajes_sin_leer: 0 } : l));
+    }
   }, [markAsRead]);
 
   // Cargar más leads (infinite scroll)
@@ -1551,15 +1556,9 @@ const AdminWhatsApp = () => {
     return content.length > 50 ? content.slice(0, 50) + '...' : content;
   };
 
-  // Contar mensajes no leídos (simple: mensajes del usuario después del último del bot)
+  // Contar mensajes no leídos — usa el campo de Supabase (incrementado por incoming-webhook)
   const getUnreadCount = (lead) => {
-    const hist = parseHistorial(lead.historial_chat);
-    let count = 0;
-    for (let i = hist.length - 1; i >= 0; i--) {
-      if (hist[i].role === 'user') count++;
-      else break;
-    }
-    return count;
+    return lead.mensajes_sin_leer || 0;
   };
 
   // Color de estado — mejorado con diferenciación de envío
