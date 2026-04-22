@@ -8,7 +8,7 @@ import {
   FaTimesCircle, FaArrowDown, FaArrowUp, FaEye, FaColumns,
   FaThLarge, FaList, FaSearch,
 } from 'react-icons/fa';
-import { getLeadsStats, getLeads } from '../../../services/whatsapp/supabaseWhatsApp';
+import { getLeadsStats, getLeads, updateLeadEstado } from '../../../services/whatsapp/supabaseWhatsApp';
 import { toast } from 'react-hot-toast';
 import './AdminFunnel.css';
 
@@ -83,6 +83,10 @@ const AdminFunnel = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedColumns, setExpandedColumns] = useState({});
   const [selectedLead, setSelectedLead] = useState(null);
+  const [draggedLead, setDraggedLead] = useState(null);
+  const [dragOverEstado, setDragOverEstado] = useState(null);
+  const [filterCampaign, setFilterCampaign] = useState('all');
+  const [filterAd, setFilterAd] = useState('all');
 
   /* ── Fetch stats ── */
   const fetchStats = useCallback(async () => {
@@ -118,16 +122,36 @@ const AdminFunnel = () => {
   useEffect(() => { fetchStats(); fetchAllLeads(); }, [fetchStats, fetchAllLeads]);
 
   /* ── Derived data ── */
-  const filteredLeads = useMemo(() => {
-    if (!searchQuery.trim()) return allLeads;
-    const q = searchQuery.toLowerCase();
-    return allLeads.filter(l => {
-      return (l.nombre || '').toLowerCase().includes(q)
-        || (l.wa_id || '').includes(q)
-        || (l.tema || '').toLowerCase().includes(q)
-        || (l.carrera || '').toLowerCase().includes(q);
+  // Unique campaigns and ads for filter dropdowns
+  const { campaigns, ads } = useMemo(() => {
+    const campSet = new Set();
+    const adSet = new Set();
+    allLeads.forEach(l => {
+      if (l.ad_campaign_name) campSet.add(l.ad_campaign_name);
+      if (l.ad_name) adSet.add(l.ad_name);
     });
-  }, [allLeads, searchQuery]);
+    return { campaigns: [...campSet].sort(), ads: [...adSet].sort() };
+  }, [allLeads]);
+
+  const filteredLeads = useMemo(() => {
+    let result = allLeads;
+    if (filterCampaign !== 'all') {
+      result = result.filter(l => l.ad_campaign_name === filterCampaign);
+    }
+    if (filterAd !== 'all') {
+      result = result.filter(l => l.ad_name === filterAd);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(l => {
+        return (l.nombre || '').toLowerCase().includes(q)
+          || (l.wa_id || '').includes(q)
+          || (l.tema || '').toLowerCase().includes(q)
+          || (l.carrera || '').toLowerCase().includes(q);
+      });
+    }
+    return result;
+  }, [allLeads, searchQuery, filterCampaign, filterAd]);
 
   const leadsByEstado = useMemo(() => {
     const map = {};
@@ -178,6 +202,53 @@ const AdminFunnel = () => {
 
   const toggleColumnExpand = (estado) => {
     setExpandedColumns(prev => ({ ...prev, [estado]: !prev[estado] }));
+  };
+
+  // ── Drag & Drop handlers ──
+  const handleDragStart = (e, lead) => {
+    setDraggedLead(lead);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', lead.wa_id);
+  };
+
+  const handleDragOver = (e, estado) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverEstado !== estado) setDragOverEstado(estado);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverEstado(null);
+  };
+
+  const handleDrop = async (e, nuevoEstado) => {
+    e.preventDefault();
+    setDragOverEstado(null);
+    if (!draggedLead || draggedLead.estado_sofia === nuevoEstado) {
+      setDraggedLead(null);
+      return;
+    }
+    const lead = draggedLead;
+    const estadoAnterior = lead.estado_sofia;
+    setDraggedLead(null);
+
+    // Optimistic update
+    setAllLeads(prev => prev.map(l =>
+      l.wa_id === lead.wa_id ? { ...l, estado_sofia: nuevoEstado } : l
+    ));
+
+    try {
+      await updateLeadEstado(lead.wa_id, nuevoEstado);
+      const cfg = ESTADO_CONFIG[nuevoEstado];
+      toast.success(`${lead.nombre || lead.wa_id} → ${cfg?.icon || ''} ${cfg?.label || nuevoEstado}`);
+    } catch (err) {
+      console.error('Error updating estado:', err);
+      toast.error('Error al mover lead');
+      // Rollback
+      setAllLeads(prev => prev.map(l =>
+        l.wa_id === lead.wa_id ? { ...l, estado_sofia: estadoAnterior } : l
+      ));
+    }
   };
 
   const handleRefresh = () => {
@@ -305,6 +376,27 @@ const AdminFunnel = () => {
         </div>
       )}
 
+      {/* ── Campaign & Ad Filters ── */}
+      {campaigns.length > 0 && (
+        <div className="crm-campaign-filter">
+          <label>📣 Campaña:</label>
+          <select value={filterCampaign} onChange={e => { setFilterCampaign(e.target.value); setFilterAd('all'); }}>
+            <option value="all">Todas</option>
+            {campaigns.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <label style={{marginLeft: 8}}>🎯 Anuncio:</label>
+          <select value={filterAd} onChange={e => setFilterAd(e.target.value)}>
+            <option value="all">Todos</option>
+            {ads.filter(a => filterCampaign === 'all' || allLeads.some(l => l.ad_name === a && l.ad_campaign_name === filterCampaign)).map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          {(filterCampaign !== 'all' || filterAd !== 'all') && (
+            <button onClick={() => { setFilterCampaign('all'); setFilterAd('all'); }} style={{fontSize: '0.7rem', padding: '3px 8px', border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', cursor: 'pointer', color: '#6b7280'}}>
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ═══ ADMIN WORKLOAD BAR ═══ */}
       <div className="crm-workload-bar">
         <span className="crm-workload-title"><FaUserTie size={11} /> Carga de trabajo:</span>
@@ -334,15 +426,21 @@ const AdminFunnel = () => {
             {PIPELINE_ESTADOS.map(estado => {
               const config = ESTADO_CONFIG[estado];
               const leads = leadsByEstado[estado] || [];
-              const isExpanded = expandedColumns[estado] !== false; // default expanded
+              const isFullyExpanded = expandedColumns[estado] === true;
               const SHOW_LIMIT = 8;
-              const visibleLeads = isExpanded ? leads.slice(0, SHOW_LIMIT) : [];
+              const visibleLeads = isFullyExpanded ? leads : leads.slice(0, SHOW_LIMIT);
               const hasMore = leads.length > SHOW_LIMIT;
-              // Pipeline value for this column
               const colValue = leads.reduce((sum, l) => sum + (Number(l.precio) || 0), 0);
+              const isDragOver = dragOverEstado === estado;
 
               return (
-                <div key={estado} className="crm-kanban-col">
+                <div
+                  key={estado}
+                  className={`crm-kanban-col ${isDragOver ? 'crm-kanban-col-dragover' : ''}`}
+                  onDragOver={(e) => handleDragOver(e, estado)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, estado)}
+                >
                   <div className="crm-kanban-header" style={{ borderTopColor: config.color }}>
                     <div className="crm-kanban-header-top">
                       <span className="crm-kanban-icon">{config.icon}</span>
@@ -359,11 +457,11 @@ const AdminFunnel = () => {
                     ) : (
                       <>
                         {visibleLeads.map(lead => (
-                          <LeadCard key={lead.wa_id} lead={lead} onSelect={setSelectedLead} />
+                          <LeadCard key={lead.wa_id} lead={lead} onSelect={setSelectedLead} onDragStart={handleDragStart} />
                         ))}
                         {hasMore && (
                           <button className="crm-kanban-more" onClick={() => toggleColumnExpand(estado)}>
-                            +{leads.length - SHOW_LIMIT} más
+                            {isFullyExpanded ? 'Mostrar menos' : `+${leads.length - SHOW_LIMIT} más`}
                           </button>
                         )}
                       </>
@@ -377,8 +475,16 @@ const AdminFunnel = () => {
             {(() => {
               const lostLeads = [...(leadsByEstado['descartado'] || []), ...(leadsByEstado['no_interesado'] || [])];
               if (lostLeads.length === 0) return null;
+              const isFullyExpanded = expandedColumns['_lost'] === true;
+              const visibleLost = isFullyExpanded ? lostLeads : lostLeads.slice(0, 5);
+              const isDragOver = dragOverEstado === 'descartado';
               return (
-                <div className="crm-kanban-col crm-kanban-col-lost">
+                <div
+                  className={`crm-kanban-col crm-kanban-col-lost ${isDragOver ? 'crm-kanban-col-dragover' : ''}`}
+                  onDragOver={(e) => handleDragOver(e, 'descartado')}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, 'descartado')}
+                >
                   <div className="crm-kanban-header" style={{ borderTopColor: '#ef4444' }}>
                     <div className="crm-kanban-header-top">
                       <span className="crm-kanban-icon">❌</span>
@@ -387,11 +493,13 @@ const AdminFunnel = () => {
                     </div>
                   </div>
                   <div className="crm-kanban-cards">
-                    {lostLeads.slice(0, 5).map(lead => (
-                      <LeadCard key={lead.wa_id} lead={lead} onSelect={setSelectedLead} compact />
+                    {visibleLost.map(lead => (
+                      <LeadCard key={lead.wa_id} lead={lead} onSelect={setSelectedLead} onDragStart={handleDragStart} compact />
                     ))}
                     {lostLeads.length > 5 && (
-                      <div className="crm-kanban-more-label">+{lostLeads.length - 5} más</div>
+                      <button className="crm-kanban-more" onClick={() => toggleColumnExpand('_lost')}>
+                        {isFullyExpanded ? 'Mostrar menos' : `+${lostLeads.length - 5} más`}
+                      </button>
                     )}
                   </div>
                 </div>
@@ -780,12 +888,18 @@ const AdminFunnel = () => {
 };
 
 /* ═══ Lead Card Component ═══ */
-const LeadCard = React.memo(({ lead, onSelect, compact = false }) => {
+const LeadCard = React.memo(({ lead, onSelect, onDragStart, compact = false }) => {
   const adminKey = normalizeAdmin(lead.atendido_por);
   const adminInfo = ADMIN_COLORS[adminKey];
 
   return (
-    <div className={`crm-lead-card ${compact ? 'crm-lead-compact' : ''}`} onClick={() => onSelect(lead)}>
+    <div
+      className={`crm-lead-card ${compact ? 'crm-lead-compact' : ''}`}
+      onClick={() => onSelect(lead)}
+      draggable
+      onDragStart={(e) => onDragStart && onDragStart(e, lead)}
+      style={{ cursor: 'grab' }}
+    >
       <div className="crm-lead-card-header">
         <span className="crm-lead-card-name">{lead.nombre || 'Sin nombre'}</span>
         <span className="crm-lead-card-time">{timeAgo(lead.updated_at)}</span>

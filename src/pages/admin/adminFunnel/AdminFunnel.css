@@ -1285,3 +1285,46 @@
     flex-wrap: wrap;
   }
 }
+
+/* ── Drag & Drop ── */
+.crm-kanban-col-dragover {
+  background: #eff6ff !important;
+  outline: 2px dashed #3b82f6;
+  outline-offset: -2px;
+  transition: all 0.15s ease;
+}
+
+.crm-lead-card[draggable="true"]:active {
+  cursor: grabbing;
+  opacity: 0.6;
+  transform: scale(0.97);
+}
+
+/* ── Campaign filter row ── */
+.crm-campaign-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  flex-wrap: wrap;
+}
+.crm-campaign-filter select {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  max-width: 220px;
+}
+.crm-campaign-filter select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+.crm-campaign-filter label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+}
