@@ -122,15 +122,15 @@ const AdminFunnel = () => {
   useEffect(() => { fetchStats(); fetchAllLeads(); }, [fetchStats, fetchAllLeads]);
 
   /* ── Derived data ── */
-  // Unique campaigns and ads for filter dropdowns
-  const { campaigns, ads } = useMemo(() => {
+  // Unique campaigns and adsets for filter dropdowns
+  const { campaigns, adsets } = useMemo(() => {
     const campSet = new Set();
-    const adSet = new Set();
+    const adsetSet = new Set();
     allLeads.forEach(l => {
       if (l.ad_campaign_name) campSet.add(l.ad_campaign_name);
-      if (l.ad_name) adSet.add(l.ad_name);
+      if (l.ad_adset_name) adsetSet.add(l.ad_adset_name);
     });
-    return { campaigns: [...campSet].sort(), ads: [...adSet].sort() };
+    return { campaigns: [...campSet].sort(), adsets: [...adsetSet].sort() };
   }, [allLeads]);
 
   const filteredLeads = useMemo(() => {
@@ -139,7 +139,7 @@ const AdminFunnel = () => {
       result = result.filter(l => l.ad_campaign_name === filterCampaign);
     }
     if (filterAd !== 'all') {
-      result = result.filter(l => l.ad_name === filterAd);
+      result = result.filter(l => l.ad_adset_name === filterAd);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -384,10 +384,10 @@ const AdminFunnel = () => {
             <option value="all">Todas</option>
             {campaigns.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <label style={{marginLeft: 8}}>🎯 Anuncio:</label>
+          <label style={{marginLeft: 8}}>🎯 Adset:</label>
           <select value={filterAd} onChange={e => setFilterAd(e.target.value)}>
             <option value="all">Todos</option>
-            {ads.filter(a => filterCampaign === 'all' || allLeads.some(l => l.ad_name === a && l.ad_campaign_name === filterCampaign)).map(a => <option key={a} value={a}>{a}</option>)}
+            {adsets.filter(a => filterCampaign === 'all' || allLeads.some(l => l.ad_adset_name === a && l.ad_campaign_name === filterCampaign)).map(a => <option key={a} value={a}>{a}</option>)}
           </select>
           {(filterCampaign !== 'all' || filterAd !== 'all') && (
             <button onClick={() => { setFilterCampaign('all'); setFilterAd('all'); }} style={{fontSize: '0.7rem', padding: '3px 8px', border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', cursor: 'pointer', color: '#6b7280'}}>
@@ -634,10 +634,11 @@ const AdminFunnel = () => {
                 const byCampaign = {};
                 adLeads.forEach(l => {
                   const camp = l.ad_campaign_name || 'Sin nombre';
-                  if (!byCampaign[camp]) byCampaign[camp] = { total: 0, ads: {} };
+                  if (!byCampaign[camp]) byCampaign[camp] = { total: 0, adsets: {} };
                   byCampaign[camp].total++;
-                  const ad = l.ad_name || 'Sin nombre';
-                  byCampaign[camp].ads[ad] = (byCampaign[camp].ads[ad] || 0) + 1;
+                  const adset = l.ad_adset_name || l.ad_name || 'Sin nombre';
+                  if (!byCampaign[camp].adsets[adset]) byCampaign[camp].adsets[adset] = 0;
+                  byCampaign[camp].adsets[adset]++;
                 });
                 return (
                   <div className="crm-origin-breakdown" style={{marginTop: 8}}>
@@ -649,10 +650,10 @@ const AdminFunnel = () => {
                           <span style={{fontSize: '0.8rem', color: '#1a73e8'}}>{camp}</span>
                           <span className="crm-origin-count">{info.total}</span>
                         </div>
-                        {Object.entries(info.ads).map(([ad, count]) => (
-                          <div key={ad} className="crm-origin-row" style={{paddingLeft: 20}}>
+                        {Object.entries(info.adsets).map(([adset, count]) => (
+                          <div key={adset} className="crm-origin-row" style={{paddingLeft: 20}}>
                             <span style={{fontSize: 11, color: '#9ca3af'}}>↳</span>
-                            <span style={{fontSize: '0.75rem', color: '#6b7280'}}>{ad}</span>
+                            <span style={{fontSize: '0.75rem', color: '#6b7280'}}>{adset}</span>
                             <span className="crm-origin-count" style={{fontSize: '0.7rem'}}>{count}</span>
                           </div>
                         ))}
@@ -680,7 +681,7 @@ const AdminFunnel = () => {
                 <th>Atendido por</th>
                 <th>Origen</th>
                 <th>Campaña</th>
-                <th>Anuncio</th>
+                <th>Adset</th>
                 <th>Actualizado</th>
               </tr>
             </thead>
@@ -729,7 +730,9 @@ const AdminFunnel = () => {
                       )}
                     </td>
                     <td>
-                      {lead.ad_name ? (
+                      {lead.ad_adset_name ? (
+                        <span style={{fontSize: '0.7rem', color: '#6b7280'}}>{lead.ad_adset_name}</span>
+                      ) : lead.ad_name ? (
                         <span style={{fontSize: '0.7rem', color: '#6b7280'}}>{lead.ad_name}</span>
                       ) : (
                         <span style={{fontSize: '0.7rem', color: '#9ca3af'}}>—</span>

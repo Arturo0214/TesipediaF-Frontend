@@ -2417,7 +2417,8 @@ const AdminWhatsApp = () => {
                       {l.fecha_entrega && <div className="wa-summary-item"><span className="wa-summary-label">Entrega</span><span className="wa-summary-value">{l.fecha_entrega}</span></div>}
                       <div className="wa-summary-item"><span className="wa-summary-label">Origen</span><span className="wa-summary-value wa-summary-origin">{origenLabel}</span></div>
                       {l.ad_source && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">📣 Campaña</span><span className="wa-summary-value" style={{color: '#1a73e8', fontWeight: 500}}>{l.ad_campaign_name || 'Anuncio Meta'}</span></div>}
-                      {l.ad_name && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Anuncio</span><span className="wa-summary-value" style={{fontSize: '0.75rem'}}>{l.ad_name}</span></div>}
+                      {l.ad_adset_name && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">🎯 Adset</span><span className="wa-summary-value" style={{fontSize: '0.75rem'}}>{l.ad_adset_name}</span></div>}
+                      {l.ad_name && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Anuncio</span><span className="wa-summary-value" style={{fontSize: '0.75rem', color: '#9ca3af'}}>{l.ad_name}</span></div>}
                       <div className="wa-summary-item"><span className="wa-summary-label">Llegó</span><span className="wa-summary-value">{l.created_at ? new Date(l.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</span></div>
                     </div>
                   </div>
