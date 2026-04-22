@@ -103,9 +103,11 @@ const AdminFunnel = () => {
     setLeadsLoading(true);
     try {
       // Fetch leads from both origins
-      const origenParam = origen === 'all' ? 'all' : origen;
+      const origenParam = origen === 'ads' ? 'all' : (origen === 'all' ? 'all' : origen);
       const result = await getLeads(origenParam, 500, 0, {});
-      setAllLeads(result.leads || []);
+      let leads = result.leads || [];
+      if (origen === 'ads') leads = leads.filter(l => l.ad_source);
+      setAllLeads(leads);
     } catch (err) {
       console.error('Error fetching leads:', err);
     } finally {
@@ -215,6 +217,9 @@ const AdminFunnel = () => {
             </button>
             <button className={`crm-origin-btn crm-origin-mc ${origen === 'manychat' ? 'active' : ''}`} onClick={() => setOrigen('manychat')}>
               <FaRocket size={11} /> ManyChat
+            </button>
+            <button className={`crm-origin-btn ${origen === 'ads' ? 'active' : ''}`} onClick={() => setOrigen('ads')} style={origen === 'ads' ? {background: '#1877f2', color: '#fff'} : {}}>
+              📣 Ads
             </button>
           </div>
         </div>
@@ -509,6 +514,11 @@ const AdminFunnel = () => {
                   <span>ManyChat</span>
                   <span className="crm-origin-count">{general.manychat}</span>
                 </div>
+                <div className="crm-origin-row">
+                  <span style={{fontSize: 14}}>📣</span>
+                  <span>Desde Ads</span>
+                  <span className="crm-origin-count">{allLeads.filter(l => l.ad_source).length}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -528,12 +538,13 @@ const AdminFunnel = () => {
                 <th>Precio</th>
                 <th>Atendido por</th>
                 <th>Origen</th>
+                <th>Campaña</th>
                 <th>Actualizado</th>
               </tr>
             </thead>
             <tbody>
               {filteredLeads.length === 0 ? (
-                <tr><td colSpan={9} className="crm-table-empty">Sin leads</td></tr>
+                <tr><td colSpan={10} className="crm-table-empty">Sin leads</td></tr>
               ) : filteredLeads.slice(0, 200).map(lead => {
                 const cfg = ESTADO_CONFIG[lead.estado_sofia];
                 const adminKey = normalizeAdmin(lead.atendido_por);
@@ -564,6 +575,13 @@ const AdminFunnel = () => {
                         <span className="crm-table-origin-mc"><FaRocket size={9} /> MC</span>
                       ) : (
                         <span className="crm-table-origin-wa"><FaWhatsapp size={9} /> WA</span>
+                      )}
+                    </td>
+                    <td>
+                      {lead.ad_source ? (
+                        <span style={{fontSize: '0.7rem', background: '#e8f0fe', color: '#1a73e8', padding: '2px 6px', borderRadius: 4}}>📣 Ad</span>
+                      ) : (
+                        <span style={{fontSize: '0.7rem', color: '#9ca3af'}}>—</span>
                       )}
                     </td>
                     <td className="crm-table-time">{timeAgo(lead.updated_at)}</td>
@@ -674,6 +692,18 @@ const AdminFunnel = () => {
                     <span>{selectedLead.manychat_segment}</span>
                   </div>
                 )}
+                {selectedLead.ad_source && (
+                  <div className="crm-modal-field">
+                    <label>📣 Campaña</label>
+                    <span style={{color: '#1a73e8'}}>{selectedLead.ad_source === 'ad' ? 'Anuncio Meta' : selectedLead.ad_source}</span>
+                  </div>
+                )}
+                {selectedLead.ad_body && (
+                  <div className="crm-modal-field">
+                    <label>Texto anuncio</label>
+                    <span style={{fontSize: '0.75rem'}}>{selectedLead.ad_body.length > 80 ? selectedLead.ad_body.slice(0, 80) + '...' : selectedLead.ad_body}</span>
+                  </div>
+                )}
                 <div className="crm-modal-field">
                   <label>Creado</label>
                   <span>{selectedLead.created_at ? new Date(selectedLead.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</span>
@@ -736,6 +766,7 @@ const LeadCard = React.memo(({ lead, onSelect, compact = false }) => {
           <span className="crm-lead-card-unattended">Sin atender</span>
         )}
         {lead.origen === 'manychat' && <span className="crm-lead-card-mc">MC</span>}
+        {lead.ad_source && <span style={{fontSize: '0.6rem', background: '#e8f0fe', color: '#1a73e8', padding: '1px 4px', borderRadius: 3, marginLeft: 4}}>📣</span>}
         {lead.modo_humano && <span className="crm-lead-card-human">H</span>}
       </div>
     </div>
