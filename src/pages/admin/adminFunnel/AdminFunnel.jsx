@@ -520,6 +520,39 @@ const AdminFunnel = () => {
                   <span className="crm-origin-count">{allLeads.filter(l => l.ad_source).length}</span>
                 </div>
               </div>
+              {(() => {
+                const adLeads = allLeads.filter(l => l.ad_source);
+                if (adLeads.length === 0) return null;
+                const byCampaign = {};
+                adLeads.forEach(l => {
+                  const camp = l.ad_campaign_name || 'Sin nombre';
+                  if (!byCampaign[camp]) byCampaign[camp] = { total: 0, ads: {} };
+                  byCampaign[camp].total++;
+                  const ad = l.ad_name || 'Sin nombre';
+                  byCampaign[camp].ads[ad] = (byCampaign[camp].ads[ad] || 0) + 1;
+                });
+                return (
+                  <div className="crm-origin-breakdown" style={{marginTop: 8}}>
+                    <h4>📣 Desglose por campaña</h4>
+                    {Object.entries(byCampaign).map(([camp, info]) => (
+                      <div key={camp} style={{marginBottom: 8}}>
+                        <div className="crm-origin-row" style={{fontWeight: 600}}>
+                          <span style={{fontSize: 12, color: '#1a73e8'}}>🎯</span>
+                          <span style={{fontSize: '0.8rem', color: '#1a73e8'}}>{camp}</span>
+                          <span className="crm-origin-count">{info.total}</span>
+                        </div>
+                        {Object.entries(info.ads).map(([ad, count]) => (
+                          <div key={ad} className="crm-origin-row" style={{paddingLeft: 20}}>
+                            <span style={{fontSize: 11, color: '#9ca3af'}}>↳</span>
+                            <span style={{fontSize: '0.75rem', color: '#6b7280'}}>{ad}</span>
+                            <span className="crm-origin-count" style={{fontSize: '0.7rem'}}>{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -539,12 +572,13 @@ const AdminFunnel = () => {
                 <th>Atendido por</th>
                 <th>Origen</th>
                 <th>Campaña</th>
+                <th>Anuncio</th>
                 <th>Actualizado</th>
               </tr>
             </thead>
             <tbody>
               {filteredLeads.length === 0 ? (
-                <tr><td colSpan={10} className="crm-table-empty">Sin leads</td></tr>
+                <tr><td colSpan={11} className="crm-table-empty">Sin leads</td></tr>
               ) : filteredLeads.slice(0, 200).map(lead => {
                 const cfg = ESTADO_CONFIG[lead.estado_sofia];
                 const adminKey = normalizeAdmin(lead.atendido_por);
@@ -578,8 +612,17 @@ const AdminFunnel = () => {
                       )}
                     </td>
                     <td>
-                      {lead.ad_source ? (
+                      {lead.ad_campaign_name ? (
+                        <span style={{fontSize: '0.7rem', background: '#e8f0fe', color: '#1a73e8', padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap'}}>{lead.ad_campaign_name}</span>
+                      ) : lead.ad_source ? (
                         <span style={{fontSize: '0.7rem', background: '#e8f0fe', color: '#1a73e8', padding: '2px 6px', borderRadius: 4}}>📣 Ad</span>
+                      ) : (
+                        <span style={{fontSize: '0.7rem', color: '#9ca3af'}}>—</span>
+                      )}
+                    </td>
+                    <td>
+                      {lead.ad_name ? (
+                        <span style={{fontSize: '0.7rem', color: '#6b7280'}}>{lead.ad_name}</span>
                       ) : (
                         <span style={{fontSize: '0.7rem', color: '#9ca3af'}}>—</span>
                       )}
