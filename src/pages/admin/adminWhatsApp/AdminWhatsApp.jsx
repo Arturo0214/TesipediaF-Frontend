@@ -180,7 +180,7 @@ function formatLabel(text) {
   );
 }
 
-const POLL_INTERVAL = 60000; // 60 segundos — reducido para bajar egress y costos
+const POLL_INTERVAL = 20000; // 20 segundos — balance entre costo y reactividad
 
 const AdminWhatsApp = () => {
   const dispatch = useDispatch();
@@ -2416,9 +2416,8 @@ const AdminWhatsApp = () => {
                       {l.precio && <div className="wa-summary-item"><span className="wa-summary-label">Precio</span><span className="wa-summary-value wa-summary-price">{l.precio}</span></div>}
                       {l.fecha_entrega && <div className="wa-summary-item"><span className="wa-summary-label">Entrega</span><span className="wa-summary-value">{l.fecha_entrega}</span></div>}
                       <div className="wa-summary-item"><span className="wa-summary-label">Origen</span><span className="wa-summary-value wa-summary-origin">{origenLabel}</span></div>
-                      {l.ad_source && <div className="wa-summary-item"><span className="wa-summary-label">Campaña</span><span className="wa-summary-value wa-summary-campaign">{l.ad_source === 'ad' ? '📣 Anuncio Meta' : l.ad_source}</span></div>}
-                      {l.ad_id && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Ad ID</span><span className="wa-summary-value" style={{fontSize: '0.7rem', opacity: 0.7}}>{l.ad_id}</span></div>}
-                      {l.ad_body && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Anuncio</span><span className="wa-summary-value" style={{fontSize: '0.75rem'}}>{l.ad_body.length > 60 ? l.ad_body.slice(0, 60) + '...' : l.ad_body}</span></div>}
+                      {l.ad_source && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">📣 Campaña</span><span className="wa-summary-value" style={{color: '#1a73e8', fontWeight: 500}}>{l.ad_campaign_name || 'Anuncio Meta'}</span></div>}
+                      {l.ad_name && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Anuncio</span><span className="wa-summary-value" style={{fontSize: '0.75rem'}}>{l.ad_name}</span></div>}
                       <div className="wa-summary-item"><span className="wa-summary-label">Llegó</span><span className="wa-summary-value">{l.created_at ? new Date(l.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</span></div>
                     </div>
                   </div>

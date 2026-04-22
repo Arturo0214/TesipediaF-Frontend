@@ -695,13 +695,13 @@ const AdminFunnel = () => {
                 {selectedLead.ad_source && (
                   <div className="crm-modal-field">
                     <label>📣 Campaña</label>
-                    <span style={{color: '#1a73e8'}}>{selectedLead.ad_source === 'ad' ? 'Anuncio Meta' : selectedLead.ad_source}</span>
+                    <span style={{color: '#1a73e8', fontWeight: 500}}>{selectedLead.ad_campaign_name || 'Anuncio Meta'}</span>
                   </div>
                 )}
-                {selectedLead.ad_body && (
+                {selectedLead.ad_name && (
                   <div className="crm-modal-field">
-                    <label>Texto anuncio</label>
-                    <span style={{fontSize: '0.75rem'}}>{selectedLead.ad_body.length > 80 ? selectedLead.ad_body.slice(0, 80) + '...' : selectedLead.ad_body}</span>
+                    <label>Anuncio</label>
+                    <span style={{fontSize: '0.75rem'}}>{selectedLead.ad_name}</span>
                   </div>
                 )}
                 <div className="crm-modal-field">
