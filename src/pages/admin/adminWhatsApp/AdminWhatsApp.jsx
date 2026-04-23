@@ -1461,17 +1461,11 @@ const AdminWhatsApp = () => {
     }
     return true;
   }).sort((a, b) => {
-    // ── PRIORIDAD 1: Mensajes nuevos del cliente (no leídos) SIEMPRE arriba ──
-    // Usar mensajes_sin_leer (mismo campo que usan las secciones) para consistencia
-    const unreadA = (a.mensajes_sin_leer || 0) > 0 && !readLeads.has(a.wa_id) ? 1 : 0;
-    const unreadB = (b.mensajes_sin_leer || 0) > 0 && !readLeads.has(b.wa_id) ? 1 : 0;
-    if (unreadA !== unreadB) return unreadB - unreadA;
-    // Ambos con mensajes nuevos → el más reciente primero
-    if (unreadA && unreadB) {
-      const dateA = new Date(a.updated_at || 0).getTime();
-      const dateB = new Date(b.updated_at || 0).getTime();
-      return dateB - dateA;
-    }
+    // ── PRIORIDAD 1: Cliente envió el último mensaje Y no ha sido leído ──
+    // 👤 en el preview = el último mensaje es del cliente (necesita respuesta)
+    const clienteEsperaA = (a.ultimo_mensaje_preview || '').startsWith('👤') && !readLeads.has(a.wa_id) ? 1 : 0;
+    const clienteEsperaB = (b.ultimo_mensaje_preview || '').startsWith('👤') && !readLeads.has(b.wa_id) ? 1 : 0;
+    if (clienteEsperaA !== clienteEsperaB) return clienteEsperaB - clienteEsperaA;
 
     // ── PRIORIDAD 2: Leads esperando aprobación ──
     const PRIORITY_ESTADOS = ['esperando_aprobacion', 'cotizacion_enviada', 'cotizacion_confirmada', 'cliente_acepto'];
@@ -2094,16 +2088,18 @@ const AdminWhatsApp = () => {
                   filteredLeads.forEach((lead) => {
                     const unread = getUnreadCount(lead);
                     const isPriority = APPROVAL_ESTADOS.includes(lead.estado_sofia);
+                    // 👤 en preview = el último mensaje es del cliente (necesita respuesta)
+                    const clienteEspera = (lead.ultimo_mensaje_preview || '').startsWith('👤') && !readLeads.has(lead.wa_id);
 
-                    if (unread > 0 && !readLeads.has(lead.wa_id) && !shownNewHdr) {
+                    if (clienteEspera && !shownNewHdr) {
                       shownNewHdr = true;
                       elements.push(<div key="__hdr_new" className="wa-section-header wa-section-new"><FaEnvelope /> Mensajes nuevos</div>);
                     }
-                    if ((unread === 0 || readLeads.has(lead.wa_id)) && isPriority && !shownApprovalHdr) {
+                    if (!clienteEspera && isPriority && !shownApprovalHdr) {
                       shownApprovalHdr = true;
                       elements.push(<div key="__hdr_approval" className="wa-section-header wa-section-approval"><FaClock /> Esperando aprobación / respuesta</div>);
                     }
-                    if ((unread === 0 || readLeads.has(lead.wa_id)) && !isPriority && !shownRestHdr) {
+                    if (!clienteEspera && !isPriority && !shownRestHdr) {
                       shownRestHdr = true;
                       elements.push(<div key="__hdr_rest" className="wa-section-header wa-section-rest"><FaWhatsapp /> Otras conversaciones</div>);
                     }
