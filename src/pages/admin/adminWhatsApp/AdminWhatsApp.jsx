@@ -447,6 +447,23 @@ const AdminWhatsApp = () => {
       hasMoreRef.current = moreAvailable;
       setHasMore(moreAvailable);
 
+      // Limpiar readLeads para leads que tienen nuevos mensajes sin leer
+      // (el cliente respondió DESPUÉS de que el admin abrió el chat)
+      setReadLeads(prev => {
+        if (prev.size === 0) return prev;
+        let changed = false;
+        const next = new Set(prev);
+        for (const lead of allData) {
+          if (next.has(lead.wa_id) && (lead.mensajes_sin_leer || 0) > 0) {
+            next.delete(lead.wa_id);
+            changed = true;
+          }
+        }
+        if (!changed) return prev;
+        localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+        return next;
+      });
+
       // Actualizar el lead seleccionado usando el REF
       const currentSelected = selectedLeadRef.current;
       if (currentSelected) {
