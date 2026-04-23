@@ -1462,20 +1462,12 @@ const AdminWhatsApp = () => {
     return true;
   }).sort((a, b) => {
     // ── PRIORIDAD 1: Mensajes nuevos del cliente (no leídos) SIEMPRE arriba ──
-    const countUnread = (lead) => {
-      const hist = parseHistorial(lead.historial_chat);
-      let c = 0;
-      for (let i = hist.length - 1; i >= 0; i--) {
-        if (hist[i].role === 'user') c++; else break;
-      }
-      return c;
-    };
-    const unreadA = countUnread(a);
-    const unreadB = countUnread(b);
-    if (unreadA > 0 && unreadB === 0) return -1;
-    if (unreadA === 0 && unreadB > 0) return 1;
+    // Usar mensajes_sin_leer (mismo campo que usan las secciones) para consistencia
+    const unreadA = (a.mensajes_sin_leer || 0) > 0 && !readLeads.has(a.wa_id) ? 1 : 0;
+    const unreadB = (b.mensajes_sin_leer || 0) > 0 && !readLeads.has(b.wa_id) ? 1 : 0;
+    if (unreadA !== unreadB) return unreadB - unreadA;
     // Ambos con mensajes nuevos → el más reciente primero
-    if (unreadA > 0 && unreadB > 0) {
+    if (unreadA && unreadB) {
       const dateA = new Date(a.updated_at || 0).getTime();
       const dateB = new Date(b.updated_at || 0).getTime();
       return dateB - dateA;
@@ -1528,8 +1520,10 @@ const AdminWhatsApp = () => {
 
   // Obtener último mensaje de un lead (limpio, sin tags internos)
   const getLastMessage = (lead) => {
-    // Usar preview pre-calculado del backend si existe
-    if (lead.ultimo_mensaje_preview) return lead.ultimo_mensaje_preview;
+    // Usar preview pre-calculado del backend solo si tiene contenido real
+    if (lead.ultimo_mensaje_preview && lead.ultimo_mensaje_preview !== '(mensaje)') {
+      return lead.ultimo_mensaje_preview;
+    }
 
     const hist = parseHistorial(lead.historial_chat);
     if (hist.length === 0) {
@@ -1545,7 +1539,14 @@ const AdminWhatsApp = () => {
       };
       return estadoLabels[lead.estado_sofia] || lead.estado_sofia || 'Sin mensajes';
     }
-    const last = hist[hist.length - 1];
+    // Buscar el último mensaje del cliente (role === 'user') para mostrar qué dijo
+    let last = hist[hist.length - 1];
+    for (let i = hist.length - 1; i >= 0; i--) {
+      if (hist[i].role === 'user' && hist[i].content) {
+        last = hist[i];
+        break;
+      }
+    }
     let content = last.content || '';
     // Limpiar tags [HUMANO:Name] y [HUMANO]
     content = content.replace(/^\[HUMANO:[^\]]*\]\s*/, '').replace(/^\[HUMANO\]\s*/, '');
