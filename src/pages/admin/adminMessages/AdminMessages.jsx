@@ -132,11 +132,7 @@ const AdminMessages = () => {
     const filteredConversations = useMemo(() => {
         if (!conversations?.length) return [];
 
-        let filtered = [...conversations].filter(conv => {
-            if (conv.isPublic) return true;
-            const lastSenderId = conv.lastMessageSender?._id?.toString() || conv.lastMessageSender;
-            return lastSenderId !== user?._id?.toString();
-        });
+        let filtered = [...conversations];
 
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
@@ -157,6 +153,11 @@ const AdminMessages = () => {
         }
 
         return filtered.sort((a, b) => {
+            // Priorizar conversaciones con mensajes no leídos (como WhatsApp)
+            const aUnread = (a.unreadCount || 0) > 0 ? 1 : 0;
+            const bUnread = (b.unreadCount || 0) > 0 ? 1 : 0;
+            if (aUnread !== bUnread) return bUnread - aUnread;
+
             if (!a.lastMessageDate) return 1;
             if (!b.lastMessageDate) return -1;
             return new Date(b.lastMessageDate) - new Date(a.lastMessageDate);
