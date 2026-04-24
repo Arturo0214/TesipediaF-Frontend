@@ -2241,11 +2241,11 @@ const AdminWhatsApp = () => {
                     </div>
                   </div>
                 </div>
-                <div className="wa-chat-header-actions">
-                  <Button variant="warning" size="sm" onClick={openQuoteModal} className="wa-quote-btn" title="Cotizar">
+                <div className="wa-chat-header-actions" style={{ gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Button variant="warning" size="sm" onClick={openQuoteModal} className="wa-quote-btn" title="Cotizar" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>
                     <FaCalculator className="me-1" /> Cotizar
                   </Button>
-                  <select className="wa-estado-select" value={selectedLead.estado_sofia || ''}
+                  <select className="wa-estado-select" value={selectedLead.estado_sofia || ''} style={{ fontSize: '0.65rem', padding: '2px 4px', maxWidth: 140 }}
                     onChange={async (e) => {
                       try {
                         await updateLeadEstado(selectedLead.wa_id, e.target.value);
@@ -2257,9 +2257,9 @@ const AdminWhatsApp = () => {
                     <option value="bienvenida">Bienvenida</option>
                     <option value="cotizando">Cotizando</option>
                     <option value="cotizacion_iniciada">Cotización iniciada</option>
-                    <option value="cotizacion_lista">⚠ Cotización lista (sin enviar)</option>
+                    <option value="cotizacion_lista">⚠ Cotización lista</option>
                     <option value="cotizacion_enviada">✓ Cotización enviada</option>
-                    <option value="cotizacion_confirmada">✓✓ Cotización confirmada</option>
+                    <option value="cotizacion_confirmada">✓✓ Confirmada</option>
                     <option value="esperando_aprobacion">⏳ Esperando aprobación</option>
                     <option value="cliente_acepto">✓ Cliente aceptó</option>
                     <option value="pagado">💰 Pagado</option>
@@ -2272,8 +2272,8 @@ const AdminWhatsApp = () => {
                     onClick={handleToggleHuman}
                     disabled={togglingHuman}
                     className="wa-human-toggle"
-                    title={selectedLead.modo_humano ? 'Sofia SILENCIADA — clic para reactivarla' : 'Clic para silenciar a Sofia bot (no responderá a este lead)'}
-                    style={selectedLead.modo_humano ? { fontWeight: 700, animation: 'none' } : {}}
+                    title={selectedLead.modo_humano ? 'Sofia SILENCIADA — clic para reactivarla' : 'Clic para silenciar a Sofia bot'}
+                    style={selectedLead.modo_humano ? { fontWeight: 700, animation: 'none', fontSize: '0.65rem', padding: '2px 7px' } : { fontSize: '0.65rem', padding: '2px 7px' }}
                   >
                     {togglingHuman ? <Spinner size="sm" /> : selectedLead.modo_humano
                       ? <><FaBan className="me-1" /> Sofia OFF</>
@@ -2284,8 +2284,8 @@ const AdminWhatsApp = () => {
                     size="sm"
                     onClick={handleToggleAutoPaused}
                     disabled={togglingAutoPaused}
-                    title={selectedLead.auto_paused ? 'Automatizaciones PAUSADAS — clic para reanudar (revival, follow-up, reengagement)' : 'Clic para pausar automatizaciones (revival, follow-up, reengagement) — Sofia sigue activa'}
-                    style={selectedLead.auto_paused ? { fontWeight: 700 } : {}}
+                    title={selectedLead.auto_paused ? 'Automatizaciones PAUSADAS' : 'Pausar automatizaciones'}
+                    style={selectedLead.auto_paused ? { fontWeight: 700, fontSize: '0.65rem', padding: '2px 7px' } : { fontSize: '0.65rem', padding: '2px 7px' }}
                   >
                     {togglingAutoPaused ? <Spinner size="sm" /> : selectedLead.auto_paused
                       ? <><FaPauseCircle className="me-1" /> Autos OFF</>
@@ -2296,10 +2296,15 @@ const AdminWhatsApp = () => {
                     size="sm"
                     onClick={() => readLeads.has(selectedLead.wa_id) ? markAsUnread(selectedLead.wa_id) : markAsRead(selectedLead.wa_id)}
                     title={readLeads.has(selectedLead.wa_id) ? 'Marcar como no leído' : 'Marcar como leído'}
-                    style={{ fontSize: '0.7rem', padding: '2px 8px' }}
+                    style={{ fontSize: '0.6rem', padding: '2px 6px' }}
                   >
                     {readLeads.has(selectedLead.wa_id) ? <><FaEnvelope className="me-1" /> No leído</> : <><FaEnvelopeOpen className="me-1" /> Leído</>}
                   </Button>
+                  {(selectedLead.ad_campaign_name || selectedLead.ad_adset_name) && (
+                    <span style={{ fontSize: '0.6rem', color: '#1a73e8', background: '#e8f0fe', borderRadius: 4, padding: '2px 6px', whiteSpace: 'nowrap', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${selectedLead.ad_campaign_name || ''} / ${selectedLead.ad_adset_name || ''}`}>
+                      📣 {selectedLead.ad_campaign_name || 'Meta'}{selectedLead.ad_adset_name ? ` / ${selectedLead.ad_adset_name}` : ''}
+                    </span>
+                  )}
                 </div>
               </div>
 
