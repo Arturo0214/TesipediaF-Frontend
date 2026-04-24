@@ -304,18 +304,14 @@ const AdminWhatsApp = () => {
     const newMsgs = [];
     newLeads.forEach(lead => {
       const prevUpdated = prevLeadsMapRef.current.get(lead.wa_id);
+      // Detectar si el último mensaje es del cliente usando el preview (👤 prefix)
+      const lastMsgIsUser = (lead.ultimo_mensaje_preview || '').startsWith('👤');
       // Si el lead tiene updated_at más reciente Y el último mensaje es del usuario
-      if (prevUpdated && lead.updated_at !== prevUpdated) {
-        const hist = parseHistorial(lead.historial_chat);
-        if (hist.length > 0 && hist[hist.length - 1].role === 'user') {
-          newMsgs.push(lead);
-        }
-      } else if (!prevUpdated) {
+      if (prevUpdated && lead.updated_at !== prevUpdated && lastMsgIsUser) {
+        newMsgs.push(lead);
+      } else if (!prevUpdated && lastMsgIsUser) {
         // Lead completamente nuevo con mensaje del user
-        const hist = parseHistorial(lead.historial_chat);
-        if (hist.length > 0 && hist[hist.length - 1].role === 'user') {
-          newMsgs.push(lead);
-        }
+        newMsgs.push(lead);
       }
     });
     // Actualizar mapa
