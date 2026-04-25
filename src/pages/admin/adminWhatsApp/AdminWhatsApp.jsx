@@ -362,7 +362,7 @@ const AdminWhatsApp = () => {
   useEffect(() => { searchQueryRef.current = searchQuery; }, [searchQuery]);
 
   const buildFilters = useCallback(() => ({
-    estado: estadoFilterRef.current,
+    estado: estadoFilterRef.current === '__nuevos_mensajes' ? 'all' : estadoFilterRef.current,
     atendido: attendedFilterRef.current,
     fecha: dateFilterRef.current,
     search: searchQueryRef.current,
@@ -1459,8 +1459,12 @@ const AdminWhatsApp = () => {
   // Obtener todas las etiquetas únicas de los leads cargados
   const allTags = [...new Set(leads.flatMap(l => l.etiquetas || []))].sort();
 
-  // Filtros aplicados server-side — client-side para atendido_por y etiquetas
+  // Filtros aplicados server-side — client-side para atendido_por, etiquetas y nuevos mensajes
   const filteredLeads = leads.filter(lead => {
+    // Filtro especial: nuevos mensajes (cliente envió último mensaje)
+    if (estadoFilter === '__nuevos_mensajes') {
+      if (!(lead.ultimo_mensaje_preview || '').startsWith('👤') || readLeads.has(lead.wa_id)) return false;
+    }
     if (attendedFilter !== 'all') {
       const who = getLeadAttendedBy(lead);
       if (attendedFilter === 'atendido' && !who) return false;
@@ -2024,6 +2028,7 @@ const AdminWhatsApp = () => {
               style={estadoFilter !== 'all' ? { borderColor: '#3b82f6', color: '#3b82f6', fontWeight: 600 } : {}}
             >
               <option value="all">Estado: Todos ({leads.length})</option>
+              <option value="__nuevos_mensajes">📩 Nuevos mensajes ({leads.filter(l => (l.ultimo_mensaje_preview || '').startsWith('👤') && !readLeads.has(l.wa_id)).length})</option>
               {estadosUnicos.map(est => {
                 const count = leads.filter(l => (l.estado_sofia || 'sin_estado') === est).length;
                 if (count === 0) return null;
