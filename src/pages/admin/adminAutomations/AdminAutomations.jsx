@@ -57,8 +57,13 @@ const AdminAutomations = () => {
       if (ar.status === 'fulfilled') setAutoReminderConfig(ar.value);
       if (rev.status === 'fulfilled') setRevivalConfig(rev.value);
       if (qf.status === 'fulfilled') setQuoteFollowUpConfig(qf.value);
-      if (dp.status === 'fulfilled') setPromoPreview(dp.value);
-    } catch { /* silencioso */ }
+      if (dp.status === 'fulfilled') {
+        console.log('✅ Promo preview:', dp.value);
+        setPromoPreview(dp.value);
+      } else {
+        console.error('❌ Promo preview falló:', dp.reason);
+      }
+    } catch (err) { console.error('❌ fetchAll error:', err); }
     setInitialLoading(false);
   }, []);
 

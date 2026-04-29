@@ -318,7 +318,7 @@ export async function runCalificacionFollowUp(opts = {}) {
  * Preview de leads que recibirían la promo de descuento
  */
 export async function getDiscountPromoPreview() {
-  const { data } = await axiosWithAuth.get(`${BASE}/discount-promo/preview`);
+  const { data } = await axiosWithAuth.get(`${BASE}/discount-promo/preview`, { timeout: 30000 });
   return data;
 }
 
