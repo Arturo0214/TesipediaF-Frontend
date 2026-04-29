@@ -324,10 +324,19 @@ export async function getDiscountPromoPreview() {
 
 /**
  * Lista paginada de leads elegibles con preview de últimos 3 mensajes
+ * @param {Object} filters - { page, limit, search, estado, carrera, atendido_por, include_blocked, days, sort }
  */
-export async function getDiscountPromoLeads(page = 1, limit = 50, search = '') {
-  const params = { page, limit };
-  if (search) params.search = search;
+export async function getDiscountPromoLeads(filters = {}) {
+  const params = {};
+  if (filters.page) params.page = filters.page;
+  if (filters.limit) params.limit = filters.limit;
+  if (filters.search) params.search = filters.search;
+  if (filters.estado) params.estado = filters.estado;
+  if (filters.carrera) params.carrera = filters.carrera;
+  if (filters.atendido_por) params.atendido_por = filters.atendido_por;
+  if (filters.include_blocked) params.include_blocked = 'true';
+  if (filters.days) params.days = filters.days;
+  if (filters.sort) params.sort = filters.sort;
   const { data } = await axiosWithAuth.get(`${BASE}/discount-promo/leads`, { params, timeout: 30000 });
   return data;
 }

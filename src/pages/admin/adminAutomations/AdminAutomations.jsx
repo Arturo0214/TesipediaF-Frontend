@@ -55,6 +55,11 @@ const AdminAutomations = () => {
   const [selectedWaIds, setSelectedWaIds] = useState(new Set());
   const [expandedLead, setExpandedLead] = useState(null);
   const modalSearchTimer = useRef(null);
+  // Filtros del modal
+  const [modalFilters, setModalFilters] = useState({
+    estado: '', carrera: '', atendido_por: '', days: 0, include_blocked: false, sort: 'updated_at.desc',
+  });
+  const [availableCarreras, setAvailableCarreras] = useState([]);
 
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -203,11 +208,14 @@ const AdminAutomations = () => {
     setPromoSending(false);
   };
 
-  // ─── Modal: cargar leads ──────────────────────────────────
-  const loadModalLeads = useCallback(async (page = 1, search = '', append = false) => {
+  // ─── Modal: cargar leads ───────────────���──────────────────
+  const loadModalLeads = useCallback(async (page = 1, search = '', filters = {}, append = false) => {
     setModalLoading(true);
     try {
-      const result = await getDiscountPromoLeads(page, 50, search);
+      const result = await getDiscountPromoLeads({
+        page, limit: 50, search,
+        ...filters,
+      });
       if (append) {
         setModalLeads(prev => [...prev, ...result.leads]);
       } else {
@@ -216,29 +224,46 @@ const AdminAutomations = () => {
       setModalTotal(result.total);
       setModalPage(result.page);
       setModalHasMore(result.hasMore);
+      // Guardar carreras disponibles (solo viene en page 1)
+      if (result.carreras) setAvailableCarreras(result.carreras);
     } catch { toast.error('Error al cargar leads'); }
     setModalLoading(false);
   }, []);
 
+  const defaultFilters = { estado: '', carrera: '', atendido_por: '', days: 0, include_blocked: false, sort: 'updated_at.desc' };
+
   const handleOpenPromoModal = async () => {
     setShowPromoModal(true);
     setModalSearch('');
+    setModalFilters(defaultFilters);
     setSelectedWaIds(new Set());
     setExpandedLead(null);
-    await loadModalLeads(1, '');
+    await loadModalLeads(1, '', defaultFilters);
   };
 
   const handleModalSearch = (value) => {
     setModalSearch(value);
     clearTimeout(modalSearchTimer.current);
     modalSearchTimer.current = setTimeout(() => {
-      loadModalLeads(1, value);
+      loadModalLeads(1, value, modalFilters);
     }, 400);
+  };
+
+  const handleModalFilterChange = (key, value) => {
+    // Si key es un objeto, es un reset completo de filtros
+    if (typeof key === 'object') {
+      setModalFilters(key);
+      loadModalLeads(1, modalSearch, key);
+      return;
+    }
+    const newFilters = { ...modalFilters, [key]: value };
+    setModalFilters(newFilters);
+    loadModalLeads(1, modalSearch, newFilters);
   };
 
   const handleModalLoadMore = () => {
     if (modalHasMore && !modalLoading) {
-      loadModalLeads(modalPage + 1, modalSearch, true);
+      loadModalLeads(modalPage + 1, modalSearch, modalFilters, true);
     }
   };
 
@@ -637,9 +662,12 @@ const AdminAutomations = () => {
         hasMore={modalHasMore}
         loading={modalLoading}
         search={modalSearch}
+        filters={modalFilters}
+        carreras={availableCarreras}
         selectedWaIds={selectedWaIds}
         expandedLead={expandedLead}
         onSearch={handleModalSearch}
+        onFilterChange={handleModalFilterChange}
         onLoadMore={handleModalLoadMore}
         onToggleSelect={toggleSelectLead}
         onToggleAll={toggleSelectAll}
@@ -654,13 +682,34 @@ const AdminAutomations = () => {
 
 // ─── Modal de selección de leads para promo ─────────────────
 const PromoLeadModal = ({
-  show, onClose, leads, total, hasMore, loading, search,
+  show, onClose, leads, total, hasMore, loading, search, filters, carreras,
   selectedWaIds, expandedLead,
-  onSearch, onLoadMore, onToggleSelect, onToggleAll, onExpand, onSend,
+  onSearch, onFilterChange, onLoadMore, onToggleSelect, onToggleAll, onExpand, onSend,
   sending, formatDate,
 }) => {
+  const [showFilters, setShowFilters] = useState(false);
   if (!show) return null;
   const allSelected = leads.length > 0 && selectedWaIds.size === leads.length;
+
+  const selectStyle = {
+    padding: '5px 8px', borderRadius: 6, border: '1px solid #d1d5db',
+    fontSize: 12, outline: 'none', background: '#fff', cursor: 'pointer', minWidth: 0,
+  };
+  const activeSelect = (val) => val ? { ...selectStyle, borderColor: '#059669', color: '#059669', fontWeight: 600 } : selectStyle;
+
+  const dayOptions = [
+    { value: 0, label: 'Cualquier fecha' },
+    { value: 7, label: 'Última semana' },
+    { value: 14, label: 'Últimos 14 días' },
+    { value: 30, label: 'Último mes' },
+    { value: 60, label: 'Últimos 2 meses' },
+    { value: 90, label: 'Últimos 3 meses' },
+  ];
+
+  const activeFilterCount = [
+    filters.estado, filters.carrera, filters.atendido_por,
+    filters.days > 0, filters.include_blocked,
+  ].filter(Boolean).length;
 
   return (
     <div style={{
@@ -668,55 +717,150 @@ const PromoLeadModal = ({
       background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <div style={{
-        background: '#fff', borderRadius: 12, width: '95%', maxWidth: 700,
-        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+        background: '#fff', borderRadius: 12, width: '95%', maxWidth: 750,
+        maxHeight: '92vh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       }} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div style={{
-          padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
+          padding: '14px 20px', borderBottom: '1px solid #e5e7eb',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: '#f0fdf4', borderRadius: '12px 12px 0 0',
         }}>
           <div>
-            <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
+            <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#166534' }}>
               Seleccionar leads para promo 10%
             </h5>
             <span style={{ fontSize: 13, color: '#6b7280' }}>
-              {selectedWaIds.size} seleccionados de {total} elegibles
+              <strong style={{ color: '#059669' }}>{selectedWaIds.size}</strong> seleccionados de <strong>{total}</strong> elegibles
             </span>
           </div>
           <button onClick={onClose} style={{
-            background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b7280',
+            background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#6b7280', lineHeight: 1,
           }}>&times;</button>
         </div>
 
-        {/* Search + Select all */}
-        <div style={{
-          padding: '10px 20px', borderBottom: '1px solid #f3f4f6',
-          display: 'flex', gap: 10, alignItems: 'center',
-        }}>
+        {/* Search + Filter toggle */}
+        <div style={{ padding: '10px 20px 6px', display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             type="text"
-            placeholder="Buscar por nombre, teléfono, carrera, tema..."
+            placeholder="Buscar nombre, tel, carrera, tema..."
             value={search}
             onChange={e => onSearch(e.target.value)}
             style={{
               flex: 1, padding: '8px 12px', borderRadius: 8,
-              border: '1px solid #d1d5db', fontSize: 14, outline: 'none',
+              border: '1px solid #d1d5db', fontSize: 13, outline: 'none',
             }}
           />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            <input type="checkbox" checked={allSelected} onChange={onToggleAll} />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              padding: '7px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 600,
+              border: activeFilterCount > 0 ? '2px solid #059669' : '1px solid #d1d5db',
+              background: activeFilterCount > 0 ? '#f0fdf4' : '#fff',
+              color: activeFilterCount > 0 ? '#059669' : '#374151',
+            }}
+          >
+            {showFilters ? '▲' : '▼'} Filtros {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </button>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <input type="checkbox" checked={allSelected} onChange={onToggleAll} style={{ width: 16, height: 16 }} />
             Todos
           </label>
         </div>
+
+        {/* Filters panel */}
+        {showFilters && (
+          <div style={{
+            padding: '8px 20px 12px', borderBottom: '1px solid #f3f4f6',
+            display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center',
+            background: '#fafbfc',
+          }}>
+            {/* Estado */}
+            <select
+              value={filters.estado}
+              onChange={e => onFilterChange('estado', e.target.value)}
+              style={activeSelect(filters.estado)}
+            >
+              <option value="">Estado: Todos</option>
+              <option value="cotizacion_enviada">Cotización enviada</option>
+              <option value="cotizacion_lista">Cotización lista</option>
+            </select>
+
+            {/* Periodo */}
+            <select
+              value={filters.days}
+              onChange={e => onFilterChange('days', Number(e.target.value))}
+              style={activeSelect(filters.days > 0)}
+            >
+              {dayOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+
+            {/* Carrera */}
+            <select
+              value={filters.carrera}
+              onChange={e => onFilterChange('carrera', e.target.value)}
+              style={{ ...activeSelect(filters.carrera), maxWidth: 180 }}
+            >
+              <option value="">Carrera: Todas</option>
+              {carreras.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+
+            {/* Atendido por */}
+            <select
+              value={filters.atendido_por}
+              onChange={e => onFilterChange('atendido_por', e.target.value)}
+              style={activeSelect(filters.atendido_por)}
+            >
+              <option value="">Atendido: Todos</option>
+              <option value="arturo">Arturo</option>
+              <option value="sandy">Sandy</option>
+              <option value="hugo">Hugo</option>
+              <option value="sin_atender">Sin atender</option>
+            </select>
+
+            {/* Ordenar */}
+            <select
+              value={filters.sort}
+              onChange={e => onFilterChange('sort', e.target.value)}
+              style={selectStyle}
+            >
+              <option value="updated_at.desc">Más recientes</option>
+              <option value="updated_at.asc">Más antiguos</option>
+              <option value="nombre.asc">Nombre A-Z</option>
+            </select>
+
+            {/* Incluir bloqueados */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer', color: filters.include_blocked ? '#dc2626' : '#6b7280' }}>
+              <input
+                type="checkbox"
+                checked={filters.include_blocked}
+                onChange={e => onFilterChange('include_blocked', e.target.checked)}
+              />
+              Bloqueados
+            </label>
+
+            {/* Limpiar filtros */}
+            {activeFilterCount > 0 && (
+              <button
+                onClick={() => onFilterChange({ estado: '', carrera: '', atendido_por: '', days: 0, include_blocked: false, sort: 'updated_at.desc' })}
+                style={{
+                  padding: '4px 10px', borderRadius: 6, border: 'none',
+                  background: '#fee2e2', color: '#dc2626', fontSize: 11, cursor: 'pointer', fontWeight: 600,
+                }}
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Lead list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0' }}>
           {leads.length === 0 && !loading && (
             <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
-              No se encontraron leads
+              No se encontraron leads con estos filtros
             </div>
           )}
           {leads.map(lead => {
@@ -725,7 +869,7 @@ const PromoLeadModal = ({
             return (
               <div key={lead.wa_id} style={{
                 borderBottom: '1px solid #f3f4f6',
-                background: isSelected ? '#f0fdf4' : '#fff',
+                background: isSelected ? '#f0fdf4' : lead.bloqueado ? '#fef2f2' : '#fff',
                 transition: 'background 0.15s',
               }}>
                 {/* Lead row */}
@@ -741,10 +885,13 @@ const PromoLeadModal = ({
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>{lead.nombre || 'Sin nombre'}</span>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>
+                        {lead.nombre || 'Sin nombre'}
+                        {lead.bloqueado && <span style={{ color: '#dc2626', fontSize: 11, marginLeft: 6 }}>BLOQUEADO</span>}
+                      </span>
                       <span style={{ fontSize: 11, color: '#9ca3af' }}>{formatDate(lead.updated_at)}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
                       <span style={{
                         fontSize: 11, padding: '1px 6px', borderRadius: 4, fontWeight: 600,
                         background: lead.estado === 'cotizacion_enviada' ? '#dcfce7' : '#fef9c3',
@@ -753,7 +900,13 @@ const PromoLeadModal = ({
                         {lead.estado?.replace(/_/g, ' ')}
                       </span>
                       {lead.carrera && <span style={{ fontSize: 11, color: '#6b7280' }}>{lead.carrera}</span>}
+                      {lead.nivel && <span style={{ fontSize: 10, color: '#9ca3af' }}>({lead.nivel})</span>}
                       {lead.precio && <span style={{ fontSize: 11, color: '#059669', fontWeight: 600 }}>{lead.precio}</span>}
+                      {lead.atendido_por && (
+                        <span style={{ fontSize: 10, padding: '0 5px', borderRadius: 3, background: '#ede9fe', color: '#7c3aed' }}>
+                          {lead.atendido_por}
+                        </span>
+                      )}
                     </div>
                     {/* Mini preview del último mensaje */}
                     {lead.lastMessages && lead.lastMessages.length > 0 && (
@@ -766,9 +919,8 @@ const PromoLeadModal = ({
                   <button
                     onClick={e => { e.stopPropagation(); onExpand(isExpanded ? null : lead.wa_id); }}
                     style={{
-                      background: 'none', border: '1px solid #e5e7eb', borderRadius: 6,
-                      padding: '4px 8px', fontSize: 11, cursor: 'pointer', color: '#6b7280',
-                      flexShrink: 0,
+                      background: isExpanded ? '#f0fdf4' : 'none', border: '1px solid #e5e7eb', borderRadius: 6,
+                      padding: '4px 8px', fontSize: 11, cursor: 'pointer', color: '#6b7280', flexShrink: 0,
                     }}
                   >
                     {isExpanded ? '▲' : '▼'} Chat
@@ -822,7 +974,7 @@ const PromoLeadModal = ({
                   padding: '6px 16px', fontSize: 13, color: '#6b7280', cursor: 'pointer',
                 }}
               >
-                {loading ? 'Cargando...' : 'Cargar más'}
+                {loading ? 'Cargando...' : `Cargar más (${total - leads.length} restantes)`}
               </button>
             </div>
           )}
@@ -837,10 +989,11 @@ const PromoLeadModal = ({
         <div style={{
           padding: '12px 20px', borderTop: '1px solid #e5e7eb',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: '#fafbfc', borderRadius: '0 0 12px 12px',
         }}>
           <span style={{ fontSize: 13, color: '#6b7280' }}>
-            {selectedWaIds.size} de {leads.length} seleccionados
-            {leads.length < total && ` (mostrando ${leads.length} de ${total})`}
+            <strong style={{ color: '#059669' }}>{selectedWaIds.size}</strong> de {leads.length} seleccionados
+            {leads.length < total && <span style={{ color: '#9ca3af' }}> (mostrando {leads.length} de {total})</span>}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onClose} style={{
@@ -855,10 +1008,10 @@ const PromoLeadModal = ({
               style={{
                 padding: '8px 20px', borderRadius: 8, border: 'none',
                 background: selectedWaIds.size > 0 ? '#059669' : '#d1d5db',
-                color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                color: '#fff', fontSize: 14, fontWeight: 600, cursor: selectedWaIds.size > 0 ? 'pointer' : 'default',
               }}
             >
-              {sending ? <Spinner size="sm" /> : `Enviar promo a ${selectedWaIds.size} leads`}
+              {sending ? <><Spinner size="sm" /> Enviando...</> : `Enviar promo a ${selectedWaIds.size} leads`}
             </button>
           </div>
         </div>
