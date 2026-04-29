@@ -312,6 +312,25 @@ export async function runCalificacionFollowUp(opts = {}) {
   return data;
 }
 
+// ─── Promo Descuento 10% ─────────────────────────────────────
+
+/**
+ * Preview de leads que recibirían la promo de descuento
+ */
+export async function getDiscountPromoPreview() {
+  const { data } = await axiosWithAuth.get(`${BASE}/discount-promo/preview`);
+  return data;
+}
+
+/**
+ * Enviar promo de descuento 10% a leads con cotización lista/enviada
+ * @param {{ maxPerRun?: number, dryRun?: boolean }} opts
+ */
+export async function sendDiscountPromo(opts = {}) {
+  const { data } = await axiosWithAuth.post(`${BASE}/discount-promo/send`, opts);
+  return data;
+}
+
 /**
  * Parsear historial_chat que puede venir como string JSON o array
  */

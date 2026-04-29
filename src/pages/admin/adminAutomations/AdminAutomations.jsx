@@ -10,6 +10,8 @@ import {
   getQuoteFollowUpStatus,
   configQuoteFollowUp,
   runQuoteFollowUp,
+  getDiscountPromoPreview,
+  sendDiscountPromo,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import './AdminAutomations.css';
 
@@ -34,19 +36,28 @@ const AdminAutomations = () => {
   const [quoteFollowUpLoading, setQuoteFollowUpLoading] = useState(false);
   const [quoteFollowUpRunning, setQuoteFollowUpRunning] = useState(false);
 
+  // ─── Promo Descuento 10% ───────────────────────────────────
+  const [promoPreview, setPromoPreview] = useState({ total: 0, leads: [] });
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoSending, setPromoSending] = useState(false);
+  const [promoLastResult, setPromoLastResult] = useState(null);
+  const [promoMaxPerRun, setPromoMaxPerRun] = useState(50);
+
   const [initialLoading, setInitialLoading] = useState(true);
 
   // ─── Fetch status ─────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     try {
-      const [ar, rev, qf] = await Promise.allSettled([
+      const [ar, rev, qf, dp] = await Promise.allSettled([
         getAutoReminderStatus(),
         getRevivalStatus(),
         getQuoteFollowUpStatus(),
+        getDiscountPromoPreview(),
       ]);
       if (ar.status === 'fulfilled') setAutoReminderConfig(ar.value);
       if (rev.status === 'fulfilled') setRevivalConfig(rev.value);
       if (qf.status === 'fulfilled') setQuoteFollowUpConfig(qf.value);
+      if (dp.status === 'fulfilled') setPromoPreview(dp.value);
     } catch { /* silencioso */ }
     setInitialLoading(false);
   }, []);
@@ -144,6 +155,36 @@ const AdminAutomations = () => {
     setQuoteFollowUpRunning(false);
   };
 
+  // ─── Promo Descuento handlers ──────────────────────────────
+  const handlePromoRefresh = async () => {
+    setPromoLoading(true);
+    try {
+      const result = await getDiscountPromoPreview();
+      setPromoPreview(result);
+    } catch { toast.error('Error al cargar preview de promo'); }
+    setPromoLoading(false);
+  };
+
+  const handlePromoSend = async () => {
+    if (promoPreview.total === 0) {
+      toast('No hay leads con cotización lista/enviada', { icon: 'ℹ️' });
+      return;
+    }
+    setPromoSending(true);
+    try {
+      const result = await sendDiscountPromo({ maxPerRun: promoMaxPerRun });
+      if (result.total === 0) {
+        toast('No hay leads elegibles para la promo', { icon: 'ℹ️' });
+      } else {
+        toast.success(`Promo enviada: ${result.sent} de ${result.total}${result.failed ? ` (${result.failed} fallidos)` : ''}`);
+      }
+      setPromoLastResult(result);
+      // Refrescar preview
+      handlePromoRefresh();
+    } catch (err) { toast.error(err.response?.data?.message || 'Error al enviar promo'); }
+    setPromoSending(false);
+  };
+
   // ─── Helper: format last run time ─────────────────────────
   const formatTime = (isoStr) => {
     if (!isoStr) return 'Nunca';
@@ -179,6 +220,10 @@ const AdminAutomations = () => {
         <div className="auto-summary-item">
           <span className={`auto-dot ${quoteFollowUpConfig.active ? 'active' : ''}`} />
           <span>Seguimiento cotizaciones</span>
+        </div>
+        <div className="auto-summary-item">
+          <span className={`auto-dot ${promoPreview.total > 0 ? 'active' : ''}`} />
+          <span>Promo 10% ({promoPreview.total})</span>
         </div>
       </div>
 
@@ -389,6 +434,82 @@ const AdminAutomations = () => {
 
               <div className="auto-explanation">
                 Da seguimiento automático a leads con cotización enviada: 1 día (recordatorio), 3 días (beneficios), 7 días (urgencia), 14 días (oferta final).
+              </div>
+            </div>
+          </div>
+        </Col>
+
+        {/* ──── 4. Promo Descuento 10% ──── */}
+        <Col xs={12} lg={4}>
+          <div className="auto-card">
+            <div className="auto-card-header">
+              <div className="auto-card-icon" style={{ background: '#dcfce7' }}>🏷️</div>
+              <div className="auto-card-title-group">
+                <h5 className="auto-card-title">Promo 10% Descuento</h5>
+                <span className="auto-card-desc">Plantilla reactivacion_descuento para leads con cotización lista/enviada</span>
+              </div>
+              <button
+                className="auto-save-btn"
+                onClick={handlePromoRefresh}
+                disabled={promoLoading}
+                style={{ minWidth: 80 }}
+              >
+                {promoLoading ? '...' : '↻ Refrescar'}
+              </button>
+            </div>
+
+            <div className="auto-card-body">
+              <div className="auto-fields">
+                <label className="auto-field">
+                  <span>Max por envío</span>
+                  <input type="number" min="1" max="200" value={promoMaxPerRun}
+                    onChange={e => setPromoMaxPerRun(Number(e.target.value))} />
+                </label>
+              </div>
+
+              {/* Preview de leads elegibles */}
+              <div style={{ margin: '12px 0', padding: '10px', background: '#f0fdf4', borderRadius: 8, fontSize: 14 }}>
+                <strong>{promoPreview.total}</strong> lead{promoPreview.total !== 1 ? 's' : ''} elegible{promoPreview.total !== 1 ? 's' : ''}
+                {promoPreview.leads && promoPreview.leads.length > 0 && (
+                  <div style={{ marginTop: 8, maxHeight: 120, overflowY: 'auto', fontSize: 13 }}>
+                    {promoPreview.leads.slice(0, 10).map(l => (
+                      <div key={l.wa_id} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', borderBottom: '1px solid #e5e7eb' }}>
+                        <span>{l.nombre || l.wa_id}</span>
+                        <span style={{ color: '#6b7280', fontSize: 12 }}>{l.estado}</span>
+                      </div>
+                    ))}
+                    {promoPreview.total > 10 && (
+                      <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
+                        ... y {promoPreview.total - 10} más
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="auto-actions">
+                <button
+                  className="auto-run-btn"
+                  onClick={handlePromoSend}
+                  disabled={promoSending || promoPreview.total === 0}
+                  style={promoPreview.total === 0 ? { opacity: 0.5 } : {}}
+                >
+                  {promoSending ? <Spinner size="sm" /> : `▶ Enviar promo a ${promoPreview.total} leads`}
+                </button>
+              </div>
+
+              {promoLastResult && (
+                <div className="auto-last-result">
+                  <span className="auto-last-label">Último resultado:</span>
+                  <span>{promoLastResult.sent ?? 0} enviados</span>
+                  {promoLastResult.failed > 0 && (
+                    <span className="auto-failed">{promoLastResult.failed} fallidos</span>
+                  )}
+                </div>
+              )}
+
+              <div className="auto-explanation">
+                Envía la plantilla aprobada <strong>reactivacion_descuento</strong> con 10% de descuento a leads con estado "cotización lista" o "cotización enviada". El envío es manual — tú decides cuándo dispararlo.
               </div>
             </div>
           </div>

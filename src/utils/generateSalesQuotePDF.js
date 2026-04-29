@@ -60,7 +60,15 @@ export const generateSalesQuotePDF = async (rawData) => {
         })(),
         tiempoEntrega: rawData.tiempoEntrega || rawData._deliveryTime || '',
         fechaEntrega: rawData.fechaEntrega || rawData._dueDate || '',
-        serviciosIncluidos: Array.isArray(rawData.serviciosIncluidos) ? rawData.serviciosIncluidos : [],
+        serviciosIncluidos: (() => {
+            const arr = Array.isArray(rawData.serviciosIncluidos) ? rawData.serviciosIncluidos.filter(s => s && s.trim()) : [];
+            if (arr.length > 0) return arr;
+            // Fallback por tipo de servicio si no vienen servicios
+            const tipo = rawData.tipoServicio || '';
+            if (tipo === 'correccion') return ['1 Escáner antiplagio.', '1 Escáner anti-IA.'];
+            if (tipo === 'modalidad2') return ['1 Escáner antiplagio.', '1 Escáner anti-IA.', '1 Acompañamiento continuo.'];
+            return ['1 Escáner antiplagio.', '1 Escáner anti-IA.', '1 Correcciones de fondo y estilo del asesor y sinodales.', '1 Asesoría 1:1 en cuanto se entregue versión preliminar.'];
+        })(),
         beneficiosAdicionales: Array.isArray(rawData.beneficiosAdicionales) ? rawData.beneficiosAdicionales : [],
     };
 
