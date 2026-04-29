@@ -542,16 +542,11 @@ const AdminWhatsApp = () => {
     });
   }, []);
 
-  // Auto-marcar como leído al seleccionar un lead
+  // Seleccionar lead SIN marcar como leído — solo se marca al RESPONDER
   const handleSelectLeadWithRead = useCallback((lead) => {
     handleSelectLead(lead);
-    markAsRead(lead.wa_id);
-    // Resetear badge localmente para que desaparezca inmediatamente
-    if (lead.mensajes_sin_leer > 0) {
-      lead.mensajes_sin_leer = 0;
-      setLeads(prev => prev.map(l => l.wa_id === lead.wa_id ? { ...l, mensajes_sin_leer: 0 } : l));
-    }
-  }, [markAsRead]);
+    // Ya NO marcamos como leído aquí — se marcará cuando el admin envíe un mensaje
+  }, []);
 
   // Cargar más leads (infinite scroll)
   const loadMoreLeads = useCallback(async () => {
@@ -983,6 +978,10 @@ const AdminWhatsApp = () => {
         toast.success('Nota de voz enviada');
       }
 
+      // Marcar como leído AHORA que el admin respondió
+      markAsRead(selectedLead.wa_id);
+      setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, mensajes_sin_leer: 0 } : l));
+
       // Refrescar con datos reales
       try {
         const fresh = await getLeadByWaId(selectedLead.wa_id);
@@ -1087,6 +1086,10 @@ const AdminWhatsApp = () => {
           console.log('✅ Cotización enviada — estado actualizado');
         } catch (e) { console.warn('No se pudo actualizar estado a cotizacion_enviada:', e); }
       }
+
+      // Marcar como leído AHORA que el admin respondió
+      markAsRead(selectedLead.wa_id);
+      setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id ? { ...l, mensajes_sin_leer: 0 } : l));
 
       // Refrescar con datos reales del servidor (reemplaza el optimistic)
       try {
@@ -1531,14 +1534,13 @@ const AdminWhatsApp = () => {
 
   // Obtener último mensaje de un lead (limpio, sin tags internos)
   const getLastMessage = (lead) => {
-    // Usar preview pre-calculado del backend solo si tiene contenido real
+    // Usar preview pre-calculado del backend (ya incluye prefijo de quién envió)
     if (lead.ultimo_mensaje_preview && lead.ultimo_mensaje_preview !== '(mensaje)') {
       return lead.ultimo_mensaje_preview;
     }
 
     const hist = parseHistorial(lead.historial_chat);
     if (hist.length === 0) {
-      // Fallback: mostrar estado
       const estadoLabels = {
         bienvenida: 'Nuevo lead',
         calificando: 'En calificación',
@@ -1550,22 +1552,32 @@ const AdminWhatsApp = () => {
       };
       return estadoLabels[lead.estado_sofia] || lead.estado_sofia || 'Sin mensajes';
     }
-    // Buscar el último mensaje del cliente (role === 'user') para mostrar qué dijo
-    let last = hist[hist.length - 1];
-    for (let i = hist.length - 1; i >= 0; i--) {
-      if (hist[i].role === 'user' && hist[i].content) {
-        last = hist[i];
-        break;
-      }
-    }
+    // Siempre mostrar el ÚLTIMO mensaje con prefijo de quién lo envió
+    const last = hist[hist.length - 1];
     let content = last.content || '';
-    // Limpiar tags [HUMANO:Name] y [HUMANO]
+    const isUser = last.role === 'user';
+    const isTemplate = !isUser && (last.isTemplate || content.startsWith('[TEMPLATE:'));
+    const humanoMatch = content.match(/^\[HUMANO:([^\]]*)\]\s*/);
+    const isHuman = !isUser && (humanoMatch || content.startsWith('[HUMANO]'));
+
+    // Limpiar tags internos
     content = content.replace(/^\[HUMANO:[^\]]*\]\s*/, '').replace(/^\[HUMANO\]\s*/, '');
-    // Limpiar [STATE:{...}] y [CALCULAR_COTIZACION]
+    content = content.replace(/\[TEMPLATE:[^\]]*\]\s*/, '');
     content = content.replace(/\[STATE:[\s\S]*?\]/g, '').replace(/\[CALCULAR_COTIZACION\]/g, '').trim();
-    // Formatear labels internos
+    if (!content && last.mediaUrl) content = '📎 Archivo';
     content = formatLabel(content);
-    return content.length > 50 ? content.slice(0, 50) + '...' : content;
+    if (content.length > 50) content = content.slice(0, 50) + '...';
+
+    if (isUser) {
+      return `👤 ${lead.nombre || 'Cliente'}: ${content}`;
+    } else if (isTemplate) {
+      return `📋 Plantilla: ${content}`;
+    } else if (isHuman) {
+      const adminName = humanoMatch ? humanoMatch[1].trim() : 'Admin';
+      return `Tú (${adminName}): ${content}`;
+    } else {
+      return `Sofia: ${content}`;
+    }
   };
 
   // Contar mensajes no leídos — usa el campo de Supabase (incrementado por incoming-webhook)
@@ -2124,10 +2136,11 @@ const AdminWhatsApp = () => {
 
                     const isSelected = selectedLead?.wa_id === lead.wa_id;
                     const attendedInfo = getAttendedColor(lead);
+                    const hasUnread = unread > 0 && !readLeads.has(lead.wa_id);
                     elements.push(
                       <div
                         key={lead.wa_id}
-                        className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''}`}
+                        className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''} ${hasUnread ? 'wa-has-unread' : ''}`}
                         style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
                         onClick={() => handleSelectLeadWithRead(lead)}
                       >
