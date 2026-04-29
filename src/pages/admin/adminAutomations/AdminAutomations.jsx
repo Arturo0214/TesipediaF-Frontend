@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import { toast } from 'react-hot-toast';
 import {
@@ -11,6 +11,7 @@ import {
   configQuoteFollowUp,
   runQuoteFollowUp,
   getDiscountPromoPreview,
+  getDiscountPromoLeads,
   sendDiscountPromo,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import './AdminAutomations.css';
@@ -42,6 +43,18 @@ const AdminAutomations = () => {
   const [promoSending, setPromoSending] = useState(false);
   const [promoLastResult, setPromoLastResult] = useState(null);
   const [promoMaxPerRun, setPromoMaxPerRun] = useState(50);
+
+  // ─── Modal de selección de leads ──────────────────────────
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [modalLeads, setModalLeads] = useState([]);
+  const [modalTotal, setModalTotal] = useState(0);
+  const [modalPage, setModalPage] = useState(1);
+  const [modalHasMore, setModalHasMore] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalSearch, setModalSearch] = useState('');
+  const [selectedWaIds, setSelectedWaIds] = useState(new Set());
+  const [expandedLead, setExpandedLead] = useState(null);
+  const modalSearchTimer = useRef(null);
 
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -188,6 +201,93 @@ const AdminAutomations = () => {
       handlePromoRefresh();
     } catch (err) { toast.error(err.response?.data?.message || 'Error al enviar promo'); }
     setPromoSending(false);
+  };
+
+  // ─── Modal: cargar leads ──────────────────────────────────
+  const loadModalLeads = useCallback(async (page = 1, search = '', append = false) => {
+    setModalLoading(true);
+    try {
+      const result = await getDiscountPromoLeads(page, 50, search);
+      if (append) {
+        setModalLeads(prev => [...prev, ...result.leads]);
+      } else {
+        setModalLeads(result.leads);
+      }
+      setModalTotal(result.total);
+      setModalPage(result.page);
+      setModalHasMore(result.hasMore);
+    } catch { toast.error('Error al cargar leads'); }
+    setModalLoading(false);
+  }, []);
+
+  const handleOpenPromoModal = async () => {
+    setShowPromoModal(true);
+    setModalSearch('');
+    setSelectedWaIds(new Set());
+    setExpandedLead(null);
+    await loadModalLeads(1, '');
+  };
+
+  const handleModalSearch = (value) => {
+    setModalSearch(value);
+    clearTimeout(modalSearchTimer.current);
+    modalSearchTimer.current = setTimeout(() => {
+      loadModalLeads(1, value);
+    }, 400);
+  };
+
+  const handleModalLoadMore = () => {
+    if (modalHasMore && !modalLoading) {
+      loadModalLeads(modalPage + 1, modalSearch, true);
+    }
+  };
+
+  const toggleSelectLead = (waId) => {
+    setSelectedWaIds(prev => {
+      const next = new Set(prev);
+      if (next.has(waId)) next.delete(waId); else next.add(waId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedWaIds.size === modalLeads.length) {
+      setSelectedWaIds(new Set());
+    } else {
+      setSelectedWaIds(new Set(modalLeads.map(l => l.wa_id)));
+    }
+  };
+
+  const handleSendToSelected = async () => {
+    if (selectedWaIds.size === 0) {
+      toast('Selecciona al menos un lead', { icon: '⚠️' });
+      return;
+    }
+    if (!window.confirm(`¿Enviar promo de descuento a ${selectedWaIds.size} leads seleccionados?`)) return;
+    setPromoSending(true);
+    try {
+      const result = await sendDiscountPromo({ waIds: [...selectedWaIds] });
+      if (result.total === 0) {
+        toast('No se envió a ningún lead', { icon: 'ℹ️' });
+      } else {
+        toast.success(`Promo enviada: ${result.sent} de ${result.total}${result.failed ? ` (${result.failed} fallidos)` : ''}`);
+      }
+      setPromoLastResult(result);
+      setShowPromoModal(false);
+      handlePromoRefresh();
+    } catch (err) { toast.error(err.response?.data?.message || 'Error al enviar promo'); }
+    setPromoSending(false);
+  };
+
+  const formatModalDate = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    const diffDays = Math.floor((now - d) / 86400000);
+    if (diffDays === 0) return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    if (diffDays === 1) return 'Ayer';
+    if (diffDays < 7) return d.toLocaleDateString('es-MX', { weekday: 'short' });
+    return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
   };
 
   // ─── Helper: format last run time ─────────────────────────
@@ -492,14 +592,22 @@ const AdminAutomations = () => {
                 )}
               </div>
 
-              <div className="auto-actions">
+              <div className="auto-actions" style={{ display: 'flex', gap: 8 }}>
+                <button
+                  className="auto-run-btn"
+                  onClick={handleOpenPromoModal}
+                  disabled={promoSending || promoPreview.total === 0}
+                  style={promoPreview.total === 0 ? { opacity: 0.5 } : { background: '#059669' }}
+                >
+                  {promoSending ? <Spinner size="sm" /> : `📋 Seleccionar leads (${promoPreview.total})`}
+                </button>
                 <button
                   className="auto-run-btn"
                   onClick={handlePromoSend}
                   disabled={promoSending || promoPreview.total === 0}
                   style={promoPreview.total === 0 ? { opacity: 0.5 } : {}}
                 >
-                  {promoSending ? <Spinner size="sm" /> : `▶ Enviar promo a ${promoPreview.total} leads`}
+                  {promoSending ? <Spinner size="sm" /> : `▶ Enviar a TODOS (${promoPreview.total})`}
                 </button>
               </div>
 
@@ -520,7 +628,242 @@ const AdminAutomations = () => {
           </div>
         </Col>
       </Row>
+
+      <PromoLeadModal
+        show={showPromoModal}
+        onClose={() => setShowPromoModal(false)}
+        leads={modalLeads}
+        total={modalTotal}
+        hasMore={modalHasMore}
+        loading={modalLoading}
+        search={modalSearch}
+        selectedWaIds={selectedWaIds}
+        expandedLead={expandedLead}
+        onSearch={handleModalSearch}
+        onLoadMore={handleModalLoadMore}
+        onToggleSelect={toggleSelectLead}
+        onToggleAll={toggleSelectAll}
+        onExpand={setExpandedLead}
+        onSend={handleSendToSelected}
+        sending={promoSending}
+        formatDate={formatModalDate}
+      />
     </Container>
+  );
+};
+
+// ─── Modal de selección de leads para promo ─────────────────
+const PromoLeadModal = ({
+  show, onClose, leads, total, hasMore, loading, search,
+  selectedWaIds, expandedLead,
+  onSearch, onLoadMore, onToggleSelect, onToggleAll, onExpand, onSend,
+  sending, formatDate,
+}) => {
+  if (!show) return null;
+  const allSelected = leads.length > 0 && selectedWaIds.size === leads.length;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onClose}>
+      <div style={{
+        background: '#fff', borderRadius: 12, width: '95%', maxWidth: 700,
+        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+      }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{
+          padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <h5 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
+              Seleccionar leads para promo 10%
+            </h5>
+            <span style={{ fontSize: 13, color: '#6b7280' }}>
+              {selectedWaIds.size} seleccionados de {total} elegibles
+            </span>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b7280',
+          }}>&times;</button>
+        </div>
+
+        {/* Search + Select all */}
+        <div style={{
+          padding: '10px 20px', borderBottom: '1px solid #f3f4f6',
+          display: 'flex', gap: 10, alignItems: 'center',
+        }}>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, teléfono, carrera, tema..."
+            value={search}
+            onChange={e => onSearch(e.target.value)}
+            style={{
+              flex: 1, padding: '8px 12px', borderRadius: 8,
+              border: '1px solid #d1d5db', fontSize: 14, outline: 'none',
+            }}
+          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <input type="checkbox" checked={allSelected} onChange={onToggleAll} />
+            Todos
+          </label>
+        </div>
+
+        {/* Lead list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0' }}>
+          {leads.length === 0 && !loading && (
+            <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+              No se encontraron leads
+            </div>
+          )}
+          {leads.map(lead => {
+            const isSelected = selectedWaIds.has(lead.wa_id);
+            const isExpanded = expandedLead === lead.wa_id;
+            return (
+              <div key={lead.wa_id} style={{
+                borderBottom: '1px solid #f3f4f6',
+                background: isSelected ? '#f0fdf4' : '#fff',
+                transition: 'background 0.15s',
+              }}>
+                {/* Lead row */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', padding: '10px 20px', gap: 12, cursor: 'pointer',
+                }} onClick={() => onToggleSelect(lead.wa_id)}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => onToggleSelect(lead.wa_id)}
+                    onClick={e => e.stopPropagation()}
+                    style={{ width: 18, height: 18, cursor: 'pointer', flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>{lead.nombre || 'Sin nombre'}</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af' }}>{formatDate(lead.updated_at)}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
+                      <span style={{
+                        fontSize: 11, padding: '1px 6px', borderRadius: 4, fontWeight: 600,
+                        background: lead.estado === 'cotizacion_enviada' ? '#dcfce7' : '#fef9c3',
+                        color: lead.estado === 'cotizacion_enviada' ? '#166534' : '#854d0e',
+                      }}>
+                        {lead.estado?.replace(/_/g, ' ')}
+                      </span>
+                      {lead.carrera && <span style={{ fontSize: 11, color: '#6b7280' }}>{lead.carrera}</span>}
+                      {lead.precio && <span style={{ fontSize: 11, color: '#059669', fontWeight: 600 }}>{lead.precio}</span>}
+                    </div>
+                    {/* Mini preview del último mensaje */}
+                    {lead.lastMessages && lead.lastMessages.length > 0 && (
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {lead.lastMessages[lead.lastMessages.length - 1].role === 'user' ? '👤 ' : '🤖 '}
+                        {lead.lastMessages[lead.lastMessages.length - 1].text || '...'}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); onExpand(isExpanded ? null : lead.wa_id); }}
+                    style={{
+                      background: 'none', border: '1px solid #e5e7eb', borderRadius: 6,
+                      padding: '4px 8px', fontSize: 11, cursor: 'pointer', color: '#6b7280',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {isExpanded ? '▲' : '▼'} Chat
+                  </button>
+                </div>
+
+                {/* Expanded chat preview */}
+                {isExpanded && lead.lastMessages && (
+                  <div style={{
+                    padding: '0 20px 12px 50px',
+                    background: '#f9fafb', borderTop: '1px solid #f3f4f6',
+                  }}>
+                    <div style={{ fontSize: 11, color: '#9ca3af', padding: '8px 0 4px', fontWeight: 600 }}>
+                      Últimos mensajes:
+                    </div>
+                    {lead.lastMessages.map((msg, i) => (
+                      <div key={i} style={{
+                        display: 'flex', gap: 8, padding: '4px 0',
+                        flexDirection: msg.role === 'user' ? 'row' : 'row-reverse',
+                      }}>
+                        <div style={{
+                          maxWidth: '80%', padding: '6px 10px', borderRadius: 8, fontSize: 13,
+                          background: msg.role === 'user' ? '#fff' : '#dcfce7',
+                          border: '1px solid ' + (msg.role === 'user' ? '#e5e7eb' : '#bbf7d0'),
+                        }}>
+                          <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 2 }}>
+                            {msg.role === 'user' ? '👤 Cliente' : '🤖 Sofia/Admin'}
+                            {msg.timestamp && <> — {formatDate(msg.timestamp)}</>}
+                          </div>
+                          {msg.text || '...'}
+                        </div>
+                      </div>
+                    ))}
+                    {lead.lastMessages.length === 0 && (
+                      <div style={{ fontSize: 12, color: '#9ca3af', padding: '4px 0' }}>Sin mensajes</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Load more */}
+          {hasMore && (
+            <div style={{ textAlign: 'center', padding: 12 }}>
+              <button
+                onClick={onLoadMore}
+                disabled={loading}
+                style={{
+                  background: 'none', border: '1px solid #d1d5db', borderRadius: 8,
+                  padding: '6px 16px', fontSize: 13, color: '#6b7280', cursor: 'pointer',
+                }}
+              >
+                {loading ? 'Cargando...' : 'Cargar más'}
+              </button>
+            </div>
+          )}
+          {loading && leads.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <Spinner size="sm" /> Cargando leads...
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '12px 20px', borderTop: '1px solid #e5e7eb',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span style={{ fontSize: 13, color: '#6b7280' }}>
+            {selectedWaIds.size} de {leads.length} seleccionados
+            {leads.length < total && ` (mostrando ${leads.length} de ${total})`}
+          </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={onClose} style={{
+              padding: '8px 16px', borderRadius: 8, border: '1px solid #d1d5db',
+              background: '#fff', fontSize: 14, cursor: 'pointer',
+            }}>
+              Cancelar
+            </button>
+            <button
+              onClick={onSend}
+              disabled={selectedWaIds.size === 0 || sending}
+              style={{
+                padding: '8px 20px', borderRadius: 8, border: 'none',
+                background: selectedWaIds.size > 0 ? '#059669' : '#d1d5db',
+                color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              {sending ? <Spinner size="sm" /> : `Enviar promo a ${selectedWaIds.size} leads`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

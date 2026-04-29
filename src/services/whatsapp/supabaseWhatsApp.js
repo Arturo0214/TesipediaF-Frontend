@@ -323,6 +323,16 @@ export async function getDiscountPromoPreview() {
 }
 
 /**
+ * Lista paginada de leads elegibles con preview de últimos 3 mensajes
+ */
+export async function getDiscountPromoLeads(page = 1, limit = 50, search = '') {
+  const params = { page, limit };
+  if (search) params.search = search;
+  const { data } = await axiosWithAuth.get(`${BASE}/discount-promo/leads`, { params, timeout: 30000 });
+  return data;
+}
+
+/**
  * Enviar promo de descuento 10% a leads con cotización lista/enviada
  * @param {{ maxPerRun?: number, dryRun?: boolean }} opts
  */
