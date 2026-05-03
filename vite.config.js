@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import agentChatPlugin from './vite-agent-plugin.js';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), agentChatPlugin()],
     server: {
         port: 5173,
         proxy: {

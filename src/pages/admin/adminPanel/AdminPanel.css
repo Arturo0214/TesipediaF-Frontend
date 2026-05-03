@@ -1,8 +1,14 @@
-/* Layout principal */
+/* ═══════════════════════════════════════════
+   TESIPEDIA ADMIN PANEL — Premium Dark Layout
+   Solo sidebar + layout + content wrapper.
+   NO afecta estilos internos de secciones hijas.
+   ═══════════════════════════════════════════ */
+
+/* ─── Layout principal ─── */
 .tesipedia-admin-panel {
     height: 100vh;
     width: 100vw;
-    background-color: #f8f9fa;
+    background-color: #0B0F1A;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -11,97 +17,109 @@
     right: 0;
     bottom: 0;
     overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
 }
 
-/* Contenedor principal con grid */
+/* ─── Grid principal ─── */
 .tesipedia-admin-container {
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 240px 1fr;
     gap: 0;
     padding: 0;
     height: 100vh;
     overflow: hidden;
     flex: 1;
-    transition: grid-template-columns 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Sidebar header: título + botón colapsar */
-.tesipedia-sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border-bottom: 1px solid #e5e7eb;
-    flex-shrink: 0;
-}
-.tesipedia-sidebar-title {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #6b7280;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: opacity 0.2s ease;
-}
-/* Cuando el sidebar está colapsado, ocultar el título */
-.tesipedia-admin-sidebar.collapsed .tesipedia-sidebar-title {
-    opacity: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
-}
-.tesipedia-admin-sidebar.collapsed .tesipedia-sidebar-header {
-    justify-content: center;
-    padding: 10px 4px;
-}
-
-/* ── Sidebar colapsado ── */
 .tesipedia-admin-container.sidebar-collapsed {
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 64px 1fr;
 }
 
-/* Contenedor de la barra lateral */
+/* ═══════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════ */
 .tesipedia-admin-sidebar {
-    background-color: white;
-    border-right: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #0F172A 0%, #0B1120 100%);
+    border-right: 1px solid rgba(255,255,255,0.06);
     height: 100%;
     position: relative;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Navegación */
+/* ─── Sidebar header ─── */
+.tesipedia-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 14px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.tesipedia-sidebar-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #E5E7EB;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.2s ease;
+    flex: 1;
+    min-width: 0;
+}
+
+.tesipedia-sidebar-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    color: #6B7280;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    border-radius: 6px;
+}
+.tesipedia-sidebar-collapse-btn:hover {
+    color: #E5E7EB;
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+}
+
+/* ─── Nav container ─── */
 .tesipedia-admin-nav {
     display: flex;
     flex-direction: column;
-    padding: 0.35rem;
+    padding: 8px;
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-/* Scrollbar sutil para el nav */
-.tesipedia-admin-nav::-webkit-scrollbar {
-    width: 4px;
-}
-.tesipedia-admin-nav::-webkit-scrollbar-track {
-    background: transparent;
-}
-.tesipedia-admin-nav::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 2px;
-}
-.tesipedia-admin-nav::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-}
+/* Scrollbar */
+.tesipedia-admin-nav::-webkit-scrollbar { width: 3px; }
+.tesipedia-admin-nav::-webkit-scrollbar-track { background: transparent; }
+.tesipedia-admin-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.tesipedia-admin-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
+/* ─── Nav sections ─── */
 .tesipedia-admin-nav-section {
-    margin-bottom: 0.4rem;
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 0.3rem;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 6px;
 }
 
 .tesipedia-admin-nav-section:last-child {
@@ -115,13 +133,88 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 0.15rem 0.5rem;
-    margin-bottom: 0.15rem;
-    letter-spacing: 0.5px;
-    color: #6c757d;
-    font-size: 0.7rem;
-    font-weight: 600;
+    padding: 10px 10px 5px;
+    margin-bottom: 2px;
+    letter-spacing: 0.08em;
+    color: #FFFFFF !important;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
+}
+
+/* ─── Nav links ─── */
+.tesipedia-admin-nav-link {
+    display: flex;
+    align-items: center;
+    color: #FFFFFF !important;
+    padding: 8px 10px;
+    transition: all 0.15s ease;
+    border: none;
+    background: none;
+    text-align: left;
+    gap: 10px;
+    border-radius: 8px;
+    margin-bottom: 1px;
+    font-weight: 500;
+    text-decoration: none !important;
+    font-size: 0.84rem;
+    line-height: 1.3;
+    position: relative;
+    opacity: 1 !important;
+}
+
+.tesipedia-admin-nav-link:hover {
+    color: #FFFFFF !important;
+    background: rgba(255,255,255,0.07);
+}
+
+.tesipedia-admin-nav-link.active {
+    color: #FFFFFF !important;
+    background: rgba(59, 130, 246, 0.15);
+    font-weight: 600;
+}
+
+/* Active indicator bar */
+.tesipedia-admin-nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 3px;
+    background: #3B82F6;
+    border-radius: 0 3px 3px 0;
+}
+
+.tesipedia-admin-nav-link svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+}
+
+.tesipedia-admin-nav-link span {
+    margin-left: 0;
+}
+
+/* Icon colors are set inline per-item via JSX style prop */
+
+/* ─── Sofia health indicator ─── */
+.sidebar-health-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: auto;
+    box-shadow: 0 0 6px currentColor;
+}
+
+/* ─── Notification in sidebar ─── */
+.notification-title-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
 }
 
 .notification-title-with-icon .admin-notification-toggle,
@@ -133,807 +226,134 @@
     margin-left: 0.5rem;
 }
 
-.tesipedia-admin-nav-section-title .notification-icon-wrapper {
-    width: 22px;
-    height: 22px;
-}
+.tesipedia-admin-nav-section-title .notification-icon-wrapper { width: 22px; height: 22px; }
+.tesipedia-admin-nav-section-title .notification-icon { font-size: 1.1rem; }
+.tesipedia-admin-nav-section-title .notification-badge { font-size: 0.65rem; min-width: 13px; height: 13px; right: -6px; top: -6px; }
+.notification-title-with-icon .admin-notification-toggle { padding: 2px; background: none; border: none; box-shadow: none; }
+.notification-title-with-icon .admin-notification-icon-wrapper { width: 22px; height: 22px; }
+.notification-title-with-icon .admin-notification-icon { font-size: 1.05rem; }
+.notification-title-with-icon .admin-notification-badge { font-size: 0.6rem; min-width: 14px; height: 14px; right: -5px; top: -5px; }
 
-.tesipedia-admin-nav-section-title .notification-icon {
-    font-size: 1.1rem;
-}
-
-.tesipedia-admin-nav-section-title .notification-badge {
-    font-size: 0.65rem;
-    min-width: 13px;
-    height: 13px;
-    right: -6px;
-    top: -6px;
-}
-
-.tesipedia-admin-nav-link {
+/* ─── Logout ─── */
+.tesipedia-admin-logout {
     display: flex;
     align-items: center;
-    color: #495057;
-    padding: 0.35rem 0.6rem;
+    justify-content: center;
+    padding: 8px;
+    margin: 8px;
+    border-radius: 8px;
     transition: all 0.2s ease;
-    border: none;
-    background: none;
-    text-align: left;
-    gap: 0.45rem;
-    border-radius: 0.375rem;
-    margin-bottom: 0.05rem;
     font-weight: 500;
-    text-decoration: none;
+    color: #F87171;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    cursor: pointer;
+    gap: 8px;
     font-size: 0.82rem;
-    line-height: 1.3;
-}
-
-.tesipedia-admin-nav-link:hover,
-.tesipedia-admin-nav-link.active {
-    color: #0d6efd;
-    background-color: rgba(13, 110, 253, 0.08);
-    transform: translateX(2px);
-}
-
-.tesipedia-admin-nav-link svg {
-    width: 0.9rem;
-    height: 0.9rem;
     flex-shrink: 0;
 }
 
-.tesipedia-admin-nav-link span {
-    margin-left: 0.35rem;
+.tesipedia-admin-logout:hover {
+    background: #EF4444;
+    border-color: #EF4444;
+    color: white;
 }
 
-/* Contenido principal */
+.tesipedia-admin-logout svg { width: 0.9rem; height: 0.9rem; }
+
+/* ─── Alert badges ─── */
+.sidebar-item-alert .tesipedia-admin-nav-link {
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.1);
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.sidebar-badge-alert {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    background: #EF4444;
+    color: #fff;
+    font-size: 0.7rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    z-index: 3;
+    box-shadow: 0 0 0 2px #0F172A;
+    pointer-events: none;
+    animation: notification-pulse 2s infinite;
+}
+
+@keyframes notification-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px #0F172A; }
+    50% { box-shadow: 0 0 0 2px #0F172A, 0 0 8px rgba(239,68,68,0.4); }
+}
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT AREA
+   ═══════════════════════════════════════════ */
 .tesipedia-admin-content {
-    background-color: #f9fafb;
+    background-color: #0B0F1A;
     height: 100%;
     overflow-y: scroll;
     padding: 20px 24px;
     position: relative;
 }
 
-/* Scrollbar siempre visible */
-.tesipedia-admin-content::-webkit-scrollbar {
-    width: 6px;
-}
-.tesipedia-admin-content::-webkit-scrollbar-track {
-    background: transparent;
-}
-.tesipedia-admin-content::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 3px;
-}
-.tesipedia-admin-content::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-}
+.tesipedia-admin-content::-webkit-scrollbar { width: 6px; }
+.tesipedia-admin-content::-webkit-scrollbar-track { background: transparent; }
+.tesipedia-admin-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.tesipedia-admin-content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
-/* Contenedor de componentes */
 .tesipedia-admin-component {
     min-height: 100%;
     display: flex;
     flex-direction: column;
 }
 
-/* Estilos de tabla */
-.tesipedia-admin-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.tesipedia-admin-table th {
-    background-color: #f8f9fa;
-    color: #2c3e50;
-    font-weight: 600;
-    padding: 1rem;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.tesipedia-admin-table td {
-    padding: 1rem;
-    border-top: 1px solid #e9ecef;
-    vertical-align: middle;
-}
-
-/* Botón de cerrar sesión */
-.tesipedia-admin-logout {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.35rem;
-    margin: 0.35rem 0.35rem 0.5rem;
-    border-radius: 0.375rem;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    color: #dc3545;
-    background-color: rgba(220, 53, 69, 0.08);
-    border: none;
-    cursor: pointer;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    flex-shrink: 0;
-}
-
-.tesipedia-admin-logout:hover {
-    background-color: #dc3545;
-    color: white;
-}
-
-.tesipedia-admin-logout svg {
-    width: 1rem;
-    height: 1rem;
-}
-
-/* Badges y estados */
-.tesipedia-admin-badge {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    font-size: 0.875rem;
-}
-
-.tesipedia-admin-badge-pending {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.tesipedia-admin-badge-success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.tesipedia-admin-badge-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-/* Estados de carga y error */
+/* ─── Loading/Error states ─── */
 .tesipedia-admin-loading {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
-    color: #6c757d;
+    color: #6B7280;
 }
 
 .tesipedia-admin-error {
     padding: 1rem;
-    border-radius: 0.5rem;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
+    border-radius: 8px;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #FCA5A5;
     margin: 1rem 0;
-}
-
-/* Botones de acción */
-.tesipedia-admin-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-    margin-bottom: 1rem;
-}
-
-.tesipedia-admin-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-/* Media queries */
-@media (max-width: 992px) {
-    /* Fix iOS Safari: 100vh includes browser chrome (address bar + bottom bar).
-       With height: auto, position: fixed + top:0/bottom:0 determines the correct
-       visual viewport height. */
-    .tesipedia-admin-panel {
-        height: auto;
-        width: auto;
-    }
-    /* Fix: grid-template-rows: 1fr ensures the single row fills 100% of the
-       container height. Without this, the implicit 'auto' row sizes to content,
-       breaking height: 100% on children (circular reference). */
-    .tesipedia-admin-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr;
-        height: 100%;
-    }
-    .tesipedia-admin-content {
-        padding: 8px;
-        padding-top: 56px; /* space for menu button (12px top + 36px btn + 8px gap) */
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        height: 100%;
-        box-sizing: border-box;
-    }
-    .tesipedia-admin-component {
-        flex: 1;
-        min-height: 0;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
-        -webkit-overflow-scrolling: touch;
-    }
-}
-
-@media (prefers-color-scheme: dark) {
-    .tesipedia-admin-panel {
-        background-color: #1a1a1a;
-    }
-
-    .tesipedia-admin-sidebar,
-    .tesipedia-admin-content {
-        background-color: #2d2d2d;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .tesipedia-admin-title {
-        color: #e9ecef;
-    }
-
-    .tesipedia-admin-nav-link {
-        color: #e9ecef;
-    }
-
-    .tesipedia-admin-nav-link:hover,
-    .tesipedia-admin-nav-link.active {
-        background-color: rgba(13, 110, 253, 0.2);
-    }
-
-    .tesipedia-admin-nav-section {
-        border-bottom-color: #444;
-    }
-
-    .tesipedia-admin-table th {
-        background-color: #2d2d2d;
-        color: #e9ecef;
-    }
-
-    .tesipedia-admin-table td {
-        border-top-color: #444;
-        color: #e9ecef;
-    }
-}
-
-/* Layout principal */
-.admin-panel-main {
-    min-height: calc(100vh - 10px);
-    background-color: #f8f9fa;
-    padding: 0.25rem 0.5rem 0.25rem;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    position: relative;
-    z-index: 1;
-    overflow: visible !important;
-}
-
-/* Título principal */
-.admin-panel-main-title {
-    color: #2c3e50;
-    font-weight: 600;
-    margin: 0.25rem 0 0.25rem;
-    text-align: center;
-    font-size: 1.75rem;
-}
-
-/* Contenedor de la barra lateral */
-.admin-panel-sidebar {
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    height: fit-content;
-    margin-bottom: 1rem;
-    position: sticky;
-    top: 1rem;
-    overflow: visible !important;
-}
-
-/* Navegación */
-.admin-panel-nav {
-    display: flex;
-    flex-direction: column;
-    padding: 0.75rem;
-}
-
-.admin-panel-nav-section {
-    margin-bottom: 1.25rem;
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 0.75rem;
-}
-
-.admin-panel-nav-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.admin-panel-nav-section-title {
-    color: #6c757d;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.5rem;
-}
-
-.admin-panel-nav-link {
-    display: flex;
-    align-items: center;
-    color: #6c757d;
-    padding: 0.75rem 1rem;
-    transition: all 0.2s ease;
-    border: none;
-    background: none;
-    text-align: left;
-    gap: 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 0.25rem;
-    position: relative;
-    z-index: 2;
-}
-
-.admin-panel-nav-link:hover,
-.admin-panel-nav-link.active {
-    color: #0d6efd;
-    background-color: rgba(13, 110, 253, 0.1);
-}
-
-.admin-panel-nav-link svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    flex-shrink: 0;
-}
-
-.admin-panel-nav-link span {
-    margin-left: 0.5rem;
-}
-
-/* Botón de cerrar sesión */
-.admin-panel-logout-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1rem;
-    margin-top: 1rem;
-    border-radius: 0.375rem;
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
-
-.admin-panel-logout-btn:hover {
-    background-color: #dc3545;
-    color: white;
-}
-
-.admin-panel-logout-btn svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    flex-shrink: 0;
-}
-
-/* Contenido principal */
-.admin-panel-content {
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-height: 500px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: visible !important;
-    z-index: 2;
-}
-
-/* Contenedor de componentes */
-.admin-panel-component-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 400px;
-    overflow: visible !important;
-    z-index: 2;
-}
-
-/* Estilos de tabla */
-.admin-panel-content table {
-    width: 100%;
-    margin-bottom: 0;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.admin-panel-content .table th {
-    background-color: #f8f9fa;
-    border-top: none;
-    color: #2c3e50;
-    font-weight: 600;
-    padding: 1rem;
-}
-
-.admin-panel-content .table td {
-    vertical-align: middle;
-    padding: 1rem;
-    border-top: 1px solid #e9ecef;
-}
-
-/* Badges y estados */
-.admin-panel-content .badge {
-    font-weight: 500;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    border-radius: 0.375rem;
-}
-
-.badge-pending {
-    background-color: #ffc107;
-    color: #000;
-}
-
-.badge-success {
-    background-color: #28a745;
-    color: #fff;
-}
-
-.badge-danger {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-/* Estados de carga y error */
-.admin-panel-loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 300px;
-    color: #6c757d;
-}
-
-.admin-panel-error {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background-color: #fff3f3;
-    border: 1px solid #dc3545;
-    margin: 1rem 0;
-    color: #dc3545;
-}
-
-.admin-panel-empty {
-    text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-}
-
-/* Botones de acción */
-.admin-panel-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    position: relative;
-    z-index: 3;
-}
-
-.admin-panel-actions .btn {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-    border-radius: 0.375rem;
-    position: relative;
-    z-index: 3;
-}
-
-/* Status Indicators */
-.admin-panel-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.admin-panel-status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-
-.admin-panel-status-active {
-    background-color: #28a745;
-}
-
-.admin-panel-status-pending {
-    background-color: #ffc107;
-}
-
-.admin-panel-status-inactive {
-    background-color: #dc3545;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Estilos para detalles de cotización */
-.quote-details-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1050;
-}
-
-.quote-details-content {
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 1.5rem;
-}
-
-.quote-details-info {
-    margin-bottom: 1.5rem;
-}
-
-.quote-details-info p {
-    margin-bottom: 0.5rem;
-}
-
-.quote-details-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    margin-top: 1.5rem;
-}
-
-/* ===== DROPDOWNS ===== */
-.admin-panel-content .dropdown-menu {
-    z-index: 1030;
-}
-
-.modal {
-    z-index: 1050;
-}
-
-.modal-backdrop {
-    z-index: 1040;
-}
-
-@media (max-width: 768px) {
-    .admin-panel-main {
-        padding: 0.25rem;
-    }
-
-    .admin-panel-main-title {
-        font-size: 1.5rem;
-    }
-
-    .admin-panel-nav {
-        padding: 0.5rem;
-    }
-
-    .admin-panel-nav-section {
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-    }
-
-    .admin-panel-nav-link {
-        padding: 0.5rem 0.75rem;
-        gap: 0.75rem;
-    }
-
-    .admin-panel-nav-section-title {
-        padding: 0.25rem 0.5rem;
-    }
-
-    .admin-panel-content {
-        padding: 1rem;
-        min-height: 400px;
-    }
-
-    .admin-panel-component-container {
-        min-height: 300px;
-    }
-}
-
-@media (prefers-color-scheme: dark) {
-    .admin-panel-main {
-        background-color: #1a1a1a;
-    }
-
-    .admin-panel-sidebar,
-    .admin-panel-content {
-        background-color: #2d2d2d;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .admin-panel-main-title {
-        color: #e9ecef;
-    }
-
-    .admin-panel-nav-link:hover,
-    .admin-panel-nav-link.active {
-        background-color: rgba(13, 110, 253, 0.2);
-    }
-
-    .admin-panel-nav-section {
-        border-bottom-color: #444;
-    }
-}
-
-/* Botón menú para mobile — estilo moderno (ChatGPT/Claude) */
-.tesipedia-admin-sidebar-toggle {
-    display: none;
-}
-
-@media (max-width: 992px) {
-    .tesipedia-admin-sidebar-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 12px;
-        left: 12px;
-        z-index: 21001;
-        width: 36px;
-        height: 36px;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: none;
-        border-radius: 10px;
-        font-size: 1.1rem;
-        color: #374151;
-        cursor: pointer;
-        padding: 0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
-        transition: all 0.2s ease;
-    }
-    .tesipedia-admin-sidebar-toggle:active {
-        transform: scale(0.92);
-        background: rgba(240, 240, 240, 0.95);
-    }
-    .tesipedia-admin-sidebar-toggle.active {
-        background: rgba(255, 255, 255, 0.95);
-        color: #111827;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    }
-}
-
-/* Overlay oscuro para mobile */
-.tesipedia-admin-sidebar-overlay {
-    display: none;
-}
-
-@media (max-width: 992px) {
-    .tesipedia-admin-sidebar-overlay {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 20999;
-        backdrop-filter: blur(3px);
-        -webkit-backdrop-filter: blur(3px);
-        animation: sidebar-overlay-in 0.2s ease;
-    }
-    @keyframes sidebar-overlay-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-}
-
-/* Sidebar animación para mobile */
-@media (max-width: 992px) {
-    .tesipedia-admin-sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 280px;
-        z-index: 21000;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
-        background-color: #fff;
-        border-right: none;
-        border-radius: 0 16px 16px 0;
-        padding-top: 8px;
-    }
-
-    .tesipedia-admin-sidebar.active {
-        transform: translateX(0);
-    }
-}
-
-/* Alinear título PRINCIPAL y el icono de notificaciones */
-.notification-title-with-icon {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-}
-
-/* Ajustar tamaño del icono y badge en el sidebar */
-.notification-title-with-icon .admin-notification-toggle {
-    padding: 2px;
-    background: none;
-    border: none;
-    box-shadow: none;
-}
-
-.notification-title-with-icon .admin-notification-icon-wrapper {
-    width: 22px;
-    height: 22px;
-}
-
-.notification-title-with-icon .admin-notification-icon {
-    font-size: 1.05rem;
-}
-
-.notification-title-with-icon .admin-notification-badge {
-    font-size: 0.6rem;
-    min-width: 14px;
-    height: 14px;
-    right: -5px;
-    top: -5px;
 }
 
 /* ═══════════════════════════════════════════
-   SIDEBAR COLAPSABLE — Desktop
+   SIDEBAR COLLAPSED — Desktop
    ═══════════════════════════════════════════ */
-
-/* Botón de colapsar */
-.tesipedia-sidebar-collapse-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    background: none;
-    color: #9ca3af;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    border-radius: 6px;
-}
-.tesipedia-sidebar-collapse-btn:hover {
-    color: #374151;
-    background: #f9fafb;
-}
-
-/* Sidebar: transición suave del ancho */
-.tesipedia-admin-sidebar {
-    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-}
-
-/* Estado colapsado: solo íconos */
 .tesipedia-admin-sidebar.collapsed {
-    width: 60px;
+    width: 64px;
     overflow: visible;
 }
 
-/* Ocultar textos y títulos de sección cuando colapsado */
+.tesipedia-admin-sidebar.collapsed .tesipedia-sidebar-title {
+    opacity: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.tesipedia-admin-sidebar.collapsed .tesipedia-sidebar-header {
+    justify-content: center;
+    padding: 12px 6px;
+}
+
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link span,
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-section-title,
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-logout span {
@@ -946,73 +366,190 @@
     transition: opacity 0.15s;
 }
 
-/* Nav links: centrar íconos */
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link {
     justify-content: center;
-    padding: 0.6rem;
+    padding: 10px;
     gap: 0;
     position: relative;
 }
+
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link svg {
-    width: 1.15rem;
-    height: 1.15rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    opacity: 0.6;
 }
 
-/* Secciones: reducir padding */
+.tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link:hover svg,
+.tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link.active svg {
+    opacity: 1;
+}
+
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-section {
-    margin-bottom: 0.4rem;
-    padding-bottom: 0.4rem;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
 }
 
-/* Logout: centrar */
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-logout {
     justify-content: center;
     gap: 0;
-    padding: 0.5rem;
+    padding: 10px;
 }
 
-/* Badge de notificación en colapsado */
 .tesipedia-admin-sidebar.collapsed .sidebar-badge-alert {
-    right: 2px;
+    right: 4px;
     top: 2px;
     min-width: 16px;
     height: 16px;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
 }
 
-/* Tooltip on hover — mostrar nombre al pasar el mouse en colapsado */
+/* Tooltip on hover in collapsed state */
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link::after {
     content: attr(title);
     position: absolute;
     left: 100%;
     top: 50%;
     transform: translateY(-50%);
-    margin-left: 8px;
-    padding: 5px 10px;
-    background: #1f2937;
-    color: #fff;
+    margin-left: 10px;
+    padding: 6px 12px;
+    background: #1F2937;
+    color: #F9FAFB;
     font-size: 0.78rem;
     font-weight: 500;
-    border-radius: 6px;
+    border-radius: 8px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s;
     z-index: 9999;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.06);
 }
+
 .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link:hover::after {
     opacity: 1;
 }
 
-/* En mobile no se colapsa — siempre full */
+/* ═══════════════════════════════════════════
+   MOBILE
+   ══��════════════════════════════════════════ */
+.tesipedia-admin-sidebar-toggle {
+    display: none;
+}
+
 @media (max-width: 992px) {
-    .tesipedia-sidebar-header {
-        display: none;
+    .tesipedia-admin-panel {
+        height: auto;
+        width: auto;
     }
-    .tesipedia-admin-sidebar.collapsed {
+
+    .tesipedia-admin-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        height: 100%;
+    }
+
+    .tesipedia-admin-container.sidebar-collapsed {
+        grid-template-columns: 1fr;
+    }
+
+    .tesipedia-admin-content {
+        padding: 8px;
+        padding-top: 56px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .tesipedia-admin-component {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Mobile toggle button */
+    .tesipedia-admin-sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 21001;
+        width: 38px;
+        height: 38px;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        font-size: 1.1rem;
+        color: #E5E7EB;
+        cursor: pointer;
+        padding: 0;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+    }
+
+    .tesipedia-admin-sidebar-toggle:active {
+        transform: scale(0.92);
+    }
+
+    .tesipedia-admin-sidebar-toggle.active {
+        background: rgba(31, 41, 55, 0.95);
+        color: #F9FAFB;
+    }
+
+    /* Mobile overlay */
+    .tesipedia-admin-sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 20999;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        animation: sidebar-overlay-in 0.2s ease;
+    }
+
+    @keyframes sidebar-overlay-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Mobile sidebar */
+    .tesipedia-admin-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
         width: 280px;
+        z-index: 21000;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
+        border-right: none;
+        border-radius: 0 16px 16px 0;
+        padding-top: 8px;
     }
+
+    .tesipedia-admin-sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Reset collapsed styles on mobile */
+    .tesipedia-sidebar-header { display: none; }
+
+    .tesipedia-admin-sidebar.collapsed { width: 280px; }
+
     .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link span,
     .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-section-title,
     .tesipedia-admin-sidebar.collapsed .tesipedia-admin-logout span {
@@ -1021,47 +558,102 @@
         overflow: visible;
         position: static;
     }
+
     .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link {
         justify-content: flex-start;
-        padding: 0.5rem 0.75rem;
-        gap: 0.5rem;
+        padding: 8px 12px;
+        gap: 10px;
     }
+
     .tesipedia-admin-sidebar.collapsed .tesipedia-admin-logout {
         justify-content: center;
-        gap: 0.5rem;
+        gap: 8px;
     }
+
     .tesipedia-admin-sidebar.collapsed .tesipedia-admin-nav-link::after {
         display: none;
     }
-    .tesipedia-admin-container.sidebar-collapsed {
-        grid-template-columns: 1fr;
-    }
 }
 
-.sidebar-item-alert .tesipedia-admin-nav-link {
-    border: 2px solid #e53935 !important;
-    border-radius: 0.5rem;
-    box-shadow: 0 0 0 2px #e5393533;
-    position: relative;
-    background: #fff6f6;
+/* Hide overlay when sidebar is closed */
+.tesipedia-admin-sidebar-overlay {
+    display: none;
 }
 
-.sidebar-badge-alert {
-    position: absolute;
-    top: 6px;
-    right: 18px;
-    background: #e53935;
-    color: #fff;
-    font-size: 0.75rem;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    z-index: 3;
-    box-shadow: 0 0 0 2px #fff;
-    pointer-events: none;
-    animation: notification-pulse 1.2s infinite;
+/* ═══════════════════════════════════════════
+   GENERIC UTILITIES
+   (These are used by child sections but we
+   keep them here as they were originally)
+   ═══════════════════════════════════════════ */
+
+.tesipedia-admin-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.tesipedia-admin-table th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; padding: 1rem; position: sticky; top: 0; z-index: 10; }
+.tesipedia-admin-table td { padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle; }
+
+.tesipedia-admin-badge { padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; }
+.tesipedia-admin-badge-pending { background-color: #fff3cd; color: #856404; }
+.tesipedia-admin-badge-success { background-color: #d4edda; color: #155724; }
+.tesipedia-admin-badge-danger { background-color: #f8d7da; color: #721c24; }
+
+.tesipedia-admin-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-bottom: 1rem; }
+.tesipedia-admin-btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.2s ease; }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Quote details modal */
+.quote-details-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1050; }
+.quote-details-content { background-color: white; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 1.5rem; }
+.quote-details-info { margin-bottom: 1.5rem; }
+.quote-details-info p { margin-bottom: 0.5rem; }
+.quote-details-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+
+/* Dropdowns & Modals z-index */
+.admin-panel-content .dropdown-menu { z-index: 1030; }
+.modal { z-index: 1050; }
+.modal-backdrop { z-index: 1040; }
+
+/* Legacy admin-panel-* classes kept for compatibility */
+.admin-panel-main { min-height: calc(100vh - 10px); background-color: #0B0F1A; padding: 0.25rem 0.5rem; width: 100%; max-width: 100%; margin: 0; position: relative; z-index: 1; overflow: visible !important; }
+.admin-panel-main-title { color: #F9FAFB; font-weight: 600; margin: 0.25rem 0; text-align: center; font-size: 1.75rem; }
+.admin-panel-sidebar { background-color: #111827; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2); height: fit-content; margin-bottom: 1rem; position: sticky; top: 1rem; overflow: visible !important; }
+.admin-panel-nav { display: flex; flex-direction: column; padding: 0.75rem; }
+.admin-panel-nav-section { margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.75rem; }
+.admin-panel-nav-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.admin-panel-nav-section-title { color: #6B7280; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; }
+.admin-panel-nav-link { display: flex; align-items: center; color: #9CA3AF; padding: 0.75rem 1rem; transition: all 0.2s ease; border: none; background: none; text-align: left; gap: 1rem; border-radius: 0.375rem; margin-bottom: 0.25rem; position: relative; z-index: 2; }
+.admin-panel-nav-link:hover, .admin-panel-nav-link.active { color: #60A5FA; background-color: rgba(59,130,246,0.1); }
+.admin-panel-nav-link svg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+.admin-panel-nav-link span { margin-left: 0.5rem; }
+.admin-panel-logout-btn { display: flex; align-items: center; justify-content: center; padding: 0.75rem 1rem; margin-top: 1rem; border-radius: 0.375rem; transition: all 0.2s ease; font-weight: 500; }
+.admin-panel-logout-btn:hover { background-color: #EF4444; color: white; }
+.admin-panel-logout-btn svg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+.admin-panel-content { background-color: #0B0F1A; border-radius: 0.5rem; min-height: 500px; padding: 1.5rem; transition: all 0.3s ease; position: relative; overflow: visible !important; z-index: 2; }
+.admin-panel-component-container { position: relative; width: 100%; height: 100%; min-height: 400px; overflow: visible !important; z-index: 2; }
+.admin-panel-content table { width: 100%; margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
+.admin-panel-content .table th { background-color: #1F2937; border-top: none; color: #9CA3AF; font-weight: 600; padding: 1rem; }
+.admin-panel-content .table td { vertical-align: middle; padding: 1rem; border-top: 1px solid rgba(255,255,255,0.06); color: #E5E7EB; }
+.admin-panel-content .badge { font-weight: 500; padding: 0.5rem 0.75rem; font-size: 0.875rem; border-radius: 0.375rem; }
+.badge-pending { background-color: #F59E0B; color: #000; }
+.badge-success { background-color: #10B981; color: #fff; }
+.badge-danger { background-color: #EF4444; color: #fff; }
+.admin-panel-loading { display: flex; justify-content: center; align-items: center; min-height: 300px; color: #6B7280; }
+.admin-panel-error { padding: 1rem; border-radius: 0.5rem; background-color: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); margin: 1rem 0; color: #FCA5A5; }
+.admin-panel-empty { text-align: center; padding: 2rem; color: #6B7280; }
+.admin-panel-actions { display: flex; gap: 0.5rem; justify-content: flex-end; position: relative; z-index: 3; }
+.admin-panel-actions .btn { padding: 0.375rem 0.75rem; font-size: 0.875rem; border-radius: 0.375rem; position: relative; z-index: 3; }
+.admin-panel-status { display: inline-flex; align-items: center; gap: 0.5rem; }
+.admin-panel-status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.admin-panel-status-active { background-color: #10B981; }
+.admin-panel-status-pending { background-color: #F59E0B; }
+.admin-panel-status-inactive { background-color: #EF4444; }
+
+@media (max-width: 768px) {
+    .admin-panel-main { padding: 0.25rem; }
+    .admin-panel-main-title { font-size: 1.5rem; }
+    .admin-panel-nav { padding: 0.5rem; }
+    .admin-panel-nav-section { margin-bottom: 1rem; padding-bottom: 0.5rem; }
+    .admin-panel-nav-link { padding: 0.5rem 0.75rem; gap: 0.75rem; }
+    .admin-panel-nav-section-title { padding: 0.25rem 0.5rem; }
+    .admin-panel-content { padding: 1rem; min-height: 400px; }
+    .admin-panel-component-container { min-height: 300px; }
 }

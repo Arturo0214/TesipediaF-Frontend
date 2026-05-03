@@ -1,543 +1,695 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { Spinner } from 'react-bootstrap';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import {
-  FaFileAlt,
-  FaProjectDiagram,
-  FaCommentDots,
-  FaDollarSign,
-  FaClock,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaHourglassHalf,
-  FaArrowRight,
-  FaChartLine,
-  FaUserGraduate,
-  FaTruck,
-  FaExclamationCircle,
-  FaRegCalendarAlt,
-  FaPercent,
-  FaEye,
-  FaHandshake,
-  FaAddressBook,
-  FaFunnelDollar,
+  FaFileAlt, FaProjectDiagram, FaCommentDots, FaDollarSign,
+  FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf,
+  FaArrowRight, FaChartLine, FaUserGraduate, FaTruck,
+  FaExclamationCircle, FaRegCalendarAlt, FaPercent, FaEye,
+  FaArrowUp, FaArrowDown, FaUsers, FaWallet, FaPencilAlt,
+  FaBolt, FaChartBar, FaWhatsapp, FaMoneyBillWave, FaSyncAlt,
+  FaExclamationTriangle, FaUserClock, FaCalendarCheck,
+  FaPhoneAlt, FaFunnelDollar, FaBullhorn,
 } from 'react-icons/fa';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  AreaChart, Area, PieChart, Pie, Cell,
+} from 'recharts';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getAllQuotes } from '../../../features/quotes/quoteSlice';
 import { getAllProjects } from '../../../features/projects/projectSlice';
 import { getConversations } from '../../../features/chat/chatSlice';
 import { fetchUsers } from '../../../features/auth/userSlice';
-import { getVisits } from '../../../features/visits/visitsSlice';
 import { fetchNotifications } from '../../../features/notifications/notificationSlice';
-import { fetchHubspotSummary } from '../../../features/hubspot/hubspotSlice';
 import './AdminDashboard.css';
+
+const COLORS_PIE = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
 
 const AdminDashboard = () => {
   const [paymentsDash, setPaymentsDash] = useState(null);
+  const [revenueDash, setRevenueDash] = useState(null);
+  const [waStats, setWaStats] = useState(null);
+  const [vendedorSales, setVendedorSales] = useState(null);
+  const [apiLoading, setApiLoading] = useState(true);
+
   const quotes = useSelector(state => state.quotes.quotes || []);
-  const quotesLoading = useSelector(state => state.quotes.loading);
   const projects = useSelector(state => state.projects?.projects || []);
-  const projectsLoading = useSelector(state => state.projects?.isLoading);
   const conversations = useSelector(state => state.chat.conversations || []);
-  const messagesLoading = useSelector(state => state.chat.loading);
   const notifications = useSelector(state => state.notifications.notifications || []);
   const users = useSelector(state => state.users.users || []);
-  const visits = useSelector(state => state.visits.visits || []);
-  const hubspot = useSelector(state => state.hubspot?.summary);
-  const hubspotLoading = useSelector(state => state.hubspot?.loading);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Fetch all data on mount
-  useEffect(() => {
+  const fetchAllData = useCallback(async () => {
+    setApiLoading(true);
     dispatch(getAllQuotes());
     dispatch(getAllProjects());
     dispatch(getConversations());
     dispatch(fetchUsers());
-    dispatch(getVisits());
     dispatch(fetchNotifications());
-    dispatch(fetchHubspotSummary());
-    // Fetch real payments dashboard
-    axiosWithAuth.get('/payments/dashboard').then(res => setPaymentsDash(res.data)).catch(() => {});
+
+    const results = await Promise.allSettled([
+      axiosWithAuth.get('/payments/dashboard'),
+      axiosWithAuth.get('/revenue/dashboard'),
+      axiosWithAuth.get('/api/v1/whatsapp/leads-stats'),
+      axiosWithAuth.get('/payments/vendedor-sales?period=thisMonth'),
+    ]);
+
+    if (results[0].status === 'fulfilled') setPaymentsDash(results[0].value.data);
+    if (results[1].status === 'fulfilled') setRevenueDash(results[1].value.data);
+    if (results[2].status === 'fulfilled') setWaStats(results[2].value.data);
+    if (results[3].status === 'fulfilled') setVendedorSales(results[3].value.data);
+    setApiLoading(false);
   }, [dispatch]);
 
-  // ── Navigation helper ─────────────────────────────
-  const goTo = (path) => {
-    navigate(path, { replace: true });
-  };
+  useEffect(() => { fetchAllData(); }, [fetchAllData]);
+  const goTo = (path) => navigate(path, { replace: true });
 
-  // ── Computed metrics ──────────────────────────────
-  const metrics = useMemo(() => {
-    const now = new Date();
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  // ═══════════════════════════════════════════════════
+  // REAL KPIs from /payments/dashboard
+  // ═══════════════════════════════════════════════════
+  const revenue = useMemo(() => {
+    if (!paymentsDash?.summary) return null;
+    const s = paymentsDash.summary;
+    const monthly = paymentsDash.monthly || [];
+    const current = monthly[monthly.length - 1];
+    const prev = monthly[monthly.length - 2];
+    const growth = prev?.ingresos > 0
+      ? Math.round(((current?.ingresos || 0) - prev.ingresos) / prev.ingresos * 100) : 0;
+    return { ...s, growth, thisMonth: current?.ingresos || 0 };
+  }, [paymentsDash]);
 
-    const pendingQuotes = quotes.filter(q => q.status === 'pending');
-    const approvedQuotes = quotes.filter(q => q.status === 'approved');
-    const paidQuotes = quotes.filter(q => q.status === 'paid');
-    const rejectedQuotes = quotes.filter(q => q.status === 'rejected');
+  // ═══════════════════════════════════════════════════
+  // REAL Lead Stats from /whatsapp/leads-stats
+  // ═══════════════════════════════════════════════════
+  const leadStats = useMemo(() => {
+    if (!waStats) return null;
+    const g = waStats.general || {};
+    const r = waStats.recientes || {};
+    const p = waStats.porEstado || {};
+    const admins = waStats.porAdmin || {};
+    const problemas = waStats.problemas || {};
+    const alertas = waStats.alertas || [];
+    const embudo = waStats.embudo || [];
+    return { g, r, p, admins, problemas, alertas, embudo };
+  }, [waStats]);
 
-    const thisMonthQuotes = quotes.filter(q => q && q.createdAt && new Date(q.createdAt) >= thisMonth);
-    const lastMonthQuotes = quotes.filter(q => {
-      if (!q || !q.createdAt) return false;
-      const d = new Date(q.createdAt);
-      return d >= lastMonth && d <= lastMonthEnd;
+  // ═══════════════════════════════════════════════════
+  // Revenue chart from REAL daily data
+  // ═══════════════════════════════════════════════════
+  const revenueChart = useMemo(() => {
+    if (!paymentsDash?.daily) return [];
+    return paymentsDash.daily.slice(-30).map(d => ({
+      label: new Date(d.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }),
+      ingresos: d.ingresos || 0,
+    }));
+  }, [paymentsDash]);
+
+  // ═══════════════════════════════════════════════════
+  // ALL pending installments (cobros pendientes)
+  // ═══════════════════════════════════════════════════
+  const pendingInstallments = useMemo(() => {
+    if (!paymentsDash?.payments) return [];
+    const pending = [];
+    paymentsDash.payments.forEach(p => {
+      if (p.schedule && p.schedule.length > 0) {
+        // Multi-payment: check each installment
+        p.schedule.forEach(inst => {
+          if (inst.status === 'pending') {
+            pending.push({
+              id: `${p._id}-${inst.number}`,
+              client: p.clientName || 'Sin nombre',
+              title: p.title || '',
+              amount: inst.amount || 0,
+              dueDate: inst.dueDate,
+              label: inst.label || `Pago ${inst.number}`,
+              vendedor: p.vendedor,
+              esquema: p.esquema,
+            });
+          }
+        });
+      } else if (p.status === 'pendiente' || p.status === 'pending') {
+        // Single payment without schedule that's still pending
+        pending.push({
+          id: p._id,
+          client: p.clientName || 'Sin nombre',
+          title: p.title || '',
+          amount: p.amount || 0,
+          dueDate: p.dueDate,
+          label: 'Pago único',
+          vendedor: p.vendedor,
+          esquema: p.esquema || 'unico',
+        });
+      }
     });
+    return pending.sort((a, b) => {
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+  }, [paymentsDash]);
 
-    const revenueThisMonth = paidQuotes
-      .filter(q => q && (q.updatedAt || q.createdAt) && new Date(q.updatedAt || q.createdAt) >= thisMonth)
-      .reduce((sum, q) => sum + (q.priceDetails?.finalPrice || q.estimatedPrice || 0), 0);
+  // ═══════════════════════════════════════════════════
+  // Project metrics — ALL projects
+  // ═══════════════════════════════════════════════════
+  const projectMetrics = useMemo(() => {
+    const active = projects.filter(p => p.status === 'in_progress' || p.status === 'review' || p.status === 'revision');
+    const pending = projects.filter(p => p.status === 'pending');
+    const completed = projects.filter(p => p.status === 'completed');
+    const cancelled = projects.filter(p => p.status === 'cancelled');
 
-    const revenueLastMonth = paidQuotes
-      .filter(q => {
-        if (!q || !(q.updatedAt || q.createdAt)) return false;
-        const d = new Date(q.updatedAt || q.createdAt);
-        return d >= lastMonth && d <= lastMonthEnd;
-      })
-      .reduce((sum, q) => sum + (q.priceDetails?.finalPrice || q.estimatedPrice || 0), 0);
+    // Writer workload
+    const writerMap = {};
+    active.forEach(p => {
+      const wName = p.writer?.name || 'Sin asignar';
+      if (!writerMap[wName]) writerMap[wName] = { name: wName, count: 0, projects: [] };
+      writerMap[wName].count++;
+      writerMap[wName].projects.push(p);
+    });
+    const writerWorkload = Object.values(writerMap).sort((a, b) => b.count - a.count);
 
-    const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'review');
-    const completedProjects = projects.filter(p => p.status === 'completed');
-    const unreadConvos = conversations.filter(c => c.unreadCount > 0 || c.hasUnread);
+    // Upcoming deadlines
+    const upcoming = [...active, ...pending]
+      .filter(p => p.dueDate)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5);
 
-    const totalFinished = paidQuotes.length + rejectedQuotes.length;
-    const conversionRate = totalFinished > 0 ? Math.round((paidQuotes.length / totalFinished) * 100) : 0;
+    return { active, pending, completed, cancelled, writerWorkload, upcoming, total: projects.length };
+  }, [projects]);
 
-    const weekVisits = visits.filter(v => v && (v.createdAt || v.date) && new Date(v.createdAt || v.date) >= sevenDaysAgo);
-    const newUsersMonth = users.filter(u => u && u.createdAt && new Date(u.createdAt) >= thisMonth);
+  // ═══════════════════════════════════════════════════
+  // Vendedor performance
+  // ═══════════════════════════════════════════════════
+  const topVendedores = useMemo(() => {
+    if (Array.isArray(vendedorSales)) return vendedorSales.slice(0, 5);
+    if (vendedorSales?.vendedores) return vendedorSales.vendedores.slice(0, 5);
+    if (!paymentsDash?.payments) return [];
+    const map = {};
+    paymentsDash.payments.forEach(p => {
+      if (!p.vendedor) return;
+      if (!map[p.vendedor]) map[p.vendedor] = { vendedor: p.vendedor, total: 0, count: 0 };
+      map[p.vendedor].total += p.amount || 0;
+      map[p.vendedor].count += 1;
+    });
+    return Object.values(map).sort((a, b) => b.total - a.total).slice(0, 5);
+  }, [vendedorSales, paymentsDash]);
 
-    return {
-      pendingQuotes, approvedQuotes, paidQuotes, rejectedQuotes,
-      thisMonthQuotes, lastMonthQuotes, revenueThisMonth, revenueLastMonth,
-      activeProjects, completedProjects, unreadConvos, conversionRate,
-      weekVisits, newUsersMonth,
-    };
-  }, [quotes, projects, conversations, visits, users]);
+  // ═══════════════════════════════════════════════════
+  // Expenses from /revenue/dashboard
+  // ═══════════════════════════════════════════════════
+  const expenses = useMemo(() => {
+    if (!revenueDash) return null;
+    const monthlyExp = revenueDash.expenses?.monthly?.total || 0;
+    const yearlyExp = revenueDash.expenses?.yearly?.total || 0;
+    const byCategory = revenueDash.expenses?.monthly?.byCategory || [];
+    const profit = revenueDash.profit?.monthly || 0;
+    const costPerThesis = revenueDash.costPerThesis || 0;
+    return { monthlyExp, yearlyExp, byCategory, profit, costPerThesis };
+  }, [revenueDash]);
 
-  // ── Recent activity ───────────────────────────────
+  // Recent activity
   const recentActivity = useMemo(() => {
-    return [...notifications]
-      .filter(n => n && n.createdAt)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 8);
+    return [...notifications].filter(n => n?.createdAt)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
   }, [notifications]);
 
-  // ── Pending actions ───────────────────────────────
-  const pendingActions = useMemo(() => {
-    const actions = [];
+  const unreadConvos = useMemo(() => conversations.filter(c => c.unreadCount > 0 || c.hasUnread), [conversations]);
 
-    metrics.pendingQuotes.slice(0, 5).forEach(q => {
-      actions.push({
-        id: q._id,
-        type: 'cotizacion',
-        icon: <FaFileAlt />,
-        color: '#4a6cf7',
-        title: q.taskTitle || q.taskType || 'Cotización',
-        subtitle: q.name || q.email || '',
-        detail: q.educationLevel || '',
-        date: q.createdAt,
-        badge: 'Pendiente',
-        badgeColor: '#f59e0b',
-        link: '/admin/cotizaciones',
-      });
-    });
-
-    projects.filter(p => p.status === 'review').slice(0, 3).forEach(p => {
-      actions.push({
-        id: p._id,
-        type: 'proyecto',
-        icon: <FaProjectDiagram />,
-        color: '#6c5ce7',
-        title: p.taskTitle || 'Proyecto',
-        subtitle: `Progreso: ${p.progress || 0}%`,
-        detail: 'En revisión',
-        date: p.updatedAt || p.createdAt,
-        badge: 'Revisión',
-        badgeColor: '#8b5cf6',
-        link: '/admin/proyectos',
-      });
-    });
-
-    metrics.approvedQuotes.slice(0, 3).forEach(q => {
-      actions.push({
-        id: q._id,
-        type: 'pago',
-        icon: <FaDollarSign />,
-        color: '#e17055',
-        title: q.taskTitle || 'Cotización aprobada',
-        subtitle: `$${q.priceDetails?.finalPrice || q.estimatedPrice || 0} MXN`,
-        detail: 'Esperando pago',
-        date: q.updatedAt || q.createdAt,
-        badge: 'Por pagar',
-        badgeColor: '#ef4444',
-        link: '/admin/pagos',
-      });
-    });
-
-    return actions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
-  }, [metrics, projects]);
-
-  // ── HubSpot pipeline stages ───────────────────────
-  const hubspotPipeline = useMemo(() => {
-    if (!hubspot?.deals?.byStage) return [];
-    const stages = Object.entries(hubspot.deals.byStage)
-      .filter(([, data]) => data != null && typeof data === 'object')
-      .map(([id, data]) => ({ id, count: 0, amount: 0, label: id, ...data }))
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-    return stages;
-  }, [hubspot]);
-
-  // ── Format helpers ────────────────────────────────
-  const formatTimeAgo = (dateStr) => {
+  // ═══════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════
+  const fmt = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(n || 0);
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '—';
+  const fmtAgo = (dateStr) => {
     if (!dateStr) return '';
     const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
     if (diff < 60) return 'Ahora';
     if (diff < 3600) return `${Math.floor(diff / 60)}min`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-    return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(amount);
+    return fmtDate(dateStr);
   };
 
   const getActivityIcon = (type) => {
     const map = {
-      cotizacion: { icon: <FaFileAlt />, color: '#4a6cf7', bg: '#eef1ff' },
-      mensaje: { icon: <FaCommentDots />, color: '#00b894', bg: '#e6f9f3' },
-      visita: { icon: <FaEye />, color: '#6c5ce7', bg: '#f0eeff' },
-      pago: { icon: <FaDollarSign />, color: '#e17055', bg: '#fef0ec' },
-      proyecto: { icon: <FaProjectDiagram />, color: '#fdcb6e', bg: '#fef9e7' },
-      entrega: { icon: <FaTruck />, color: '#55a3e5', bg: '#ebf4fd' },
-      alerta: { icon: <FaExclamationCircle />, color: '#d63031', bg: '#fce4e4' },
-      info: { icon: <FaChartLine />, color: '#636e72', bg: '#f0f0f0' },
+      cotizacion: { icon: <FaFileAlt />, color: '#60A5FA', bg: 'rgba(59,130,246,0.12)' },
+      mensaje: { icon: <FaCommentDots />, color: '#34D399', bg: 'rgba(16,185,129,0.12)' },
+      pago: { icon: <FaDollarSign />, color: '#FB923C', bg: 'rgba(249,115,22,0.12)' },
+      proyecto: { icon: <FaProjectDiagram />, color: '#FBBF24', bg: 'rgba(251,191,36,0.12)' },
+      entrega: { icon: <FaTruck />, color: '#38BDF8', bg: 'rgba(56,189,248,0.12)' },
+      whatsapp: { icon: <FaWhatsapp />, color: '#25D366', bg: 'rgba(37,211,102,0.12)' },
+      lead: { icon: <FaWhatsapp />, color: '#25D366', bg: 'rgba(37,211,102,0.12)' },
+      alerta: { icon: <FaExclamationCircle />, color: '#F87171', bg: 'rgba(239,68,68,0.12)' },
+      info: { icon: <FaChartLine />, color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)' },
     };
     return map[type] || map.info;
   };
 
-  const stageColors = ['#f59e0b', '#4a6cf7', '#6c5ce7', '#00b894', '#e17055', '#ef4444', '#8b5cf6', '#fdcb6e'];
+  const ChartTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="adm-chart-tooltip">
+        <div className="adm-chart-tooltip-label">{label}</div>
+        {payload.map((p, i) => (
+          <div key={i} className="adm-chart-tooltip-value" style={{ color: p.color }}>{fmt(p.value)}</div>
+        ))}
+      </div>
+    );
+  };
 
-  // ── Render ────────────────────────────────────────
-  const isLoading = quotesLoading || projectsLoading || messagesLoading;
+  const isLoading = apiLoading;
 
+  // ═══════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════
   return (
     <div className="adm-dash">
       {/* ── Header ── */}
       <div className="adm-dash-header">
         <div>
           <h1 className="adm-dash-title">Dashboard</h1>
-          <p className="adm-dash-subtitle">Resumen general de tu negocio</p>
+          <p className="adm-dash-subtitle">Centro de operaciones — datos en tiempo real</p>
         </div>
-        <div className="adm-dash-date">
-          <FaRegCalendarAlt />
-          <span>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+        <div className="adm-dash-header-right">
+          <button className="adm-refresh-btn" onClick={fetchAllData} disabled={isLoading}>
+            <FaSyncAlt className={isLoading ? 'adm-spinning' : ''} />
+          </button>
+          <div className="adm-dash-date">
+            <FaRegCalendarAlt />
+            <span>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          </div>
         </div>
       </div>
 
-      {/* ── KPI Cards (clickable) ── */}
+      {/* ══════════ ROW 1: Revenue KPIs ══════════ */}
       <div className="adm-dash-kpis">
-        <div className="adm-kpi-card adm-kpi-clickable" onClick={() => goTo('/admin/cotizaciones')}>
-          <div className="adm-kpi-icon" style={{ background: '#eef1ff', color: '#4a6cf7' }}>
-            <FaFileAlt />
-          </div>
-          <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Cotizaciones pendientes</span>
-            <span className="adm-kpi-value">
-              {isLoading ? <Spinner size="sm" /> : metrics.pendingQuotes.length}
-            </span>
-            <span className="adm-kpi-trend">
-              {metrics.thisMonthQuotes.length} este mes
-              {metrics.lastMonthQuotes.length > 0 && (
-                <span className={metrics.thisMonthQuotes.length >= metrics.lastMonthQuotes.length ? 'trend-up' : 'trend-down'}>
-                  {metrics.thisMonthQuotes.length >= metrics.lastMonthQuotes.length ? '↑' : '↓'}
-                </span>
-              )}
-            </span>
-          </div>
-        </div>
-
-        <div className="adm-kpi-card adm-kpi-clickable" onClick={() => goTo('/admin/proyectos')}>
-          <div className="adm-kpi-icon" style={{ background: '#f0eeff', color: '#6c5ce7' }}>
-            <FaProjectDiagram />
-          </div>
-          <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Proyectos activos</span>
-            <span className="adm-kpi-value">
-              {isLoading ? <Spinner size="sm" /> : metrics.activeProjects.length}
-            </span>
-            <span className="adm-kpi-trend">{metrics.completedProjects.length} completados</span>
-          </div>
-        </div>
-
-        <div className="adm-kpi-card adm-kpi-clickable" onClick={() => goTo('/admin/mensajes')}>
-          <div className="adm-kpi-icon" style={{ background: '#e6f9f3', color: '#00b894' }}>
-            <FaCommentDots />
-          </div>
-          <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Mensajes sin leer</span>
-            <span className="adm-kpi-value">
-              {isLoading ? <Spinner size="sm" /> : metrics.unreadConvos.length}
-            </span>
-            <span className="adm-kpi-trend">{conversations.length} conversaciones</span>
-          </div>
-        </div>
-
-        <div className="adm-kpi-card adm-kpi-clickable" onClick={() => goTo('/admin/pagos')}>
-          <div className="adm-kpi-icon" style={{ background: '#fef0ec', color: '#e17055' }}>
-            <FaDollarSign />
-          </div>
+        <div className="adm-kpi-card adm-kpi-highlight" onClick={() => goTo('/admin/revenue')}>
+          <div className="adm-kpi-icon" style={{ background: 'rgba(16,185,129,0.15)', color: '#34D399' }}><FaWallet /></div>
           <div className="adm-kpi-body">
             <span className="adm-kpi-label">Ingresos totales</span>
-            <span className="adm-kpi-value">
-              {isLoading ? <Spinner size="sm" /> : formatCurrency(paymentsDash?.summary?.totalIngresos || metrics.revenueThisMonth)}
-            </span>
+            <span className="adm-kpi-value">{isLoading ? <Spinner size="sm" /> : fmt(revenue?.totalIngresos)}</span>
             <span className="adm-kpi-trend">
-              {paymentsDash?.summary
-                ? `${paymentsDash.summary.totalPagos} ventas · Comisión: ${formatCurrency(paymentsDash.summary.totalComisiones)}`
-                : (metrics.revenueLastMonth > 0 ? `${formatCurrency(metrics.revenueLastMonth)} mes anterior` : 'Sin datos previos')
-              }
+              {revenue?.growth !== 0 && <span className={revenue?.growth > 0 ? 'trend-up' : 'trend-down'}>{revenue?.growth > 0 ? <FaArrowUp /> : <FaArrowDown />} {Math.abs(revenue?.growth || 0)}%</span>}
+              {' vs mes anterior'}
             </span>
           </div>
         </div>
-      </div>
 
-      {/* ── Pipeline (Tesipedia) + Stats Row ── */}
-      <div className="adm-dash-grid">
-        <div className="adm-dash-card adm-pipeline-card">
-          <h3 className="adm-card-title">Pipeline de cotizaciones</h3>
-          <div className="adm-pipeline">
-            <div className="adm-pipeline-stage" onClick={() => goTo('/admin/cotizaciones')} style={{ cursor: 'pointer' }}>
-              <div className="adm-pipeline-bar" style={{ background: '#f59e0b' }}>
-                <FaHourglassHalf />
-                <span className="adm-pipeline-count">{metrics.pendingQuotes.length}</span>
-              </div>
-              <span className="adm-pipeline-label">Pendientes</span>
-            </div>
-            <FaArrowRight className="adm-pipeline-arrow" />
-            <div className="adm-pipeline-stage" onClick={() => goTo('/admin/cotizaciones')} style={{ cursor: 'pointer' }}>
-              <div className="adm-pipeline-bar" style={{ background: '#4a6cf7' }}>
-                <FaCheckCircle />
-                <span className="adm-pipeline-count">{metrics.approvedQuotes.length}</span>
-              </div>
-              <span className="adm-pipeline-label">Aprobadas</span>
-            </div>
-            <FaArrowRight className="adm-pipeline-arrow" />
-            <div className="adm-pipeline-stage" onClick={() => goTo('/admin/pagos')} style={{ cursor: 'pointer' }}>
-              <div className="adm-pipeline-bar" style={{ background: '#00b894' }}>
-                <FaDollarSign />
-                <span className="adm-pipeline-count">{metrics.paidQuotes.length}</span>
-              </div>
-              <span className="adm-pipeline-label">Pagadas</span>
-            </div>
-            <FaArrowRight className="adm-pipeline-arrow" />
-            <div className="adm-pipeline-stage" onClick={() => goTo('/admin/cotizaciones')} style={{ cursor: 'pointer' }}>
-              <div className="adm-pipeline-bar" style={{ background: '#ef4444' }}>
-                <FaTimesCircle />
-                <span className="adm-pipeline-count">{metrics.rejectedQuotes.length}</span>
-              </div>
-              <span className="adm-pipeline-label">Rechazadas</span>
-            </div>
-          </div>
-          <div className="adm-pipeline-total">Total: {quotes.length} cotizaciones</div>
-        </div>
-
-        <div className="adm-dash-card adm-stats-card">
-          <h3 className="adm-card-title">Métricas clave</h3>
-          <div className="adm-quick-stats">
-            <div className="adm-stat-row" onClick={() => goTo('/admin/cotizaciones')} style={{ cursor: 'pointer' }}>
-              <div className="adm-stat-icon" style={{ background: '#e6f9f3', color: '#00b894' }}><FaPercent /></div>
-              <div className="adm-stat-info">
-                <span className="adm-stat-name">Tasa de conversión</span>
-                <span className="adm-stat-val">{metrics.conversionRate}%</span>
-              </div>
-            </div>
-            <div className="adm-stat-row" onClick={() => goTo('/admin/visitas')} style={{ cursor: 'pointer' }}>
-              <div className="adm-stat-icon" style={{ background: '#eef1ff', color: '#4a6cf7' }}><FaEye /></div>
-              <div className="adm-stat-info">
-                <span className="adm-stat-name">Visitas esta semana</span>
-                <span className="adm-stat-val">{metrics.weekVisits.length}</span>
-              </div>
-            </div>
-            <div className="adm-stat-row" onClick={() => goTo('/admin/usuarios')} style={{ cursor: 'pointer' }}>
-              <div className="adm-stat-icon" style={{ background: '#f0eeff', color: '#6c5ce7' }}><FaUserGraduate /></div>
-              <div className="adm-stat-info">
-                <span className="adm-stat-name">Usuarios nuevos (mes)</span>
-                <span className="adm-stat-val">{metrics.newUsersMonth.length}</span>
-              </div>
-            </div>
-            <div className="adm-stat-row" onClick={() => goTo('/admin/proyectos')} style={{ cursor: 'pointer' }}>
-              <div className="adm-stat-icon" style={{ background: '#fef9e7', color: '#fdcb6e' }}><FaClock /></div>
-              <div className="adm-stat-info">
-                <span className="adm-stat-name">Proyectos completados</span>
-                <span className="adm-stat-val">{metrics.completedProjects.length}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── HubSpot Section ── */}
-      <div className="adm-dash-section-label">
-        <FaHandshake /> HubSpot CRM
-      </div>
-      <div className="adm-dash-kpis adm-hubspot-kpis">
-        <div className="adm-kpi-card adm-kpi-hubspot">
-          <div className="adm-kpi-icon" style={{ background: '#fff3e0', color: '#ff7043' }}>
-            <FaFunnelDollar />
-          </div>
+        <div className="adm-kpi-card" onClick={() => goTo('/admin/pagos')}>
+          <div className="adm-kpi-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#60A5FA' }}><FaMoneyBillWave /></div>
           <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Deals totales</span>
-            <span className="adm-kpi-value">
-              {hubspotLoading ? <Spinner size="sm" /> : (hubspot?.deals?.total || 0)}
-            </span>
-            <span className="adm-kpi-trend">{hubspot?.deals?.dealsThisMonth || 0} este mes</span>
+            <span className="adm-kpi-label">Cobrado</span>
+            <span className="adm-kpi-value">{isLoading ? <Spinner size="sm" /> : fmt(revenue?.cobrado)}</span>
+            <span className="adm-kpi-trend">{revenue?.totalPagos || 0} ventas cerradas</span>
           </div>
         </div>
 
-        <div className="adm-kpi-card adm-kpi-hubspot">
-          <div className="adm-kpi-icon" style={{ background: '#e8f5e9', color: '#43a047' }}>
-            <FaDollarSign />
-          </div>
+        <div className="adm-kpi-card" onClick={() => goTo('/admin/pagos')}>
+          <div className="adm-kpi-icon" style={{ background: 'rgba(245,158,11,0.15)', color: '#FBBF24' }}><FaHourglassHalf /></div>
           <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Revenue total</span>
-            <span className="adm-kpi-value">
-              {hubspotLoading ? <Spinner size="sm" /> : formatCurrency(hubspot?.deals?.totalRevenue || 0)}
-            </span>
-            <span className="adm-kpi-trend">{formatCurrency(hubspot?.deals?.revenueThisMonth || 0)} este mes</span>
+            <span className="adm-kpi-label">Por cobrar</span>
+            <span className="adm-kpi-value">{isLoading ? <Spinner size="sm" /> : fmt(revenue?.pendiente)}</span>
+            <span className="adm-kpi-trend">{pendingInstallments.length} parcialidades pendientes</span>
           </div>
         </div>
 
-        <div className="adm-kpi-card adm-kpi-hubspot">
-          <div className="adm-kpi-icon" style={{ background: '#e3f2fd', color: '#1e88e5' }}>
-            <FaAddressBook />
-          </div>
+        <div className="adm-kpi-card" onClick={() => goTo('/admin/revenue')}>
+          <div className="adm-kpi-icon" style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA' }}><FaDollarSign /></div>
           <div className="adm-kpi-body">
-            <span className="adm-kpi-label">Contactos</span>
-            <span className="adm-kpi-value">
-              {hubspotLoading ? <Spinner size="sm" /> : (hubspot?.contacts?.total || 0)}
-            </span>
-            <span className="adm-kpi-trend">{hubspot?.contacts?.contactsThisMonth || 0} nuevos este mes</span>
+            <span className="adm-kpi-label">Neto empresa</span>
+            <span className="adm-kpi-value">{isLoading ? <Spinner size="sm" /> : fmt(revenue?.netoEmpresa)}</span>
+            <span className="adm-kpi-trend">comisiones: {fmt(revenue?.totalComisiones)}</span>
+          </div>
+        </div>
+
+        <div className="adm-kpi-card" onClick={() => goTo('/admin/revenue')}>
+          <div className="adm-kpi-icon" style={{ background: 'rgba(239,68,68,0.15)', color: '#F87171' }}><FaBullhorn /></div>
+          <div className="adm-kpi-body">
+            <span className="adm-kpi-label">Gastos del mes</span>
+            <span className="adm-kpi-value">{isLoading ? <Spinner size="sm" /> : fmt(expenses?.monthlyExp)}</span>
+            <span className="adm-kpi-trend">profit: {fmt(expenses?.profit)}</span>
           </div>
         </div>
       </div>
 
-      {/* HubSpot Pipeline + Recent Deals */}
-      {hubspot && (
-        <div className="adm-dash-grid">
-          <div className="adm-dash-card">
-            <h3 className="adm-card-title"><FaFunnelDollar style={{ color: '#ff7043' }} /> Pipeline de deals</h3>
-            {hubspotPipeline.length > 0 ? (
-              <div className="adm-hs-pipeline">
-                {hubspotPipeline.map((stage, idx) => (
-                  <div key={stage.id} className="adm-hs-stage">
-                    <div className="adm-hs-stage-bar" style={{ background: stageColors[idx % stageColors.length] }}>
-                      <span className="adm-hs-stage-count">{stage.count || 0}</span>
-                    </div>
-                    <span className="adm-hs-stage-label">{stage.label}</span>
-                    <span className="adm-hs-stage-amount">{formatCurrency(stage.amount)}</span>
-                  </div>
-                ))}
+      {/* ══════════ ROW 2: Lead Funnel from /whatsapp/leads-stats ══════════ */}
+      <div className="adm-dash-card adm-funnel-card">
+        <h3 className="adm-card-title">
+          <FaWhatsapp style={{ color: '#25D366' }} /> Embudo de leads — WhatsApp
+          <span className="adm-card-count">{leadStats?.g?.total || 0} leads totales</span>
+        </h3>
+
+        {/* Top KPIs row */}
+        <div className="adm-funnel-metrics">
+          <div className="adm-fm" onClick={() => goTo('/admin/whatsapp')}>
+            <span className="adm-fm-value" style={{ color: '#25D366' }}>{leadStats?.g?.total || 0}</span>
+            <span className="adm-fm-label">Total leads</span>
+          </div>
+          <div className="adm-fm" onClick={() => goTo('/admin/whatsapp')}>
+            <span className="adm-fm-value" style={{ color: '#F87171' }}>{leadStats?.g?.sinAtender || 0}</span>
+            <span className="adm-fm-label">Sin atender</span>
+          </div>
+          <div className="adm-fm">
+            <span className="adm-fm-value" style={{ color: '#FBBF24' }}>{leadStats?.g?.tasaConversion || 0}%</span>
+            <span className="adm-fm-label">Tasa conversión</span>
+          </div>
+          <div className="adm-fm">
+            <span className="adm-fm-value" style={{ color: '#A78BFA' }}>{leadStats?.g?.tasaCalificacion || 0}%</span>
+            <span className="adm-fm-label">Tasa calificación</span>
+          </div>
+          <div className="adm-fm">
+            <span className="adm-fm-value" style={{ color: '#60A5FA' }}>{leadStats?.p?.modo_humano || 0}</span>
+            <span className="adm-fm-label">Modo humano</span>
+          </div>
+        </div>
+
+        {/* Recientes - nuevos leads */}
+        <div className="adm-lead-recientes">
+          <span className="adm-lr-item">Nuevos 24h: <strong>{leadStats?.r?.h24 || 0}</strong></span>
+          <span className="adm-lr-item">7 días: <strong>{leadStats?.r?.d7 || 0}</strong></span>
+          <span className="adm-lr-item">30 días: <strong>{leadStats?.r?.d30 || 0}</strong></span>
+        </div>
+
+        {/* Real funnel stages */}
+        {leadStats?.embudo?.length > 0 && (
+          <div className="adm-funnel-stages">
+            {leadStats.embudo.filter(s => s.value > 0).map((stage, i) => (
+              <div key={stage.etapa} className="adm-funnel-stage-item">
+                <div className="adm-funnel-stage-bar" style={{ background: stage.color || COLORS_PIE[i % COLORS_PIE.length], width: `${Math.max(((stage.value / (leadStats.embudo[0]?.value || 1)) * 100), 12)}%` }}>
+                  <span>{stage.value}</span>
+                </div>
+                <span className="adm-funnel-stage-name">{stage.etapa}</span>
               </div>
-            ) : (
-              <div className="adm-empty-state">
-                <FaFunnelDollar size={24} />
-                <span>Sin datos de pipeline</span>
+            ))}
+            {/* Lost leads */}
+            {waStats?.perdidos?.filter(s => s.value > 0).map((stage, i) => (
+              <div key={stage.etapa} className="adm-funnel-stage-item">
+                <div className="adm-funnel-stage-bar" style={{ background: stage.color || '#EF4444', width: `${Math.max(((stage.value / (leadStats.embudo[0]?.value || 1)) * 100), 12)}%` }}>
+                  <span>{stage.value}</span>
+                </div>
+                <span className="adm-funnel-stage-name">{stage.etapa}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Bottom row: admin + sources */}
+        <div className="adm-lead-bottom">
+          <div className="adm-lead-admins">
+            <span className="adm-la-title">Por vendedor:</span>
+            {leadStats?.admins && Object.entries(leadStats.admins).filter(([k]) => k !== 'sinAtender').map(([name, count]) => (
+              <span key={name} className="adm-la-chip">{name}: <strong>{count}</strong></span>
+            ))}
+          </div>
+          <div className="adm-lead-sources">
+            <span className="adm-la-chip" style={{ borderColor: 'rgba(37,211,102,0.3)' }}>Regular: <strong>{leadStats?.g?.regular || 0}</strong></span>
+            <span className="adm-la-chip" style={{ borderColor: 'rgba(251,191,36,0.3)' }}>ManyChat: <strong>{leadStats?.g?.manychat || 0}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════ ROW 3: ACCIONES URGENTES — qué hacer ahora ══════════ */}
+      {(leadStats?.alertas?.length > 0 || pendingInstallments.length > 0 || projectMetrics.upcoming.some(p => {
+        const daysLeft = p.dueDate ? Math.ceil((new Date(p.dueDate) - new Date()) / 86400000) : 999;
+        return daysLeft <= 3 && daysLeft >= 0;
+      })) && (
+        <div className="adm-dash-card adm-actions-urgent">
+          <h3 className="adm-card-title">
+            <FaExclamationTriangle style={{ color: '#F87171' }} /> Requiere tu atención ahora
+          </h3>
+          <div className="adm-urgent-grid">
+            {/* WhatsApp alerts */}
+            {leadStats?.alertas?.map((a, i) => (
+              <div key={`wa-${i}`} className={`adm-urgent-item adm-urgent-${a.severidad}`} onClick={() => goTo('/admin/whatsapp')}>
+                <div className="adm-urgent-icon"><FaWhatsapp /></div>
+                <div className="adm-urgent-body">
+                  <span className="adm-urgent-title">{a.titulo}</span>
+                  <span className="adm-urgent-desc">{a.descripcion}</span>
+                </div>
+                <span className="adm-urgent-count">{a.count}</span>
+                <span className="adm-urgent-action">Ir a WA →</span>
+              </div>
+            ))}
+
+            {/* Cotizaciones pendientes de envío */}
+            {quotes.filter(q => q.status === 'pending').length > 3 && (
+              <div className="adm-urgent-item adm-urgent-media" onClick={() => goTo('/admin/cotizaciones')}>
+                <div className="adm-urgent-icon"><FaFileAlt /></div>
+                <div className="adm-urgent-body">
+                  <span className="adm-urgent-title">Cotizaciones pendientes</span>
+                  <span className="adm-urgent-desc">{quotes.filter(q => q.status === 'pending').length} cotizaciones esperan respuesta</span>
+                </div>
+                <span className="adm-urgent-count">{quotes.filter(q => q.status === 'pending').length}</span>
+                <span className="adm-urgent-action">Revisar →</span>
               </div>
             )}
-          </div>
 
-          <div className="adm-dash-card">
-            <h3 className="adm-card-title"><FaHandshake style={{ color: '#ff7043' }} /> Deals recientes</h3>
-            {hubspot.deals?.recent?.length > 0 ? (
-              <div className="adm-actions-list">
-                {hubspot.deals.recent.map(deal => (
-                  <div key={deal.id} className="adm-action-item">
-                    <div className="adm-action-icon" style={{ color: '#ff7043' }}><FaHandshake /></div>
-                    <div className="adm-action-body">
-                      <span className="adm-action-title">{deal.name}</span>
-                      <span className="adm-action-sub">{deal.stage}</span>
-                    </div>
-                    <div className="adm-action-meta">
-                      <span className="adm-action-badge" style={{ background: '#ff7043' }}>
-                        {formatCurrency(deal.amount)}
-                      </span>
-                      <span className="adm-action-time">{formatTimeAgo(deal.created)}</span>
-                    </div>
-                  </div>
-                ))}
+            {/* Proyectos próximos a vencer */}
+            {projectMetrics.upcoming.filter(p => {
+              const daysLeft = p.dueDate ? Math.ceil((new Date(p.dueDate) - new Date()) / 86400000) : 999;
+              return daysLeft <= 3 && daysLeft >= 0;
+            }).length > 0 && (
+              <div className="adm-urgent-item adm-urgent-alta" onClick={() => goTo('/admin/proyectos')}>
+                <div className="adm-urgent-icon"><FaProjectDiagram /></div>
+                <div className="adm-urgent-body">
+                  <span className="adm-urgent-title">Entregas próximas (&lt;3 días)</span>
+                  <span className="adm-urgent-desc">
+                    {projectMetrics.upcoming.filter(p => {
+                      const dl = p.dueDate ? Math.ceil((new Date(p.dueDate) - new Date()) / 86400000) : 999;
+                      return dl <= 3 && dl >= 0;
+                    }).map(p => p.taskTitle || p.clientName).join(', ')}
+                  </span>
+                </div>
+                <span className="adm-urgent-action">Ver proyectos →</span>
               </div>
-            ) : (
-              <div className="adm-empty-state">
-                <FaHandshake size={24} />
-                <span>Sin deals recientes</span>
+            )}
+
+            {/* Mensajes sin leer */}
+            {unreadConvos.length > 0 && (
+              <div className="adm-urgent-item adm-urgent-media" onClick={() => goTo('/admin/mensajes')}>
+                <div className="adm-urgent-icon"><FaCommentDots /></div>
+                <div className="adm-urgent-body">
+                  <span className="adm-urgent-title">Mensajes sin leer</span>
+                  <span className="adm-urgent-desc">{unreadConvos.length} conversaciones esperan respuesta</span>
+                </div>
+                <span className="adm-urgent-count">{unreadConvos.length}</span>
+                <span className="adm-urgent-action">Responder →</span>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ── Pending Actions + Activity ── */}
+      {/* ══════════ ROW 4: Revenue chart + Cobros pendientes ══════════ */}
       <div className="adm-dash-grid">
-        <div className="adm-dash-card adm-actions-card">
-          <h3 className="adm-card-title">
-            Acciones pendientes
-            {pendingActions.length > 0 && <span className="adm-card-badge">{pendingActions.length}</span>}
-          </h3>
-          {pendingActions.length === 0 ? (
-            <div className="adm-empty-state">
-              <FaCheckCircle size={28} />
-              <span>Todo al día — no hay acciones pendientes</span>
+        <div className="adm-dash-card">
+          <h3 className="adm-card-title"><FaChartBar style={{ color: '#34D399' }} /> Ingresos diarios</h3>
+          {revenueChart.length > 0 ? (
+            <div className="adm-chart-wrap">
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={revenueChart}>
+                  <defs>
+                    <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
+                  <XAxis dataKey="label" tick={{ fill: '#6B7280', fontSize: 11 }} tickLine={false} axisLine={{ stroke: '#1F2937' }} interval="preserveStartEnd" />
+                  <YAxis tick={{ fill: '#6B7280', fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area type="monotone" dataKey="ingresos" stroke="#10B981" fill="url(#gRev)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           ) : (
-            <div className="adm-actions-list">
-              {pendingActions.map((action) => (
-                <div
-                  key={action.id}
-                  className="adm-action-item adm-action-clickable"
-                  onClick={() => goTo(action.link)}
-                >
-                  <div className="adm-action-icon" style={{ color: action.color }}>{action.icon}</div>
-                  <div className="adm-action-body">
-                    <span className="adm-action-title">{action.title}</span>
-                    <span className="adm-action-sub">
-                      {action.subtitle}
-                      {action.detail && <> · {action.detail}</>}
-                    </span>
+            <div className="adm-empty-state"><FaChartLine size={24} /><span>Sin datos</span></div>
+          )}
+        </div>
+
+        <div className="adm-dash-card">
+          <h3 className="adm-card-title">
+            <FaCalendarCheck style={{ color: '#FBBF24' }} /> Cobros pendientes
+            <span className="adm-card-badge">{pendingInstallments.length}</span>
+          </h3>
+          <div className="adm-cobros-total">
+            Total por cobrar: <strong>{fmt(revenue?.pendiente)}</strong>
+          </div>
+          {pendingInstallments.length === 0 ? (
+            <div className="adm-empty-state"><FaCheckCircle size={24} /><span>Todo cobrado</span></div>
+          ) : (
+            <div className="adm-installments-list">
+              {pendingInstallments.slice(0, 12).map(inst => (
+                <div key={inst.id} className="adm-inst-item" onClick={() => goTo('/admin/pagos')}>
+                  <div className="adm-inst-info">
+                    <span className="adm-inst-client">{inst.client}</span>
+                    <span className="adm-inst-detail">{inst.label} · {inst.vendedor || '—'}</span>
                   </div>
-                  <div className="adm-action-meta">
-                    <span className="adm-action-badge" style={{ background: action.badgeColor }}>{action.badge}</span>
-                    <span className="adm-action-time">{formatTimeAgo(action.date)}</span>
+                  <div className="adm-inst-right">
+                    <span className="adm-inst-amount">{fmt(inst.amount)}</span>
+                    <span className="adm-inst-due">{fmtDate(inst.dueDate)}</span>
                   </div>
+                </div>
+              ))}
+              {pendingInstallments.length > 12 && (
+                <div className="adm-see-more" onClick={() => goTo('/admin/pagos')}>
+                  Ver {pendingInstallments.length - 12} más →
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════ ROW 5: Projects overview + Vendedores ══════════ */}
+      <div className="adm-dash-grid">
+        <div className="adm-dash-card">
+          <h3 className="adm-card-title"><FaProjectDiagram style={{ color: '#60A5FA' }} /> Proyectos</h3>
+          <div className="adm-project-summary">
+            <div className="adm-ps-item" onClick={() => goTo('/admin/proyectos')}>
+              <span className="adm-ps-count" style={{ color: '#60A5FA' }}>{projectMetrics.active.length}</span>
+              <span className="adm-ps-label">Activos</span>
+            </div>
+            <div className="adm-ps-item" onClick={() => goTo('/admin/proyectos')}>
+              <span className="adm-ps-count" style={{ color: '#FBBF24' }}>{projectMetrics.pending.length}</span>
+              <span className="adm-ps-label">Pendientes</span>
+            </div>
+            <div className="adm-ps-item" onClick={() => goTo('/admin/proyectos')}>
+              <span className="adm-ps-count" style={{ color: '#34D399' }}>{projectMetrics.completed.length}</span>
+              <span className="adm-ps-label">Completados</span>
+            </div>
+            <div className="adm-ps-item">
+              <span className="adm-ps-count" style={{ color: '#9CA3AF' }}>{projectMetrics.total}</span>
+              <span className="adm-ps-label">Total</span>
+            </div>
+          </div>
+
+          {/* Writer workload */}
+          <h4 className="adm-subsection-title">Carga por redactor</h4>
+          {projectMetrics.writerWorkload.length === 0 ? (
+            <div className="adm-empty-state-sm">Sin redactores con proyectos activos</div>
+          ) : (
+            <div className="adm-writer-list">
+              {projectMetrics.writerWorkload.map(w => (
+                <div key={w.name} className="adm-writer-item">
+                  <div className="adm-writer-avatar">{w.name.charAt(0).toUpperCase()}</div>
+                  <span className="adm-writer-name">{w.name}</span>
+                  <span className="adm-writer-count">{w.count} proyecto{w.count !== 1 ? 's' : ''}</span>
                 </div>
               ))}
             </div>
           )}
+
+          {/* Upcoming deadlines */}
+          {projectMetrics.upcoming.length > 0 && (
+            <>
+              <h4 className="adm-subsection-title">Próximas entregas</h4>
+              <div className="adm-deadlines">
+                {projectMetrics.upcoming.map(p => (
+                  <div key={p._id} className="adm-deadline-item" onClick={() => goTo('/admin/proyectos')}>
+                    <span className="adm-dl-title">{p.taskTitle || p.clientName || 'Proyecto'}</span>
+                    <span className="adm-dl-date">{fmtDate(p.dueDate)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="adm-dash-card adm-activity-card">
+        <div className="adm-dash-card">
+          <h3 className="adm-card-title"><FaUsers style={{ color: '#A78BFA' }} /> Vendedores — este mes</h3>
+          {topVendedores.length === 0 ? (
+            <div className="adm-empty-state"><FaUsers size={24} /><span>Sin datos</span></div>
+          ) : (
+            <div className="adm-vendedor-list">
+              {topVendedores.map((v, i) => {
+                const maxTotal = topVendedores[0]?.total || topVendedores[0]?.ingresos || 1;
+                const total = v.total || v.ingresos || 0;
+                const count = v.count || v.ventas || 0;
+                return (
+                  <div key={v.vendedor || v._id || i} className="adm-vendedor-item">
+                    <span className="adm-vendedor-pos">{i + 1}</span>
+                    <div className="adm-vendedor-info">
+                      <span className="adm-vendedor-name">{v.vendedor || v._id || 'Sin asignar'}</span>
+                      <div className="adm-vendedor-bar-bg">
+                        <div className="adm-vendedor-bar-fill" style={{ width: `${(total / maxTotal) * 100}%` }} />
+                      </div>
+                    </div>
+                    <div className="adm-vendedor-stats">
+                      <span className="adm-vendedor-amount">{fmt(total)}</span>
+                      <span className="adm-vendedor-count">{count} venta{count !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Expenses breakdown if available */}
+          {expenses?.byCategory?.length > 0 && (
+            <>
+              <h4 className="adm-subsection-title" style={{ marginTop: '20px' }}>Gastos del mes por categoría</h4>
+              <div className="adm-expense-list">
+                {expenses.byCategory.slice(0, 6).map((cat, i) => (
+                  <div key={cat._id || i} className="adm-expense-item">
+                    <span className="adm-expense-name">{cat._id || 'Otro'}</span>
+                    <span className="adm-expense-amount">{fmt(cat.total)}</span>
+                  </div>
+                ))}
+              </div>
+              {expenses.costPerThesis > 0 && (
+                <div className="adm-cost-per">Costo por tesis: <strong>{fmt(expenses.costPerThesis)}</strong></div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════ ROW 6: Messages + Activity ══════════ */}
+      <div className="adm-dash-grid">
+        <div className="adm-dash-card">
+          <h3 className="adm-card-title">
+            <FaCommentDots style={{ color: '#34D399' }} /> Comunicación
+          </h3>
+          <div className="adm-comm-grid">
+            <div className="adm-comm-item" onClick={() => goTo('/admin/mensajes')}>
+              <FaCommentDots className="adm-comm-icon" style={{ color: '#34D399' }} />
+              <span className="adm-comm-value">{unreadConvos.length}</span>
+              <span className="adm-comm-label">Msgs sin leer</span>
+            </div>
+            <div className="adm-comm-item" onClick={() => goTo('/admin/whatsapp')}>
+              <FaWhatsapp className="adm-comm-icon" style={{ color: '#25D366' }} />
+              <span className="adm-comm-value">{leadStats?.g?.sinAtender || 0}</span>
+              <span className="adm-comm-label">WA sin atender</span>
+            </div>
+            <div className="adm-comm-item" onClick={() => goTo('/admin/cotizaciones')}>
+              <FaFileAlt className="adm-comm-icon" style={{ color: '#FBBF24' }} />
+              <span className="adm-comm-value">{quotes.filter(q => q.status === 'pending').length}</span>
+              <span className="adm-comm-label">Cotiz. pendientes</span>
+            </div>
+            <div className="adm-comm-item" onClick={() => goTo('/admin/usuarios')}>
+              <FaUsers className="adm-comm-icon" style={{ color: '#A78BFA' }} />
+              <span className="adm-comm-value">{users.length}</span>
+              <span className="adm-comm-label">Usuarios total</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="adm-dash-card">
           <h3 className="adm-card-title">Actividad reciente</h3>
           {recentActivity.length === 0 ? (
-            <div className="adm-empty-state">
-              <FaChartLine size={28} />
-              <span>No hay actividad reciente</span>
-            </div>
+            <div className="adm-empty-state"><FaChartLine size={28} /><span>Sin actividad</span></div>
           ) : (
             <div className="adm-activity-list">
-              {recentActivity.map((notif) => {
-                const actConfig = getActivityIcon(notif.type);
+              {recentActivity.map(notif => {
+                const a = getActivityIcon(notif.type);
                 return (
                   <div key={notif._id} className="adm-activity-item">
-                    <div className="adm-activity-dot" style={{ background: actConfig.color }} />
-                    <div className="adm-activity-icon-wrap" style={{ background: actConfig.bg, color: actConfig.color }}>
-                      {actConfig.icon}
-                    </div>
+                    <div className="adm-activity-icon-wrap" style={{ background: a.bg, color: a.color }}>{a.icon}</div>
                     <div className="adm-activity-body">
                       <span className="adm-activity-msg">{notif.message || notif.body}</span>
-                      <span className="adm-activity-time">{formatTimeAgo(notif.createdAt)}</span>
+                      <span className="adm-activity-time">{fmtAgo(notif.createdAt)}</span>
                     </div>
                   </div>
                 );

@@ -128,3 +128,257 @@
     align-items: center;
     min-height: 200px;
 }
+
+/* ═══════════════════════════════════════════
+   DARK THEME OVERRIDES — Global admin coherence
+   Ensures all sections match the dark canvas (#0B0F1A)
+   ═══════════════════════════════════════════ */
+
+/* All admin section containers */
+.manage-users-container,
+.manage-quotes-container,
+.manage-projects-container,
+.manage-payments-container,
+.manage-orders-container,
+.admin-messages-container,
+.urgent-projects-container,
+.admin-dashboard-container,
+.manage-writers-container,
+.manage-services-container {
+    color: #E5E7EB;
+}
+
+/* Section titles */
+.admin-section-title {
+    color: #F9FAFB !important;
+}
+
+/* Tables */
+.admin-table th {
+    background-color: #111827 !important;
+    border-bottom: 1px solid #1F2937 !important;
+    color: #9CA3AF !important;
+}
+
+.admin-table td {
+    color: #D1D5DB !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+.admin-table tbody tr:hover {
+    background-color: rgba(255,255,255,0.03) !important;
+}
+
+/* Table responsive wrappers */
+.table-responsive,
+.mu-table-responsive {
+    background: #111827 !important;
+    border: 1px solid #1F2937 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+
+/* Bootstrap table overrides in admin */
+.tesipedia-admin-content .table {
+    color: #D1D5DB;
+}
+
+.tesipedia-admin-content .table th {
+    background-color: #111827 !important;
+    color: #9CA3AF !important;
+    border-color: #1F2937 !important;
+}
+
+.tesipedia-admin-content .table td {
+    border-color: rgba(255,255,255,0.04) !important;
+    color: #D1D5DB !important;
+}
+
+.tesipedia-admin-content .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255,255,255,0.02) !important;
+}
+
+.tesipedia-admin-content .table-hover tbody tr:hover {
+    background-color: rgba(59,130,246,0.06) !important;
+    color: #F9FAFB !important;
+}
+
+/* Cards in admin sections */
+.tesipedia-admin-content .card {
+    background-color: #111827 !important;
+    border-color: #1F2937 !important;
+    color: #E5E7EB !important;
+}
+
+.tesipedia-admin-content .card-header {
+    background-color: #0B0F1A !important;
+    border-color: #1F2937 !important;
+    color: #F9FAFB !important;
+}
+
+.tesipedia-admin-content .card-body {
+    background-color: #111827 !important;
+}
+
+/* Forms in admin */
+.tesipedia-admin-content .form-control,
+.tesipedia-admin-content .form-select {
+    background-color: #111827 !important;
+    border-color: #1F2937 !important;
+    color: #F9FAFB !important;
+}
+
+.tesipedia-admin-content .form-control:focus,
+.tesipedia-admin-content .form-select:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
+}
+
+.tesipedia-admin-content .form-control::placeholder {
+    color: #4B5563 !important;
+}
+
+.tesipedia-admin-content .form-label,
+.tesipedia-admin-content label {
+    color: #D1D5DB !important;
+}
+
+/* Modals in admin */
+.tesipedia-admin-content .modal-content {
+    background-color: #111827 !important;
+    border-color: #1F2937 !important;
+    color: #E5E7EB !important;
+}
+
+.tesipedia-admin-content .modal-header {
+    border-color: #1F2937 !important;
+    color: #F9FAFB !important;
+}
+
+.tesipedia-admin-content .modal-footer {
+    border-color: #1F2937 !important;
+}
+
+.tesipedia-admin-content .modal-title {
+    color: #F9FAFB !important;
+}
+
+.tesipedia-admin-content .btn-close {
+    filter: invert(1) !important;
+}
+
+/* Badges */
+.tesipedia-admin-content .badge {
+    font-weight: 600;
+}
+
+/* Dropdowns */
+.tesipedia-admin-content .dropdown-menu {
+    background-color: #111827 !important;
+    border-color: #1F2937 !important;
+}
+
+.tesipedia-admin-content .dropdown-item {
+    color: #D1D5DB !important;
+}
+
+.tesipedia-admin-content .dropdown-item:hover {
+    background-color: #1F2937 !important;
+    color: #F9FAFB !important;
+}
+
+/* Pagination */
+.tesipedia-admin-content .page-link {
+    background-color: #111827 !important;
+    border-color: #1F2937 !important;
+    color: #D1D5DB !important;
+}
+
+.tesipedia-admin-content .page-link:hover {
+    background-color: #1F2937 !important;
+    color: #F9FAFB !important;
+}
+
+.tesipedia-admin-content .page-item.active .page-link {
+    background-color: #3B82F6 !important;
+    border-color: #3B82F6 !important;
+    color: #fff !important;
+}
+
+/* Alerts */
+.tesipedia-admin-content .alert-info {
+    background-color: rgba(59,130,246,0.1) !important;
+    border-color: rgba(59,130,246,0.2) !important;
+    color: #60A5FA !important;
+}
+
+.tesipedia-admin-content .alert-warning {
+    background-color: rgba(245,158,11,0.1) !important;
+    border-color: rgba(245,158,11,0.2) !important;
+    color: #FBBF24 !important;
+}
+
+.tesipedia-admin-content .alert-danger {
+    background-color: rgba(239,68,68,0.1) !important;
+    border-color: rgba(239,68,68,0.2) !important;
+    color: #F87171 !important;
+}
+
+.tesipedia-admin-content .alert-success {
+    background-color: rgba(16,185,129,0.1) !important;
+    border-color: rgba(16,185,129,0.2) !important;
+    color: #34D399 !important;
+}
+
+/* Tabs / Nav tabs in admin */
+.tesipedia-admin-content .nav-tabs {
+    border-color: #1F2937 !important;
+}
+
+.tesipedia-admin-content .nav-tabs .nav-link {
+    color: #9CA3AF !important;
+}
+
+.tesipedia-admin-content .nav-tabs .nav-link.active {
+    background-color: #111827 !important;
+    border-color: #1F2937 !important;
+    color: #F9FAFB !important;
+}
+
+/* Generic text overrides for straggling light-mode text */
+.tesipedia-admin-content h1, .tesipedia-admin-content h2,
+.tesipedia-admin-content h3, .tesipedia-admin-content h4,
+.tesipedia-admin-content h5, .tesipedia-admin-content h6 {
+    color: #F9FAFB;
+}
+
+.tesipedia-admin-content p {
+    color: #D1D5DB;
+}
+
+/* Buttons */
+.tesipedia-admin-content .btn-outline-primary {
+    color: #60A5FA !important;
+    border-color: #3B82F6 !important;
+}
+
+.tesipedia-admin-content .btn-outline-primary:hover {
+    background-color: #3B82F6 !important;
+    color: #fff !important;
+}
+
+.tesipedia-admin-content .btn-outline-secondary {
+    color: #9CA3AF !important;
+    border-color: #374151 !important;
+}
+
+.tesipedia-admin-content .btn-outline-danger {
+    color: #F87171 !important;
+    border-color: #EF4444 !important;
+}
+
+/* Scrollbar for all admin content */
+.tesipedia-admin-content *::-webkit-scrollbar { width: 6px; height: 6px; }
+.tesipedia-admin-content *::-webkit-scrollbar-track { background: transparent; }
+.tesipedia-admin-content *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.tesipedia-admin-content *::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }

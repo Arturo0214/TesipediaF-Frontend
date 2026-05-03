@@ -260,6 +260,12 @@ const AdminCampaigns = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [showDiag, setShowDiag] = useState(false);
   const [showWA, setShowWA] = useState(false);
+  const [activeView, setActiveView] = useState('campaigns'); // campaigns, breakdowns, adsets, ads
+  const [breakdownData, setBreakdownData] = useState(null);
+  const [breakdownType, setBreakdownType] = useState('publisher_platform');
+  const [adsetsData, setAdsetsData] = useState(null);
+  const [adsData, setAdsData] = useState(null);
+  const [subLoading, setSubLoading] = useState(false);
   const detailRef = useRef(null);
   const [dark, setDark] = useState(() => {
     try { return localStorage.getItem('mc-theme') === 'dark'; } catch { return false; }
@@ -282,6 +288,52 @@ const AdminCampaigns = () => {
   }, [month, year]);
 
   useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+
+  // Calculate date range from month/year selectors
+  const getDateRange = useCallback(() => {
+    const since = new Date(year, month, 1).toISOString().slice(0, 10);
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const until = new Date(year, month, lastDay).toISOString().slice(0, 10);
+    // Calculate days in the period
+    const days = Math.ceil((new Date(until) - new Date(since)) / 86400000) + 1;
+    return { since, until, days };
+  }, [month, year]);
+
+  const fetchBreakdowns = useCallback(async (type) => {
+    setSubLoading(true);
+    try {
+      const { since, until, days } = getDateRange();
+      const res = await axiosWithAuth.get('/revenue/campaigns/meta/breakdowns', { params: { breakdown: type, days, since, until } });
+      setBreakdownData(res.data);
+    } catch {} finally { setSubLoading(false); }
+  }, [getDateRange]);
+
+  const fetchAdsets = useCallback(async () => {
+    setSubLoading(true);
+    try {
+      const { days } = getDateRange();
+      const res = await axiosWithAuth.get('/revenue/campaigns/meta/adsets', { params: { days } });
+      setAdsetsData(res.data);
+    } catch {} finally { setSubLoading(false); }
+  }, [getDateRange]);
+
+  const fetchAds = useCallback(async (campaignId) => {
+    setSubLoading(true);
+    try {
+      const { days } = getDateRange();
+      const params = { days };
+      if (campaignId) params.campaign_id = campaignId;
+      const res = await axiosWithAuth.get('/revenue/campaigns/meta/ads', { params });
+      setAdsData(res.data);
+    } catch {} finally { setSubLoading(false); }
+  }, [getDateRange]);
+
+  // Re-fetch current view when month/year changes
+  useEffect(() => {
+    if (activeView === 'breakdowns') fetchBreakdowns(breakdownType);
+    else if (activeView === 'adsets') fetchAdsets();
+    else if (activeView === 'ads') fetchAds();
+  }, [month, year]);
 
   // Scroll to detail card when opened
   useEffect(() => {
@@ -476,8 +528,144 @@ const AdminCampaigns = () => {
         </div>
       </div>
 
-      {/* ═══════════════ ERROR ═══════════════ */}
-      {error && (
+      {/* ═══════════════ NAV TABS ═══════════════ */}
+      <div className="mc-nav-tabs">
+        <button className={`mc-nav-tab ${activeView === 'campaigns' ? 'active' : ''}`} onClick={() => setActiveView('campaigns')}>
+          <FaChartBar /> Campañas
+        </button>
+        <button className={`mc-nav-tab ${activeView === 'breakdowns' ? 'active' : ''}`} onClick={() => { setActiveView('breakdowns'); if (!breakdownData) fetchBreakdowns(breakdownType); }}>
+          <FaChartLine /> Breakdowns
+        </button>
+        <button className={`mc-nav-tab ${activeView === 'adsets' ? 'active' : ''}`} onClick={() => { setActiveView('adsets'); if (!adsetsData) fetchAdsets(); }}>
+          <FaBullseye /> Ad Sets
+        </button>
+        <button className={`mc-nav-tab ${activeView === 'ads' ? 'active' : ''}`} onClick={() => { setActiveView('ads'); if (!adsData) fetchAds(); }}>
+          <FaEye /> Anuncios
+        </button>
+      </div>
+
+      {/* ═══════════════ BREAKDOWNS VIEW ═══════════════ */}
+      {activeView === 'breakdowns' && (
+        <div className="mc-breakdown-section">
+          <div className="mc-section-period">Datos de <strong>{MONTHS[month]} {year}</strong></div>
+          <div className="mc-breakdown-controls">
+            {[
+              { value: 'publisher_platform', label: 'Plataforma' },
+              { value: 'platform_position', label: 'Ubicación' },
+              { value: 'device_platform', label: 'Dispositivo' },
+              { value: 'age', label: 'Edad' },
+              { value: 'gender', label: 'Género' },
+              { value: 'country', label: 'País' },
+            ].map(b => (
+              <button key={b.value} className={`mc-bd-btn ${breakdownType === b.value ? 'active' : ''}`}
+                onClick={() => { setBreakdownType(b.value); fetchBreakdowns(b.value); }}>
+                {b.label}
+              </button>
+            ))}
+          </div>
+          {subLoading ? <div className="mc-loading-inline"><FaSync className="mc-spin" /> Cargando breakdowns...</div> : breakdownData?.rows?.length > 0 ? (
+            <div className="mc-table-responsive">
+              <table className="mc-breakdown-table">
+                <thead><tr>
+                  <th style={{textAlign:'left'}}>
+                    {{'publisher_platform':'Plataforma','platform_position':'Ubicación','device_platform':'Dispositivo','age':'Edad','gender':'Género','country':'País'}[breakdownData.breakdown] || breakdownData.breakdown}
+                  </th>
+                  <th>Gasto</th><th>Impresiones</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>Leads</th><th>CPL</th>
+                </tr></thead>
+                <tbody>
+                  {breakdownData.rows.map((r, i) => (
+                    <tr key={i}>
+                      <td style={{textAlign:'left',fontWeight:600}}>{r.breakdown}</td>
+                      <td>{fmt(r.spend)}</td>
+                      <td>{fmtN(r.impressions)}</td>
+                      <td>{fmtN(r.clicks)}</td>
+                      <td>{fmtPct(r.ctr)}</td>
+                      <td>{fmt(r.cpc, 2)}</td>
+                      <td><strong style={{color:'#10b981'}}>{r.leads}</strong></td>
+                      <td>{r.cpl > 0 ? fmt(r.cpl, 2) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : <div className="mc-empty-msg">Sin datos de breakdowns para este período</div>}
+        </div>
+      )}
+
+      {/* ═══════════════ ADSETS VIEW ═══════════════ */}
+      {activeView === 'adsets' && (
+        <div className="mc-adsets-section">
+          {subLoading ? <div className="mc-loading-inline"><FaSync className="mc-spin" /> Cargando ad sets...</div> : adsetsData?.adsets?.length > 0 ? (
+            <div className="mc-adsets-grid">
+              {adsetsData.adsets.map(adset => (
+                <div key={adset.id} className={`mc-adset-card ${adset.status === 'ACTIVE' ? 'mc-adset-active' : ''}`}>
+                  <div className="mc-adset-top">
+                    <span className="mc-adset-name">{adset.name}</span>
+                    <span className={`mc-status-pill ${adset.status === 'ACTIVE' ? 'active' : 'paused'}`}>
+                      {adset.status === 'ACTIVE' ? 'Activo' : 'Pausado'}
+                    </span>
+                  </div>
+                  <div className="mc-adset-targeting">
+                    <span><FaUsers style={{fontSize:'0.7rem'}} /> {adset.ages} · {adset.genders} · {adset.locations}</span>
+                    {adset.interests.length > 0 && <span><FaBullseye style={{fontSize:'0.7rem'}} /> {adset.interests.join(', ')}</span>}
+                  </div>
+                  <div className="mc-adset-metrics-grid">
+                    <div><span>Gasto</span><strong>{fmt(adset.spend)}</strong></div>
+                    <div><span>Clicks</span><strong>{fmtN(adset.clicks)}</strong></div>
+                    <div><span>CTR</span><strong>{fmtPct(adset.ctr)}</strong></div>
+                    <div><span>CPC</span><strong>{fmt(adset.cpc, 2)}</strong></div>
+                    <div><span>Leads</span><strong style={{color:'#10b981'}}>{adset.leads}</strong></div>
+                    <div><span>CPL</span><strong>{adset.cpl > 0 ? fmt(adset.cpl, 2) : '—'}</strong></div>
+                  </div>
+                  {adset.frequency > 3 && <div className="mc-adset-warning"><FaExclamationTriangle /> Frecuencia: {adset.frequency.toFixed(1)}</div>}
+                </div>
+              ))}
+            </div>
+          ) : <div className="mc-empty-msg">Sin datos de ad sets</div>}
+        </div>
+      )}
+
+      {/* ═══════════════ ADS VIEW ═══════════════ */}
+      {activeView === 'ads' && (
+        <div className="mc-ads-section">
+          {subLoading ? <div className="mc-loading-inline"><FaSync className="mc-spin" /> Cargando anuncios...</div> : adsData?.ads?.length > 0 ? (
+            <div className="mc-ads-grid">
+              {adsData.ads.map(ad => (
+                <div key={ad.id} className={`mc-ad-card ${ad.status === 'ACTIVE' ? 'mc-ad-active' : ''}`}>
+                  {ad.imageUrl ? (
+                    <div className="mc-ad-preview">
+                      <img src={ad.imageUrl} alt="" loading="lazy" />
+                      {ad.isVideo && <span className="mc-ad-video-badge"><FaPlay /> Video</span>}
+                    </div>
+                  ) : (
+                    <div className="mc-ad-preview mc-ad-no-img">
+                      {ad.isVideo ? <><FaPlay /> Video Ad</> : <><FaEye /> Sin preview</>}
+                    </div>
+                  )}
+                  <div className="mc-ad-info">
+                    <span className="mc-ad-name">{ad.name}</span>
+                    <span className={`mc-status-pill ${ad.status === 'ACTIVE' ? 'active' : 'paused'}`}>{ad.status === 'ACTIVE' ? 'Activo' : ad.status}</span>
+                    {ad.title && <span className="mc-ad-headline">{ad.title}</span>}
+                    {ad.body && <p className="mc-ad-body-text">{ad.body.slice(0, 150)}{ad.body.length > 150 ? '...' : ''}</p>}
+                    {ad.cta && <span className="mc-ad-cta-badge">{ad.cta.replace(/_/g, ' ')}</span>}
+                  </div>
+                  <div className="mc-ad-metrics-row">
+                    <div><span>Gasto</span><strong>{fmt(ad.spend)}</strong></div>
+                    <div><span>Clicks</span><strong>{fmtN(ad.clicks)}</strong></div>
+                    <div><span>CTR</span><strong>{fmtPct(ad.ctr)}</strong></div>
+                    <div><span>CPC</span><strong>{fmt(ad.cpc, 2)}</strong></div>
+                    <div><span>Leads</span><strong style={{color:'#10b981'}}>{ad.leads}</strong></div>
+                    <div><span>CPL</span><strong>{ad.cpl > 0 ? fmt(ad.cpl, 2) : '—'}</strong></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <div className="mc-empty-msg">Sin datos de anuncios</div>}
+        </div>
+      )}
+
+      {/* ═══════════════ CAMPAIGNS VIEW ═══════════════ */}
+      {activeView === 'campaigns' && error && (
         <div className="mc-alert mc-alert-error">
           <FaExclamationTriangle />
           <div className="mc-alert-body">
@@ -489,7 +677,7 @@ const AdminCampaigns = () => {
       )}
 
       {/* ═══════════════ KPIs ═══════════════ */}
-      {!loading && campaigns.length > 0 && (
+      {activeView === 'campaigns' && !loading && campaigns.length > 0 && (
         <>
           <div className="mc-kpis">
             <div className="mc-kpi">

@@ -28,6 +28,7 @@ import {
     FaFacebookF,
     FaFunnelDollar,
     FaCalendarAlt,
+    FaRobot,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -63,6 +64,7 @@ const AdminInformes = lazy(() => import('../adminInformes/AdminInformes.jsx'));
 const AdminCampaigns = lazy(() => import('../adminCampaigns/AdminCampaigns.jsx'));
 const AdminFunnel = lazy(() => import('../adminFunnel/AdminFunnel.jsx'));
 const AdminCalendars = lazy(() => import('../adminCalendars/AdminCalendars.jsx'));
+const AdminAgents = lazy(() => import('../adminAgents/AdminAgents.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -110,6 +112,7 @@ const AdminPanel = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         try { return localStorage.getItem('tesipedia_sidebar_collapsed') === 'true'; } catch { return false; }
     });
+    const [sofiaHealth, setSofiaHealth] = useState(null); // null=loading, true=ok, false=down
 
     const toggleSidebarCollapse = () => {
         setSidebarCollapsed(prev => {
@@ -138,6 +141,7 @@ const AdminPanel = () => {
         if (path.includes('/campaigns')) return 'campaigns';
         if (path.includes('/funnel')) return 'funnel';
         if (path.includes('/calendarios')) return 'calendarios';
+        if (path.includes('/agentes')) return 'agentes';
         return 'dashboard';
     };
 
@@ -145,23 +149,23 @@ const AdminPanel = () => {
     const [componentError, setComponentError] = useState(null);
 
     const navItems = [
-        { key: 'dashboard', icon: FaChartBar, label: 'Dashboard', section: 'principal', path: '/admin' },
-        { key: 'cotizar', icon: FaCalculator, label: 'Cotizar', section: 'principal', path: '/admin/cotizar' },
-        { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones' },
-        { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos' },
-        { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos' },
-        { key: 'calendarios', icon: FaCalendarAlt, label: 'Calendarios', section: 'principal', path: '/admin/calendarios' },
-        { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp' },
-        { key: 'manychat', icon: FaRocket, label: 'ManyChat', section: 'gestion', path: '/admin/manychat' },
-        { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones' },
-        { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes' },
-        { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios' },
-        { key: 'funnel', icon: FaFunnelDollar, label: 'Funnel', section: 'gestion', path: '/admin/funnel' },
-        { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue' },
-        { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes' },
-        { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns' },
-        { key: 'hubspot', icon: FaHubspot, label: 'HubSpot', section: 'estadisticas', path: '/admin/hubspot' },
-        { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas' }
+        { key: 'dashboard', icon: FaChartBar, label: 'Dashboard', section: 'principal', path: '/admin', color: '#60A5FA' },
+        { key: 'cotizar', icon: FaCalculator, label: 'Cotizar', section: 'principal', path: '/admin/cotizar', color: '#34D399' },
+        { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones', color: '#FBBF24' },
+        { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos', color: '#A78BFA' },
+        { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos', color: '#F472B6' },
+        { key: 'calendarios', icon: FaCalendarAlt, label: 'Calendarios', section: 'principal', path: '/admin/calendarios', color: '#38BDF8' },
+        { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp', color: '#25D366' },
+        { key: 'manychat', icon: FaRocket, label: 'ManyChat', section: 'gestion', path: '/admin/manychat', color: '#FB923C' },
+        { key: 'automatizaciones', icon: FaCogs, label: 'Automatizaciones', section: 'gestion', path: '/admin/automatizaciones', color: '#94A3B8' },
+        { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes', color: '#2DD4BF' },
+        { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios', color: '#818CF8' },
+        { key: 'funnel', icon: FaFunnelDollar, label: 'Funnel', section: 'gestion', path: '/admin/funnel', color: '#F59E0B' },
+        { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue', color: '#34D399' },
+        { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes', color: '#60A5FA' },
+        { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns', color: '#1877F2' },
+        { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas', color: '#F472B6' },
+        { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' }
     ];
 
     // Mapeo inverso: sección → tipos de notificación que se marcan como leídos
@@ -233,6 +237,19 @@ const AdminPanel = () => {
     }, [location.pathname]);
 
     // Conexión global al socket de notificaciones
+    // Sofia health check — ping every 60s
+    useEffect(() => {
+        const checkHealth = async () => {
+            try {
+                const res = await import('../../../utils/axioswithAuth').then(m => m.default.get('/api/v1/whatsapp/health'));
+                setSofiaHealth(res.data?.healthy ?? false);
+            } catch { setSofiaHealth(false); }
+        };
+        checkHealth();
+        const interval = setInterval(checkHealth, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
         if (!authUser?._id) return;
         const token = authService.getToken(); // Lee la cookie jwt
@@ -293,6 +310,7 @@ const AdminPanel = () => {
         informes: AdminInformes,
         campaigns: AdminCampaigns,
         calendarios: AdminCalendars,
+        agentes: AdminAgents,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
@@ -344,7 +362,7 @@ const AdminPanel = () => {
                     {title}
                     {section === 'principal' && <NotificationDropdown />}
                 </div>
-                {sectionItems.map(({ key, icon: Icon, label, path }) => {
+                {sectionItems.map(({ key, icon: Icon, label, path, color }) => {
                     const unread = unreadBySection[key] || 0;
                     const isActive = activeTab === key;
                     return (
@@ -362,8 +380,15 @@ const AdminPanel = () => {
                                 replace
                                 title={label}
                             >
-                                <Icon />
+                                <Icon style={{ color: color }} />
                                 <span>{label}</span>
+                                {key === 'agentes' && sofiaHealth !== null && (
+                                    <span
+                                        className="sidebar-health-dot"
+                                        style={{ background: sofiaHealth ? '#10B981' : '#EF4444' }}
+                                        title={sofiaHealth ? 'Sofia online' : 'Sofia offline'}
+                                    />
+                                )}
                                 {unread > 0 && !isActive && (
                                     <span className="sidebar-badge-alert">{unread}</span>
                                 )}
@@ -391,7 +416,7 @@ const AdminPanel = () => {
                 <aside className={`tesipedia-admin-sidebar ${isSidebarOpen ? 'active' : ''}${sidebarCollapsed ? ' collapsed' : ''}`}>
                     {/* Título + botón de colapsar */}
                     <div className="tesipedia-sidebar-header">
-                        <span className="tesipedia-sidebar-title">Panel de Administración</span>
+                        <span className="tesipedia-sidebar-title">Tesipedia Admin</span>
                         <button
                             className="tesipedia-sidebar-collapse-btn"
                             onClick={toggleSidebarCollapse}

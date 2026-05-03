@@ -144,6 +144,7 @@ const router = createBrowserRouter(
             { path: 'admin/campaigns', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/funnel', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/calendarios', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/agentes', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/*', element: <LazyPage><AdminPanel /></LazyPage> },
           ],
         },
