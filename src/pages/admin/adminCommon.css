@@ -243,6 +243,31 @@
     color: #D1D5DB !important;
 }
 
+/* Reset light theme for cotización rápida modal */
+.wq-modal .form-control,
+.wq-modal .form-select,
+.wq-modal input,
+.wq-modal select,
+.wq-modal textarea {
+    background-color: #fff !important;
+    border-color: #dee2e6 !important;
+    color: #212529 !important;
+}
+.wq-modal .form-control:focus,
+.wq-modal .form-select:focus,
+.wq-modal input:focus,
+.wq-modal select:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25) !important;
+}
+.wq-modal .form-control::placeholder,
+.wq-modal input::placeholder {
+    color: #6c757d !important;
+}
+.wq-modal label {
+    color: #212529 !important;
+}
+
 /* Modals in admin */
 .tesipedia-admin-content .modal-content {
     background-color: #111827 !important;
