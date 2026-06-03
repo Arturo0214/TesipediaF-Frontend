@@ -40,7 +40,7 @@ function RevivalPipeline() {
     const fetchPipeline = async () => {
         setLoading(true);
         try {
-            const res = await axiosWithAuth.get('/whatsapp/revival-pipeline');
+            const res = await axiosWithAuth.get('/api/v1/whatsapp/revival-pipeline');
             setLeads(res.data);
         } catch (err) {
             toast.error('Error cargando pipeline de revivals');
@@ -53,7 +53,7 @@ function RevivalPipeline() {
     const updateRevival = async (waId, data) => {
         setSaving(prev => ({ ...prev, [waId]: true }));
         try {
-            await axiosWithAuth.patch(`/whatsapp/leads/${waId}/revival`, data);
+            await axiosWithAuth.patch(`/api/v1/whatsapp/leads/${waId}/revival`, data);
             setLeads(prev => prev.map(l => l.wa_id === waId ? { ...l, ...data, revival_last_contact: new Date().toISOString() } : l));
             toast.success('Actualizado');
         } catch {
