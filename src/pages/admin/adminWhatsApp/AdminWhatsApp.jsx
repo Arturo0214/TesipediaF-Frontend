@@ -2897,8 +2897,7 @@ const AdminWhatsApp = () => {
                           <div className="wq-micro-label">Esquema de Pago</div>
                           <Form.Select size="sm" value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => {
                             const tipo = e.target.value;
-                            handleQuoteFieldChange('esquemaTipo', tipo);
-                            // Auto-generar fechas para esquemas con múltiples pagos
+                            const updates = { esquemaTipo: tipo };
                             if (['6-quincenales', '6-mensuales', '6-msi', '12-msi'].includes(tipo)) {
                               const start = new Date(quoteFields.fechaPago1 || new Date());
                               const count = tipo === '12-msi' ? 12 : 6;
@@ -2909,8 +2908,9 @@ const AdminWhatsApp = () => {
                                 else d.setMonth(d.getMonth() + i);
                                 dates.push(d.toISOString().split('T')[0]);
                               }
-                              handleQuoteFieldChange('fechasPagos', dates);
+                              updates.fechasPagos = dates;
                             }
+                            setQuoteFields(prev => ({ ...prev, ...updates }));
                           }}>
                             <option value="unico">Pago único</option>
                             <option value="50-50">50% inicio / 50% final</option>
