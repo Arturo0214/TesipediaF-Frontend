@@ -8,11 +8,10 @@ import {
     FaExclamationTriangle, FaCheckCircle, FaClock, FaFileInvoiceDollar,
     FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight,
     FaProjectDiagram, FaWhatsapp, FaEnvelope, FaPhone, FaUser,
-    FaClipboardList, FaCalendarCheck, FaExternalLinkAlt, FaFireAlt
+    FaClipboardList, FaCalendarCheck, FaExternalLinkAlt
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import VentasPorVendedor from '../adminSalesByVendedor/VentasPorVendedor';
-import RevivalPipeline from './RevivalPipeline';
 import './ManagePayments.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -397,14 +396,14 @@ function ManagePayments() {
                     .sort((a, b) => b[1].total - a[1].total);
 
                 return (
-                    <div style={{ background: '#fff', borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ background: '#111827', borderRadius: 12, padding: '20px 24px', border: '1px solid #1F2937', marginBottom: 16 }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#F9FAFB' }}>
                             <FaUsers style={{ color: '#6366f1' }} />
                             {isOwner ? 'Ganancias por Vendedor' : 'Mis Ganancias'}
                         </h3>
 
                         {entries.length === 0 && (
-                            <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Sin ventas registradas</p>
+                            <p style={{ color: '#6B7280', fontSize: '0.85rem' }}>Sin ventas registradas</p>
                         )}
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -414,14 +413,14 @@ function ManagePayments() {
 
                                 return (
                                     <div key={vendor} style={{
-                                        border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 18px',
-                                        borderLeft: `5px solid ${color}`, background: '#fafbfc',
+                                        border: '1px solid #1F2937', borderRadius: 10, padding: '14px 18px',
+                                        borderLeft: `5px solid ${color}`, background: '#0B0F1A',
                                     }}>
                                         {/* Row 1: Name + assign */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <span style={{ fontSize: '1.1rem' }}>{vendorEmojis[vendor] || '👤'}</span>
-                                                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1f2937' }}>
+                                                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#F9FAFB' }}>
                                                     {vendorNames[vendor] || vendor}
                                                 </span>
                                                 <span style={{
@@ -435,8 +434,8 @@ function ManagePayments() {
                                                 <select
                                                     style={{
                                                         fontSize: '0.75rem', padding: '3px 8px', borderRadius: 6,
-                                                        border: '1px solid #d1d5db', cursor: 'pointer', background: '#fff',
-                                                        fontWeight: 600, color: '#6366f1',
+                                                        border: '1px solid #1F2937', cursor: 'pointer', background: '#111827',
+                                                        fontWeight: 600, color: '#818CF8',
                                                     }}
                                                     defaultValue=""
                                                     disabled={savingVendedor}
@@ -457,7 +456,7 @@ function ManagePayments() {
                                         </div>
 
                                         {/* Row 2: Progress bar */}
-                                        <div style={{ background: '#e5e7eb', borderRadius: 6, height: 8, marginBottom: 10, overflow: 'hidden' }}>
+                                        <div style={{ background: '#1F2937', borderRadius: 6, height: 8, marginBottom: 10, overflow: 'hidden' }}>
                                             <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 6, transition: 'width 0.5s ease' }} />
                                         </div>
 
@@ -465,16 +464,16 @@ function ManagePayments() {
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ display: 'flex', gap: 20 }}>
                                                 <div>
-                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vendido</div>
-                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1f2937' }}>{formatMoney(data.total)}</div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vendido</div>
+                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#F9FAFB' }}>{formatMoney(data.total)}</div>
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comisión</div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comisión</div>
                                                     <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f59e0b' }}>{formatMoney(data.commission)}</div>
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Neto Empresa</div>
-                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>{formatMoney(data.total - data.commission)}</div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Neto Empresa</div>
+                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#34D399' }}>{formatMoney(data.total - data.commission)}</div>
                                                 </div>
                                             </div>
                                             <div style={{
@@ -505,9 +504,6 @@ function ManagePayments() {
                 </button>
                 <button className={`mp-pay-view-btn ${view === 'vendedores' ? 'active' : ''}`} onClick={() => setView('vendedores')}>
                     <FaUsers /> Vendedores
-                </button>
-                <button className={`mp-pay-view-btn ${view === 'revivals' ? 'active' : ''}`} onClick={() => setView('revivals')}>
-                    <FaFireAlt /> Revivals
                 </button>
             </div>
 
@@ -1005,11 +1001,6 @@ function ManagePayments() {
             {/* ===== VENDEDORES VIEW ===== */}
             {view === 'vendedores' && (
                 <VentasPorVendedor payments={payments} onRefresh={fetchDashboard} />
-            )}
-
-            {/* ===== REVIVALS VIEW ===== */}
-            {view === 'revivals' && (
-                <RevivalPipeline />
             )}
 
             {/* ===== PAYMENT DETAIL MODAL ===== */}

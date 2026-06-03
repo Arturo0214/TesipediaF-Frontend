@@ -18,9 +18,9 @@ const REVIVAL_STATUSES = {
 };
 
 const ESTADO_LABELS = {
-    cotizacion_enviada: { label: 'Cotizacion enviada', color: '#f59e0b', bg: '#fef3c7' },
-    esperando_aprobacion: { label: 'Esperando aprobacion', color: '#06b6d4', bg: '#cffafe' },
-    calificando: { label: 'Calificando (avanzado)', color: '#8b5cf6', bg: '#ede9fe' },
+    cotizacion_enviada: { label: 'Cotizacion enviada', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
+    esperando_aprobacion: { label: 'Esperando aprobacion', color: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },
+    calificando: { label: 'Calificando (avanzado)', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
 };
 
 const VENDOR_NAMES = {
@@ -140,8 +140,8 @@ function RevivalPipeline() {
                         key={key}
                         onClick={() => setFilterRevival(filterRevival === key ? 'all' : key)}
                         style={{
-                            background: filterRevival === key ? color + '20' : '#fff',
-                            border: `1px solid ${filterRevival === key ? color : '#e5e7eb'}`,
+                            background: filterRevival === key ? color + '20' : '#111827',
+                            border: `1px solid ${filterRevival === key ? color : '#1F2937'}`,
                             borderRadius: 10, padding: '10px 14px', cursor: 'pointer',
                             transition: 'all 0.2s',
                         }}
@@ -149,7 +149,7 @@ function RevivalPipeline() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color, fontSize: '0.75rem', fontWeight: 600 }}>
                             {icon} {label}
                         </div>
-                        <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1f2937', marginTop: 4 }}>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#F9FAFB', marginTop: 4 }}>
                             {stats.byRevival[key] || 0}
                         </div>
                     </div>
@@ -166,8 +166,9 @@ function RevivalPipeline() {
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         style={{
-                            width: '100%', padding: '8px 12px 8px 32px', border: '1px solid #d1d5db',
+                            width: '100%', padding: '8px 12px 8px 32px', border: '1px solid #1F2937',
                             borderRadius: 8, fontSize: '0.85rem', outline: 'none',
+                            background: '#111827', color: '#F9FAFB',
                         }}
                     />
                 </div>
@@ -175,8 +176,8 @@ function RevivalPipeline() {
                     value={filterEstado}
                     onChange={e => setFilterEstado(e.target.value)}
                     style={{
-                        padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8,
-                        fontSize: '0.85rem', background: '#fff', cursor: 'pointer',
+                        padding: '8px 12px', border: '1px solid #1F2937', borderRadius: 8,
+                        fontSize: '0.85rem', background: '#111827', color: '#F9FAFB', cursor: 'pointer',
                     }}
                 >
                     <option value="all">Todos los estados</option>
@@ -201,7 +202,7 @@ function RevivalPipeline() {
                     {filtered.map(lead => {
                         const revStatus = lead.revival_status || 'pendiente';
                         const revConfig = REVIVAL_STATUSES[revStatus] || REVIVAL_STATUSES.pendiente;
-                        const estadoConfig = ESTADO_LABELS[lead.estado_sofia] || { label: lead.estado_sofia, color: '#6b7280', bg: '#f3f4f6' };
+                        const estadoConfig = ESTADO_LABELS[lead.estado_sofia] || { label: lead.estado_sofia, color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
                         const days = daysSince(lead.updated_at);
                         const isExpanded = expandedLead === lead.wa_id;
                         const isSaving = saving[lead.wa_id];
@@ -210,7 +211,7 @@ function RevivalPipeline() {
                             <div
                                 key={lead.wa_id}
                                 style={{
-                                    background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb',
+                                    background: '#111827', borderRadius: 10, border: '1px solid #1F2937',
                                     borderLeft: `4px solid ${revConfig.color}`, overflow: 'hidden',
                                 }}
                             >
@@ -224,7 +225,7 @@ function RevivalPipeline() {
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200 }}>
                                         <div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1f2937' }}>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#F9FAFB' }}>
                                                 {lead.nombre || 'Sin nombre'}
                                             </div>
                                             <div style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
@@ -278,19 +279,19 @@ function RevivalPipeline() {
 
                                 {/* Expanded Detail */}
                                 {isExpanded && (
-                                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid #f3f4f6' }}>
+                                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid #1F2937' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginTop: 12 }}>
                                             {/* Info Column */}
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase' }}>Datos del Lead</div>
-                                                {lead.tema && <div style={{ fontSize: '0.8rem', color: '#4b5563' }}><strong>Tema:</strong> {lead.tema}</div>}
-                                                {lead.nivel && <div style={{ fontSize: '0.8rem', color: '#4b5563' }}><strong>Nivel:</strong> {lead.nivel}</div>}
-                                                {lead.paginas && <div style={{ fontSize: '0.8rem', color: '#4b5563' }}><strong>Paginas:</strong> {lead.paginas}</div>}
-                                                {lead.fecha_entrega && <div style={{ fontSize: '0.8rem', color: '#4b5563' }}><strong>Entrega:</strong> {lead.fecha_entrega}</div>}
-                                                <div style={{ fontSize: '0.8rem', color: '#4b5563' }}><strong>Primer contacto:</strong> {formatDate(lead.created_at)}</div>
-                                                <div style={{ fontSize: '0.8rem', color: '#4b5563' }}><strong>Ultimo movimiento:</strong> {formatDate(lead.updated_at)}</div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' }}>Datos del Lead</div>
+                                                {lead.tema && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Tema:</strong> {lead.tema}</div>}
+                                                {lead.nivel && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Nivel:</strong> {lead.nivel}</div>}
+                                                {lead.paginas && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Paginas:</strong> {lead.paginas}</div>}
+                                                {lead.fecha_entrega && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Entrega:</strong> {lead.fecha_entrega}</div>}
+                                                <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Primer contacto:</strong> {formatDate(lead.created_at)}</div>
+                                                <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Ultimo movimiento:</strong> {formatDate(lead.updated_at)}</div>
                                                 {lead.ultimo_mensaje_preview && (
-                                                    <div style={{ fontSize: '0.78rem', color: '#6b7280', fontStyle: 'italic', background: '#f9fafb', padding: 8, borderRadius: 6, marginTop: 4 }}>
+                                                    <div style={{ fontSize: '0.78rem', color: '#9CA3AF', fontStyle: 'italic', background: '#0B0F1A', padding: 8, borderRadius: 6, marginTop: 4 }}>
                                                         "{lead.ultimo_mensaje_preview}"
                                                     </div>
                                                 )}
@@ -330,7 +331,7 @@ function RevivalPipeline() {
 
                                             {/* CRM Column */}
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase' }}>Gestion Revival</div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' }}>Gestion Revival</div>
 
                                                 {/* Revival Status */}
                                                 <div>
@@ -340,8 +341,8 @@ function RevivalPipeline() {
                                                         disabled={isSaving}
                                                         onChange={e => updateRevival(lead.wa_id, { revival_status: e.target.value })}
                                                         style={{
-                                                            width: '100%', padding: '7px 10px', border: '1px solid #d1d5db',
-                                                            borderRadius: 6, fontSize: '0.82rem', background: '#fff', marginTop: 3,
+                                                            width: '100%', padding: '7px 10px', border: '1px solid #1F2937',
+                                                            borderRadius: 6, fontSize: '0.82rem', background: '#0B0F1A', color: '#F9FAFB', marginTop: 3,
                                                         }}
                                                     >
                                                         {Object.entries(REVIVAL_STATUSES).map(([k, v]) => (
@@ -358,8 +359,8 @@ function RevivalPipeline() {
                                                         disabled={isSaving}
                                                         onChange={e => updateRevival(lead.wa_id, { revival_assigned_to: e.target.value })}
                                                         style={{
-                                                            width: '100%', padding: '7px 10px', border: '1px solid #d1d5db',
-                                                            borderRadius: 6, fontSize: '0.82rem', background: '#fff', marginTop: 3,
+                                                            width: '100%', padding: '7px 10px', border: '1px solid #1F2937',
+                                                            borderRadius: 6, fontSize: '0.82rem', background: '#0B0F1A', color: '#F9FAFB', marginTop: 3,
                                                         }}
                                                     >
                                                         <option value="">Sin asignar</option>
@@ -379,8 +380,9 @@ function RevivalPipeline() {
                                                         placeholder="Ej: Se contacto por WhatsApp, queda de llamar manana..."
                                                         rows={3}
                                                         style={{
-                                                            width: '100%', padding: '7px 10px', border: '1px solid #d1d5db',
+                                                            width: '100%', padding: '7px 10px', border: '1px solid #1F2937',
                                                             borderRadius: 6, fontSize: '0.82rem', resize: 'vertical', marginTop: 3,
+                                                            background: '#0B0F1A', color: '#F9FAFB',
                                                             fontFamily: 'inherit',
                                                         }}
                                                     />

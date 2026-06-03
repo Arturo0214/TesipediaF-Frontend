@@ -790,3 +790,73 @@
   .mp-detail-client-grid { grid-template-columns: 1fr; }
   .mp-pay-modal-detail { max-width: 100%; }
 }
+
+/* ═══════════════════════════════════════════
+   DARK THEME — Admin panel is always dark
+   ═══════════════════════════════════════════ */
+.mp-pay { background: #0B0F1A; }
+.mp-pay-title { color: #F9FAFB !important; }
+.mp-pay-subtitle { color: #9CA3AF !important; }
+
+/* Summary cards */
+.mp-pay-card { background: #111827; border-color: #1F2937; }
+.mp-pay-card-label { color: #9CA3AF !important; }
+.mp-pay-card-value { color: #F9FAFB !important; }
+.mp-pay-card-sub { color: #6B7280 !important; }
+
+/* View toggle */
+.mp-pay-view-toggle { background: #111827; border-color: #1F2937; }
+.mp-pay-view-btn { background: #111827; color: #9CA3AF; border-color: #1F2937; }
+.mp-pay-view-btn:hover { background: #1F2937; color: #F9FAFB; }
+.mp-pay-view-btn.active { background: #3b82f6; color: #fff; }
+
+/* Charts */
+.mp-pay-chart-card { background: #111827; border-color: #1F2937; }
+.mp-pay-chart-header h3 { color: #F9FAFB !important; }
+.mp-pay-toggle-group { border-color: #1F2937; }
+.mp-pay-toggle-group button { background: #111827; color: #9CA3AF; border-color: #1F2937; }
+.mp-pay-toggle-group button:hover { background: #1F2937; }
+.mp-pay-toggle-group button.active { background: #3b82f6; color: #fff; }
+.mp-pay-bar-label { color: #6B7280 !important; }
+.mp-pay-no-data { color: #6B7280 !important; }
+
+/* Table */
+.mp-pay-table-card { background: #111827; border-color: #1F2937; }
+.mp-pay-table-card h3 { color: #F9FAFB !important; }
+.mp-pay-filters { background: #0B0F1A; }
+.mp-pay-search-input { background: #111827 !important; border-color: #1F2937 !important; color: #F9FAFB !important; }
+.mp-pay-search-input::placeholder { color: #4B5563 !important; }
+.mp-pay-filter-select { background: #111827 !important; border-color: #1F2937 !important; color: #F9FAFB !important; }
+.mp-pay-table th { background: #0B0F1A !important; color: #9CA3AF !important; border-color: #1F2937 !important; }
+.mp-pay-table td { color: #D1D5DB !important; border-color: rgba(255,255,255,0.04) !important; }
+.mp-pay-table tr:hover td { background: rgba(255,255,255,0.03) !important; }
+
+/* Modals */
+.mp-pay-modal { background: #111827; border-color: #1F2937; color: #E5E7EB; }
+.mp-pay-modal-header { border-color: #1F2937 !important; }
+.mp-pay-modal-header h3 { color: #F9FAFB !important; }
+.mp-pay-modal-footer { border-color: #1F2937 !important; }
+.mp-pay-modal-detail { background: #111827; }
+.mp-pay-form-label { color: #D1D5DB !important; }
+.mp-pay-form-input, .mp-pay-form-select, .mp-pay-form-textarea {
+  background: #0B0F1A !important; border-color: #1F2937 !important; color: #F9FAFB !important;
+}
+.mp-pay-form-input::placeholder, .mp-pay-form-textarea::placeholder { color: #4B5563 !important; }
+
+/* Detail modal */
+.mp-detail-label { color: #9CA3AF !important; }
+.mp-detail-value { color: #F9FAFB !important; }
+.mp-detail-section-title { color: #F9FAFB !important; }
+.mp-detail-client-grid { background: rgba(255,255,255,0.03) !important; border-color: #1F2937 !important; }
+
+/* Refresh & buttons */
+.mp-pay-refresh { background: #111827; border-color: #1F2937; color: #D1D5DB; }
+.mp-pay-refresh:hover { background: #1F2937; color: #F9FAFB; }
+.mp-pay-detail-btn { background: #111827; border-color: #1F2937; color: #9CA3AF; }
+.mp-pay-detail-btn:hover { background: #1F2937; border-color: #3b82f6; color: #60A5FA; }
+
+/* Pagination */
+.mp-pay-pagination { color: #9CA3AF; }
+.mp-pay-page-btn { background: #111827; border-color: #1F2937; color: #D1D5DB; }
+.mp-pay-page-btn:hover { background: #1F2937; color: #F9FAFB; }
+.mp-pay-page-btn.active { background: #3b82f6; color: #fff; }

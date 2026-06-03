@@ -29,6 +29,8 @@ import {
     FaFunnelDollar,
     FaCalendarAlt,
     FaRobot,
+    FaShareAlt,
+    FaFireAlt,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -65,6 +67,8 @@ const AdminCampaigns = lazy(() => import('../adminCampaigns/AdminCampaigns.jsx')
 const AdminFunnel = lazy(() => import('../adminFunnel/AdminFunnel.jsx'));
 const AdminCalendars = lazy(() => import('../adminCalendars/AdminCalendars.jsx'));
 const AdminAgents = lazy(() => import('../adminAgents/AdminAgents.jsx'));
+const AdminSocial = lazy(() => import('../adminSocial/AdminSocial.jsx'));
+const AdminRevivals = lazy(() => import('../adminPayments/RevivalPipeline.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -142,6 +146,7 @@ const AdminPanel = () => {
         if (path.includes('/funnel')) return 'funnel';
         if (path.includes('/calendarios')) return 'calendarios';
         if (path.includes('/agentes')) return 'agentes';
+        if (path.includes('/redes')) return 'redes';
         return 'dashboard';
     };
 
@@ -161,10 +166,12 @@ const AdminPanel = () => {
         { key: 'mensajes', icon: FaClipboardList, label: 'Mensajes', section: 'gestion', path: '/admin/mensajes', color: '#2DD4BF' },
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios', color: '#818CF8' },
         { key: 'funnel', icon: FaFunnelDollar, label: 'Funnel', section: 'gestion', path: '/admin/funnel', color: '#F59E0B' },
+        { key: 'revivals', icon: FaFireAlt, label: 'Revivals', section: 'gestion', path: '/admin/revivals', color: '#EF4444' },
         { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue', color: '#34D399' },
         { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes', color: '#60A5FA' },
         { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns', color: '#1877F2' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas', color: '#F472B6' },
+        { key: 'redes', icon: FaShareAlt, label: 'Redes Sociales', section: 'estadisticas', path: '/admin/redes', color: '#E4405F' },
         { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' }
     ];
 
@@ -306,11 +313,13 @@ const AdminPanel = () => {
         manychat: AdminManyChat,
         automatizaciones: AdminAutomations,
         funnel: AdminFunnel,
+        revivals: AdminRevivals,
         revenue: AdminRevenue,
         informes: AdminInformes,
         campaigns: AdminCampaigns,
         calendarios: AdminCalendars,
         agentes: AdminAgents,
+        redes: AdminSocial,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
