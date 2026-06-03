@@ -323,7 +323,7 @@ function ManagePayments() {
                             <div className="mp-pay-card mp-pay-card-orange">
                                 <div className="mp-pay-card-icon"><FaPercentage /></div>
                                 <div>
-                                    <p className="mp-pay-card-label">Comisión Ventas (20%)</p>
+                                    <p className="mp-pay-card-label">Comisión Ventas</p>
                                     <h2 className="mp-pay-card-value">{formatMoney(summary.totalComisiones)}</h2>
                                 </div>
                             </div>
@@ -349,7 +349,7 @@ function ManagePayments() {
                         </div>
                         <div className="mp-pay-card mp-pay-card-orange">
                             <div className="mp-pay-card-icon"><FaPercentage /></div>
-                            <div><p className="mp-pay-card-label">Mi Comisión (20%)</p><h2 className="mp-pay-card-value">{formatMoney(myCommission)}</h2></div>
+                            <div><p className="mp-pay-card-label">Mi Comisión ({Math.round((user?.comisionRate ?? 0.20) * 100)}%)</p><h2 className="mp-pay-card-value">{formatMoney(myCommission)}</h2></div>
                         </div>
                         <div className="mp-pay-card mp-pay-card-purple">
                             <div className="mp-pay-card-icon"><FaUsers /></div>
@@ -467,7 +467,7 @@ function ManagePayments() {
                                                     <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1f2937' }}>{formatMoney(data.total)}</div>
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comisión (20%)</div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comisión</div>
                                                     <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f59e0b' }}>{formatMoney(data.commission)}</div>
                                                 </div>
                                                 <div>
@@ -1102,7 +1102,7 @@ function ManagePayments() {
                                         <span className="mp-detail-value">{detailPayment.vendedor || 'Sin asignar'}</span>
                                     </div>
                                     <div className="mp-detail-field">
-                                        <span className="mp-detail-label">Comisión (20%)</span>
+                                        <span className="mp-detail-label">Comisión</span>
                                         <span className="mp-detail-value">{formatMoney(detailPayment.commission)}</span>
                                     </div>
                                     <div className="mp-detail-field">
