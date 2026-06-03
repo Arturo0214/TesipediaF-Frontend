@@ -614,7 +614,7 @@ function ManagePayments() {
                                         const installmentsOnDay = day ? allInstallments.filter(inst =>
                                             inst.dueDate && new Date(inst.dueDate).toDateString() === day.toDateString()
                                         ) : [];
-                                        const paymentsOnDay = day ? payments.filter(p =>
+                                        const paymentsOnDay = day ? filtered.filter(p =>
                                             p.date && new Date(p.date).toDateString() === day.toDateString()
                                         ) : [];
 
