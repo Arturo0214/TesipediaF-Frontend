@@ -229,9 +229,10 @@ function RevivalPipeline() {
                                                 {lead.nombre || 'Sin nombre'}
                                             </div>
                                             <div style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
-                                                {lead.carrera && <span>{lead.carrera}</span>}
+                                                {lead.wa_id && <span style={{ color: '#9CA3AF' }}>+{lead.wa_id}</span>}
+                                                {lead.carrera && <span>&middot; {lead.carrera}</span>}
                                                 {lead.tipo_servicio && <span>&middot; {lead.tipo_servicio}</span>}
-                                                {lead.precio > 0 && <span style={{ color: '#059669', fontWeight: 600 }}>&middot; {formatMoney(lead.precio)}</span>}
+                                                {lead.precio && lead.precio !== '' && <span style={{ color: '#34D399', fontWeight: 600 }}>&middot; {lead.precio}</span>}
                                             </div>
                                         </div>
                                     </div>
@@ -284,6 +285,7 @@ function RevivalPipeline() {
                                             {/* Info Column */}
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' }}>Datos del Lead</div>
+                                                {lead.wa_id && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Telefono:</strong> +{lead.wa_id}</div>}
                                                 {lead.tema && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Tema:</strong> {lead.tema}</div>}
                                                 {lead.nivel && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Nivel:</strong> {lead.nivel}</div>}
                                                 {lead.paginas && <div style={{ fontSize: '0.8rem', color: '#D1D5DB' }}><strong>Paginas:</strong> {lead.paginas}</div>}
