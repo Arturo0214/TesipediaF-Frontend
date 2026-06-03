@@ -2895,12 +2895,30 @@ const AdminWhatsApp = () => {
                         </Col>
                         <Col xs={12}>
                           <div className="wq-micro-label">Esquema de Pago</div>
-                          <Form.Select size="sm" value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => handleQuoteFieldChange('esquemaTipo', e.target.value)}>
+                          <Form.Select size="sm" value={quoteFields.esquemaTipo || '33-33-34'} onChange={(e) => {
+                            const tipo = e.target.value;
+                            handleQuoteFieldChange('esquemaTipo', tipo);
+                            // Auto-generar fechas para esquemas con múltiples pagos
+                            if (['6-quincenales', '6-mensuales', '6-msi', '12-msi'].includes(tipo)) {
+                              const start = new Date(quoteFields.fechaPago1 || new Date());
+                              const count = tipo === '12-msi' ? 12 : 6;
+                              const dates = [];
+                              for (let i = 0; i < count; i++) {
+                                const d = new Date(start);
+                                if (tipo === '6-quincenales') d.setDate(d.getDate() + (i * 15));
+                                else d.setMonth(d.getMonth() + i);
+                                dates.push(d.toISOString().split('T')[0]);
+                              }
+                              handleQuoteFieldChange('fechasPagos', dates);
+                            }
+                          }}>
+                            <option value="unico">Pago único</option>
                             <option value="50-50">50% inicio / 50% final</option>
                             <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
                             <option value="6-quincenales">6 Pagos Quincenales</option>
                             <option value="6-mensuales">6 Pagos Mensuales</option>
-                            <option value="unico">Pago único</option>
+                            <option value="6-msi">6 Meses Sin Intereses</option>
+                            <option value="12-msi">12 Meses Sin Intereses</option>
                           </Form.Select>
                         </Col>
                         <Col xs={6}>
@@ -2908,23 +2926,43 @@ const AdminWhatsApp = () => {
                           <Form.Control size="sm" type="date" value={quoteFields.fechaEntregaDate || ''}
                             onChange={(e) => handleQuoteFieldChange('fechaEntregaDate', e.target.value)} />
                         </Col>
-                        <Col xs={6}>
-                          <div className="wq-micro-label">Pago Inicio</div>
-                          <Form.Control size="sm" type="date" value={quoteFields.fechaPago1 || ''}
-                            onChange={(e) => handleQuoteFieldChange('fechaPago1', e.target.value)} />
-                        </Col>
-                        {quoteFields.esquemaTipo === '33-33-34' && (
-                          <Col xs={6}>
-                            <div className="wq-micro-label">Pago Avance</div>
-                            <Form.Control size="sm" type="date" value={quoteFields.fechaAvance || ''}
-                              onChange={(e) => handleQuoteFieldChange('fechaAvance', e.target.value)} />
-                          </Col>
+                        {['6-quincenales', '6-mensuales', '6-msi', '12-msi'].includes(quoteFields.esquemaTipo) ? (
+                          <>
+                            {(quoteFields.fechasPagos || []).map((fecha, i) => (
+                              <Col xs={6} key={i}>
+                                <div className="wq-micro-label">Pago {i + 1}</div>
+                                <Form.Control size="sm" type="date" value={fecha}
+                                  onChange={(e) => {
+                                    const newDates = [...(quoteFields.fechasPagos || [])];
+                                    newDates[i] = e.target.value;
+                                    handleQuoteFieldChange('fechasPagos', newDates);
+                                  }} />
+                              </Col>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            <Col xs={6}>
+                              <div className="wq-micro-label">Pago Inicio</div>
+                              <Form.Control size="sm" type="date" value={quoteFields.fechaPago1 || ''}
+                                onChange={(e) => handleQuoteFieldChange('fechaPago1', e.target.value)} />
+                            </Col>
+                            {quoteFields.esquemaTipo === '33-33-34' && (
+                              <Col xs={6}>
+                                <div className="wq-micro-label">Pago Avance</div>
+                                <Form.Control size="sm" type="date" value={quoteFields.fechaAvance || ''}
+                                  onChange={(e) => handleQuoteFieldChange('fechaAvance', e.target.value)} />
+                              </Col>
+                            )}
+                            {quoteFields.esquemaTipo !== 'unico' && (
+                              <Col xs={6}>
+                                <div className="wq-micro-label">Pago Final</div>
+                                <Form.Control size="sm" type="date" value={quoteFields.fechaPagoFinal || quoteFields.fechaEntregaDate || ''}
+                                  onChange={(e) => handleQuoteFieldChange('fechaPagoFinal', e.target.value)} />
+                              </Col>
+                            )}
+                          </>
                         )}
-                        <Col xs={6}>
-                          <div className="wq-micro-label">Pago Final</div>
-                          <Form.Control size="sm" type="date" value={quoteFields.fechaPagoFinal || quoteFields.fechaEntregaDate || ''}
-                            onChange={(e) => handleQuoteFieldChange('fechaPagoFinal', e.target.value)} />
-                        </Col>
                       </Row>
                     </div>
 
