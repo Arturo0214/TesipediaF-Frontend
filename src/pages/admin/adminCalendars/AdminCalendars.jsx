@@ -30,10 +30,12 @@ function getEventStyle(summary) {
 }
 
 export default function AdminCalendars() {
-  const { user } = useSelector(state => state.auth || {});
+  const { user, isSuperAdmin } = useSelector(state => state.auth || {});
+  const currentUserName = (user?.name || '').toLowerCase().trim();
+  const isOwner = isSuperAdmin || currentUserName === 'arturo' || currentUserName === 'hugo serrano';
   const [connectedAdmins, setConnectedAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAdmin, setSelectedAdmin] = useState('arturo');
+  const [selectedAdmin, setSelectedAdmin] = useState(isOwner ? 'arturo' : currentUserName.split(' ')[0]);
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
@@ -204,7 +206,7 @@ export default function AdminCalendars() {
 
       {/* Admin Cards */}
       <div className="ac-admins-grid">
-        {ADMINS.map(admin => {
+        {ADMINS.filter(admin => isOwner || admin.key === currentUserName.split(' ')[0]).map(admin => {
           const connected = isConnected(admin.key);
           const info = getAdminInfo(admin.key);
           return (
