@@ -248,10 +248,15 @@ function ManagePayments() {
     }
 
     const { payments = [], summary = {} } = dashboardData || {};
-    const isOwner = isSuperAdmin || currentUserName === 'arturo';
+    const isOwner = isSuperAdmin || currentUserName === 'arturo' || currentUserName === 'hugo serrano';
 
     // Filters
     const filtered = payments.filter((p) => {
+        // Non-owners only see their own payments
+        if (!isOwner) {
+            const pVendedor = (p.vendedor || p.atendidoPor || '').toLowerCase();
+            if (pVendedor !== currentUserName) return false;
+        }
         const term = searchTerm.toLowerCase();
         const matchesSearch = !term || p.clientName?.toLowerCase().includes(term) || p.clientEmail?.toLowerCase().includes(term) || p.title?.toLowerCase().includes(term);
         const matchesEsquema = filterEsquema === 'all' || p.esquema === filterEsquema;
