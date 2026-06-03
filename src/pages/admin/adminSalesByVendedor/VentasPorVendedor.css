@@ -509,3 +509,40 @@
     flex: 1;
   }
 }
+
+/* ═══ DARK THEME ═══ */
+.vv-container { background: #0B0F1A; }
+.vv-title { color: #F9FAFB !important; }
+.vv-subtitle { color: #9CA3AF !important; }
+.vv-refresh-btn { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.vv-refresh-btn:hover { background: #1F2937 !important; }
+
+/* Period filter */
+.vv-period-filter label { color: #9CA3AF !important; }
+.vv-period-btn { background: #111827 !important; border-color: #1F2937 !important; color: #9CA3AF !important; }
+.vv-period-btn:hover { background: #1F2937 !important; color: #F9FAFB !important; }
+.vv-period-btn.active { background: #3b82f6 !important; color: #fff !important; border-color: #3b82f6 !important; }
+
+/* Summary cards */
+.vv-card { background: #111827 !important; border-color: #1F2937 !important; }
+.vv-card-label { color: #9CA3AF !important; }
+.vv-card-value { color: #F9FAFB !important; }
+
+/* Chart */
+.vv-chart-card { background: #111827 !important; border-color: #1F2937 !important; }
+.vv-chart-card h3 { color: #F9FAFB !important; }
+.vv-chart-container { background: #111827 !important; }
+.vv-chart-toggle { border-color: #1F2937 !important; }
+.vv-chart-btn { background: #111827 !important; border-color: #1F2937 !important; color: #9CA3AF !important; }
+.vv-chart-btn:hover { background: #1F2937 !important; }
+.vv-chart-btn.active { background: #3b82f6 !important; color: #fff !important; }
+
+/* Table */
+.vv-table-card { background: #111827 !important; border-color: #1F2937 !important; }
+.vv-table-card h3 { color: #F9FAFB !important; }
+.vv-table th { background: #0B0F1A !important; color: #9CA3AF !important; border-color: #1F2937 !important; }
+.vv-table td { color: #D1D5DB !important; border-color: rgba(255,255,255,0.04) !important; }
+.vv-table tbody tr:hover td { background: rgba(255,255,255,0.03) !important; }
+.vv-table-cell-name { color: #F9FAFB !important; }
+.vv-table-cell-numeric { color: #D1D5DB !important; }
+.vv-no-data { color: #6B7280 !important; }
