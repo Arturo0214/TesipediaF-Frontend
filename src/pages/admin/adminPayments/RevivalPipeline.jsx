@@ -34,6 +34,7 @@ function RevivalPipeline() {
     const [filterEstado, setFilterEstado] = useState('all');
     const [filterRevival, setFilterRevival] = useState('all');
     const [expandedLead, setExpandedLead] = useState(null);
+    const [modalLead, setModalLead] = useState(null);
     const [editingNotes, setEditingNotes] = useState({});
     const [saving, setSaving] = useState({});
 
@@ -79,7 +80,11 @@ function RevivalPipeline() {
     };
 
     const filtered = useMemo(() => {
+        const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
         return leads.filter(l => {
+            // Solo leads con 3+ días sin actividad
+            const lastActivity = new Date(l.updated_at || l.created_at).getTime();
+            if (lastActivity > threeDaysAgo) return false;
             if (filterEstado !== 'all' && l.estado_sofia !== filterEstado) return false;
             if (filterRevival !== 'all' && (l.revival_status || 'pendiente') !== filterRevival) return false;
             if (searchTerm) {
@@ -232,7 +237,6 @@ function RevivalPipeline() {
                                                 {lead.wa_id && <span style={{ color: '#9CA3AF' }}>+{lead.wa_id}</span>}
                                                 {lead.carrera && <span>&middot; {lead.carrera}</span>}
                                                 {lead.tipo_servicio && <span>&middot; {lead.tipo_servicio}</span>}
-                                                {lead.precio && lead.precio !== '' && <span style={{ color: '#34D399', fontWeight: 600 }}>&middot; {lead.precio}</span>}
                                             </div>
                                         </div>
                                     </div>
@@ -273,6 +277,15 @@ function RevivalPipeline() {
                                                 {VENDOR_NAMES[lead.atendido_por.toLowerCase()] || lead.atendido_por}
                                             </span>
                                         )}
+
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setModalLead(lead); }}
+                                            style={{
+                                                padding: '3px 10px', background: '#3b82f6', color: '#fff',
+                                                border: 'none', borderRadius: 5, fontSize: '0.68rem',
+                                                fontWeight: 600, cursor: 'pointer',
+                                            }}
+                                        >Ver</button>
 
                                         {isExpanded ? <FaChevronUp style={{ color: '#9ca3af' }} /> : <FaChevronDown style={{ color: '#9ca3af' }} />}
                                     </div>
@@ -421,6 +434,133 @@ function RevivalPipeline() {
                     })}
                 </div>
             )}
+
+            {/* ===== MODAL DETALLE ===== */}
+            {modalLead && (() => {
+                const ml = modalLead;
+                const revStatus = ml.revival_status || 'pendiente';
+                const revConfig = REVIVAL_STATUSES[revStatus] || REVIVAL_STATUSES.pendiente;
+                const estadoConfig = ESTADO_LABELS[ml.estado_sofia] || { label: ml.estado_sofia, color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
+                const days = daysSince(ml.updated_at);
+                const datos = (() => {
+                    try {
+                        if (!ml.datos_cotizacion) return null;
+                        return typeof ml.datos_cotizacion === 'string' ? JSON.parse(ml.datos_cotizacion) : ml.datos_cotizacion;
+                    } catch { return null; }
+                })();
+
+                return (
+                    <div
+                        onClick={() => setModalLead(null)}
+                        style={{
+                            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+                        }}
+                    >
+                        <div
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                                background: '#111827', borderRadius: 14, width: '100%', maxWidth: 640,
+                                maxHeight: '90vh', overflow: 'auto', border: '1px solid #1F2937',
+                            }}
+                        >
+                            {/* Header */}
+                            <div style={{
+                                padding: '18px 24px', borderBottom: '1px solid #1F2937',
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            }}>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#F9FAFB' }}>
+                                        {ml.nombre || 'Sin nombre'}
+                                    </h3>
+                                    <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>+{ml.wa_id}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                    <span style={{ background: estadoConfig.bg, color: estadoConfig.color, fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>
+                                        {estadoConfig.label}
+                                    </span>
+                                    <span style={{ background: revConfig.color + '18', color: revConfig.color, fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>
+                                        {revConfig.label}
+                                    </span>
+                                    <button onClick={() => setModalLead(null)} style={{ background: 'none', border: 'none', color: '#9CA3AF', fontSize: '1.3rem', cursor: 'pointer' }}>&times;</button>
+                                </div>
+                            </div>
+
+                            {/* Body */}
+                            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                {/* Datos del lead */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
+                                    {[
+                                        ['Carrera', ml.carrera],
+                                        ['Nivel', ml.nivel || datos?.nivel],
+                                        ['Tipo Servicio', ml.tipo_servicio || datos?.tipoServicio],
+                                        ['Tipo Proyecto', ml.tipo_proyecto || datos?.tipoProyecto],
+                                        ['Paginas', ml.paginas || datos?.paginas],
+                                        ['Avance', datos?.paginasAvance ? `${datos.paginasAvance} págs` : null],
+                                        ['Fecha Entrega', ml.fecha_entrega || datos?.fechaEntrega],
+                                        ['Atendido por', ml.atendido_por],
+                                        ['Primer contacto', formatDate(ml.created_at)],
+                                        ['Ultima actividad', `${formatDate(ml.updated_at)}${days !== null ? ` (hace ${days}d)` : ''}`],
+                                    ].filter(([, v]) => v && v !== '-').map(([label, value]) => (
+                                        <div key={label}>
+                                            <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
+                                            <div style={{ fontSize: '0.85rem', color: '#F9FAFB', marginTop: 2 }}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Tema */}
+                                {(ml.tema || datos?.tema) && (
+                                    <div>
+                                        <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase' }}>Tema</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#F9FAFB', marginTop: 2 }}>{ml.tema || datos?.tema}</div>
+                                    </div>
+                                )}
+
+                                {/* Precio estimado */}
+                                {ml.precio && ml.precio !== '' && (
+                                    <div style={{ background: '#0B0F1A', borderRadius: 8, padding: '10px 14px', border: '1px solid #1F2937' }}>
+                                        <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase' }}>Precio estimado (calculadora)</div>
+                                        <div style={{ fontSize: '1rem', color: '#F59E0B', fontWeight: 700, marginTop: 2 }}>{ml.precio}</div>
+                                    </div>
+                                )}
+
+                                {/* Ultimo mensaje */}
+                                {ml.ultimo_mensaje_preview && (
+                                    <div>
+                                        <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase' }}>Ultimo mensaje</div>
+                                        <div style={{ fontSize: '0.82rem', color: '#9CA3AF', fontStyle: 'italic', background: '#0B0F1A', padding: 10, borderRadius: 6, marginTop: 4 }}>
+                                            "{ml.ultimo_mensaje_preview}"
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Notas admin */}
+                                {ml.notas_admin && (
+                                    <div>
+                                        <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase' }}>Notas Admin</div>
+                                        <div style={{ fontSize: '0.82rem', color: '#D1D5DB', marginTop: 4 }}>{ml.notas_admin}</div>
+                                    </div>
+                                )}
+
+                                {/* Actions */}
+                                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                    <a href={`https://wa.me/${ml.wa_id}`} target="_blank" rel="noreferrer"
+                                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: '#25d366', color: '#fff', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
+                                        <FaWhatsapp /> WhatsApp
+                                    </a>
+                                    {ml.pdf_url && (
+                                        <a href={ml.pdf_url} target="_blank" rel="noreferrer"
+                                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: '#6366f1', color: '#fff', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
+                                            Ver Cotizacion PDF
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 }
