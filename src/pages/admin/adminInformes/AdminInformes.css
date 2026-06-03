@@ -550,3 +550,32 @@
   .inf-auto-row { gap: 8px; }
   .inf-auto-info { min-width: 140px; }
 }
+
+/* ═══ DARK THEME ═══ */
+.inf-wrapper { color: #E5E7EB; }
+.inf-title { color: #F9FAFB !important; }
+.inf-subtitle { color: #9CA3AF !important; }
+.inf-section { background: #111827 !important; border-color: #1F2937 !important; }
+.inf-section-title { color: #F9FAFB !important; }
+.inf-alert-card { background: #111827 !important; border-color: #1F2937 !important; }
+.inf-alert-title { color: #F9FAFB !important; }
+.inf-alert-desc { color: #D1D5DB !important; }
+.inf-kpi-card { background: #111827 !important; border-color: #1F2937 !important; }
+.inf-kpi-label { color: #9CA3AF !important; }
+.inf-kpi-value { color: #F9FAFB !important; }
+.inf-kpi-sub { color: #6B7280 !important; }
+.inf-ok-banner { background: rgba(16,185,129,0.1) !important; border-color: rgba(16,185,129,0.2) !important; }
+.inf-admin-card { background: #111827 !important; border-color: #1F2937 !important; }
+.inf-admin-name { color: #F9FAFB !important; }
+.inf-admin-stat { color: #D1D5DB !important; }
+.inf-estado-name { color: #D1D5DB !important; }
+.inf-estado-count { color: #F9FAFB !important; }
+.inf-estado-bar-bg { background: #1F2937 !important; }
+.inf-auto-card { background: #111827 !important; border-color: #1F2937 !important; }
+.inf-auto-title { color: #F9FAFB !important; }
+.inf-auto-desc { color: #D1D5DB !important; }
+.inf-chart-card { background: #111827 !important; border-color: #1F2937 !important; }
+.inf-chart-title { color: #F9FAFB !important; }
+.inf-refresh-btn { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.inf-refresh-btn:hover { background: #1F2937 !important; }
+.inf-updated { color: #6B7280 !important; }

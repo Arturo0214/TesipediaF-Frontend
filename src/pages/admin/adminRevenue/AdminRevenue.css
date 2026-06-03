@@ -866,3 +866,41 @@
 @media (max-width: 1024px) {
   .rev-usage-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ═══ DARK THEME ═══ */
+.rev-dash { background: #0B0F1A; }
+.rev-title { color: #F9FAFB !important; }
+.rev-subtitle { color: #9CA3AF !important; }
+.rev-kpi { background: #111827; border-color: #1F2937; }
+.rev-kpi:hover { border-color: #374151; }
+.rev-kpi-label { color: #9CA3AF !important; }
+.rev-kpi-value { color: #F9FAFB !important; }
+.rev-kpi-sub { color: #6B7280 !important; }
+.rev-tabs { background: #111827; border-color: #1F2937; }
+.rev-tab { background: #111827; color: #9CA3AF; border-color: #1F2937; }
+.rev-tab:hover { background: #1F2937; color: #F9FAFB; }
+.rev-tab.active { background: #3b82f6; color: #fff; }
+.rev-section { background: #111827; border-color: #1F2937; }
+.rev-section h3, .rev-section-title { color: #F9FAFB !important; }
+.rev-table th { background: #0B0F1A !important; color: #9CA3AF !important; border-color: #1F2937 !important; }
+.rev-table td { color: #D1D5DB !important; border-color: rgba(255,255,255,0.04) !important; }
+.rev-table tbody tr:hover td { background: rgba(255,255,255,0.03) !important; }
+.rev-breakdown-card { background: #111827 !important; border-color: #1F2937 !important; }
+.rev-breakdown-label { color: #9CA3AF !important; }
+.rev-breakdown-value { color: #F9FAFB !important; }
+.rev-action-btn { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.rev-action-btn:hover { background: #1F2937 !important; }
+.rev-form-group label { color: #D1D5DB !important; }
+.rev-form-group input, .rev-form-group select, .rev-form-group textarea {
+  background: #0B0F1A !important; border-color: #1F2937 !important; color: #F9FAFB !important;
+}
+.rev-form-inline { background: #0B0F1A !important; border-color: #1F2937 !important; }
+.rev-empty { color: #6B7280 !important; }
+.rev-select { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.rev-modal { background: #111827 !important; }
+.rev-modal-header { border-color: #1F2937 !important; }
+.rev-modal-header h3 { color: #F9FAFB !important; }
+.rev-modal-footer { border-color: #1F2937 !important; }
+.rev-usage-card { background: #111827 !important; border-color: #1F2937 !important; }
+.rev-usage-label { color: #9CA3AF !important; }
+.rev-usage-value { color: #F9FAFB !important; }

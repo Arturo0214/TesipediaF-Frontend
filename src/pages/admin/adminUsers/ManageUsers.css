@@ -256,3 +256,44 @@
   .mu-user-avatar { width: 30px; height: 30px; font-size: 0.75rem; }
   .mu-user-cell { gap: 8px; }
 }
+
+/* ═══ DARK THEME ═══ */
+.mu-page { background: #0B0F1A; }
+.mu-title { color: #F9FAFB !important; }
+.mu-subtitle { color: #9CA3AF !important; }
+.mu-refresh { background: #111827; border-color: #1F2937; color: #D1D5DB; }
+.mu-refresh:hover { background: #1F2937; color: #F9FAFB; }
+.mu-card { background: #111827; border-color: #1F2937; }
+.mu-card-label { color: #9CA3AF !important; }
+.mu-card-value { color: #F9FAFB !important; }
+.mu-table-section { background: #111827; border-color: #1F2937; }
+.mu-search { border-color: #1F2937; }
+.mu-search input { background: transparent; color: #F9FAFB; }
+.mu-search input::placeholder { color: #4B5563; }
+.mu-search svg { color: #6B7280; }
+.mu-filter-select { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.mu-table th { background: #0B0F1A !important; color: #9CA3AF !important; border-color: #1F2937 !important; }
+.mu-table td { color: #D1D5DB !important; border-color: rgba(255,255,255,0.04) !important; }
+.mu-table tbody tr:hover td { background: rgba(255,255,255,0.03) !important; }
+.mu-user-info strong { color: #F9FAFB !important; }
+.mu-user-info small { color: #6B7280 !important; }
+.mu-date-cell { color: #9CA3AF !important; }
+.mu-status-inactive { background: #1F2937 !important; color: #6B7280 !important; }
+.mu-action-btn { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.mu-action-btn:hover { background: #1F2937 !important; color: #F9FAFB !important; }
+.mu-action-btn.delete:hover { background: rgba(239,68,68,0.15) !important; }
+.mu-pagination span { color: #6B7280 !important; }
+.mu-pagination button { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.mu-empty { color: #6B7280 !important; }
+.mu-modal { background: #111827; }
+.mu-modal-header { border-color: #1F2937 !important; }
+.mu-modal-header h2 { color: #F9FAFB !important; }
+.mu-modal-close { color: #6B7280 !important; }
+.mu-modal-close:hover { color: #F9FAFB !important; }
+.mu-modal-footer { border-color: #1F2937 !important; }
+.mu-modal-user-preview strong { color: #F9FAFB !important; }
+.mu-modal-user-preview small { color: #6B7280 !important; }
+.mu-form-group label { color: #D1D5DB !important; }
+.mu-form-group select { background: #0B0F1A !important; border-color: #1F2937 !important; color: #F9FAFB !important; }
+.mu-delete-msg { color: #D1D5DB !important; }
+.mu-btn-cancel { background: #1F2937 !important; color: #D1D5DB !important; border-color: #374151 !important; }
