@@ -8,10 +8,11 @@ import {
     FaExclamationTriangle, FaCheckCircle, FaClock, FaFileInvoiceDollar,
     FaChartBar, FaArrowUp, FaArrowDown, FaChevronLeft, FaChevronRight,
     FaProjectDiagram, FaWhatsapp, FaEnvelope, FaPhone, FaUser,
-    FaClipboardList, FaCalendarCheck, FaExternalLinkAlt
+    FaClipboardList, FaCalendarCheck, FaExternalLinkAlt, FaFireAlt
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import VentasPorVendedor from '../adminSalesByVendedor/VentasPorVendedor';
+import RevivalPipeline from './RevivalPipeline';
 import './ManagePayments.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -371,9 +372,9 @@ function ManagePayments() {
                     salesByVendor[vendedor].payments.push(p);
                 }
 
-                const vendorNames = { arturo: 'Arturo Suárez', sandy: 'Sandy Alvarado', hugo: 'Hugo Serrano' };
-                const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b', sin_asignar: '#6b7280' };
-                const vendorEmojis = { arturo: '👔', sandy: '💜', hugo: '🧡', sin_asignar: '❓' };
+                const vendorNames = { arturo: 'Arturo Suárez', sandy: 'Sandy Alvarado', hugo: 'Hugo Serrano', 'adrian nava': 'Adrian Nava' };
+                const vendorColors = { arturo: '#2563eb', sandy: '#d946ef', hugo: '#f59e0b', 'adrian nava': '#10b981', sin_asignar: '#6b7280' };
+                const vendorEmojis = { arturo: '👔', sandy: '💜', hugo: '🧡', 'adrian nava': '🔥', sin_asignar: '❓' };
                 const totalGlobal = payments.reduce((s, p) => s + (p.amount || 0), 0);
 
                 const handleBulkAssign = async (vendorPayments, newVendedor) => {
@@ -450,6 +451,7 @@ function ManagePayments() {
                                                     <option value="arturo">Arturo</option>
                                                     <option value="sandy">Sandy</option>
                                                     <option value="hugo">Hugo</option>
+                                                    <option value="adrian nava">Adrian Nava</option>
                                                 </select>
                                             )}
                                         </div>
@@ -503,6 +505,9 @@ function ManagePayments() {
                 </button>
                 <button className={`mp-pay-view-btn ${view === 'vendedores' ? 'active' : ''}`} onClick={() => setView('vendedores')}>
                     <FaUsers /> Vendedores
+                </button>
+                <button className={`mp-pay-view-btn ${view === 'revivals' ? 'active' : ''}`} onClick={() => setView('revivals')}>
+                    <FaFireAlt /> Revivals
                 </button>
             </div>
 
@@ -1000,6 +1005,11 @@ function ManagePayments() {
             {/* ===== VENDEDORES VIEW ===== */}
             {view === 'vendedores' && (
                 <VentasPorVendedor payments={payments} onRefresh={fetchDashboard} />
+            )}
+
+            {/* ===== REVIVALS VIEW ===== */}
+            {view === 'revivals' && (
+                <RevivalPipeline />
             )}
 
             {/* ===== PAYMENT DETAIL MODAL ===== */}
