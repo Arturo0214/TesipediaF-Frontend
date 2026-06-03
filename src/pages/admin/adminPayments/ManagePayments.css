@@ -821,8 +821,8 @@
 .mp-pay-no-data { color: #6B7280 !important; }
 
 /* Table & Filters */
-.mp-pay-table-card { background: #111827; border-color: #1F2937; }
-.mp-pay-table-card h3 { color: #F9FAFB !important; }
+.mp-pay-table-section { background: #111827 !important; border-color: #1F2937 !important; }
+.mp-pay-table-top h3 { color: #F9FAFB !important; }
 .mp-pay-filters { background: #111827; }
 .mp-pay-search { background: #0B0F1A !important; border-color: #1F2937 !important; }
 .mp-pay-search input { color: #F9FAFB !important; }
@@ -838,21 +838,40 @@
 .mp-pay-empty, .mp-pay-no-payments { color: #6B7280 !important; }
 
 /* Calendar */
-.mp-pay-calendar-section { background: #111827; border-color: #1F2937; }
+.mp-pay-calendar-section { background: #111827 !important; border-color: #1F2937 !important; }
 .mp-pay-cal-header h3 { color: #F9FAFB !important; }
 .mp-pay-cal-month { color: #F9FAFB !important; }
-.mp-pay-cal-nav button { background: #111827; border-color: #1F2937; color: #D1D5DB; }
-.mp-pay-cal-nav button:hover { background: #1F2937; }
-.mp-pay-cal-day-header { color: #9CA3AF !important; border-color: #1F2937 !important; }
-.mp-pay-cal-day { background: #0B0F1A; border-color: #1F2937 !important; color: #D1D5DB; }
-.mp-pay-cal-day:hover { background: #1F2937; }
+.mp-pay-cal-nav button { background: #111827 !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.mp-pay-cal-nav button:hover { background: #1F2937 !important; }
+.mp-pay-cal-grid { border-color: #1F2937 !important; }
+.mp-pay-cal-day-header { background: #0B0F1A !important; color: #9CA3AF !important; border-color: #1F2937 !important; }
+.mp-pay-cal-day { background: #0B0F1A !important; border-color: #1F2937 !important; color: #D1D5DB !important; }
+.mp-pay-cal-day:hover { background: #1F2937 !important; }
 .mp-pay-cal-day.today { background: rgba(59,130,246,0.12) !important; }
-.mp-pay-cal-day.empty { background: transparent; }
-.mp-pay-cal-day-num { color: #F9FAFB; }
+.mp-pay-cal-day.empty { background: #111827 !important; }
+.mp-pay-cal-day.has-events:hover { background: rgba(59,130,246,0.1) !important; }
+.mp-pay-cal-day-num { color: #F9FAFB !important; }
+
+/* Vendedor select in table */
+.mp-pay-vendedor-select { background: #0B0F1A !important; border-color: #1F2937 !important; color: #F9FAFB !important; }
 
 /* Esquema & source badges */
 .mp-pay-esquema-badge { background: rgba(124,58,237,0.15) !important; }
 .mp-pay-badge-default { background: #1F2937 !important; color: #9CA3AF !important; }
+
+/* Expanded row details */
+.mp-pay-expand { background: #0B0F1A !important; border-color: #1F2937 !important; }
+.mp-pay-expand-inner { color: #D1D5DB; }
+.mp-pay-schedule-item { border-color: #1F2937 !important; }
+.mp-pay-progress-label { color: #9CA3AF !important; }
+
+/* Add payment modal */
+.mp-pay-modal-overlay { background: rgba(0,0,0,0.7); }
+.mp-pay-add-form label { color: #D1D5DB !important; }
+.mp-pay-add-form input, .mp-pay-add-form select, .mp-pay-add-form textarea {
+  background: #0B0F1A !important; border-color: #1F2937 !important; color: #F9FAFB !important;
+}
+.mp-pay-btn-cancel { background: #1F2937 !important; color: #D1D5DB !important; border-color: #374151 !important; }
 
 /* Modals */
 .mp-pay-modal { background: #111827; border-color: #1F2937; color: #E5E7EB; }
