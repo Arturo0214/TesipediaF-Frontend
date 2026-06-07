@@ -1356,6 +1356,7 @@ const AdminWhatsApp = () => {
         fechaPago1: f.fechaPago1 || '',
         fechaAvance: f.fechaAvance || '',
         fechaPagoFinal: f.fechaPagoFinal || f.fechaEntregaDate || '',
+        fechasPagos: f.fechasPagos || [],
         pdfFilename,
       });
 
