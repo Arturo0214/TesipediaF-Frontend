@@ -226,9 +226,10 @@ const SalesQuote = () => {
         const tipo = e.target.value;
         let updates = { esquemaTipo: tipo };
 
-        if (['6-quincenales', '6-mensuales', '6-msi', '12-msi'].includes(tipo)) {
+        const msiMatch = tipo.match(/^(\d+)-msi$/);
+        if (['6-quincenales', '6-mensuales'].includes(tipo) || msiMatch) {
             const start = new Date(formData.fechaPago1 || new Date());
-            const count = tipo === '12-msi' ? 12 : 6;
+            const count = msiMatch ? parseInt(msiMatch[1]) : 6;
             const dates = [];
             for (let i = 0; i < count; i++) {
                 const d = new Date(start);
@@ -868,12 +869,13 @@ const SalesQuote = () => {
                                                         <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
                                                         <option value="6-quincenales">6 Pagos Quincenales</option>
                                                         <option value="6-mensuales">6 Pagos Mensuales</option>
-                                                        <option value="6-msi">6 Meses Sin Intereses</option>
-                                                        <option value="12-msi">12 Meses Sin Intereses</option>
+                                                        {[3,4,5,6,7,8,9,10,11,12].map(n => (
+                                                            <option key={n} value={`${n}-msi`}>{n} Meses Sin Intereses</option>
+                                                        ))}
                                                     </Form.Select>
                                                 </Col>
                                                 {/* Fechas de pago */}
-                                                {['6-quincenales', '6-mensuales', '6-msi', '12-msi'].includes(formData.esquemaTipo) ? (
+                                                {(['6-quincenales', '6-mensuales'].includes(formData.esquemaTipo) || /^\d+-msi$/.test(formData.esquemaTipo)) ? (
                                                     <>
                                                         {(formData.fechasPagos || []).map((fecha, index) => (
                                                             <Col xs={4} key={index}>
