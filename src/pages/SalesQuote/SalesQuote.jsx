@@ -226,6 +226,9 @@ const SalesQuote = () => {
         const tipo = e.target.value;
         let updates = { esquemaTipo: tipo };
 
+        if (tipo === 'personalizado' && (!formData.pagosCustom || !formData.pagosCustom.length)) {
+            updates.pagosCustom = [{ monto: '', fecha: new Date().toISOString().split('T')[0] }];
+        }
         const msiMatch = tipo.match(/^(\d+)-msi$/);
         if (['6-quincenales', '6-mensuales'].includes(tipo) || msiMatch) {
             const start = new Date(formData.fechaPago1 || new Date());
@@ -439,6 +442,7 @@ const SalesQuote = () => {
                 fechaPago1: formData.fechaPago1 || '',
                 fechaAvance: formData.fechaAvance || '',
                 fechasPagos: formData.fechasPagos || [],
+                pagosCustom: formData.pagosCustom || [],
                 serviciosIncluidos: quoteData.serviciosIncluidos,
                 beneficiosAdicionales: quoteData.beneficiosAdicionales,
                 pdfFilename,
@@ -872,10 +876,67 @@ const SalesQuote = () => {
                                                         {[3,4,5,6,7,8,9,10,11,12].map(n => (
                                                             <option key={n} value={`${n}-msi`}>{n} Meses Sin Intereses</option>
                                                         ))}
+                                                        <option value="personalizado">Personalizado</option>
                                                     </Form.Select>
                                                 </Col>
                                                 {/* Fechas de pago */}
-                                                {(['6-quincenales', '6-mensuales'].includes(formData.esquemaTipo) || /^\d+-msi$/.test(formData.esquemaTipo)) ? (
+                                                {formData.esquemaTipo === 'personalizado' ? (
+                                                    <>
+                                                        {(formData.pagosCustom || []).map((pago, i) => (
+                                                            <Col xs={12} key={i}>
+                                                                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <div className="micro-label">Monto {i + 1}</div>
+                                                                        <div className="input-group input-group-sm">
+                                                                            <span className="input-group-text">$</span>
+                                                                            <Form.Control type="number" min="0" value={pago.monto}
+                                                                                onChange={(e) => {
+                                                                                    const arr = [...(formData.pagosCustom || [])];
+                                                                                    arr[i] = { ...arr[i], monto: e.target.value };
+                                                                                    setFormData(prev => ({ ...prev, pagosCustom: arr }));
+                                                                                }} />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <div className="micro-label">Fecha</div>
+                                                                        <Form.Control size="sm" type="date" value={pago.fecha}
+                                                                            onChange={(e) => {
+                                                                                const arr = [...(formData.pagosCustom || [])];
+                                                                                arr[i] = { ...arr[i], fecha: e.target.value };
+                                                                                setFormData(prev => ({ ...prev, pagosCustom: arr }));
+                                                                            }} />
+                                                                    </div>
+                                                                    {(formData.pagosCustom || []).length > 1 && (
+                                                                        <button onClick={() => {
+                                                                            const arr = (formData.pagosCustom || []).filter((_, idx) => idx !== i);
+                                                                            setFormData(prev => ({ ...prev, pagosCustom: arr }));
+                                                                        }} style={{ marginTop: 16, background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+                                                                    )}
+                                                                </div>
+                                                            </Col>
+                                                        ))}
+                                                        <Col xs={12}>
+                                                            {(() => {
+                                                                const total = parseFloat(formData.precioRegular || 0);
+                                                                const asignado = (formData.pagosCustom || []).reduce((s, p) => s + (Number(p.monto) || 0), 0);
+                                                                const restante = total - asignado;
+                                                                return (
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <button type="button" onClick={() => {
+                                                                            const arr = [...(formData.pagosCustom || []), { monto: restante > 0 ? String(restante) : '', fecha: new Date().toISOString().split('T')[0] }];
+                                                                            setFormData(prev => ({ ...prev, pagosCustom: arr }));
+                                                                        }} style={{ padding: '4px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
+                                                                            + Agregar pago
+                                                                        </button>
+                                                                        <span style={{ fontSize: '0.72rem', color: restante === 0 ? '#10b981' : restante < 0 ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>
+                                                                            {restante === 0 ? 'Cubierto' : restante > 0 ? `Faltan $${restante.toLocaleString('es-MX')}` : `Excede $${Math.abs(restante).toLocaleString('es-MX')}`}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                        </Col>
+                                                    </>
+                                                ) : (['6-quincenales', '6-mensuales'].includes(formData.esquemaTipo) || /^\d+-msi$/.test(formData.esquemaTipo)) ? (
                                                     <>
                                                         {(formData.fechasPagos || []).map((fecha, index) => (
                                                             <Col xs={4} key={index}>
