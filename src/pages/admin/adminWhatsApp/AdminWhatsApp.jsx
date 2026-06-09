@@ -2961,7 +2961,7 @@ const AdminWhatsApp = () => {
                                       }} />
                                   </div>
                                   {(quoteFields.pagosCustom || []).length > 1 && (
-                                    <button onClick={() => {
+                                    <button type="button" onClick={() => {
                                       const arr = (quoteFields.pagosCustom || []).filter((_, idx) => idx !== i);
                                       setQuoteFields(prev => ({ ...prev, pagosCustom: arr }));
                                     }} style={{ marginTop: 16, background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
@@ -2976,7 +2976,7 @@ const AdminWhatsApp = () => {
                                 const restante = total - asignado;
                                 return (
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <button onClick={() => {
+                                    <button type="button" onClick={() => {
                                       const arr = [...(quoteFields.pagosCustom || []), { monto: restante > 0 ? String(restante) : '', fecha: new Date().toISOString().split('T')[0] }];
                                       setQuoteFields(prev => ({ ...prev, pagosCustom: arr }));
                                     }} style={{ padding: '4px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
