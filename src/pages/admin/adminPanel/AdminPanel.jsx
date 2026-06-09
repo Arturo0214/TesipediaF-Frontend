@@ -147,6 +147,7 @@ const AdminPanel = () => {
         if (path.includes('/calendarios')) return 'calendarios';
         if (path.includes('/agentes')) return 'agentes';
         if (path.includes('/redes')) return 'redes';
+        if (path.includes('/revivals')) return 'revivals';
         return 'dashboard';
     };
 

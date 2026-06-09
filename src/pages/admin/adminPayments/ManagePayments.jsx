@@ -254,8 +254,9 @@ function ManagePayments() {
     const filtered = payments.filter((p) => {
         // Non-owners only see their own payments
         if (!isOwner) {
-            const pVendedor = (p.vendedor || p.atendidoPor || '').toLowerCase();
-            if (pVendedor !== currentUserName) return false;
+            const pVendedor = (p.vendedor || p.atendidoPor || '').toLowerCase().trim();
+            const firstName = currentUserName.split(' ')[0];
+            if (pVendedor !== currentUserName && pVendedor !== firstName && !pVendedor.includes(firstName) && !currentUserName.includes(pVendedor)) return false;
         }
         const term = searchTerm.toLowerCase();
         const matchesSearch = !term || p.clientName?.toLowerCase().includes(term) || p.clientEmail?.toLowerCase().includes(term) || p.title?.toLowerCase().includes(term);
@@ -396,8 +397,9 @@ function ManagePayments() {
                     fetchDashboard();
                 };
 
+                const firstName = currentUserName.split(' ')[0];
                 const entries = Object.entries(salesByVendor)
-                    .filter(([v]) => isOwner ? true : v === currentUserName)
+                    .filter(([v]) => isOwner ? true : v === currentUserName || v === firstName || v.includes(firstName) || currentUserName.includes(v))
                     .sort((a, b) => b[1].total - a[1].total);
 
                 return (
