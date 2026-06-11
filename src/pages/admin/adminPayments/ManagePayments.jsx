@@ -130,7 +130,10 @@ function ManagePayments() {
             let cobrado = 0, pendiente = 0;
             for (const p of updated.payments) {
                 if (!p.schedule || p.schedule.length <= 1) {
-                    if (p.status === 'completed' || p.status === 'paid') cobrado += p.amount;
+                    // Pago único: respeta el toggle de su parcialidad si fue marcado; si no, usa el estado del pago
+                    const single = p.schedule?.[0];
+                    const isPaidSingle = single?.status ? single.status === 'paid' : (p.status === 'completed' || p.status === 'paid');
+                    if (isPaidSingle) cobrado += p.amount;
                     else pendiente += p.amount;
                 } else {
                     for (const s of p.schedule) {
@@ -760,7 +763,7 @@ function ManagePayments() {
                                             <td className="mp-pay-title-cell">{payment.title}</td>
                                             <td className="mp-pay-amount">
                                                 {formatMoney(payment.amount)}
-                                                {payment.schedule?.length > 1 && (() => {
+                                                {payment.schedule?.length >= 1 && (() => {
                                                     const paid = payment.schedule.filter(s => s.status === 'paid').length;
                                                     const total = payment.schedule.length;
                                                     return (
@@ -831,7 +834,7 @@ function ManagePayments() {
                                                         <FaTrash />
                                                     </button>
                                                 )}
-                                                {payment.schedule?.length > 1 && (
+                                                {payment.schedule?.length >= 1 && (
                                                     <button
                                                         className={`mp-pay-cobrar-btn ${expandedPayment === payment._id ? 'active' : ''}`}
                                                         onClick={(e) => { e.stopPropagation(); setExpandedPayment(expandedPayment === payment._id ? null : payment._id); }}
@@ -842,14 +845,18 @@ function ManagePayments() {
                                                 )}
                                             </td>
                                         </tr>
-                                        {expandedPayment === payment._id && payment.schedule?.length > 1 && (
+                                        {expandedPayment === payment._id && payment.schedule?.length >= 1 && (
                                             <tr className="mp-pay-schedule-row">
                                                 <td colSpan="10">
                                                     <div className="mp-pay-schedule">
                                                         <h4>Calendario de Pagos — {getEsquemaLabel(payment.esquema)}</h4>
                                                         <div className="mp-pay-schedule-grid">
                                                             {payment.schedule.map((inst, idx) => {
-                                                                const isPaid = inst.status === 'paid';
+                                                                // Para pago único (1 parcialidad), si no tiene estado propio,
+                                                                // hereda el estado del pago (así un "Pagado" se ve Cobrado).
+                                                                const isPaid = inst.status
+                                                                    ? inst.status === 'paid'
+                                                                    : (payment.schedule.length === 1 && (payment.status === 'paid' || payment.status === 'completed'));
                                                                 return (
                                                                     <div key={idx} className={`mp-pay-installment ${isPaid ? 'paid' : 'upcoming'}`}>
                                                                         <div className="mp-pay-inst-info">

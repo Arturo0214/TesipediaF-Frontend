@@ -389,7 +389,11 @@ const SalesQuote = () => {
                 asesoria: formData.asesoria,
                 notaAcompañamiento: formData.notaAcompañamiento,
                 metodoPago: metodoPago,
-                modalidadCaptacion: formData.modalidadCaptacion
+                modalidadCaptacion: formData.modalidadCaptacion,
+                // Desglose del esquema de pago (para reconstruir parcialidades en el dashboard)
+                esquemaTipo: formData.esquemaTipo,
+                fechasPagos: formData.fechasPagos || [],
+                pagosCustom: (formData.pagosCustom || []).map(p => ({ monto: Number(p.monto) || 0, fecha: p.fecha })),
             };
 
             // 💾 1. Guardar primero en backend para obtener el ID (necesario para vincular el PDF)
