@@ -1132,12 +1132,15 @@ function ManagePayments() {
                             </div>
 
                             {/* Installment Schedule */}
-                            {detailPayment.schedule?.length > 1 && (
+                            {detailPayment.schedule?.length >= 1 && (
                                 <div className="mp-detail-section">
                                     <h4 className="mp-detail-section-title"><FaCalendarCheck /> Parcialidades</h4>
                                     <div className="mp-pay-schedule-grid">
                                         {detailPayment.schedule.map((inst, idx) => {
-                                            const isPaid = inst.status === 'paid';
+                                            // Pago único sin estado propio: hereda el estado del pago
+                                            const isPaid = inst.status
+                                                ? inst.status === 'paid'
+                                                : (detailPayment.schedule.length === 1 && (detailPayment.status === 'paid' || detailPayment.status === 'completed'));
                                             return (
                                                 <div key={idx} className={`mp-pay-installment ${isPaid ? 'paid' : 'upcoming'}`}>
                                                     <div className="mp-pay-inst-info">
