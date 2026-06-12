@@ -2847,7 +2847,7 @@ const AdminWhatsApp = () => {
                         </Col>
                         <Col xs={6}>
                           <div className="wq-micro-label">Fecha Entrega</div>
-                          <Form.Control size="sm" value={quoteFields.fechaEntrega || ''} onChange={(e) => handleQuoteFieldChange('fechaEntrega', e.target.value)} placeholder="Ej: 15 de mayo" />
+                          <Form.Control size="sm" type="date" value={quoteFields.fechaEntregaDate || ''} onChange={(e) => handleQuoteFieldChange('fechaEntregaDate', e.target.value)} />
                         </Col>
                         <Col xs={12}>
                           <div className="wq-micro-label">Título del Trabajo</div>
