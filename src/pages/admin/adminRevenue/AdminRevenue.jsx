@@ -75,6 +75,7 @@ const AdminRevenue = () => {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [activeView, setActiveView] = useState('overview'); // overview | cashflow | expenses | cost-per-sale | sync
   const [cfOnlyPending, setCfOnlyPending] = useState(false); // matriz: solo proyectos con saldo por cobrar
+  const [cfExpanded, setCfExpanded] = useState(null); // id de proyecto expandido en la matriz
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: 'claude_api',
@@ -1085,28 +1086,32 @@ const AdminRevenue = () => {
     const upcoming = monthly.filter(m => m.key >= selKey && m.porCobrar > 0);
     const maxUpcoming = Math.max(1, ...upcoming.map(m => m.porCobrar));
 
-    // Matriz: proyecto x mes del año. Resumen por proyecto = TODO su horizonte.
+    // Matriz: proyecto x mes del año. Cada celda separa cobrado/pendiente/vencido.
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const monthsOfYear = Array.from({ length: 12 }, (_, i) => `${selectedYear}-${String(i + 1).padStart(2, '0')}`);
     let projRows = projects
       .map(p => {
         const cells = {};
-        let cobrado = 0, porCobrar = 0;
+        let cobrado = 0, porCobrar = 0, vencido = 0;
         for (const it of (p.installments || [])) {
-          if (it.status === 'paid') cobrado += it.amount; else porCobrar += it.amount;
+          const overdue = it.status !== 'paid' && new Date(it.fecha) < today;
+          if (it.status === 'paid') cobrado += it.amount;
+          else { porCobrar += it.amount; if (overdue) vencido += it.amount; }
           if (!it.mes.startsWith(String(selectedYear))) continue;
-          cells[it.mes] = cells[it.mes] || { amount: 0, pending: false };
-          cells[it.mes].amount += it.amount;
-          if (it.status !== 'paid') cells[it.mes].pending = true;
+          const c = (cells[it.mes] = cells[it.mes] || { paid: 0, pending: 0, overdue: false });
+          if (it.status === 'paid') c.paid += it.amount;
+          else { c.pending += it.amount; if (overdue) c.overdue = true; }
         }
         const total = p.total || (cobrado + porCobrar);
-        return { ...p, cells, cobrado, porCobrar, total, pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
+        return { ...p, cells, cobrado, porCobrar, vencido, total, pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
       })
       .filter(p => (p.installments || []).length > 0);
+    const totalVencido = projRows.reduce((s, p) => s + p.vencido, 0);
     if (cfOnlyPending) projRows = projRows.filter(p => p.porCobrar > 0.5);
-    projRows.sort((a, b) => b.porCobrar - a.porCobrar || b.total - a.total);
+    projRows.sort((a, b) => b.vencido - a.vencido || b.porCobrar - a.porCobrar || b.total - a.total);
     // Totales por columna (mes) sobre las filas visibles
     const colTotal = {};
-    monthsOfYear.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + (p.cells[mk]?.amount || 0), 0); });
+    monthsOfYear.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + ((p.cells[mk]?.paid || 0) + (p.cells[mk]?.pending || 0)), 0); });
     const sumCol = (key) => projRows.reduce((s, p) => s + p[key], 0);
 
     const card = (label, value, color, sub, big) => (
@@ -1128,6 +1133,11 @@ const AdminRevenue = () => {
               <div style={{ fontSize: 12, color: '#8b97a7', marginTop: 4 }}>
                 de {fmt(totalVendido)} vendido · {fmt(totalCobrado)} ya cobrado ({totalVendido > 0 ? Math.round(totalCobrado / totalVendido * 100) : 0}%)
               </div>
+              {totalVencido > 0.5 && (
+                <div style={{ marginTop: 8, display: 'inline-block', fontSize: 13, fontWeight: 700, color: '#fca5a5', background: '#2a1010', border: '1px solid #4a1c1c', borderRadius: 8, padding: '4px 10px' }}>
+                  🔴 Cartera vencida: {fmt(totalVencido)} <span style={{ fontWeight: 400, color: '#b9747a' }}>(pagos pendientes con fecha pasada)</span>
+                </div>
+              )}
             </div>
             <div style={{ flex: 1, minWidth: 280 }}>
               <div style={{ fontSize: 12, color: '#8b97a7', marginBottom: 8 }}>Próximas cobranzas</div>
@@ -1206,7 +1216,7 @@ const AdminRevenue = () => {
             </label>
           </div>
           <p style={{ fontSize: 12, color: '#6b7685', margin: '4px 0 10px' }}>
-            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp;·&nbsp; ordenado por saldo pendiente
+            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp; <span style={{ color: '#ef4444' }}>● vencido ⚠</span> &nbsp;·&nbsp; click en un proyecto para ver el desglose · ordenado por vencido y saldo
           </p>
           <div style={{ overflowX: 'auto', maxHeight: 560, overflowY: 'auto', border: '1px solid #1c232d', borderRadius: 10 }}>
             <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: 1100 }}>
@@ -1221,16 +1231,24 @@ const AdminRevenue = () => {
                 </tr>
               </thead>
               <tbody>
-                {projRows.map((p, idx) => (
-                  <tr key={p.id} style={{ background: idx % 2 ? '#0f141b' : 'transparent' }}>
-                    <td style={{ padding: '7px 10px', position: 'sticky', left: 0, background: idx % 2 ? '#0f141b' : '#0d1117', whiteSpace: 'nowrap', borderTop: '1px solid #161d27' }} title={`${p.client} — ${p.title}`}>
+                {projRows.map((p, idx) => {
+                  const open = cfExpanded === p.id;
+                  const rowBg = idx % 2 ? '#0f141b' : 'transparent';
+                  const stickyBg = idx % 2 ? '#0f141b' : '#0d1117';
+                  return (
+                  <React.Fragment key={p.id}>
+                  <tr style={{ background: rowBg }}>
+                    <td onClick={() => setCfExpanded(open ? null : p.id)} style={{ padding: '7px 10px', position: 'sticky', left: 0, background: stickyBg, whiteSpace: 'nowrap', borderTop: '1px solid #161d27', cursor: 'pointer' }} title={`${p.client} — ${p.title} (click para desglose)`}>
+                      <span style={{ color: '#5a6675', marginRight: 4 }}>{open ? '▾' : '▸'}</span>
                       <span style={{ color: '#e6edf5' }}>{p.client}</span>
                       <span style={{ color: '#5a6675', fontSize: 11 }}> · {p.vendedor || '—'}</span>
                       {p.concluido
                         ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0e2a1c', color: '#34d399', border: '1px solid #1b4d33' }}>🏁 Concluido</span>
                         : p.pagado
                           ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0d2230', color: '#38bdf8', border: '1px solid #18415a' }}>✅ Pagado</span>
-                          : <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#251a08', color: '#f59e0b', border: '1px solid #4a3514' }}>⏳ {p.pct}%</span>}
+                          : p.vencido > 0.5
+                            ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#2a1010', color: '#fca5a5', border: '1px solid #4a1c1c' }}>🔴 Vencido {fmt(p.vencido)}</span>
+                            : <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#251a08', color: '#f59e0b', border: '1px solid #4a3514' }}>⏳ {p.pct}%</span>}
                     </td>
                     <td style={{ padding: '7px 8px', textAlign: 'right', color: '#9aa6b4', borderTop: '1px solid #161d27' }}>{fmt(p.total)}</td>
                     <td style={{ padding: '7px 8px', textAlign: 'right', color: '#10b981', borderTop: '1px solid #161d27' }}>{fmt(p.cobrado)}</td>
@@ -1246,13 +1264,38 @@ const AdminRevenue = () => {
                     {monthsOfYear.map(mk => {
                       const c = p.cells[mk];
                       return (
-                        <td key={mk} style={{ padding: '7px 8px', textAlign: 'right', borderTop: '1px solid #161d27', color: c ? (c.pending ? '#f59e0b' : '#10b981') : '#2c333d' }}>
-                          {c ? fmt(c.amount) : '·'}
+                        <td key={mk} style={{ padding: '7px 8px', textAlign: 'right', borderTop: '1px solid #161d27', whiteSpace: 'nowrap', lineHeight: 1.25 }}>
+                          {!c && <span style={{ color: '#2c333d' }}>·</span>}
+                          {c && c.paid > 0 && <div style={{ color: '#10b981' }}>{fmt(c.paid)}</div>}
+                          {c && c.pending > 0 && <div style={{ color: c.overdue ? '#ef4444' : '#f59e0b', fontWeight: c.overdue ? 700 : 400 }}>{fmt(c.pending)}{c.overdue ? ' ⚠' : ''}</div>}
                         </td>
                       );
                     })}
                   </tr>
-                ))}
+                  {open && (
+                    <tr>
+                      <td colSpan={5 + 12} style={{ padding: '10px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
+                        <div style={{ fontSize: 11, color: '#8b97a7', marginBottom: 8 }}>{p.title} · esquema {p.esquema} — desglose de pagos</div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          {[...(p.installments || [])].sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).map((it, i) => {
+                            const overdue = it.status !== 'paid' && new Date(it.fecha) < today;
+                            const color = it.status === 'paid' ? '#10b981' : overdue ? '#ef4444' : '#f59e0b';
+                            const label = it.status === 'paid' ? '✅ Cobrado' : overdue ? '🔴 Vencido' : '⏳ Por cobrar';
+                            return (
+                              <div key={i} style={{ border: `1px solid ${color}55`, background: '#0d1117', borderRadius: 8, padding: '6px 12px', minWidth: 134 }}>
+                                <div style={{ fontSize: 10, color: '#8b97a7' }}>Pago {i + 1} · {new Date(it.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                                <div style={{ fontSize: 15, fontWeight: 700, color }}>{fmt(it.amount)}</div>
+                                <div style={{ fontSize: 10, color }}>{label}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
+                  );
+                })}
                 {projRows.length === 0 && (
                   <tr><td colSpan={5 + 12} style={{ padding: 20, textAlign: 'center', color: '#6b7685' }}>Sin proyectos para mostrar.</td></tr>
                 )}
