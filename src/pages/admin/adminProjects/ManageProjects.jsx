@@ -18,8 +18,10 @@ function ManageProjects() {
     const [mxDocsOpen, setMxDocsOpen] = useState(null); // _id del proyecto con panel de documentos abierto
     const [mxUpForm, setMxUpForm] = useState({ type: 'revision', label: '' }); // etapa/etiqueta para subir desde la matriz
     const [mxUploading, setMxUploading] = useState(null); // _id del proyecto subiendo documento
+    const [mxPage, setMxPage] = useState(1); // página de la matriz
     const mxFileRef = useRef(null);
     const mxUploadTargetRef = useRef(null);
+    const MX_PAGE_SIZE = 15;
     const [searchTerm, setSearchTerm] = useState('');
     const [googleConnected, setGoogleConnected] = useState(false);
     const [googleEmail, setGoogleEmail] = useState('');
@@ -750,10 +752,15 @@ function ManageProjects() {
             return evs;
         };
 
-        // Carga de trabajo: entregas por mes en el año visible
+        // Carga de trabajo: entregas por mes en el año visible (sobre TODO el conjunto filtrado)
         const entregasPorMes = Array(12).fill(0);
         rows.forEach(p => { if (p.dueDate) { const d = new Date(p.dueDate); if (d.getFullYear() === matrixYear) entregasPorMes[d.getMonth()]++; } });
         const totalEntregas = entregasPorMes.reduce((s, n) => s + n, 0);
+
+        // Paginación
+        const totalPages = Math.max(1, Math.ceil(rows.length / MX_PAGE_SIZE));
+        const page = Math.min(Math.max(1, mxPage), totalPages);
+        const pageRows = rows.slice((page - 1) * MX_PAGE_SIZE, page * MX_PAGE_SIZE);
 
         const dueColor = (p) => {
             if (p.status === 'completed') return '#10b981';
@@ -770,9 +777,9 @@ function ManageProjects() {
                 {/* Navegación de año + leyenda */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button className="mp-toggle-btn" onClick={() => setMatrixYear(y => y - 1)}><FaChevronLeft /></button>
+                        <button className="mp-toggle-btn" onClick={() => { setMatrixYear(y => y - 1); setMxPage(1); }}><FaChevronLeft /></button>
                         <span style={{ fontWeight: 700, fontSize: 16, color: '#1f2937', minWidth: 54, textAlign: 'center' }}>{matrixYear}</span>
-                        <button className="mp-toggle-btn" onClick={() => setMatrixYear(y => y + 1)}><FaChevronRight /></button>
+                        <button className="mp-toggle-btn" onClick={() => { setMatrixYear(y => y + 1); setMxPage(1); }}><FaChevronRight /></button>
                         <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 6 }}>{rows.length} proyectos · {totalEntregas} entregas en {matrixYear}</span>
                     </div>
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, color: '#6b7280' }}>
@@ -797,7 +804,7 @@ function ManageProjects() {
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((p, idx) => {
+                            {pageRows.map((p, idx) => {
                                 const evs = buildEvents(p).filter(e => e.date.getFullYear() === matrixYear);
                                 const byMonth = {};
                                 evs.forEach(e => { (byMonth[e.date.getMonth()] = byMonth[e.date.getMonth()] || []).push(e); });
@@ -807,11 +814,11 @@ function ManageProjects() {
                                 return (
                                     <React.Fragment key={p._id}>
                                     <tr style={{ background: docsOpen ? '#eef6ff' : rowBg }}>
-                                        <td style={{ padding: '8px 12px', position: 'sticky', left: 0, background: docsOpen ? '#eef6ff' : rowBg, borderTop: '1px solid #eef1f4', minWidth: 220 }}>
-                                            <div onClick={() => { setSelectedProject(p); setShowModal(true); }} title="Ver proyecto" style={{ fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>{p.taskTitle || 'Proyecto'}</div>
+                                        <td onClick={() => { setDetailTab('overview'); setSelectedProject(p); setShowModal(true); }} title="Ver todos los detalles del proyecto" style={{ padding: '8px 12px', position: 'sticky', left: 0, background: docsOpen ? '#eef6ff' : rowBg, borderTop: '1px solid #eef1f4', minWidth: 220, cursor: 'pointer' }}>
+                                            <div style={{ fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.taskTitle || 'Proyecto'}</div>
                                             <div style={{ fontSize: 11, color: '#6b7280' }}>{p.clientName || '—'}{p.writer?.name ? ` · ${p.writer.name}` : ''}</div>
                                             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
-                                                <button onClick={() => setMxDocsOpen(docsOpen ? null : p._id)} title="Subir y ver documentos del cliente"
+                                                <button onClick={(e) => { e.stopPropagation(); setMxDocsOpen(docsOpen ? null : p._id); }} title="Subir y ver documentos del cliente"
                                                     style={{ fontSize: 11, fontWeight: 600, color: docsOpen ? '#fff' : '#2563eb', background: docsOpen ? '#2563eb' : '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}>
                                                     {docsOpen ? '▾' : '▸'} 📎 Docs{revCount ? ` (${revCount})` : ''}
                                                 </button>
@@ -929,6 +936,18 @@ function ManageProjects() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Paginación */}
+                {rows.length > MX_PAGE_SIZE && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                        <button className="mp-toggle-btn" disabled={page <= 1} onClick={() => setMxPage(page - 1)} style={{ opacity: page <= 1 ? 0.4 : 1 }}><FaChevronLeft /> Anterior</button>
+                        <span style={{ fontSize: 13, color: '#374151', padding: '0 6px' }}>
+                            Página <strong>{page}</strong> de {totalPages}
+                            <span style={{ color: '#9ca3af' }}> · {(page - 1) * MX_PAGE_SIZE + 1}–{Math.min(page * MX_PAGE_SIZE, rows.length)} de {rows.length}</span>
+                        </span>
+                        <button className="mp-toggle-btn" disabled={page >= totalPages} onClick={() => setMxPage(page + 1)} style={{ opacity: page >= totalPages ? 0.4 : 1 }}>Siguiente <FaChevronRight /></button>
+                    </div>
+                )}
             </div>
         );
     };
