@@ -11,6 +11,14 @@ const revenueService = {
     return response.data;
   },
 
+  // Flujo de caja real por mes (vendido / cobrado / por cobrar + matriz por proyecto)
+  getCashflow: async (year) => {
+    const params = {};
+    if (year !== undefined) params.year = year;
+    const response = await axiosWithAuth.get('/revenue/cashflow', { params });
+    return response.data;
+  },
+
   // Listar gastos
   getExpenses: async (filters = {}) => {
     const response = await axiosWithAuth.get('/revenue/expenses', { params: filters });

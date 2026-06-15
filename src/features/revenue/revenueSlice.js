@@ -14,6 +14,17 @@ export const fetchRevenueDashboard = createAsyncThunk(
   }
 );
 
+export const fetchCashflow = createAsyncThunk(
+  'revenue/fetchCashflow',
+  async ({ year } = {}, { rejectWithValue }) => {
+    try {
+      return await revenueService.getCashflow(year);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar flujo de caja');
+    }
+  }
+);
+
 export const fetchExpenses = createAsyncThunk(
   'revenue/fetchExpenses',
   async (filters = {}, { rejectWithValue }) => {
@@ -153,6 +164,8 @@ const revenueSlice = createSlice({
   name: 'revenue',
   initialState: {
     dashboard: null,
+    cashflow: null,
+    cashflowLoading: false,
     expenses: [],
     pagination: null,
     costPerSale: null,
@@ -185,6 +198,11 @@ const revenueSlice = createSlice({
       .addCase(fetchRevenueDashboard.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(fetchRevenueDashboard.fulfilled, (state, action) => { state.loading = false; state.dashboard = action.payload; })
       .addCase(fetchRevenueDashboard.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+
+      // Cashflow (vendido / cobrado / por cobrar por mes)
+      .addCase(fetchCashflow.pending, (state) => { state.cashflowLoading = true; })
+      .addCase(fetchCashflow.fulfilled, (state, action) => { state.cashflowLoading = false; state.cashflow = action.payload; })
+      .addCase(fetchCashflow.rejected, (state, action) => { state.cashflowLoading = false; state.error = action.payload; })
 
       // Expenses list
       .addCase(fetchExpenses.pending, (state) => { state.expensesLoading = true; })

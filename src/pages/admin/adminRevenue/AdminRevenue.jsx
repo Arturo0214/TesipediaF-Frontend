@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import {
   fetchRevenueDashboard,
+  fetchCashflow,
   fetchExpenses,
   createExpense,
   deleteExpense,
@@ -67,7 +68,7 @@ const fmt = (n) => {
 
 const AdminRevenue = () => {
   const dispatch = useDispatch();
-  const { dashboard, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading, cleanupResult, cleanupLoading } = useSelector(state => state.revenue);
+  const { dashboard, cashflow, cashflowLoading, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading, cleanupResult, cleanupLoading } = useSelector(state => state.revenue);
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -87,6 +88,10 @@ const AdminRevenue = () => {
     dispatch(fetchCategories());
     dispatch(fetchSyncStatus());
   }, [dispatch, selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    if (activeView === 'cashflow') dispatch(fetchCashflow({ year: selectedYear }));
+  }, [dispatch, activeView, selectedYear]);
 
   useEffect(() => {
     if (activeView === 'expenses') {
@@ -1057,6 +1062,128 @@ const AdminRevenue = () => {
     );
   }
 
+  // ── Flujo de caja: Vendido / Cobrado / Por cobrar por mes + matriz por proyecto ──
+  const renderCashflow = () => {
+    if (cashflowLoading && !cashflow) {
+      return <div className="rev-section" style={{ textAlign: 'center', padding: 40 }}><Spinner animation="border" size="sm" /> Cargando flujo de caja…</div>;
+    }
+    if (!cashflow) return null;
+
+    const monthly = cashflow.monthly || [];
+    const projects = cashflow.projects || [];
+    const selKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+    const sel = monthly.find(m => m.key === selKey) || { vendido: 0, cobrado: 0, porCobrar: 0 };
+    const yearMonths = monthly.filter(m => m.key.startsWith(String(selectedYear)));
+    const yt = cashflow.yearTotals || { vendido: 0, cobrado: 0, porCobrar: 0 };
+
+    // Matriz: meses (1-12) del año x proyectos con actividad ese año
+    const monthsOfYear = Array.from({ length: 12 }, (_, i) => `${selectedYear}-${String(i + 1).padStart(2, '0')}`);
+    const projRows = projects
+      .map(p => {
+        const cells = {};
+        let hasYear = false;
+        for (const it of (p.installments || [])) {
+          if (!it.mes.startsWith(String(selectedYear))) continue;
+          hasYear = true;
+          cells[it.mes] = cells[it.mes] || { amount: 0, pending: false };
+          cells[it.mes].amount += it.amount;
+          if (it.status !== 'paid') cells[it.mes].pending = true;
+        }
+        return { ...p, cells, hasYear };
+      })
+      .filter(p => p.hasYear)
+      .sort((a, b) => b.total - a.total);
+
+    const card = (label, value, color, sub) => (
+      <div style={{ flex: 1, minWidth: 200, background: '#11161d', border: '1px solid #232a35', borderRadius: 12, padding: '18px 20px' }}>
+        <div style={{ fontSize: 12, color: '#8b97a7', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
+        <div style={{ fontSize: 26, fontWeight: 700, color, marginTop: 4 }}>{fmt(value)}</div>
+        {sub && <div style={{ fontSize: 11, color: '#6b7685', marginTop: 2 }}>{sub}</div>}
+      </div>
+    );
+
+    return (
+      <>
+        {/* Tarjetas del mes seleccionado */}
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 18 }}>
+          {card(`Vendido · ${MONTHS[selectedMonth]}`, sel.vendido, '#e6edf5', 'Ventas cerradas este mes')}
+          {card(`Cobrado · ${MONTHS[selectedMonth]}`, sel.cobrado, '#10b981', 'Parcialidades pagadas con fecha en el mes')}
+          {card(`Por cobrar · ${MONTHS[selectedMonth]}`, sel.porCobrar, '#f59e0b', 'Parcialidades pendientes con fecha en el mes')}
+        </div>
+
+        {/* Tabla mensual del año */}
+        <div className="rev-section">
+          <h3 className="rev-section-title"><FaChartLine /> Flujo de caja {selectedYear} — Vendido vs Cobrado vs Por cobrar</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ color: '#8b97a7', textAlign: 'right' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 10px' }}>Mes</th>
+                  <th style={{ padding: '8px 10px' }}>Vendido</th>
+                  <th style={{ padding: '8px 10px', color: '#10b981' }}>Cobrado</th>
+                  <th style={{ padding: '8px 10px', color: '#f59e0b' }}>Por cobrar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {yearMonths.map(m => (
+                  <tr key={m.key} style={{ borderTop: '1px solid #1c232d', textAlign: 'right', background: m.key === selKey ? '#161d27' : 'transparent' }}>
+                    <td style={{ textAlign: 'left', padding: '8px 10px', textTransform: 'capitalize', color: '#cdd6e0' }}>{m.label}</td>
+                    <td style={{ padding: '8px 10px', color: '#e6edf5' }}>{fmt(m.vendido)}</td>
+                    <td style={{ padding: '8px 10px', color: '#10b981' }}>{fmt(m.cobrado)}</td>
+                    <td style={{ padding: '8px 10px', color: '#f59e0b' }}>{fmt(m.porCobrar)}</td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop: '2px solid #2a323d', textAlign: 'right', fontWeight: 700 }}>
+                  <td style={{ textAlign: 'left', padding: '10px', color: '#fff' }}>TOTAL {selectedYear}</td>
+                  <td style={{ padding: '10px', color: '#e6edf5' }}>{fmt(yt.vendido)}</td>
+                  <td style={{ padding: '10px', color: '#10b981' }}>{fmt(yt.cobrado)}</td>
+                  <td style={{ padding: '10px', color: '#f59e0b' }}>{fmt(yt.porCobrar)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Matriz por proyecto x mes */}
+        <div className="rev-section">
+          <h3 className="rev-section-title"><FaFileInvoiceDollar /> Matriz de pagos por proyecto · {selectedYear}</h3>
+          <p style={{ fontSize: 12, color: '#6b7685', marginTop: -6 }}>
+            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span>
+          </p>
+          <div style={{ overflowX: 'auto', maxHeight: 520, overflowY: 'auto' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 12, minWidth: 900 }}>
+              <thead>
+                <tr style={{ color: '#8b97a7' }}>
+                  <th style={{ textAlign: 'left', padding: '6px 8px', position: 'sticky', left: 0, background: '#0d1117' }}>Proyecto</th>
+                  <th style={{ textAlign: 'right', padding: '6px 8px' }}>Total</th>
+                  {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '6px 8px' }}>{MONTHS[i].slice(0, 3)}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {projRows.map(p => (
+                  <tr key={p.id} style={{ borderTop: '1px solid #1c232d' }}>
+                    <td style={{ padding: '6px 8px', position: 'sticky', left: 0, background: '#0d1117', color: '#cdd6e0', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${p.client} — ${p.title}`}>
+                      {p.client} <span style={{ color: '#5a6675' }}>· {p.vendedor || '—'}</span>
+                    </td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', color: '#9aa6b4' }}>{fmt(p.total)}</td>
+                    {monthsOfYear.map(mk => {
+                      const c = p.cells[mk];
+                      return (
+                        <td key={mk} style={{ padding: '6px 8px', textAlign: 'right', color: c ? (c.pending ? '#f59e0b' : '#10b981') : '#39414c' }}>
+                          {c ? fmt(c.amount) : '·'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="rev-dash">
       {/* Header */}
@@ -1088,6 +1215,9 @@ const AdminRevenue = () => {
         <button className={`rev-tab ${activeView === 'overview' ? 'active' : ''}`} onClick={() => setActiveView('overview')}>
           Resumen
         </button>
+        <button className={`rev-tab ${activeView === 'cashflow' ? 'active' : ''}`} onClick={() => setActiveView('cashflow')}>
+          <FaBalanceScale style={{ marginRight: 4 }} /> Flujo de caja
+        </button>
         <button className={`rev-tab ${activeView === 'expenses' ? 'active' : ''}`} onClick={() => setActiveView('expenses')}>
           Gastos
         </button>
@@ -1114,6 +1244,7 @@ const AdminRevenue = () => {
         </>
       )}
 
+      {activeView === 'cashflow' && renderCashflow()}
       {activeView === 'expenses' && renderExpensesTab()}
       {activeView === 'cost-per-sale' && renderCostPerSale()}
       {activeView === 'campaigns' && renderCampaignsTab()}
