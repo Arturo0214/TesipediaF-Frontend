@@ -11,7 +11,8 @@ function ManageProjects() {
     const dispatch = useDispatch();
     const { projects } = useSelector((state) => state.projects);
 
-    const [view, setView] = useState('kanban'); // kanban, calendar, list
+    const [view, setView] = useState('kanban'); // kanban, calendar, list, matrix
+    const [matrixYear, setMatrixYear] = useState(new Date().getFullYear()); // año de la matriz de fechas
     const [searchTerm, setSearchTerm] = useState('');
     const [googleConnected, setGoogleConnected] = useState(false);
     const [googleEmail, setGoogleEmail] = useState('');
@@ -669,6 +670,108 @@ function ManageProjects() {
         </div>
     );
 
+    // Vista Matriz — proyectos (filas) × meses (columnas), enfocada en FECHAS:
+    // inicio, entregables, revisiones y la entrega final (coloreada por estado/vencimiento).
+    const renderMatrixView = () => {
+        const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const rows = [...filteredProjects]
+            .filter(p => p.dueDate || p.createdAt)
+            .sort((a, b) => new Date(a.dueDate || a.createdAt) - new Date(b.dueDate || b.createdAt));
+
+        const buildEvents = (p) => {
+            const evs = [];
+            if (p.createdAt) evs.push({ kind: 'inicio', date: new Date(p.createdAt) });
+            (p.revisions || []).forEach(r => { if (r.createdAt) evs.push({ kind: 'revision', date: new Date(r.createdAt), label: `v${r.version || ''}` }); });
+            (p.deliverables || []).forEach(d => { if (d.uploadedAt) evs.push({ kind: 'entregable', date: new Date(d.uploadedAt) }); });
+            if (p.dueDate) evs.push({ kind: 'entrega', date: new Date(p.dueDate) });
+            return evs;
+        };
+
+        // Carga de trabajo: entregas por mes en el año visible
+        const entregasPorMes = Array(12).fill(0);
+        rows.forEach(p => { if (p.dueDate) { const d = new Date(p.dueDate); if (d.getFullYear() === matrixYear) entregasPorMes[d.getMonth()]++; } });
+        const totalEntregas = entregasPorMes.reduce((s, n) => s + n, 0);
+
+        const dueColor = (p) => {
+            if (p.status === 'completed') return '#10b981';
+            if (p.status === 'cancelled') return '#9ca3af';
+            if (isOverdue(p.dueDate)) return '#ef4444';
+            return '#f59e0b';
+        };
+
+        return (
+            <div className="mp-table-container">
+                {/* Navegación de año + leyenda */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button className="mp-toggle-btn" onClick={() => setMatrixYear(y => y - 1)}><FaChevronLeft /></button>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: '#1f2937', minWidth: 54, textAlign: 'center' }}>{matrixYear}</span>
+                        <button className="mp-toggle-btn" onClick={() => setMatrixYear(y => y + 1)}><FaChevronRight /></button>
+                        <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 6 }}>{rows.length} proyectos · {totalEntregas} entregas en {matrixYear}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, color: '#6b7280' }}>
+                        <span>🎯 Entrega</span><span>▶ Inicio</span><span>📄 Revisión</span><span>📎 Entregable</span>
+                        <span style={{ color: '#ef4444', fontWeight: 600 }}>● Vencida</span>
+                    </div>
+                </div>
+
+                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+                    <table style={{ borderCollapse: 'separate', borderSpacing: 0, width: '100%', minWidth: 1120, fontSize: 13 }}>
+                        <thead>
+                            <tr style={{ background: '#f9fafb', color: '#6b7280' }}>
+                                <th style={{ textAlign: 'left', padding: '10px 12px', position: 'sticky', left: 0, background: '#f9fafb', zIndex: 2, minWidth: 220 }}>Proyecto</th>
+                                <th style={{ textAlign: 'center', padding: '10px 8px' }}>Estado</th>
+                                <th style={{ textAlign: 'center', padding: '10px 8px' }}>Entrega</th>
+                                {MESES.map((m, i) => (
+                                    <th key={m} style={{ textAlign: 'center', padding: '8px 6px', minWidth: 72, opacity: entregasPorMes[i] ? 1 : 0.5 }}>
+                                        {m}
+                                        {entregasPorMes[i] > 0 && <div style={{ fontSize: 10, color: '#f59e0b', fontWeight: 700 }}>{entregasPorMes[i]} 🎯</div>}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((p, idx) => {
+                                const evs = buildEvents(p).filter(e => e.date.getFullYear() === matrixYear);
+                                const byMonth = {};
+                                evs.forEach(e => { (byMonth[e.date.getMonth()] = byMonth[e.date.getMonth()] || []).push(e); });
+                                const rowBg = idx % 2 ? '#fafbfc' : '#fff';
+                                return (
+                                    <tr key={p._id} style={{ background: rowBg }}>
+                                        <td onClick={() => { setSelectedProject(p); setShowModal(true); }} title="Ver proyecto" style={{ padding: '8px 12px', position: 'sticky', left: 0, background: rowBg, cursor: 'pointer', borderTop: '1px solid #eef1f4' }}>
+                                            <div style={{ fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.taskTitle || 'Proyecto'}</div>
+                                            <div style={{ fontSize: 11, color: '#6b7280' }}>{p.clientName || '—'}{p.writer?.name ? ` · ${p.writer.name}` : ''}</div>
+                                        </td>
+                                        <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4' }}>
+                                            <span className="mp-status-badge" style={{ backgroundColor: statusColumns[p.status]?.color || '#9ca3af' }}>{statusColumns[p.status]?.label || p.status}</span>
+                                        </td>
+                                        <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4', color: dueColor(p), fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                            {p.dueDate ? formatDate(p.dueDate) : '—'}
+                                        </td>
+                                        {MESES.map((m, i) => {
+                                            const cell = byMonth[i];
+                                            return (
+                                                <td key={m} style={{ padding: '6px 5px', textAlign: 'center', borderTop: '1px solid #eef1f4', borderLeft: '1px solid #f3f4f6', verticalAlign: 'top' }}>
+                                                    {cell ? cell.sort((a, b) => a.date - b.date).map((e, j) => {
+                                                        if (e.kind === 'entrega') return <div key={j} title={`Entrega final: ${formatDate(e.date)}`} style={{ fontSize: 11, fontWeight: 700, color: dueColor(p), whiteSpace: 'nowrap' }}>🎯 {e.date.getDate()}</div>;
+                                                        if (e.kind === 'inicio') return <div key={j} title={`Inicio: ${formatDate(e.date)}`} style={{ fontSize: 10, color: '#9ca3af', whiteSpace: 'nowrap' }}>▶ {e.date.getDate()}</div>;
+                                                        if (e.kind === 'revision') return <div key={j} title={`Revisión ${e.label}: ${formatDate(e.date)}`} style={{ fontSize: 10, color: '#3b82f6', whiteSpace: 'nowrap' }}>📄 {e.date.getDate()}</div>;
+                                                        return <div key={j} title={`Entregable: ${formatDate(e.date)}`} style={{ fontSize: 10, color: '#10b981', whiteSpace: 'nowrap' }}>📎 {e.date.getDate()}</div>;
+                                                    }) : <span style={{ color: '#e5e7eb' }}>·</span>}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                );
+                            })}
+                            {rows.length === 0 && <tr><td colSpan={3 + 12} style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>Sin proyectos con fechas en {matrixYear}.</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    };
+
     const REV_STATUS_LABELS = {
         delivered: { label: 'Entregado', color: '#3b82f6', bg: '#dbeafe' },
         pending_review: { label: 'En revisión', color: '#f59e0b', bg: '#fef3c7' },
@@ -1040,6 +1143,12 @@ function ManageProjects() {
                         >
                             Lista
                         </button>
+                        <button
+                            className={`mp-toggle-btn ${view === 'matrix' ? 'active' : ''}`}
+                            onClick={() => setView('matrix')}
+                        >
+                            <FaCalendar /> Matriz
+                        </button>
                     </div>
                 </div>
 
@@ -1124,6 +1233,7 @@ function ManageProjects() {
                     {view === 'kanban' && renderKanbanView()}
                     {view === 'calendar' && renderCalendarView()}
                     {view === 'list' && renderListView()}
+                    {view === 'matrix' && renderMatrixView()}
                 </>
             )}
 
