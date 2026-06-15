@@ -1414,6 +1414,10 @@ const AdminWhatsApp = () => {
           precioConDescuento,
           metodoPago: f.metodoPago || 'tarjeta-nu',
           esquemaPago: f.esquemaTipo || '33-33-34',
+          // Desglose del esquema de pago (para reconstruir parcialidades en el dashboard)
+          esquemaTipo: f.esquemaTipo || '33-33-34',
+          fechasPagos: f.fechasPagos || [],
+          pagosCustom: (f.pagosCustom || []).map(p => ({ monto: Number(p.monto) || 0, fecha: p.fecha })),
           pdfUrl: pdfUrl || null,
           pdfPublicId: pdfPublicId || null,
           status: 'pending',

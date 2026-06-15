@@ -161,18 +161,31 @@ const SalesQuote = () => {
             const pago2 = Math.round(total * 0.33 * 100) / 100;
             const pago3 = Math.round((total - pago1 - pago2) * 100) / 100;
             return `33% (${fmt(pago1)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}), 33% (${fmt(pago2)}) al entregar avance (${formatDateForDisplay(formData.fechaAvance)}) y 34% (${fmt(pago3)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
-        } else if (formData.esquemaTipo === '6-quincenales' || formData.esquemaTipo === '6-mensuales') {
-            const numPagos = 6;
+        } else if (formData.esquemaTipo === 'personalizado' && (formData.pagosCustom || []).length > 0) {
+            // Aplicar el descuento a los montos para que el texto coincida con el cobro real
+            const descFactor = 1 - ((parseFloat(formData.descuentoEfectivo) || 0) / 100);
+            const pagosTexto = formData.pagosCustom.map((p, i) => {
+                const monto = Math.round((Number(p.monto) || 0) * descFactor * 100) / 100;
+                return `Pago ${i + 1}: ${fmt(monto)} (${formatDateForDisplay(p.fecha)})`;
+            }).join(', ');
+            return `Esquema de ${formData.pagosCustom.length} pagos personalizado: ${pagosTexto}.`;
+        } else if (formData.esquemaTipo === 'unico') {
+            return `Pago único de ${fmt(total)} al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}).`;
+        } else if (formData.esquemaTipo === '6-quincenales' || formData.esquemaTipo === '6-mensuales' || /^\d+-msi$/.test(formData.esquemaTipo)) {
+            const msiMatch = formData.esquemaTipo.match(/^(\d+)-msi$/);
+            const numPagos = msiMatch ? parseInt(msiMatch[1]) : 6;
+            const isQuincenal = formData.esquemaTipo === '6-quincenales';
             const montoPago = Math.round((total / numPagos) * 100) / 100;
             // Ajustar el último pago para que cuadre el centavo
             const ultimoPago = Math.round((total - (montoPago * (numPagos - 1))) * 100) / 100;
 
-            let texto = `Esquema de ${numPagos} pagos ${formData.esquemaTipo === '6-quincenales' ? 'quincenales' : 'mensuales'}: `;
+            const tipoTexto = isQuincenal ? 'quincenales' : msiMatch ? 'mensuales sin intereses' : 'mensuales';
+            let texto = `Esquema de ${numPagos} pagos ${tipoTexto}: `;
 
-            const fechas = formData.fechasPagos.length === 6 ? formData.fechasPagos : Array(6).fill(new Date().toISOString().split('T')[0]);
+            const fechas = (formData.fechasPagos || []).length === numPagos ? formData.fechasPagos : Array(numPagos).fill(new Date().toISOString().split('T')[0]);
 
             const pagosTexto = fechas.map((fecha, index) => {
-                const monto = index === 5 ? ultimoPago : montoPago;
+                const monto = index === numPagos - 1 ? ultimoPago : montoPago;
                 return `Pago ${index + 1}: ${fmt(monto)} (${formatDateForDisplay(fecha)})`;
             }).join(', ');
 
