@@ -113,6 +113,16 @@ const updateRevisionStatus = async (projectId, version, status, correctionNotes)
     return response.data;
 };
 
+// Internal notes (admin only) — not visible to client
+const addInternalNote = async (projectId, text) => {
+    const response = await axiosWithAuth.post(`${API_URL}/${projectId}/notes`, { text });
+    return response.data;
+};
+const deleteInternalNote = async (projectId, noteId) => {
+    const response = await axiosWithAuth.delete(`${API_URL}/${projectId}/notes/${noteId}`);
+    return response.data;
+};
+
 const projectService = {
     getAllProjects,
     getWriterProjects,
@@ -130,7 +140,9 @@ const projectService = {
     removeDeliverable,
     uploadRevision,
     getRevisions,
-    updateRevisionStatus
+    updateRevisionStatus,
+    addInternalNote,
+    deleteInternalNote
 };
 
 export default projectService; 

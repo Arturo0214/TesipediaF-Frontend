@@ -19,6 +19,8 @@ function ManageProjects() {
     const [mxUpForm, setMxUpForm] = useState({ type: 'revision', label: '' }); // etapa/etiqueta para subir desde la matriz
     const [mxUploading, setMxUploading] = useState(null); // _id del proyecto subiendo documento
     const [mxPage, setMxPage] = useState(1); // página de la matriz
+    const [mxSort, setMxSort] = useState('entrega'); // entrega | reciente | vencidos | cliente
+    const [mxMonth, setMxMonth] = useState('all'); // 'all' o 0-11 (filtra por mes de entrega)
     const mxFileRef = useRef(null);
     const mxUploadTargetRef = useRef(null);
     const MX_PAGE_SIZE = 15;
@@ -62,7 +64,10 @@ function ManageProjects() {
     const [correctionNotes, setCorrectionNotes] = useState('');
 
     // Detail panel tab
-    const [detailTab, setDetailTab] = useState('overview'); // overview | revisions | files | comments
+    const [detailTab, setDetailTab] = useState('overview'); // overview | revisions | files | comments | notes
+    const [noteText, setNoteText] = useState('');
+    const [savingNote, setSavingNote] = useState(false);
+    const [deletingNote, setDeletingNote] = useState(null);
 
     // Handler para subir archivo entregable
     const handleUploadDeliverable = async (e) => {
@@ -376,6 +381,36 @@ function ManageProjects() {
             console.error('Error updating project status:', err);
         }
         setDraggedCard(null);
+    };
+
+    const handleAddNote = async () => {
+        if (!noteText.trim() || !selectedProject) return;
+        setSavingNote(true);
+        try {
+            const updated = await projectService.addInternalNote(selectedProject._id, noteText.trim());
+            setSelectedProject(updated);
+            dispatch(getAllProjects());
+            setNoteText('');
+            toast.success('Nota agregada');
+        } catch (err) {
+            toast.error('Error al agregar nota: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setSavingNote(false);
+        }
+    };
+
+    const handleDeleteNote = async (noteId) => {
+        if (!selectedProject) return;
+        setDeletingNote(noteId);
+        try {
+            const updated = await projectService.deleteInternalNote(selectedProject._id, noteId);
+            setSelectedProject(updated);
+            dispatch(getAllProjects());
+        } catch (err) {
+            toast.error('Error al eliminar nota');
+        } finally {
+            setDeletingNote(null);
+        }
     };
 
     const handleAddComment = async () => {
@@ -728,6 +763,7 @@ function ManageProjects() {
 
     const renderMatrixView = () => {
         const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const MESES_LARGO = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const TIPO_LABEL = { preliminary: 'Preliminar', revision: 'Revisión', correction: 'Corrección', final: 'Final' };
         const REV_BADGE = {
             delivered: { label: 'Entregado', color: '#2563eb', bg: '#dbeafe' },
@@ -735,8 +771,21 @@ function ManageProjects() {
             corrections_requested: { label: 'Correcciones', color: '#dc2626', bg: '#fee2e2' },
             approved: { label: 'Aprobado', color: '#047857', bg: '#d1fae5' },
         };
-        // Incluye TODOS los proyectos filtrados; los que no tienen fecha de entrega van al final.
-        const rows = [...filteredProjects].sort((a, b) => {
+        const todayMx = new Date(); todayMx.setHours(0, 0, 0, 0);
+        // Filtro por mes de entrega (dentro del año visible)
+        let rows = [...filteredProjects];
+        if (mxMonth !== 'all') {
+            rows = rows.filter(p => p.dueDate && new Date(p.dueDate).getFullYear() === matrixYear && new Date(p.dueDate).getMonth() === Number(mxMonth));
+        }
+        // Orden
+        rows.sort((a, b) => {
+            if (mxSort === 'reciente') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            if (mxSort === 'cliente') return (a.clientName || '').localeCompare(b.clientName || '', 'es');
+            if (mxSort === 'vencidos') {
+                const av = isOverdue(a.dueDate) ? 0 : 1, bv = isOverdue(b.dueDate) ? 0 : 1;
+                if (av !== bv) return av - bv;
+            }
+            // entrega (próxima primero); sin fecha al final
             const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
             const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
             if (ad !== bd) return ad - bd;
@@ -782,10 +831,34 @@ function ManageProjects() {
                         <button className="mp-toggle-btn" onClick={() => { setMatrixYear(y => y + 1); setMxPage(1); }}><FaChevronRight /></button>
                         <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 6 }}>{rows.length} proyectos · {totalEntregas} entregas en {matrixYear}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, color: '#6b7280' }}>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, color: '#6b7280', alignItems: 'center' }}>
                         <span>🎯 Entrega</span><span>▶ Inicio</span><span>📄 Revisión</span><span>📎 Entregable</span>
                         <span style={{ color: '#ef4444', fontWeight: 600 }}>● Vencida</span>
                     </div>
+                </div>
+
+                {/* Filtros de la matriz */}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>Ordenar:</span>
+                    <select value={mxSort} onChange={(e) => { setMxSort(e.target.value); setMxPage(1); }}
+                        style={{ fontSize: 12, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 6, color: '#374151' }}>
+                        <option value="entrega">Entrega más próxima</option>
+                        <option value="reciente">Más reciente (creado)</option>
+                        <option value="vencidos">Vencidos primero</option>
+                        <option value="cliente">Cliente (A–Z)</option>
+                    </select>
+                    <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, marginLeft: 6 }}>Mes de entrega:</span>
+                    <select value={mxMonth} onChange={(e) => { setMxMonth(e.target.value); setMxPage(1); }}
+                        style={{ fontSize: 12, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 6, color: '#374151' }}>
+                        <option value="all">Todos</option>
+                        {MESES_LARGO.map((m, i) => <option key={i} value={i}>{m} {matrixYear}</option>)}
+                    </select>
+                    {(mxSort !== 'entrega' || mxMonth !== 'all') && (
+                        <button onClick={() => { setMxSort('entrega'); setMxMonth('all'); setMxPage(1); }}
+                            style={{ fontSize: 12, color: '#2563eb', background: 'transparent', border: '1px solid #bfdbfe', borderRadius: 6, padding: '5px 10px', cursor: 'pointer' }}>
+                            Limpiar filtros
+                        </button>
+                    )}
                 </div>
 
                 <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: 10 }}>
@@ -825,6 +898,12 @@ function ManageProjects() {
                                                 {p.client
                                                     ? <span title={`Cuenta: ${p.client.email || ''}`} style={{ fontSize: 10, color: '#047857' }}>👤 Cuenta ✓</span>
                                                     : <span title="Sin usuario cliente — ábrelo en Docs para crearlo" style={{ fontSize: 10, color: '#b45309' }}>⚠ Sin cuenta</span>}
+                                                {(p.internalNotes?.length > 0) && (
+                                                    <button onClick={(e) => { e.stopPropagation(); setDetailTab('notes'); setSelectedProject(p); setShowModal(true); }} title="Ver notas internas"
+                                                        style={{ fontSize: 10, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '1px 6px', cursor: 'pointer' }}>
+                                                        🗒 {p.internalNotes.length}
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4' }}>
@@ -999,6 +1078,7 @@ function ManageProjects() {
                         { key: 'overview', label: 'Resumen', icon: <FaEye /> },
                         { key: 'revisions', label: `Versiones (${revisions.length})`, icon: <FaHistory /> },
                         { key: 'files', label: `Archivos (${(p.deliverables?.length || 0)})`, icon: <FaFileAlt /> },
+                        { key: 'notes', label: `Notas (${(p.internalNotes?.length || 0)})`, icon: <FaEdit /> },
                         { key: 'comments', label: `Mensajes (${(p.comments?.length || 0)})`, icon: <FaComment /> },
                     ].map(tab => (
                         <button key={tab.key} className={`mp-detail-tab ${detailTab === tab.key ? 'active' : ''}`}
@@ -1257,6 +1337,47 @@ function ManageProjects() {
                                     <a href={p.requirements.file.path} target="_blank" rel="noopener noreferrer" className="mp-btn mp-btn-secondary">
                                         <FaDownload /> {p.requirements.file.originalname}
                                     </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* === NOTES TAB (internas, no visibles al cliente) === */}
+                    {detailTab === 'notes' && (
+                        <div className="mp-notes-tab">
+                            <div style={{ fontSize: 12, color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px', marginBottom: 14 }}>
+                                🔒 Notas internas del equipo — el cliente <strong>no</strong> las ve. Úsalas para el estatus/seguimiento del proyecto.
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                                <textarea
+                                    rows={2}
+                                    value={noteText}
+                                    onChange={(e) => setNoteText(e.target.value)}
+                                    placeholder="Escribe una nota (ej. 'Cliente pidió ampliar cap. 2', 'Pendiente revisar bibliografía')…"
+                                    style={{ flex: 1, fontSize: 13, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAddNote(); }}
+                                />
+                                <button className="mp-btn mp-btn-primary" onClick={handleAddNote} disabled={savingNote || !noteText.trim()} style={{ alignSelf: 'flex-start', whiteSpace: 'nowrap' }}>
+                                    {savingNote ? <><FaSync className="spinning" /> Guardando…</> : <><FaPlus /> Agregar nota</>}
+                                </button>
+                            </div>
+                            {(!p.internalNotes || p.internalNotes.length === 0) ? (
+                                <div className="mp-empty-revisions"><FaEdit /><p>Sin notas todavía. Agrega la primera arriba.</p></div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                    {[...p.internalNotes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((n) => (
+                                        <div key={n._id} style={{ background: '#fffdf5', border: '1px solid #fde68a', borderLeft: '4px solid #f59e0b', borderRadius: 10, padding: '12px 14px' }}>
+                                            <div style={{ fontSize: 14, color: '#1f2937', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>{n.text}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
+                                                <span><FaUser /> {n.createdBy?.name || 'Admin'}</span>
+                                                <span><FaClock /> {new Date(n.createdAt).toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                                <button onClick={() => handleDeleteNote(n._id)} disabled={deletingNote === n._id}
+                                                    style={{ marginLeft: 'auto', fontSize: 11, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                    <FaTrash /> {deletingNote === n._id ? '…' : 'Eliminar'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
