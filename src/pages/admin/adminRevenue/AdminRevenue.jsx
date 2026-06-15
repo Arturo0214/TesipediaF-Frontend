@@ -22,6 +22,8 @@ import {
   fetchUsage,
   cleanupDuplicates,
 } from '../../../features/revenue/revenueSlice';
+import axiosWithAuth from '../../../utils/axioswithAuth';
+import { toast } from 'react-toastify';
 import './AdminRevenue.css';
 
 const MONTHS = [
@@ -63,7 +65,10 @@ const CATEGORY_LABELS = {
 
 const fmt = (n) => {
   if (n === null || n === undefined) return '$0';
-  return '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  // Muestra centavos sólo cuando el monto NO es entero (no redondea montos exactos).
+  const num = Number(n);
+  const hasCents = Math.abs(num - Math.round(num)) > 0.005;
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: hasCents ? 2 : 0, maximumFractionDigits: 2 });
 };
 
 const AdminRevenue = () => {
@@ -76,6 +81,7 @@ const AdminRevenue = () => {
   const [activeView, setActiveView] = useState('overview'); // overview | cashflow | expenses | cost-per-sale | sync
   const [cfOnlyPending, setCfOnlyPending] = useState(false); // matriz: solo proyectos con saldo por cobrar
   const [cfExpanded, setCfExpanded] = useState(null); // id de proyecto expandido en la matriz
+  const [cfSaving, setCfSaving] = useState(null); // `${quoteId}-${idx}` del cobro que se está guardando
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: 'claude_api',
@@ -149,6 +155,30 @@ const AdminRevenue = () => {
       const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
       const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString();
       dispatch(fetchExpenses({ startDate, endDate }));
+    }
+  };
+
+  // Marcar/desmarcar un cobro (parcialidad) como pagado desde la matriz de cobranza.
+  // Usa el MISMO endpoint que la sección de Pagos (source=sofia → installmentStatuses),
+  // así el cambio se refleja en ambos lados.
+  const handleToggleInstallment = async (quoteId, idx, currentStatus) => {
+    const newStatus = currentStatus === 'paid' ? 'pending' : 'paid';
+    const key = `${quoteId}-${idx}`;
+    setCfSaving(key);
+    try {
+      await axiosWithAuth.patch(
+        `/payments/dashboard/${quoteId}/installment?source=sofia`,
+        { installmentIndex: idx, status: newStatus }
+      );
+      toast.success(newStatus === 'paid' ? 'Cobro marcado como pagado ✅' : 'Cobro marcado como pendiente');
+      // Recargar flujo de caja para recomputar cobrado/por cobrar/vencido
+      await dispatch(fetchCashflow({ year: selectedYear }));
+      // Refrescar también el resumen de revenue (usa los mismos pagos)
+      dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al guardar el cobro');
+    } finally {
+      setCfSaving(null);
     }
   };
 
@@ -1227,7 +1257,7 @@ const AdminRevenue = () => {
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#10b981' }}>Cobrado</th>
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#f59e0b' }}>Por cobrar</th>
                   <th style={{ textAlign: 'center', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', minWidth: 90 }}>%</th>
-                  {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', opacity: colTotal[mk] ? 1 : 0.4 }}>{MONTHS[i].slice(0, 3)}</th>)}
+                  {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', opacity: colTotal[mk] ? 1 : 0.4, minWidth: 78 }}>{MONTHS[i].slice(0, 3)}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -1264,35 +1294,76 @@ const AdminRevenue = () => {
                     {monthsOfYear.map(mk => {
                       const c = p.cells[mk];
                       return (
-                        <td key={mk} style={{ padding: '7px 8px', textAlign: 'right', borderTop: '1px solid #161d27', whiteSpace: 'nowrap', lineHeight: 1.25 }}>
+                        <td key={mk} style={{ padding: '7px 8px', textAlign: 'right', borderTop: '1px solid #161d27', whiteSpace: 'nowrap', lineHeight: 1.25, minWidth: 78, fontVariantNumeric: 'tabular-nums' }}>
                           {!c && <span style={{ color: '#2c333d' }}>·</span>}
                           {c && c.paid > 0 && <div style={{ color: '#10b981' }}>{fmt(c.paid)}</div>}
-                          {c && c.pending > 0 && <div style={{ color: c.overdue ? '#ef4444' : '#f59e0b', fontWeight: c.overdue ? 700 : 400 }}>{fmt(c.pending)}{c.overdue ? ' ⚠' : ''}</div>}
+                          {c && c.pending > 0 && (
+                            <div style={{ color: c.overdue ? '#ef4444' : '#f59e0b', fontWeight: c.overdue ? 700 : 400 }}>
+                              {fmt(c.pending)}{c.overdue ? <span style={{ fontSize: 9, marginLeft: 1, verticalAlign: 'top' }}>⚠</span> : ''}
+                            </div>
+                          )}
                         </td>
                       );
                     })}
                   </tr>
-                  {open && (
+                  {open && (() => {
+                    const tel = (p.phone || '').replace(/[^\d]/g, '');
+                    const estatusMap = { pending: '🟡 Pendiente', in_progress: '🔵 En proceso', review: '🟣 En revisión', completed: '🏁 Concluido', cancelled: '⚫ Cancelado' };
+                    const due = p.dueDate ? new Date(p.dueDate) : null;
+                    return (
                     <tr>
-                      <td colSpan={5 + 12} style={{ padding: '10px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
-                        <div style={{ fontSize: 11, color: '#8b97a7', marginBottom: 8 }}>{p.title} · esquema {p.esquema} — desglose de pagos</div>
+                      <td colSpan={5 + 12} style={{ padding: '12px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
+                        {/* Contacto + estatus del proyecto */}
+                        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid #161d27' }}>
+                          <div style={{ fontSize: 13, color: '#e6edf5', fontWeight: 600 }}>{p.client}</div>
+                          {p.phone && (
+                            <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 12 }}>
+                              <a href={`https://wa.me/${tel.length === 10 ? '52' + tel : tel}`} target="_blank" rel="noreferrer" style={{ color: '#25d366', textDecoration: 'none' }}>💬 WhatsApp</a>
+                              <a href={`tel:${tel}`} style={{ color: '#38bdf8', textDecoration: 'none' }}>📞 {p.phone}</a>
+                            </span>
+                          )}
+                          {p.email && <a href={`mailto:${p.email}`} style={{ color: '#cdd6e0', textDecoration: 'none', fontSize: 12 }}>✉️ {p.email}</a>}
+                          {!p.phone && !p.email && <span style={{ fontSize: 12, color: '#6b7685' }}>Sin datos de contacto en el proyecto</span>}
+                          <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 10, alignItems: 'center', fontSize: 12, color: '#8b97a7' }}>
+                            {p.projectStatus && <span style={{ color: '#cdd6e0' }}>{estatusMap[p.projectStatus] || p.projectStatus}</span>}
+                            {p.progress != null && <span>· {p.progress}% avance</span>}
+                            {due && <span>· entrega {due.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>}
+                          </span>
+                        </div>
+                        {p.nota && (
+                          <div style={{ fontSize: 12, color: '#cdd6e0', background: '#11161d', border: '1px solid #1c232d', borderRadius: 8, padding: '8px 12px', marginBottom: 12 }}>
+                            <span style={{ color: '#8b97a7' }}>📝 Última nota:</span> {p.nota}
+                          </div>
+                        )}
+                        <div style={{ fontSize: 11, color: '#8b97a7', marginBottom: 8 }}>{p.title} · esquema {p.esquema} — desglose de pagos <span style={{ color: '#5a6675' }}>· click en un cobro para marcarlo pagado/pendiente</span></div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           {[...(p.installments || [])].sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).map((it, i) => {
                             const overdue = it.status !== 'paid' && new Date(it.fecha) < today;
                             const color = it.status === 'paid' ? '#10b981' : overdue ? '#ef4444' : '#f59e0b';
                             const label = it.status === 'paid' ? '✅ Cobrado' : overdue ? '🔴 Vencido' : '⏳ Por cobrar';
+                            const saving = cfSaving === `${p.id}-${it.idx}`;
                             return (
-                              <div key={i} style={{ border: `1px solid ${color}55`, background: '#0d1117', borderRadius: 8, padding: '6px 12px', minWidth: 134 }}>
+                              <button
+                                key={i}
+                                onClick={() => handleToggleInstallment(p.id, it.idx, it.status)}
+                                disabled={saving}
+                                title={it.status === 'paid' ? 'Click para marcar como pendiente' : 'Click para marcar como pagado'}
+                                style={{ textAlign: 'left', border: `1px solid ${color}55`, background: '#0d1117', borderRadius: 8, padding: '6px 12px', minWidth: 140, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.5 : 1 }}
+                              >
                                 <div style={{ fontSize: 10, color: '#8b97a7' }}>Pago {i + 1} · {new Date(it.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                                 <div style={{ fontSize: 15, fontWeight: 700, color }}>{fmt(it.amount)}</div>
-                                <div style={{ fontSize: 10, color }}>{label}</div>
-                              </div>
+                                <div style={{ fontSize: 10, color, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span>{label}</span>
+                                  <span style={{ color: '#5a6675', fontSize: 9 }}>{saving ? '…' : it.status === 'paid' ? '↺ desmarcar' : '✓ marcar'}</span>
+                                </div>
+                              </button>
                             );
                           })}
                         </div>
                       </td>
                     </tr>
-                  )}
+                    );
+                  })()}
                   </React.Fragment>
                   );
                 })}
