@@ -15,6 +15,11 @@ function ManageProjects() {
     const [matrixYear, setMatrixYear] = useState(new Date().getFullYear()); // año de la matriz de fechas
     const [mxEditDue, setMxEditDue] = useState(null); // _id del proyecto cuya entrega se está reprogramando
     const [mxDueSaving, setMxDueSaving] = useState(false);
+    const [mxDocsOpen, setMxDocsOpen] = useState(null); // _id del proyecto con panel de documentos abierto
+    const [mxUpForm, setMxUpForm] = useState({ type: 'revision', label: '' }); // etapa/etiqueta para subir desde la matriz
+    const [mxUploading, setMxUploading] = useState(null); // _id del proyecto subiendo documento
+    const mxFileRef = useRef(null);
+    const mxUploadTargetRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [googleConnected, setGoogleConnected] = useState(false);
     const [googleEmail, setGoogleEmail] = useState('');
@@ -698,8 +703,36 @@ function ManageProjects() {
         }
     };
 
+    // Subir documento desde la matriz → crea una REVISIÓN (misma que ve el cliente en su cuenta).
+    const triggerMxUpload = (projectId) => { mxUploadTargetRef.current = projectId; mxFileRef.current?.click(); };
+    const handleMatrixUpload = async (e) => {
+        const file = e.target.files?.[0];
+        const projectId = mxUploadTargetRef.current;
+        if (!file || !projectId) return;
+        if (file.size > 10 * 1024 * 1024) { toast.error('El archivo no puede superar 10 MB'); if (mxFileRef.current) mxFileRef.current.value = ''; return; }
+        setMxUploading(projectId);
+        try {
+            await projectService.uploadRevision(projectId, file, mxUpForm.label, mxUpForm.type, '');
+            toast.success('Documento subido y vinculado al cliente ✅');
+            setMxUpForm({ type: 'revision', label: '' });
+            dispatch(getAllProjects());
+        } catch (err) {
+            toast.error('Error al subir: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setMxUploading(null);
+            if (mxFileRef.current) mxFileRef.current.value = '';
+        }
+    };
+
     const renderMatrixView = () => {
         const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const TIPO_LABEL = { preliminary: 'Preliminar', revision: 'Revisión', correction: 'Corrección', final: 'Final' };
+        const REV_BADGE = {
+            delivered: { label: 'Entregado', color: '#2563eb', bg: '#dbeafe' },
+            pending_review: { label: 'En revisión', color: '#b45309', bg: '#fef3c7' },
+            corrections_requested: { label: 'Correcciones', color: '#dc2626', bg: '#fee2e2' },
+            approved: { label: 'Aprobado', color: '#047857', bg: '#d1fae5' },
+        };
         // Incluye TODOS los proyectos filtrados; los que no tienen fecha de entrega van al final.
         const rows = [...filteredProjects].sort((a, b) => {
             const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
@@ -731,6 +764,9 @@ function ManageProjects() {
 
         return (
             <div className="mp-table-container">
+                {/* Input oculto compartido para subir documentos desde cualquier fila */}
+                <input type="file" ref={mxFileRef} onChange={handleMatrixUpload} style={{ display: 'none' }}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt,.zip,.rar" />
                 {/* Navegación de año + leyenda */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -766,11 +802,23 @@ function ManageProjects() {
                                 const byMonth = {};
                                 evs.forEach(e => { (byMonth[e.date.getMonth()] = byMonth[e.date.getMonth()] || []).push(e); });
                                 const rowBg = idx % 2 ? '#fafbfc' : '#fff';
+                                const docsOpen = mxDocsOpen === p._id;
+                                const revCount = (p.revisions || []).length;
                                 return (
-                                    <tr key={p._id} style={{ background: rowBg }}>
-                                        <td onClick={() => { setSelectedProject(p); setShowModal(true); }} title="Ver proyecto" style={{ padding: '8px 12px', position: 'sticky', left: 0, background: rowBg, cursor: 'pointer', borderTop: '1px solid #eef1f4' }}>
-                                            <div style={{ fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.taskTitle || 'Proyecto'}</div>
+                                    <React.Fragment key={p._id}>
+                                    <tr style={{ background: docsOpen ? '#eef6ff' : rowBg }}>
+                                        <td style={{ padding: '8px 12px', position: 'sticky', left: 0, background: docsOpen ? '#eef6ff' : rowBg, borderTop: '1px solid #eef1f4', minWidth: 220 }}>
+                                            <div onClick={() => { setSelectedProject(p); setShowModal(true); }} title="Ver proyecto" style={{ fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>{p.taskTitle || 'Proyecto'}</div>
                                             <div style={{ fontSize: 11, color: '#6b7280' }}>{p.clientName || '—'}{p.writer?.name ? ` · ${p.writer.name}` : ''}</div>
+                                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                                                <button onClick={() => setMxDocsOpen(docsOpen ? null : p._id)} title="Subir y ver documentos del cliente"
+                                                    style={{ fontSize: 11, fontWeight: 600, color: docsOpen ? '#fff' : '#2563eb', background: docsOpen ? '#2563eb' : '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}>
+                                                    {docsOpen ? '▾' : '▸'} 📎 Docs{revCount ? ` (${revCount})` : ''}
+                                                </button>
+                                                {p.client
+                                                    ? <span title={`Cuenta: ${p.client.email || ''}`} style={{ fontSize: 10, color: '#047857' }}>👤 Cuenta ✓</span>
+                                                    : <span title="Sin usuario cliente — ábrelo en Docs para crearlo" style={{ fontSize: 10, color: '#b45309' }}>⚠ Sin cuenta</span>}
+                                            </div>
                                         </td>
                                         <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4' }}>
                                             <span className="mp-status-badge" style={{ backgroundColor: statusColumns[p.status]?.color || '#9ca3af' }}>{statusColumns[p.status]?.label || p.status}</span>
@@ -810,6 +858,71 @@ function ManageProjects() {
                                             );
                                         })}
                                     </tr>
+                                    {docsOpen && (
+                                        <tr>
+                                            <td colSpan={3 + 12} style={{ padding: '14px 18px', background: '#f8fafc', borderTop: '1px solid #e5e7eb', borderBottom: '2px solid #e5e7eb' }}>
+                                                {/* Cuenta del cliente */}
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                                                    {p.client ? (
+                                                        <span style={{ fontSize: 12, color: '#047857', fontWeight: 600 }}>👤 Cliente con cuenta: {p.client.email || p.clientEmail || '—'} — lo que subas aquí lo ve en su panel</span>
+                                                    ) : (p.clientEmail || p.clientPhone) ? (
+                                                        <>
+                                                            <span style={{ fontSize: 12, color: '#b45309', fontWeight: 600 }}>⚠ Sin usuario cliente. Créalo para que pueda entrar y ver sus documentos:</span>
+                                                            <button onClick={(e) => handleCreateClient(e, p)} disabled={creatingClient === p._id}
+                                                                style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>
+                                                                <FaUserPlus /> {creatingClient === p._id ? 'Creando…' : 'Crear usuario y contraseña'}
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <span style={{ fontSize: 12, color: '#b45309' }}>⚠ Sin email/teléfono del cliente. Agrégalo primero (en el detalle del proyecto) para poder crearle cuenta.</span>
+                                                    )}
+                                                </div>
+
+                                                {/* Subir documento por etapa */}
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: '10px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 12 }}>
+                                                    <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>⬆ Subir documento:</span>
+                                                    <select value={mxUpForm.type} onChange={(e) => setMxUpForm(f => ({ ...f, type: e.target.value }))}
+                                                        style={{ fontSize: 12, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 6 }}>
+                                                        <option value="preliminary">Preliminar</option>
+                                                        <option value="revision">Revisión</option>
+                                                        <option value="correction">Corrección</option>
+                                                        <option value="final">Final</option>
+                                                    </select>
+                                                    <input type="text" placeholder="Etiqueta (ej. Capítulo 1)" value={mxUpForm.label}
+                                                        onChange={(e) => setMxUpForm(f => ({ ...f, label: e.target.value }))}
+                                                        style={{ fontSize: 12, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 6, minWidth: 200 }} />
+                                                    <button onClick={() => triggerMxUpload(p._id)} disabled={mxUploading === p._id}
+                                                        style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#10b981', border: 'none', borderRadius: 6, padding: '5px 14px', cursor: mxUploading === p._id ? 'wait' : 'pointer', opacity: mxUploading === p._id ? 0.6 : 1 }}>
+                                                        {mxUploading === p._id ? 'Subiendo…' : <><FaCloudUploadAlt /> Seleccionar archivo</>}
+                                                    </button>
+                                                    <span style={{ fontSize: 11, color: '#9ca3af' }}>PDF/Word/Excel/ZIP — máx 10 MB</span>
+                                                </div>
+
+                                                {/* Documentos subidos = lo que ve el cliente */}
+                                                <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>📂 Documentos del proyecto <span style={{ fontWeight: 400, color: '#9ca3af' }}>(esto es exactamente lo que el cliente ve en su cuenta)</span></div>
+                                                {revCount === 0 ? (
+                                                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '6px 0' }}>Aún no hay documentos subidos. Sube el primero arriba.</div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                        {[...(p.revisions || [])].sort((a, b) => a.version - b.version).map((rev) => {
+                                                            const badge = REV_BADGE[rev.status] || REV_BADGE.delivered;
+                                                            return (
+                                                                <div key={rev.version} style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', fontSize: 12, padding: '6px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6 }}>
+                                                                    <span style={{ fontWeight: 700, color: '#1f2937' }}>v{rev.version}</span>
+                                                                    <span style={{ color: '#6b7280' }}>{TIPO_LABEL[rev.type] || rev.type}</span>
+                                                                    {rev.label && <span style={{ color: '#374151' }}>· {rev.label}</span>}
+                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: badge.color, background: badge.bg, borderRadius: 10, padding: '1px 8px' }}>{badge.label}</span>
+                                                                    <span style={{ color: '#9ca3af', marginLeft: 'auto' }}>{formatDate(rev.createdAt)}</span>
+                                                                    {rev.file?.path && <a href={rev.file.path} target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}><FaDownload /> Ver</a>}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )}
+                                    </React.Fragment>
                                 );
                             })}
                             {rows.length === 0 && <tr><td colSpan={3 + 12} style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>No hay proyectos para mostrar.</td></tr>}
