@@ -82,6 +82,9 @@ const AdminRevenue = () => {
   const [cfOnlyPending, setCfOnlyPending] = useState(false); // matriz: solo proyectos con saldo por cobrar
   const [cfExpanded, setCfExpanded] = useState(null); // id de proyecto expandido en la matriz
   const [cfSaving, setCfSaving] = useState(null); // `${quoteId}-${idx}` del cobro que se está guardando
+  const [cfEditId, setCfEditId] = useState(null); // quoteId cuyo contacto se está editando
+  const [cfContact, setCfContact] = useState({ phone: '', email: '' });
+  const [cfContactSaving, setCfContactSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: 'claude_api',
@@ -179,6 +182,29 @@ const AdminRevenue = () => {
       toast.error(err.response?.data?.message || 'Error al guardar el cobro');
     } finally {
       setCfSaving(null);
+    }
+  };
+
+  // Editar/guardar contacto del cliente directamente en la cotización (PUT /quotes/:id).
+  // Solo manda clientPhone/clientEmail → no cambia status ni dispara auto-creación.
+  const openContactEdit = (p) => {
+    setCfEditId(p.id);
+    setCfContact({ phone: p.phone || '', email: p.email || '' });
+  };
+  const handleSaveContact = async (quoteId) => {
+    setCfContactSaving(true);
+    try {
+      await axiosWithAuth.put(`/quotes/generated/${quoteId}`, {
+        clientPhone: cfContact.phone.trim(),
+        clientEmail: cfContact.email.trim(),
+      });
+      toast.success('Contacto guardado ✅');
+      setCfEditId(null);
+      await dispatch(fetchCashflow({ year: selectedYear }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al guardar el contacto');
+    } finally {
+      setCfContactSaving(false);
     }
   };
 
@@ -1323,13 +1349,40 @@ const AdminRevenue = () => {
                             </span>
                           )}
                           {p.email && <a href={`mailto:${p.email}`} style={{ color: '#cdd6e0', textDecoration: 'none', fontSize: 12 }}>✉️ {p.email}</a>}
-                          {!p.phone && !p.email && <span style={{ fontSize: 12, color: '#6b7685' }}>Sin datos de contacto en el proyecto</span>}
+                          {!p.phone && !p.email && <span style={{ fontSize: 12, color: '#6b7685' }}>Sin datos de contacto</span>}
+                          {cfEditId !== p.id && (
+                            <button onClick={() => openContactEdit(p)} style={{ fontSize: 11, color: '#8b97a7', background: 'transparent', border: '1px solid #2a323d', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}>
+                              ✏️ {p.phone || p.email ? 'Editar' : 'Agregar'} contacto
+                            </button>
+                          )}
                           <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 10, alignItems: 'center', fontSize: 12, color: '#8b97a7' }}>
                             {p.projectStatus && <span style={{ color: '#cdd6e0' }}>{estatusMap[p.projectStatus] || p.projectStatus}</span>}
                             {p.progress != null && <span>· {p.progress}% avance</span>}
                             {due && <span>· entrega {due.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>}
                           </span>
                         </div>
+                        {cfEditId === p.id && (
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12, padding: '10px 12px', background: '#11161d', border: '1px solid #1c232d', borderRadius: 8 }}>
+                            <input
+                              value={cfContact.phone}
+                              onChange={(e) => setCfContact(prev => ({ ...prev, phone: e.target.value }))}
+                              placeholder="Teléfono (ej. 5215512345678)"
+                              style={{ flex: 1, minWidth: 200, fontSize: 12, background: '#0d1117', border: '1px solid #2a323d', borderRadius: 6, padding: '6px 10px', color: '#e6edf5' }}
+                            />
+                            <input
+                              value={cfContact.email}
+                              onChange={(e) => setCfContact(prev => ({ ...prev, email: e.target.value }))}
+                              placeholder="Email (opcional)"
+                              style={{ flex: 1, minWidth: 200, fontSize: 12, background: '#0d1117', border: '1px solid #2a323d', borderRadius: 6, padding: '6px 10px', color: '#e6edf5' }}
+                            />
+                            <button onClick={() => handleSaveContact(p.id)} disabled={cfContactSaving} style={{ fontSize: 12, fontWeight: 600, color: '#0a0e14', background: '#10b981', border: 'none', borderRadius: 6, padding: '6px 14px', cursor: cfContactSaving ? 'wait' : 'pointer', opacity: cfContactSaving ? 0.6 : 1 }}>
+                              {cfContactSaving ? 'Guardando…' : 'Guardar'}
+                            </button>
+                            <button onClick={() => setCfEditId(null)} style={{ fontSize: 12, color: '#8b97a7', background: 'transparent', border: '1px solid #2a323d', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}>
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
                         {p.nota && (
                           <div style={{ fontSize: 12, color: '#cdd6e0', background: '#11161d', border: '1px solid #1c232d', borderRadius: 8, padding: '8px 12px', marginBottom: 12 }}>
                             <span style={{ color: '#8b97a7' }}>📝 Última nota:</span> {p.nota}
