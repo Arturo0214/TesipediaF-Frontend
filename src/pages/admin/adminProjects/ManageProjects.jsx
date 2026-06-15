@@ -13,6 +13,8 @@ function ManageProjects() {
 
     const [view, setView] = useState('kanban'); // kanban, calendar, list, matrix
     const [matrixYear, setMatrixYear] = useState(new Date().getFullYear()); // año de la matriz de fechas
+    const [mxEditDue, setMxEditDue] = useState(null); // _id del proyecto cuya entrega se está reprogramando
+    const [mxDueSaving, setMxDueSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [googleConnected, setGoogleConnected] = useState(false);
     const [googleEmail, setGoogleEmail] = useState('');
@@ -672,11 +674,39 @@ function ManageProjects() {
 
     // Vista Matriz — proyectos (filas) × meses (columnas), enfocada en FECHAS:
     // inicio, entregables, revisiones y la entrega final (coloreada por estado/vencimiento).
+    // YYYY-MM-DD local (para <input type="date">), sin corrimiento por zona horaria
+    const toDateInput = (d) => {
+        if (!d) return '';
+        const x = new Date(d);
+        return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+    };
+
+    // Reprogramar fecha de entrega desde la matriz (PUT /projects/:id) — resincroniza calendario
+    const handleReschedule = async (projectId, newDate) => {
+        if (!newDate) { setMxEditDue(null); return; }
+        setMxDueSaving(true);
+        try {
+            // mediodía local para evitar que el día se recorra por UTC
+            await projectService.updateProject(projectId, { dueDate: new Date(`${newDate}T12:00:00`).toISOString() });
+            toast.success('Fecha de entrega actualizada');
+            setMxEditDue(null);
+            dispatch(getAllProjects());
+        } catch (err) {
+            toast.error('Error al reprogramar la fecha');
+        } finally {
+            setMxDueSaving(false);
+        }
+    };
+
     const renderMatrixView = () => {
         const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const rows = [...filteredProjects]
-            .filter(p => p.dueDate || p.createdAt)
-            .sort((a, b) => new Date(a.dueDate || a.createdAt) - new Date(b.dueDate || b.createdAt));
+        // Incluye TODOS los proyectos filtrados; los que no tienen fecha de entrega van al final.
+        const rows = [...filteredProjects].sort((a, b) => {
+            const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+            const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+            if (ad !== bd) return ad - bd;
+            return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+        });
 
         const buildEvents = (p) => {
             const evs = [];
@@ -745,15 +775,33 @@ function ManageProjects() {
                                         <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4' }}>
                                             <span className="mp-status-badge" style={{ backgroundColor: statusColumns[p.status]?.color || '#9ca3af' }}>{statusColumns[p.status]?.label || p.status}</span>
                                         </td>
-                                        <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4', color: dueColor(p), fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                            {p.dueDate ? formatDate(p.dueDate) : '—'}
+                                        <td style={{ textAlign: 'center', borderTop: '1px solid #eef1f4', whiteSpace: 'nowrap' }}>
+                                            {mxEditDue === p._id ? (
+                                                <input
+                                                    type="date"
+                                                    autoFocus
+                                                    defaultValue={toDateInput(p.dueDate)}
+                                                    disabled={mxDueSaving}
+                                                    onChange={(e) => handleReschedule(p._id, e.target.value)}
+                                                    onBlur={() => !mxDueSaving && setMxEditDue(null)}
+                                                    style={{ fontSize: 12, padding: '3px 6px', border: '1px solid #cbd5e1', borderRadius: 6 }}
+                                                />
+                                            ) : p.dueDate ? (
+                                                <span onClick={() => setMxEditDue(p._id)} title="Click para reprogramar la entrega" style={{ color: dueColor(p), fontWeight: 600, cursor: 'pointer', borderBottom: '1px dashed #cbd5e1' }}>
+                                                    {formatDate(p.dueDate)}
+                                                </span>
+                                            ) : (
+                                                <button onClick={() => setMxEditDue(p._id)} title="Asignar fecha de entrega" style={{ fontSize: 11, color: '#6b7280', background: '#f3f4f6', border: '1px dashed #cbd5e1', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}>
+                                                    + Sin fecha
+                                                </button>
+                                            )}
                                         </td>
                                         {MESES.map((m, i) => {
                                             const cell = byMonth[i];
                                             return (
                                                 <td key={m} style={{ padding: '6px 5px', textAlign: 'center', borderTop: '1px solid #eef1f4', borderLeft: '1px solid #f3f4f6', verticalAlign: 'top' }}>
                                                     {cell ? cell.sort((a, b) => a.date - b.date).map((e, j) => {
-                                                        if (e.kind === 'entrega') return <div key={j} title={`Entrega final: ${formatDate(e.date)}`} style={{ fontSize: 11, fontWeight: 700, color: dueColor(p), whiteSpace: 'nowrap' }}>🎯 {e.date.getDate()}</div>;
+                                                        if (e.kind === 'entrega') return <div key={j} onClick={() => setMxEditDue(p._id)} title={`Entrega final: ${formatDate(e.date)} · click para reprogramar`} style={{ fontSize: 11, fontWeight: 700, color: dueColor(p), whiteSpace: 'nowrap', cursor: 'pointer' }}>🎯 {e.date.getDate()}</div>;
                                                         if (e.kind === 'inicio') return <div key={j} title={`Inicio: ${formatDate(e.date)}`} style={{ fontSize: 10, color: '#9ca3af', whiteSpace: 'nowrap' }}>▶ {e.date.getDate()}</div>;
                                                         if (e.kind === 'revision') return <div key={j} title={`Revisión ${e.label}: ${formatDate(e.date)}`} style={{ fontSize: 10, color: '#3b82f6', whiteSpace: 'nowrap' }}>📄 {e.date.getDate()}</div>;
                                                         return <div key={j} title={`Entregable: ${formatDate(e.date)}`} style={{ fontSize: 10, color: '#10b981', whiteSpace: 'nowrap' }}>📎 {e.date.getDate()}</div>;
@@ -764,7 +812,7 @@ function ManageProjects() {
                                     </tr>
                                 );
                             })}
-                            {rows.length === 0 && <tr><td colSpan={3 + 12} style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>Sin proyectos con fechas en {matrixYear}.</td></tr>}
+                            {rows.length === 0 && <tr><td colSpan={3 + 12} style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>No hay proyectos para mostrar.</td></tr>}
                         </tbody>
                     </table>
                 </div>
