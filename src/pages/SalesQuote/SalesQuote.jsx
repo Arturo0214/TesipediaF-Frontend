@@ -151,51 +151,11 @@ const SalesQuote = () => {
         return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
     };
 
-    const generarTextoEsquemaPago = () => {
-        const prices = calculatePrices();
-        const total = prices.precioConDescuento;
-        const fmt = (v) => '$' + new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
-
-        if (formData.esquemaTipo === '33-33-34') {
-            const pago1 = Math.round(total * 0.33 * 100) / 100;
-            const pago2 = Math.round(total * 0.33 * 100) / 100;
-            const pago3 = Math.round((total - pago1 - pago2) * 100) / 100;
-            return `33% (${fmt(pago1)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}), 33% (${fmt(pago2)}) al entregar avance (${formatDateForDisplay(formData.fechaAvance)}) y 34% (${fmt(pago3)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
-        } else if (formData.esquemaTipo === 'personalizado' && (formData.pagosCustom || []).length > 0) {
-            // Aplicar el descuento a los montos para que el texto coincida con el cobro real
-            const descFactor = 1 - ((parseFloat(formData.descuentoEfectivo) || 0) / 100);
-            const pagosTexto = formData.pagosCustom.map((p, i) => {
-                const monto = Math.round((Number(p.monto) || 0) * descFactor * 100) / 100;
-                return `Pago ${i + 1}: ${fmt(monto)} (${formatDateForDisplay(p.fecha)})`;
-            }).join(', ');
-            return `Esquema de ${formData.pagosCustom.length} pagos personalizado: ${pagosTexto}.`;
-        } else if (formData.esquemaTipo === 'unico') {
-            return `Pago único de ${fmt(total)} al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}).`;
-        } else if (formData.esquemaTipo === '6-quincenales' || formData.esquemaTipo === '6-mensuales' || /^\d+-msi$/.test(formData.esquemaTipo)) {
-            const msiMatch = formData.esquemaTipo.match(/^(\d+)-msi$/);
-            const numPagos = msiMatch ? parseInt(msiMatch[1]) : 6;
-            const isQuincenal = formData.esquemaTipo === '6-quincenales';
-            const montoPago = Math.round((total / numPagos) * 100) / 100;
-            // Ajustar el último pago para que cuadre el centavo
-            const ultimoPago = Math.round((total - (montoPago * (numPagos - 1))) * 100) / 100;
-
-            const tipoTexto = isQuincenal ? 'quincenales' : msiMatch ? 'mensuales sin intereses' : 'mensuales';
-            let texto = `Esquema de ${numPagos} pagos ${tipoTexto}: `;
-
-            const fechas = (formData.fechasPagos || []).length === numPagos ? formData.fechasPagos : Array(numPagos).fill(new Date().toISOString().split('T')[0]);
-
-            const pagosTexto = fechas.map((fecha, index) => {
-                const monto = index === numPagos - 1 ? ultimoPago : montoPago;
-                return `Pago ${index + 1}: ${fmt(monto)} (${formatDateForDisplay(fecha)})`;
-            }).join(', ');
-
-            return texto + pagosTexto + '.';
-        }
-
-        const mitad = Math.round(total * 0.50 * 100) / 100;
-        const mitad2 = Math.round((total - mitad) * 100) / 100;
-        return `50% (${fmt(mitad)}) al iniciar el proyecto (${formatDateForDisplay(formData.fechaPago1)}) y 50% (${fmt(mitad2)}) al finalizar (${formatDateForDisplay(formData.fechaEntrega)}), previo a la entrega de la versión final del documento.`;
-    };
+    // NOTA: el texto del esquema de pago YA NO se arma en el frontend.
+    // El backend es la única fuente de verdad: /quotes/generated (saveGeneratedQuote)
+    // y /quotes/generate-quote-pdf calculan el esquema con utils/esquemaPago.js a
+    // partir de los campos estructurados (esquemaTipo, pagosCustom, fechas, descuento).
+    // Esto garantiza que esta pantalla y la cotizadora de WhatsApp nunca se desincronicen.
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -389,7 +349,6 @@ const SalesQuote = () => {
                 descuentoEfectivo: formData.descuentoEfectivo,
                 descuentoMonto: prices.descuentoMonto,
                 precioConDescuento: prices.precioConDescuento,
-                esquemaPago: generarTextoEsquemaPago(),
                 serviciosIncluidos: formData.serviciosIncluidos.filter(s => s.trim() !== ''),
                 beneficiosAdicionales: formData.beneficiosAdicionales.filter(b => {
                     if (typeof b === 'object') {
@@ -403,10 +362,14 @@ const SalesQuote = () => {
                 notaAcompañamiento: formData.notaAcompañamiento,
                 metodoPago: metodoPago,
                 modalidadCaptacion: formData.modalidadCaptacion,
-                // Desglose del esquema de pago (para reconstruir parcialidades en el dashboard)
+                // Desglose estructurado del esquema de pago. El backend (utils/esquemaPago.js)
+                // calcula el texto de esquemaPago a partir de esto — fuente única de verdad.
                 esquemaTipo: formData.esquemaTipo,
                 fechasPagos: formData.fechasPagos || [],
                 pagosCustom: (formData.pagosCustom || []).map(p => ({ monto: Number(p.monto) || 0, fecha: p.fecha })),
+                fechaPago1: formData.fechaPago1 || '',
+                fechaAvance: formData.fechaAvance || '',
+                fechaEntregaRaw: formData.fechaEntrega || '',
             };
 
             // 💾 1. Guardar primero en backend para obtener el ID (necesario para vincular el PDF)
@@ -454,7 +417,6 @@ const SalesQuote = () => {
                 descuentoEfectivo: Number(quoteData.descuentoEfectivo) || 0,
                 descuentoMonto: Number(quoteData.descuentoMonto) || 0,
                 metodoPago: quoteData.metodoPago,
-                esquemaPago: quoteData.esquemaPago,
                 esquemaTipo: formData.esquemaTipo,
                 fechaPago1: formData.fechaPago1 || '',
                 fechaAvance: formData.fechaAvance || '',

@@ -1413,11 +1413,16 @@ const AdminWhatsApp = () => {
           descuentoMonto,
           precioConDescuento,
           metodoPago: f.metodoPago || 'tarjeta-nu',
-          esquemaPago: f.esquemaTipo || '33-33-34',
-          // Desglose del esquema de pago (para reconstruir parcialidades en el dashboard)
+          // Desglose estructurado del esquema de pago. El backend (utils/esquemaPago.js)
+          // calcula el texto de esquemaPago a partir de esto — fuente única de verdad,
+          // idéntica a la del cotizador SalesQuote.
           esquemaTipo: f.esquemaTipo || '33-33-34',
           fechasPagos: f.fechasPagos || [],
           pagosCustom: (f.pagosCustom || []).map(p => ({ monto: Number(p.monto) || 0, fecha: p.fecha })),
+          fechaPago1: f.fechaPago1 || '',
+          fechaAvance: f.fechaAvance || '',
+          fechaPagoFinal: f.fechaPagoFinal || f.fechaEntregaDate || '',
+          fechaEntregaRaw: f.fechaEntregaDate || '',
           pdfUrl: pdfUrl || null,
           pdfPublicId: pdfPublicId || null,
           status: 'pending',
