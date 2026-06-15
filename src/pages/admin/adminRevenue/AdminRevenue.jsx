@@ -73,7 +73,8 @@ const AdminRevenue = () => {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [activeView, setActiveView] = useState('overview'); // overview | expenses | cost-per-sale | sync
+  const [activeView, setActiveView] = useState('overview'); // overview | cashflow | expenses | cost-per-sale | sync
+  const [cfOnlyPending, setCfOnlyPending] = useState(false); // matriz: solo proyectos con saldo por cobrar
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     category: 'claude_api',
@@ -1076,44 +1077,84 @@ const AdminRevenue = () => {
     const yearMonths = monthly.filter(m => m.key.startsWith(String(selectedYear)));
     const yt = cashflow.yearTotals || { vendido: 0, cobrado: 0, porCobrar: 0 };
 
-    // Matriz: meses (1-12) del año x proyectos con actividad ese año
+    // Total pendiente de cobro (TODO el horizonte, no solo el año) — "cuánto voy a cobrar"
+    const totalPorCobrar = monthly.reduce((s, m) => s + m.porCobrar, 0);
+    const totalCobrado = monthly.reduce((s, m) => s + m.cobrado, 0);
+    const totalVendido = monthly.reduce((s, m) => s + m.vendido, 0);
+    // Próximas cobranzas: meses futuros (desde el mes seleccionado) con saldo
+    const upcoming = monthly.filter(m => m.key >= selKey && m.porCobrar > 0);
+    const maxUpcoming = Math.max(1, ...upcoming.map(m => m.porCobrar));
+
+    // Matriz: proyecto x mes del año. Resumen por proyecto = TODO su horizonte.
     const monthsOfYear = Array.from({ length: 12 }, (_, i) => `${selectedYear}-${String(i + 1).padStart(2, '0')}`);
-    const projRows = projects
+    let projRows = projects
       .map(p => {
         const cells = {};
-        let hasYear = false;
+        let cobrado = 0, porCobrar = 0;
         for (const it of (p.installments || [])) {
+          if (it.status === 'paid') cobrado += it.amount; else porCobrar += it.amount;
           if (!it.mes.startsWith(String(selectedYear))) continue;
-          hasYear = true;
           cells[it.mes] = cells[it.mes] || { amount: 0, pending: false };
           cells[it.mes].amount += it.amount;
           if (it.status !== 'paid') cells[it.mes].pending = true;
         }
-        return { ...p, cells, hasYear };
+        const total = p.total || (cobrado + porCobrar);
+        return { ...p, cells, cobrado, porCobrar, total, pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
       })
-      .filter(p => p.hasYear)
-      .sort((a, b) => b.total - a.total);
+      .filter(p => (p.installments || []).length > 0);
+    if (cfOnlyPending) projRows = projRows.filter(p => p.porCobrar > 0.5);
+    projRows.sort((a, b) => b.porCobrar - a.porCobrar || b.total - a.total);
+    // Totales por columna (mes) sobre las filas visibles
+    const colTotal = {};
+    monthsOfYear.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + (p.cells[mk]?.amount || 0), 0); });
+    const sumCol = (key) => projRows.reduce((s, p) => s + p[key], 0);
 
-    const card = (label, value, color, sub) => (
-      <div style={{ flex: 1, minWidth: 200, background: '#11161d', border: '1px solid #232a35', borderRadius: 12, padding: '18px 20px' }}>
+    const card = (label, value, color, sub, big) => (
+      <div style={{ flex: 1, minWidth: 200, background: big ? 'linear-gradient(135deg,#1a2230,#11161d)' : '#11161d', border: `1px solid ${big ? '#3a2a12' : '#232a35'}`, borderRadius: 12, padding: '18px 20px' }}>
         <div style={{ fontSize: 12, color: '#8b97a7', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
-        <div style={{ fontSize: 26, fontWeight: 700, color, marginTop: 4 }}>{fmt(value)}</div>
+        <div style={{ fontSize: big ? 32 : 26, fontWeight: 700, color, marginTop: 4 }}>{fmt(value)}</div>
         {sub && <div style={{ fontSize: 11, color: '#6b7685', marginTop: 2 }}>{sub}</div>}
       </div>
     );
 
     return (
       <>
+        {/* Hero: cuánto voy a cobrar en total + barras de próximas cobranzas */}
+        <div className="rev-section" style={{ background: 'linear-gradient(135deg,#1c1505,#12161d)', border: '1px solid #3a2a12' }}>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ minWidth: 240 }}>
+              <div style={{ fontSize: 12, color: '#c79a4e', textTransform: 'uppercase', letterSpacing: 0.6 }}>💰 Por cobrar (total pendiente)</div>
+              <div style={{ fontSize: 40, fontWeight: 800, color: '#f59e0b', lineHeight: 1.1 }}>{fmt(totalPorCobrar)}</div>
+              <div style={{ fontSize: 12, color: '#8b97a7', marginTop: 4 }}>
+                de {fmt(totalVendido)} vendido · {fmt(totalCobrado)} ya cobrado ({totalVendido > 0 ? Math.round(totalCobrado / totalVendido * 100) : 0}%)
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <div style={{ fontSize: 12, color: '#8b97a7', marginBottom: 8 }}>Próximas cobranzas</div>
+              {upcoming.length === 0 && <div style={{ fontSize: 13, color: '#6b7685' }}>Sin pagos pendientes futuros 🎉</div>}
+              {upcoming.slice(0, 8).map(m => (
+                <div key={m.key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <div style={{ width: 70, fontSize: 12, color: '#cdd6e0', textTransform: 'capitalize' }}>{m.label}</div>
+                  <div style={{ flex: 1, height: 14, background: '#1c232d', borderRadius: 7, overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.max(4, (m.porCobrar / maxUpcoming) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', borderRadius: 7 }} />
+                  </div>
+                  <div style={{ width: 80, textAlign: 'right', fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>{fmt(m.porCobrar)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Tarjetas del mes seleccionado */}
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 18 }}>
           {card(`Vendido · ${MONTHS[selectedMonth]}`, sel.vendido, '#e6edf5', 'Ventas cerradas este mes')}
-          {card(`Cobrado · ${MONTHS[selectedMonth]}`, sel.cobrado, '#10b981', 'Parcialidades pagadas con fecha en el mes')}
-          {card(`Por cobrar · ${MONTHS[selectedMonth]}`, sel.porCobrar, '#f59e0b', 'Parcialidades pendientes con fecha en el mes')}
+          {card(`Cobrado · ${MONTHS[selectedMonth]}`, sel.cobrado, '#10b981', 'Parcialidades pagadas en el mes')}
+          {card(`Por cobrar · ${MONTHS[selectedMonth]}`, sel.porCobrar, '#f59e0b', 'Parcialidades pendientes en el mes')}
         </div>
 
-        {/* Tabla mensual del año */}
+        {/* Análisis mensual: vendido / cobrado / por cobrar / gastos / ganancia */}
         <div className="rev-section">
-          <h3 className="rev-section-title"><FaChartLine /> Flujo de caja {selectedYear} — Vendido vs Cobrado vs Por cobrar</h3>
+          <h3 className="rev-section-title"><FaChartLine /> Análisis mensual {selectedYear} — cuánto se gana por mes</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
@@ -1122,61 +1163,112 @@ const AdminRevenue = () => {
                   <th style={{ padding: '8px 10px' }}>Vendido</th>
                   <th style={{ padding: '8px 10px', color: '#10b981' }}>Cobrado</th>
                   <th style={{ padding: '8px 10px', color: '#f59e0b' }}>Por cobrar</th>
+                  <th style={{ padding: '8px 10px', color: '#f87171' }}>Gastos</th>
+                  <th style={{ padding: '8px 10px', color: '#38bdf8' }}>Ganancia</th>
                 </tr>
               </thead>
               <tbody>
-                {yearMonths.map(m => (
-                  <tr key={m.key} style={{ borderTop: '1px solid #1c232d', textAlign: 'right', background: m.key === selKey ? '#161d27' : 'transparent' }}>
-                    <td style={{ textAlign: 'left', padding: '8px 10px', textTransform: 'capitalize', color: '#cdd6e0' }}>{m.label}</td>
-                    <td style={{ padding: '8px 10px', color: '#e6edf5' }}>{fmt(m.vendido)}</td>
-                    <td style={{ padding: '8px 10px', color: '#10b981' }}>{fmt(m.cobrado)}</td>
-                    <td style={{ padding: '8px 10px', color: '#f59e0b' }}>{fmt(m.porCobrar)}</td>
-                  </tr>
-                ))}
+                {yearMonths.map(m => {
+                  const gan = (m.ganancia !== undefined) ? m.ganancia : (m.cobrado || 0) - (m.gastos || 0);
+                  return (
+                    <tr key={m.key} style={{ borderTop: '1px solid #1c232d', textAlign: 'right', background: m.key === selKey ? '#161d27' : 'transparent', cursor: 'pointer' }}
+                      onClick={() => setSelectedMonth(parseInt(m.key.split('-')[1]) - 1)}>
+                      <td style={{ textAlign: 'left', padding: '8px 10px', textTransform: 'capitalize', color: '#cdd6e0' }}>{m.label}</td>
+                      <td style={{ padding: '8px 10px', color: '#e6edf5' }}>{fmt(m.vendido)}</td>
+                      <td style={{ padding: '8px 10px', color: '#10b981' }}>{fmt(m.cobrado)}</td>
+                      <td style={{ padding: '8px 10px', color: '#f59e0b' }}>{fmt(m.porCobrar)}</td>
+                      <td style={{ padding: '8px 10px', color: '#f87171' }}>{m.gastos ? '-' + fmt(m.gastos) : '—'}</td>
+                      <td style={{ padding: '8px 10px', fontWeight: 600, color: gan >= 0 ? '#38bdf8' : '#ef4444' }}>{fmt(gan)}</td>
+                    </tr>
+                  );
+                })}
                 <tr style={{ borderTop: '2px solid #2a323d', textAlign: 'right', fontWeight: 700 }}>
                   <td style={{ textAlign: 'left', padding: '10px', color: '#fff' }}>TOTAL {selectedYear}</td>
                   <td style={{ padding: '10px', color: '#e6edf5' }}>{fmt(yt.vendido)}</td>
                   <td style={{ padding: '10px', color: '#10b981' }}>{fmt(yt.cobrado)}</td>
                   <td style={{ padding: '10px', color: '#f59e0b' }}>{fmt(yt.porCobrar)}</td>
+                  <td style={{ padding: '10px', color: '#f87171' }}>{yt.gastos ? '-' + fmt(yt.gastos) : '—'}</td>
+                  <td style={{ padding: '10px', color: (yt.ganancia ?? 0) >= 0 ? '#38bdf8' : '#ef4444' }}>{fmt(yt.ganancia ?? (yt.cobrado - (yt.gastos || 0)))}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <p style={{ fontSize: 11, color: '#6b7685', marginTop: 8 }}>Ganancia = Cobrado − Gastos del mes. Las parcialidades en "Por cobrar" suman a la ganancia cuando se cobran en su mes.</p>
         </div>
 
         {/* Matriz por proyecto x mes */}
         <div className="rev-section">
-          <h3 className="rev-section-title"><FaFileInvoiceDollar /> Matriz de pagos por proyecto · {selectedYear}</h3>
-          <p style={{ fontSize: 12, color: '#6b7685', marginTop: -6 }}>
-            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+            <h3 className="rev-section-title" style={{ margin: 0 }}><FaFileInvoiceDollar /> Matriz de cobranza por proyecto · {selectedYear}</h3>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#cdd6e0', cursor: 'pointer' }}>
+              <input type="checkbox" checked={cfOnlyPending} onChange={(e) => setCfOnlyPending(e.target.checked)} />
+              Solo con saldo por cobrar ({projRows.length})
+            </label>
+          </div>
+          <p style={{ fontSize: 12, color: '#6b7685', margin: '4px 0 10px' }}>
+            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp;·&nbsp; ordenado por saldo pendiente
           </p>
-          <div style={{ overflowX: 'auto', maxHeight: 520, overflowY: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 12, minWidth: 900 }}>
+          <div style={{ overflowX: 'auto', maxHeight: 560, overflowY: 'auto', border: '1px solid #1c232d', borderRadius: 10 }}>
+            <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: 1100 }}>
               <thead>
                 <tr style={{ color: '#8b97a7' }}>
-                  <th style={{ textAlign: 'left', padding: '6px 8px', position: 'sticky', left: 0, background: '#0d1117' }}>Proyecto</th>
-                  <th style={{ textAlign: 'right', padding: '6px 8px' }}>Total</th>
-                  {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '6px 8px' }}>{MONTHS[i].slice(0, 3)}</th>)}
+                  <th style={{ textAlign: 'left', padding: '8px 10px', position: 'sticky', left: 0, top: 0, zIndex: 3, background: '#0d1117' }}>Proyecto</th>
+                  <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117' }}>Total</th>
+                  <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#10b981' }}>Cobrado</th>
+                  <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#f59e0b' }}>Por cobrar</th>
+                  <th style={{ textAlign: 'center', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', minWidth: 90 }}>%</th>
+                  {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', opacity: colTotal[mk] ? 1 : 0.4 }}>{MONTHS[i].slice(0, 3)}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {projRows.map(p => (
-                  <tr key={p.id} style={{ borderTop: '1px solid #1c232d' }}>
-                    <td style={{ padding: '6px 8px', position: 'sticky', left: 0, background: '#0d1117', color: '#cdd6e0', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${p.client} — ${p.title}`}>
-                      {p.client} <span style={{ color: '#5a6675' }}>· {p.vendedor || '—'}</span>
+                {projRows.map((p, idx) => (
+                  <tr key={p.id} style={{ background: idx % 2 ? '#0f141b' : 'transparent' }}>
+                    <td style={{ padding: '7px 10px', position: 'sticky', left: 0, background: idx % 2 ? '#0f141b' : '#0d1117', whiteSpace: 'nowrap', borderTop: '1px solid #161d27' }} title={`${p.client} — ${p.title}`}>
+                      <span style={{ color: '#e6edf5' }}>{p.client}</span>
+                      <span style={{ color: '#5a6675', fontSize: 11 }}> · {p.vendedor || '—'}</span>
+                      {p.concluido
+                        ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0e2a1c', color: '#34d399', border: '1px solid #1b4d33' }}>🏁 Concluido</span>
+                        : p.pagado
+                          ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0d2230', color: '#38bdf8', border: '1px solid #18415a' }}>✅ Pagado</span>
+                          : <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#251a08', color: '#f59e0b', border: '1px solid #4a3514' }}>⏳ {p.pct}%</span>}
                     </td>
-                    <td style={{ padding: '6px 8px', textAlign: 'right', color: '#9aa6b4' }}>{fmt(p.total)}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#9aa6b4', borderTop: '1px solid #161d27' }}>{fmt(p.total)}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#10b981', borderTop: '1px solid #161d27' }}>{fmt(p.cobrado)}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#f59e0b', fontWeight: 700, borderTop: '1px solid #161d27' }}>{p.porCobrar > 0.5 ? fmt(p.porCobrar) : '—'}</td>
+                    <td style={{ padding: '7px 8px', borderTop: '1px solid #161d27' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ flex: 1, height: 6, background: '#1c232d', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ width: `${p.pct}%`, height: '100%', background: p.pct >= 100 ? '#10b981' : '#f59e0b' }} />
+                        </div>
+                        <span style={{ fontSize: 10, color: '#7d8896', width: 26, textAlign: 'right' }}>{p.pct}%</span>
+                      </div>
+                    </td>
                     {monthsOfYear.map(mk => {
                       const c = p.cells[mk];
                       return (
-                        <td key={mk} style={{ padding: '6px 8px', textAlign: 'right', color: c ? (c.pending ? '#f59e0b' : '#10b981') : '#39414c' }}>
+                        <td key={mk} style={{ padding: '7px 8px', textAlign: 'right', borderTop: '1px solid #161d27', color: c ? (c.pending ? '#f59e0b' : '#10b981') : '#2c333d' }}>
                           {c ? fmt(c.amount) : '·'}
                         </td>
                       );
                     })}
                   </tr>
                 ))}
+                {projRows.length === 0 && (
+                  <tr><td colSpan={5 + 12} style={{ padding: 20, textAlign: 'center', color: '#6b7685' }}>Sin proyectos para mostrar.</td></tr>
+                )}
               </tbody>
+              <tfoot>
+                <tr style={{ fontWeight: 700, color: '#fff' }}>
+                  <td style={{ padding: '9px 10px', position: 'sticky', left: 0, background: '#11161d', borderTop: '2px solid #2a323d' }}>TOTAL ({projRows.length})</td>
+                  <td style={{ padding: '9px 8px', textAlign: 'right', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('total'))}</td>
+                  <td style={{ padding: '9px 8px', textAlign: 'right', color: '#10b981', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('cobrado'))}</td>
+                  <td style={{ padding: '9px 8px', textAlign: 'right', color: '#f59e0b', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('porCobrar'))}</td>
+                  <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
+                  {monthsOfYear.map(mk => (
+                    <td key={mk} style={{ padding: '9px 8px', textAlign: 'right', color: colTotal[mk] ? '#cdd6e0' : '#2c333d', background: '#11161d', borderTop: '2px solid #2a323d' }}>{colTotal[mk] ? fmt(colTotal[mk]) : '·'}</td>
+                  ))}
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
