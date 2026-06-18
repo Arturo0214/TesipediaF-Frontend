@@ -87,11 +87,6 @@ const HeroSection = ({ onOpenChat }) => {
                 <span>en las mejores universidades de México</span>
               </div>
             </div>
-
-            {/* chip flotante: humano */}
-            <div className="hx-float hx-float-chip">
-              <FaCheckCircle /> 100% humano · sin IA
-            </div>
           </div>
         </div>
       </div>
