@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaWhatsapp, FaArrowRight, FaCommentDots, FaUserTie, FaFileSignature,
@@ -31,49 +30,21 @@ export function HowItWorks() {
     { icon: <FaFileSignature />, t: 'Avances y revisiones', d: 'Recibes la tesis por capítulos y pides ajustes en cada etapa del proceso.' },
     { icon: <FaGraduationCap />, t: 'Entrega y titulación', d: 'Tesis completa, original y citada, con correcciones hasta la aprobación de tu asesor.' },
   ];
-  const ref = useRef(null);
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) { setActive(true); return; }
-    const obs = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) { setActive(true); obs.disconnect(); } },
-      { threshold: 0.35 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
   return (
-    <section className="hs-section hs-tl-section" id="como-funciona">
+    <section className="hs-section" id="como-funciona">
       <div className="hs-head" data-aos="fade-up">
         <h2>Cómo hacemos tu tesis en 4 pasos</h2>
         <p>Un proceso claro y acompañado, de la primera idea a tu examen profesional.</p>
       </div>
-
-      <div className={`hs-tl ${active ? 'is-active' : ''}`} ref={ref}>
-        <div className="hs-tl-track">
-          <div className="hs-tl-fill" />
-          <span className="hs-tl-spark" />
-        </div>
-        <div className="hs-tl-steps">
-          {steps.map((s, i) => (
-            <div className="hs-tl-step" key={i} style={{ '--i': i }}>
-              <div className="hs-tl-node">
-                <span className="hs-tl-num">{i + 1}</span>
-                <span className="hs-tl-ring" />
-              </div>
-              <div className="hs-tl-card">
-                <div className="hs-tl-ico">{s.icon}</div>
-                <h3>{s.t}</h3>
-                <p>{s.d}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="hs-steps">
+        {steps.map((s, i) => (
+          <div className="hs-step" key={i} data-aos="fade-up" data-aos-delay={i * 80}>
+            <div className="hs-step-num">{i + 1}</div>
+            <div className="hs-step-ico">{s.icon}</div>
+            <h3>{s.t}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
