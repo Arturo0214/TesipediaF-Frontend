@@ -72,7 +72,10 @@ const SERVICIO_MAP = { servicio_1: 'modalidad1', servicio_2: 'correccion', servi
 const SERVICIO_LABEL = { servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría', modalidad1: 'Redacción completa', correccion: 'Correcciones', modalidad2: 'Asesoría' };
 const PROYECTO_MAP = { proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro' };
 const NIVEL_MAP = { nivel_1: 'Preparatoria', nivel_2: 'Licenciatura', nivel_3: 'Maestría', nivel_4: 'Especialidad', nivel_5: 'Diplomado', nivel_6: 'Doctorado' };
-const AREAS = ['Área 1: Ciencias Físico-Matemáticas y de las Ingenierías', 'Área 2: Ciencias Biológicas, Químicas y de la Salud', 'Área 3: Ciencias Sociales', 'Área 4: Humanidades y Artes'];
+// IMPORTANTE: estos strings deben coincidir EXACTAMENTE con los del backend
+// (detectStudyAreaFromCareer en quoteController.js); si no, el <select> no
+// hace match con el área auto-detectada y se muestra vacío.
+const AREAS = ['Área 1: Ciencias Físico Matemáticas e Ingenierías', 'Área 2: Ciencias Biológicas, Químicas y de la Salud', 'Área 3: Ciencias Sociales y Humanidades', 'Área 4: Artes y Humanidades'];
 const TIPOS_TRABAJO = ['Tesis', 'Tesina', 'Artículo Científico', 'Ensayo Académico', 'Protocolo de Investigación', 'Proyecto de Titulación', 'Reporte', 'Otro'];
 const NIVELES = ['Preparatoria', 'Licenciatura', 'Maestría', 'Especialidad', 'Diplomado', 'Doctorado'];
 
@@ -82,29 +85,203 @@ function calcDateISO(daysFromNow) {
   return d.toISOString().split('T')[0];
 }
 
+function toISO(d) {
+  return d.toISOString().split('T')[0];
+}
+
+/* ── Punto medio entre dos fechas ISO (para el pago de avance) ── */
+function midpointISO(startISO, endISO) {
+  try {
+    const a = new Date(startISO + 'T12:00:00').getTime();
+    const b = new Date(endISO + 'T12:00:00').getTime();
+    if (isNaN(a) || isNaN(b) || b <= a) return null;
+    return toISO(new Date((a + b) / 2));
+  } catch { return null; }
+}
+
+const _norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+/* ── Extraer y fusionar el último estado [STATE:{...}] que el bot deja
+      embebido en el historial. Es la fuente más confiable de lo que el
+      cliente realmente respondió (carrera, páginas, fecha, tipo, etc.). ── */
+function extractBotState(lead) {
+  const merged = {};
+  try {
+    const hist = parseHistorial(lead?.historial_chat);
+    for (const msg of hist) {
+      const content = msg?.content || '';
+      const m = content.match(/\[STATE:([\s\S]*?)\]/);
+      if (!m) continue;
+      let str = m[1];
+      if (str.includes('\\"')) str = str.replace(/\\"/g, '"');
+      if (!str.trim().startsWith('{')) continue;
+      try {
+        const obj = JSON.parse(str);
+        if (obj && typeof obj === 'object') {
+          for (const [k, v] of Object.entries(obj)) {
+            if (v !== null && v !== undefined && v !== '') merged[k] = v; // el más reciente gana
+          }
+        }
+      } catch { /* ignorar STATE corrupto */ }
+    }
+  } catch { /* sin historial */ }
+  return merged;
+}
+
+/* ── Inferir el área de estudio desde la carrera. Mismos strings y misma
+      lógica que detectStudyAreaFromCareer del backend, para que el valor
+      coincida con las opciones del <select>. ── */
+const CAREER_AREA_KEYWORDS = {
+  'Área 1: Ciencias Físico Matemáticas e Ingenierías': ['ingenier', 'sistemas', 'computacion', 'informatica', 'matematicas', 'fisica', 'arquitectura', 'civil', 'electronica', 'mecanica', 'industrial', 'mecatronica', 'telecomunicaciones', 'robotica', 'software', 'datos', 'aeronautica', 'geologia', 'topografia', 'electrica', 'automotriz', 'actuaria'],
+  'Área 2: Ciencias Biológicas, Químicas y de la Salud': ['medicina', 'medico', 'enfermeria', 'odontologia', 'dental', 'psicologia', 'nutricion', 'biologia', 'quimica', 'farmacia', 'farmaceutica', 'veterinaria', 'fisioterapia', 'rehabilitacion', 'salud', 'biomedica', 'biotecnologia', 'genomica', 'optometria', 'cirujano', 'paramedico', 'epidemiologia', 'gastronomia', 'agronomia'],
+  'Área 3: Ciencias Sociales y Humanidades': ['derecho', 'abogado', 'leyes', 'administracion', 'contabilidad', 'contaduria', 'contador', 'pedagogia', 'educacion', 'sociologia', 'trabajo social', 'comunicacion', 'periodismo', 'historia', 'filosofia', 'economia', 'turismo', 'mercadotecnia', 'marketing', 'finanzas', 'negocios', 'comercio', 'relaciones internacionales', 'ciencias politicas', 'politologia', 'antropologia', 'archivonomia', 'bibliotecologia', 'criminologia', 'criminalistica', 'geografia'],
+  'Área 4: Artes y Humanidades': ['diseno', 'arte', 'musica', 'literatura', 'letras', 'interiores', 'grafico', 'visual', 'escenicas', 'cinematografia', 'teatro', 'danza', 'cine', 'animacion', 'multimedia', 'moda', 'textil', 'fotografia'],
+};
+
+function inferAreaFromCarrera(carrera) {
+  const c = _norm(carrera);
+  if (!c) return '';
+  for (const [area, keywords] of Object.entries(CAREER_AREA_KEYWORDS)) {
+    if (keywords.some(k => c.includes(k))) return area;
+  }
+  return ''; // sin match: dejar que el backend/usuario decidan
+}
+
+/* ── Normalizar el tipo de trabajo a una opción válida del <select>.
+      Si es un proyecto a la medida (plan de negocio, etc.) → 'Otro'. ── */
+const TIPO_TRABAJO_SYNONYMS = {
+  'tesis': 'Tesis', 'proyecto_1': 'Tesis',
+  'tesina': 'Tesina', 'proyecto_2': 'Tesina',
+  'articulo cientifico': 'Artículo Científico', 'articulo': 'Artículo Científico', 'paper': 'Artículo Científico',
+  'ensayo academico': 'Ensayo Académico', 'ensayo': 'Ensayo Académico',
+  'protocolo de investigacion': 'Protocolo de Investigación', 'protocolo': 'Protocolo de Investigación', 'anteproyecto': 'Protocolo de Investigación',
+  'proyecto de titulacion': 'Proyecto de Titulación', 'titulacion': 'Proyecto de Titulación',
+  'reporte': 'Reporte',
+};
+
+function normalizeTipoTrabajo(...candidates) {
+  for (const raw of candidates) {
+    const n = _norm(raw);
+    if (!n) continue;
+    if (TIPO_TRABAJO_SYNONYMS[n]) return TIPO_TRABAJO_SYNONYMS[n];
+    // match exacto contra las opciones del select
+    const exact = TIPOS_TRABAJO.find(t => _norm(t) === n);
+    if (exact) return exact;
+    // match parcial por palabra clave
+    const partial = Object.keys(TIPO_TRABAJO_SYNONYMS).find(k => n.includes(k));
+    if (partial) return TIPO_TRABAJO_SYNONYMS[partial];
+    // hay dato pero no es un tipo estándar (p. ej. "plan de negocio") → Otro
+    return 'Otro';
+  }
+  return '';
+}
+
+const MESES_ES = { enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6, agosto: 7, septiembre: 8, setiembre: 8, octubre: 9, noviembre: 10, diciembre: 11 };
+
+/* ── Parsear la fecha de entrega que pidió el cliente a ISO (yyyy-mm-dd).
+      Soporta dd/mm/yyyy, "DD de MES [de YYYY]", "en X días/semanas/meses",
+      "X semanas", "mañana", etc. Devuelve null si no se puede interpretar. ── */
+function parseFechaEntregaToISO(raw) {
+  if (!raw) return null;
+  // Si ya viene como Date/ISO válido
+  if (raw instanceof Date && !isNaN(raw)) return toISO(raw);
+  const original = String(raw).trim();
+  const s = _norm(original);
+  if (!s) return null;
+
+  // yyyy-mm-dd
+  let m = s.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
+  if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+
+  // dd/mm/yyyy o dd-mm-yyyy o dd.mm.yyyy
+  m = s.match(/\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/);
+  if (m) {
+    const dd = m[1], mm = m[2];
+    let yy = m[3];
+    if (yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+  }
+
+  // "DD de MES [de YYYY]"  o  "MES DD"
+  m = s.match(/\b(\d{1,2})\s+de\s+([a-z]+)(?:\s+de\s+(\d{4}))?/);
+  if (m && MESES_ES[m[2]] !== undefined) {
+    const dd = parseInt(m[1]);
+    const mon = MESES_ES[m[2]];
+    const now = new Date();
+    let yy = m[3] ? parseInt(m[3]) : now.getFullYear();
+    // si no dieron año y la fecha ya pasó, asumir el próximo año
+    if (!m[3]) {
+      const candidate = new Date(yy, mon, dd, 12);
+      if (candidate < now) yy += 1;
+    }
+    const d = new Date(yy, mon, dd, 12);
+    if (!isNaN(d)) return toISO(d);
+  }
+
+  // relativos: "hoy", "mañana"
+  if (/\bhoy\b/.test(s)) return calcDateISO(0);
+  if (/\bmanana\b/.test(s)) return calcDateISO(1);
+
+  // "en X dias / semanas / meses"  o  "X semanas"
+  m = s.match(/(\d+)\s*(dia|semana|mes)/);
+  if (m) {
+    const n = parseInt(m[1]);
+    const unit = m[2];
+    let days = n;
+    if (unit === 'semana') days = n * 7;
+    else if (unit === 'mes') days = n * 30;
+    return calcDateISO(days);
+  }
+  // "un mes", "una semana", "mes y medio"
+  if (/mes y medio/.test(s)) return calcDateISO(45);
+  if (/\b(un|una)\s+mes\b/.test(s) || /\bun mes\b/.test(s)) return calcDateISO(30);
+  if (/\b(una)\s+semana\b/.test(s)) return calcDateISO(7);
+
+  return null;
+}
+
 function mapLeadToQuoteFields(lead) {
-  const tipoServicioRaw = lead.tipo_servicio || '';
+  // El STATE del bot es la fuente más confiable; cae a las columnas del lead.
+  const st = extractBotState(lead);
+  const pick = (...vals) => vals.find(v => v !== null && v !== undefined && v !== '') ?? '';
+
+  const tipoServicioRaw = pick(st.tipoServicio, lead.tipo_servicio);
   const tipoServicio = SERVICIO_MAP[tipoServicioRaw] || tipoServicioRaw || 'modalidad1';
-  const tipoTrabajo = PROYECTO_MAP[lead.tipo_proyecto] || lead.tipo_proyecto || 'Tesis';
-  const nivel = NIVEL_MAP[lead.nivel] || lead.nivel || 'Licenciatura';
-  const hoy = new Date().toISOString().split('T')[0];
-  const fechaEntrega3sem = calcDateISO(21); // 3 semanas por defecto
-  const fechaAvanceMid = calcDateISO(11); // ~mitad para pago avance
+
+  const tipoTrabajo = normalizeTipoTrabajo(st.tipoTrabajo, st.tipoProyecto, lead.tipo_proyecto) || 'Tesis';
+
+  const nivelRaw = pick(st.nivel, lead.nivel);
+  const nivel = NIVEL_MAP[nivelRaw] || nivelRaw || 'Licenciatura';
+
+  const carrera = pick(st.carrera, lead.carrera);
+  const tema = pick(st.tema, lead.tema);
+  const paginas = pick(st.paginas, lead.paginas);
+  const fechaEntregaRaw = pick(st.fechaEntrega, lead.fecha_entrega);
+
+  const area = inferAreaFromCarrera(carrera);
+
+  const hoy = toISO(new Date());
+  // Usar la fecha que pidió el cliente; sólo caer a 3 semanas si no se pudo interpretar.
+  const fechaEntregaParsed = parseFechaEntregaToISO(fechaEntregaRaw);
+  const fechaEntregaDate = fechaEntregaParsed || calcDateISO(21);
+  // Pago de avance: punto medio real entre hoy y la entrega.
+  const fechaAvance = midpointISO(hoy, fechaEntregaDate) || calcDateISO(11);
+
   return {
     clientName: lead.nombre || '',
     clientPhone: lead.wa_id || '',
     tipoServicio,
     tipoTrabajo,
-    tituloTrabajo: lead.tema || '',
+    tituloTrabajo: tema || '',
     nivelAcademico: nivel,
-    area: '',
-    carrera: lead.carrera || '',
-    extensionEstimada: lead.paginas || '',
-    fechaEntrega: lead.fecha_entrega || '',
-    fechaEntregaDate: fechaEntrega3sem,
+    area,
+    carrera: carrera || '',
+    extensionEstimada: paginas || '',
+    fechaEntrega: fechaEntregaRaw || '',
+    fechaEntregaDate,
     fechaPago1: hoy,
-    fechaAvance: fechaAvanceMid,
-    tema: lead.tema || '',
+    fechaAvance,
+    tema: tema || '',
     precioManual: '',
     descuentoEfectivo: 0,
     metodoPago: 'tarjeta-nu',
