@@ -1,117 +1,99 @@
-import { Col, Container, Row, Button } from 'react-bootstrap';
-import { FaCheck, FaClock, FaShieldAlt, FaComments, FaWhatsapp } from 'react-icons/fa';
+import {
+  FaCheckCircle, FaShieldAlt, FaClock, FaWhatsapp, FaComments,
+  FaStar, FaUserGraduate, FaArrowRight
+} from 'react-icons/fa';
 import './HeroSection.css';
 
-const HeroSection = ({ stats, currentStat, onOpenChat }) => {
-  return (
-    <section className="hero-section-container text-white position-relative overflow-hidden">
-      <div className="hero-section-background"></div>
-      <Container>
-        <Row className="hero-section-row align-items-start">
-          {/* LEFT COLUMN — Text + Features + CTA */}
-          <Col lg={6} className="hero-section-text" data-aos="fade-right">
-            <h1 className="display-5 fw-bold mb-3" style={{ color: 'white' }}>
-              ¿Necesitas hacer tu tesis? Te ayudamos a titularte
-            </h1>
-            <p className="lead mb-3" style={{ fontSize: '1.05rem' }}>
-              En Tesipedia hacemos tu tesis de licenciatura, maestría y doctorado en México. 100% original, sin plagio ni IA. +3,000 titulados. Entrega desde 3 semanas.
-            </p>
-            <div className="hero-section-features mb-4">
-              <div className="hero-section-feature-item">
-                <FaCheck className="hero-section-feature-icon" aria-hidden="true" /> Garantía de Aprobación Total
-              </div>
-              <div className="hero-section-feature-item">
-                <FaClock className="hero-section-feature-icon" aria-hidden="true" /> Ahorra Meses de Trabajo
-              </div>
-              <div className="hero-section-feature-item">
-                <FaShieldAlt className="hero-section-feature-icon" aria-hidden="true" /> 100% Confidencial
-              </div>
-            </div>
-            <div className="d-flex gap-3 justify-content-center">
-              <Button
-                as="a"
-                href="https://wa.me/525670071517?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-gradient-primary"
-                data-track-cta="hero_whatsapp"
-                data-track-label="Quiero Titularme Ya - Hero"
-              >
-                <span>¡Quiero Titularme Ya!</span>
-              </Button>
-              <Button
-                onClick={onOpenChat}
-                className="btn-outline-gradient"
-                data-track-cta="hero_chat"
-                data-track-label="Chat en Línea - Hero"
-              >
-                <FaComments style={{ position: 'relative', zIndex: 2 }} aria-hidden="true" />
-                <span>Chat en Línea</span>
-              </Button>
-            </div>
-          </Col>
+const WA = 'https://wa.me/525670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis';
 
-          {/* RIGHT COLUMN — Stat cards + Contact buttons below */}
-          <Col lg={6} className="hero-section-right" data-aos="fade-left">
-            <div className="hero-section-stats-showcase">
-              {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className={`hero-section-floating-stat-card ${currentStat === index ? 'active' : ''}`}
-                  style={{
-                    transform: `translateY(${index * 25}px)`,
-                    zIndex: stats.length - index
-                  }}
-                >
-                  <div className="hero-section-stat-icon-wrapper">
-                    {stat.icon}
-                  </div>
-                  <div className="hero-section-stat-content">
-                    <div className="hero-section-stat-number-wrapper">
-                      <span className="hero-section-stat-number-highlight">{stat.number}</span>
-                    </div>
-                    <div className="hero-section-stat-text-wrapper">
-                      <span className="hero-section-stat-text-highlight">{stat.text}</span>
-                    </div>
-                  </div>
+const HeroSection = ({ stats = [], currentStat = 0, onOpenChat }) => {
+  return (
+    <section className="hx-hero">
+      <div className="hx-hero-glow hx-hero-glow-1" />
+      <div className="hx-hero-glow hx-hero-glow-2" />
+      <div className="hx-hero-inner">
+        {/* IZQUIERDA */}
+        <div className="hx-hero-left hx-reveal">
+          <span className="hx-eyebrow">
+            <FaStar /> 4.9/5 · +3,000 titulados · 100% humano, sin IA
+          </span>
+          <h1 className="hx-title">
+            Hacemos tu <span className="hx-grad">tesis profesional</span> para que te titules sin estrés
+          </h1>
+          <p className="hx-sub">
+            Elaboramos tu tesis de licenciatura, maestría y doctorado en México: 100% original,
+            con citación correcta y revisión de originalidad. Desde <strong>$110 por página</strong>,
+            entrega desde 3 semanas.
+          </p>
+
+          <div className="hx-chips">
+            <span><FaCheckCircle /> Garantía de aprobación</span>
+            <span><FaShieldAlt /> Sin plagio ni IA</span>
+            <span><FaClock /> Entrega desde 3 semanas</span>
+          </div>
+
+          <div className="hx-ctas">
+            <a
+              href={WA}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hx-btn hx-btn-primary"
+              data-track-cta="hero_whatsapp"
+              data-track-label="Cotizar gratis - Hero"
+            >
+              <FaWhatsapp /> Cotizar mi tesis gratis
+            </a>
+            <a href="#precios" className="hx-btn hx-btn-ghost" data-track-cta="hero_precios">
+              Ver precios <FaArrowRight />
+            </a>
+          </div>
+
+          <button onClick={onOpenChat} className="hx-chatlink" data-track-cta="hero_chat">
+            <FaComments /> o chatea ahora con un asesor — respuesta inmediata
+          </button>
+        </div>
+
+        {/* DERECHA — tarjeta glass + stat rotativo */}
+        <div className="hx-hero-right hx-reveal hx-reveal-2">
+          <div className="hx-card">
+            <div className="hx-card-head">
+              <FaUserGraduate />
+              <div>
+                <strong>Cotización gratis en minutos</strong>
+                <span>Sin compromiso · respuesta por WhatsApp</span>
+              </div>
+            </div>
+
+            <div className="hx-stat-rotator" aria-live="polite">
+              {stats.map((s, i) => (
+                <div key={i} className={`hx-stat ${currentStat === i ? 'is-active' : ''}`}>
+                  <span className="hx-stat-ico">{s.icon}</span>
+                  <span className="hx-stat-num">{s.number}</span>
+                  <span className="hx-stat-txt">{s.text}</span>
                 </div>
               ))}
             </div>
-            <div className="hero-section-contact-new">
-              <h3 className="contact-title-new">¿Tienes dudas sobre tu tesis?</h3>
-              <p className="contact-subtitle-new">¡Habla con un asesor ahora!</p>
-              <div className="contact-buttons-new">
-                <Button
-                  onClick={onOpenChat}
-                  className="contact-btn-new contact-btn-chat-new"
-                  data-track-cta="hero_contact_chat"
-                  data-track-label="Chatear en la Página - Hero contact"
-                >
-                  <FaComments className="contact-btn-icon-new" aria-hidden="true" />
-                  <div className="contact-btn-content-new">
-                    <span className="contact-btn-text-new">Chatear en la Página</span>
-                    <span className="contact-btn-subtext-new">Respuesta inmediata</span>
-                  </div>
-                </Button>
-                <Button
-                  as="a"
-                  href="https://wa.me/525670071517"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="contact-btn-new contact-btn-whatsapp-new"
-                  aria-label="Contactar por WhatsApp"
-                >
-                  <FaWhatsapp className="contact-btn-icon-new" aria-hidden="true" />
-                  <div className="contact-btn-content-new">
-                    <span className="contact-btn-text-new">Contactar por WhatsApp</span>
-                    <span className="contact-btn-subtext-new">Asesoría 24/7</span>
-                  </div>
-                </Button>
-              </div>
+
+            <div className="hx-card-grid">
+              <div><strong>$110</strong><span>por página</span></div>
+              <div><strong>98%</strong><span>aprobación</span></div>
+              <div><strong>+50</strong><span>asesores</span></div>
             </div>
-          </Col>
-        </Row>
-      </Container>
+
+            <a
+              href={WA}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hx-btn hx-btn-primary hx-btn-block"
+              data-track-cta="hero_card_whatsapp"
+              data-track-label="Cotizar gratis - Hero card"
+            >
+              <FaWhatsapp /> Cotizar ahora
+            </a>
+            <p className="hx-card-foot">Atendemos UNAM, IPN, UAM, Tec, UANL y todas las universidades de México</p>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

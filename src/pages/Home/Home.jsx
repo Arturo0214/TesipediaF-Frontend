@@ -11,6 +11,7 @@ import { Helmet } from 'react-helmet-async';
 
 // Critical above-the-fold component loaded eagerly
 import HeroSection from '../../components/HomeComponents/HeroSection/HeroSection';
+import { TrustBar, HowItWorks, LevelsPricing, ExploreLinks, HomeFAQ, FinalCTA } from '../../components/HomeComponents/HomeSections';
 
 // Lazy load below-the-fold components for performance
 const TestimonialsSection = lazy(() => import('../../components/HomeComponents/TestimonialsSection/TestimonialsSection'));
@@ -234,6 +235,18 @@ function Home() {
     ]
   };
 
+  const howToSchema = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo hacemos tu tesis en México",
+    "step": [
+      { "@type": "HowToStep", "position": 1, "name": "Cotiza gratis", "text": "Escríbenos por WhatsApp con tu tema, nivel, número de páginas y fecha de entrega. Te cotizamos en minutos." },
+      { "@type": "HowToStep", "position": 2, "name": "Asesor especializado", "text": "Te asignamos un investigador con posgrado en tu área y un plan de pago flexible." },
+      { "@type": "HowToStep", "position": 3, "name": "Avances y revisiones", "text": "Recibes la tesis por capítulos y solicitas ajustes en cada etapa del proceso." },
+      { "@type": "HowToStep", "position": 4, "name": "Entrega y titulación", "text": "Tesis completa, original y citada, con correcciones hasta la aprobación de tu asesor." }
+    ]
+  };
+
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -267,6 +280,7 @@ function Home() {
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(homeFaqSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>
       </Helmet>
 
       <HeroSection
@@ -274,12 +288,18 @@ function Home() {
         currentStat={currentStat}
         onOpenChat={handleOpenChat}
       />
+      <TrustBar />
+      <HowItWorks />
+      <LevelsPricing />
       <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
         <SuccessCasesSection />
         <TestimonialsSection />
         <ServicesSection onOpenChat={handleOpenChat} />
         <GuaranteeSection />
       </Suspense>
+      <ExploreLinks />
+      <HomeFAQ faqs={homeFaqSchema.mainEntity} />
+      <FinalCTA />
     </>
   );
 }
