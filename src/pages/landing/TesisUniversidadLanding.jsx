@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import { getUniversidadBySlug } from '../../data/seoUniversidades';
+import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
-  FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaUniversity
+  FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaUniversity, FaBolt
 } from 'react-icons/fa';
 import './Landing.css';
 
@@ -63,6 +64,13 @@ function TesisUniversidadLanding({ slug }) {
     ]
   };
 
+  const procesoSchema = howToSchema(`Cómo hacemos tu tesis para la ${u.sigla}`, [
+    { name: 'Cotiza gratis', text: 'Escríbenos por WhatsApp con tu carrera, nivel, número de páginas y fecha de entrega. Te cotizamos en minutos.' },
+    { name: 'Asesor especializado', text: 'Te asignamos un investigador de tu área con propuesta, alcance y esquema de pago flexible.' },
+    { name: 'Avances y revisiones', text: 'Recibes avances por capítulo y solicitas ajustes en cada etapa del proceso.' },
+    { name: 'Entrega y titulación', text: 'Tesis completa, original y citada, con correcciones de sinodales hasta la aprobación.' },
+  ]);
+
   return (
     <div className="landing-page">
       <Helmet>
@@ -78,13 +86,15 @@ function TesisUniversidadLanding({ slug }) {
         <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(procesoSchema)}</script>
       </Helmet>
 
       {/* HERO */}
       <section className="landing-hero">
         <div className="landing-hero-content">
-          <div className="landing-hero-badge">
-            <FaStar className="star-icon" /> +3,000 estudiantes titulados
+          <div className="landing-hero-badges">
+            <span className="landing-hero-badge badge-offer"><FaBolt /> Cotización gratis hoy</span>
+            <span className="landing-hero-badge"><FaStar className="star-icon" /> 4.9 · +3,000 titulados</span>
           </div>
           <h1>{u.h1}</h1>
           <p className="landing-hero-sub">{u.intro}</p>
@@ -101,6 +111,14 @@ function TesisUniversidadLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      <LandingStats />
+
+      <LandingBreadcrumb items={[
+        { label: 'Inicio', to: '/' },
+        { label: 'Comprar Tesis', to: '/comprar-tesis' },
+        { label: `Tesis ${u.sigla}` },
+      ]} />
 
       {/* TITULACIÓN EN LA UNIVERSIDAD */}
       <section className="landing-section" id="titulacion">
@@ -211,6 +229,29 @@ function TesisUniversidadLanding({ slug }) {
         <p className="landing-final-sub">O llámanos: <a href="tel:+525670071517">+52 56 7007 1517</a></p>
       </section>
 
+      {/* CONTENIDO SEO (profundidad) */}
+      <section className="landing-section">
+        <h2>Hacemos tu tesis para la {u.nombre}</h2>
+        <p className="landing-section-intro" style={{ maxWidth: '820px' }}>
+          Titularte en la {u.sigla} no tiene que ser una pesadilla de meses. En Tesipedia trabajamos
+          contigo desde la elección y delimitación del tema hasta la entrega final, cuidando que tu tesis
+          cumpla con el formato, la estructura y los criterios de evaluación de tu facultad en {u.ciudad}.
+          Cada proyecto lo desarrolla un investigador con posgrado en tu área, con citación correcta
+          (APA, Vancouver u otro) y revisión de originalidad incluida, para que llegues a tu examen
+          profesional con la seguridad de presentar un trabajo sólido y 100% propio.
+        </p>
+        <p className="landing-section-intro" style={{ maxWidth: '820px', marginTop: '-12px' }}>
+          Ya sea licenciatura, maestría o doctorado, te acompañamos con avances por capítulo, correcciones
+          ilimitadas hasta la aprobación de tu asesor y comunicación directa en todo el proceso. Solicita tu
+          cotización gratuita por WhatsApp y empieza hoy a avanzar en tu tesis de la {u.sigla}.
+        </p>
+        <div className="landing-cta-center">
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick(`uni_${u.slug}_seo`)}>
+            <FaWhatsapp /> Cotizar Mi Tesis Gratis
+          </a>
+        </div>
+      </section>
+
       {/* INTERNAL LINKS SEO */}
       <section className="landing-section" style={{ paddingTop: '1rem', paddingBottom: '2rem' }}>
         <div style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center' }}>
@@ -224,6 +265,8 @@ function TesisUniversidadLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      <StickyWhatsApp onClick={() => handleWAClick(`uni_${u.slug}_sticky`)} />
     </div>
   );
 }

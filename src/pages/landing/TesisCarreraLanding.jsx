@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import { getCarreraBySlug } from '../../data/seoCarreras';
+import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
-  FaGraduationCap, FaClock, FaFlask, FaArrowRight, FaLightbulb
+  FaGraduationCap, FaClock, FaFlask, FaArrowRight, FaLightbulb, FaBolt
 } from 'react-icons/fa';
 import './Landing.css';
 
@@ -63,6 +64,13 @@ function TesisCarreraLanding({ slug }) {
     ]
   };
 
+  const procesoSchema = howToSchema(`Cómo hacemos tu tesis de ${c.nombre}`, [
+    { name: 'Cotiza gratis', text: 'Cuéntanos tu tema (o te ayudamos a elegirlo), nivel, páginas y fecha. Te cotizamos en minutos.' },
+    { name: 'Asesor del área', text: `Te asignamos un investigador especializado en ${c.nombre} con propuesta y pago flexible.` },
+    { name: 'Avances y revisiones', text: 'Recibes la tesis por capítulos y solicitas ajustes en cada etapa.' },
+    { name: 'Entrega y titulación', text: 'Tesis completa, original y citada, con correcciones hasta la aprobación.' },
+  ]);
+
   return (
     <div className="landing-page">
       <Helmet>
@@ -78,13 +86,15 @@ function TesisCarreraLanding({ slug }) {
         <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(procesoSchema)}</script>
       </Helmet>
 
       {/* HERO */}
       <section className="landing-hero">
         <div className="landing-hero-content">
-          <div className="landing-hero-badge">
-            <FaStar className="star-icon" /> +3,000 estudiantes titulados
+          <div className="landing-hero-badges">
+            <span className="landing-hero-badge badge-offer"><FaBolt /> Cotización gratis hoy</span>
+            <span className="landing-hero-badge"><FaStar className="star-icon" /> 4.9 · +3,000 titulados</span>
           </div>
           <h1>{c.h1}</h1>
           <p className="landing-hero-sub">{c.intro}</p>
@@ -101,6 +111,14 @@ function TesisCarreraLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      <LandingStats />
+
+      <LandingBreadcrumb items={[
+        { label: 'Inicio', to: '/' },
+        { label: 'Comprar Tesis', to: '/comprar-tesis' },
+        { label: `Tesis de ${c.nombre}` },
+      ]} />
 
       {/* METODOLOGÍA */}
       <section className="landing-section" id="metodologia">
@@ -211,6 +229,28 @@ function TesisCarreraLanding({ slug }) {
         <p className="landing-final-sub">O llámanos: <a href="tel:+525670071517">+52 56 7007 1517</a></p>
       </section>
 
+      {/* CONTENIDO SEO (profundidad) */}
+      <section className="landing-section">
+        <h2>Hacemos tu tesis de {c.nombre} de principio a fin</h2>
+        <p className="landing-section-intro" style={{ maxWidth: '820px' }}>
+          Una buena tesis de {c.nombre} necesita más que redacción: requiere un diseño de investigación
+          coherente con {c.area}, fuentes actualizadas y un análisis bien fundamentado. En Tesipedia te
+          asignamos un investigador con posgrado en el área, que trabaja contigo el planteamiento, el marco
+          teórico, la metodología, los resultados y las conclusiones, con la citación y el formato que pide
+          tu universidad y revisión de originalidad incluida.
+        </p>
+        <p className="landing-section-intro" style={{ maxWidth: '820px', marginTop: '-12px' }}>
+          Si aún no tienes tema, te ayudamos a elegirlo y delimitarlo según tu interés y la viabilidad de la
+          investigación. Recibes avances por capítulo y correcciones hasta la aprobación de tu asesor.
+          Cotiza gratis por WhatsApp y avanza hoy en tu tesis de {c.nombre}.
+        </p>
+        <div className="landing-cta-center">
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick(`car_${c.slug}_seo`)}>
+            <FaWhatsapp /> Cotizar Mi Tesis Gratis
+          </a>
+        </div>
+      </section>
+
       {/* INTERNAL LINKS SEO */}
       <section className="landing-section" style={{ paddingTop: '1rem', paddingBottom: '2rem' }}>
         <div style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center' }}>
@@ -224,6 +264,8 @@ function TesisCarreraLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      <StickyWhatsApp onClick={() => handleWAClick(`car_${c.slug}_sticky`)} />
     </div>
   );
 }
