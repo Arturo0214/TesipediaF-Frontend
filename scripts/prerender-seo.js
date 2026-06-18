@@ -15,6 +15,7 @@
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
+import { blogPosts } from '../src/pages/Blog/blogData.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
@@ -27,7 +28,7 @@ const SITE_NAME = 'Tesipedia';
 const DEFAULT_IMAGE = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
 const PHONE = '+52 56 7007 1517';
 
-const routesMeta = [
+const coreRoutes = [
   {
     path: '/',
     title: 'Tesipedia — Hacemos Tu Tesis en México | Licenciatura, Maestría y Doctorado',
@@ -44,6 +45,133 @@ const routesMeta = [
       "address": { "@type": "PostalAddress", "addressLocality": "Ciudad de México", "addressRegion": "CDMX", "addressCountry": "MX" },
       "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3000", "bestRating": "5" },
       "priceRange": "$$"
+    }
+  },
+
+  // ─── Landing pages comerciales (alta intención de compra) ───────────────
+  {
+    path: '/comprar-tesis',
+    title: 'Comprar Tesis en México 2026 — Desde $110/Página | Tesipedia #1 en Tesis Profesionales',
+    description: 'Compra tu tesis profesional en México desde $110 por página. Tesis de licenciatura, maestría y doctorado 100% originales, con citación correcta y revisión de originalidad. Más de 3,000 titulados. Entrega en 3 semanas. Cotiza gratis por WhatsApp.',
+    keywords: 'comprar tesis, comprar tesis en México, comprar tesis México, tesis por encargo México, hacer tesis, tesis profesional, tesis 100% original, tesis sin plagio, tesis licenciatura, tesis maestría, tesis doctorado, tesipedia, elaboración de tesis, encargar tesis, quién me hace mi tesis',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Comprar Tesis en México",
+      "serviceType": "Elaboración profesional de tesis",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Compra tu tesis de licenciatura, maestría o doctorado, 100% original y sin plagio, desde $110 MXN por página.",
+      "offers": { "@type": "Offer", "price": "110", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "110", "priceCurrency": "MXN", "unitText": "por página" } }
+    }
+  },
+  {
+    path: '/tesis-licenciatura',
+    title: 'Tesis de Licenciatura en México 2026 | Tesipedia — Desde $110 por página',
+    description: 'Elabora tu tesis de licenciatura en México con Tesipedia. Desde $110 MXN por página, 3-4 semanas de entrega. 100% original, con citación correcta y revisión de originalidad. +2,800 titulados. Cotiza gratis.',
+    keywords: 'tesis de licenciatura, tesis licenciatura, hacer tesis licenciatura, tesis licenciatura precio, tesis licenciatura México, elaboración de tesis licenciatura',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Tesis de Licenciatura",
+      "serviceType": "Elaboración de tesis de licenciatura",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Tesis de licenciatura profesional, 100% original, entrega en 3-4 semanas, desde $110 MXN por página.",
+      "offers": { "@type": "Offer", "price": "110", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "110", "priceCurrency": "MXN", "unitText": "por página" } }
+    }
+  },
+  {
+    path: '/tesis-maestria',
+    title: 'Tesis de Maestría en México 2026 | Tesipedia — Desde $160 por página',
+    description: 'Elabora tu tesis de maestría en México con Tesipedia. Desde $160 MXN por página, 4-6 semanas de entrega. Investigadores con doctorado, 100% original, con citación correcta y revisión de originalidad. +680 maestros titulados. Cotiza gratis.',
+    keywords: 'tesis de maestría, tesis maestría, hacer tesis maestría, tesis maestría precio, tesis maestría México, tesis de posgrado, maestría profesional',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Tesis de Maestría",
+      "serviceType": "Elaboración de tesis de maestría",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Tesis de maestría profesional, escrita por investigadores con doctorado, desde $160 MXN por página.",
+      "offers": { "@type": "Offer", "price": "160", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "160", "priceCurrency": "MXN", "unitText": "por página" } }
+    }
+  },
+  {
+    path: '/tesis-doctoral',
+    title: 'Tesis Doctoral en México 2026 | Tesipedia — Desde $210 por página',
+    description: 'Elabora tu tesis doctoral en México con Tesipedia. Desde $210 MXN por página, 6-8 semanas de entrega. Investigadores doctores internacionales, 100% original, publicación indexada. +140 doctores titulados. Cotiza gratis.',
+    keywords: 'tesis doctoral, tesis de doctorado, hacer tesis doctoral, tesis doctoral México, tesis doctorado precio, publicación tesis, revista indexada',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Tesis Doctoral",
+      "serviceType": "Elaboración de tesis doctoral",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Tesis doctoral profesional de nivel publicable, escrita por doctores internacionales, desde $210 MXN por página.",
+      "offers": { "@type": "Offer", "price": "210", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "210", "priceCurrency": "MXN", "unitText": "por página" } }
+    }
+  },
+  {
+    path: '/ayuda-con-tesis',
+    title: 'Ayuda con Tu Tesis en México 2026 — Redacción, Correcciones y Asesoría | Tesipedia',
+    description: '¿Necesitas ayuda con tu tesis? En Tesipedia te ayudamos a titularte. Redacción completa, correcciones, asesoría metodológica. +3,000 graduados. Todas las carreras y universidades de México. 100% original. Cotiza gratis por WhatsApp.',
+    keywords: 'ayuda con tesis, ayuda para hacer mi tesis, quien me ayuda con mi tesis, ayuda tesis licenciatura, ayuda tesis maestria, ayuda tesis doctorado, asesoría de tesis, me ayudan con mi tesis, necesito ayuda con mi tesis, apoyo para tesis, tesipedia',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Ayuda con Tu Tesis",
+      "serviceType": "Asesoría y redacción de tesis",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Ayuda profesional con tu tesis: redacción completa, correcciones y asesoría metodológica para titularte."
+    }
+  },
+  {
+    path: '/cuanto-cuesta-una-tesis',
+    title: '¿Cuánto Cuesta una Tesis en México 2026? Precios Desde $110/Página | Tesipedia',
+    description: 'Descubre cuánto cuesta hacer una tesis en México en 2026. Precios reales y transparentes: Licenciatura desde $110/pág, Maestría $160/pág, Doctorado $210/pág. Sin costos ocultos. El promedio del mercado es $250/pág — en Tesipedia pagas hasta 56% menos. Cotiza gratis.',
+    keywords: 'cuanto cuesta una tesis, cuanto cobran por hacer una tesis, precio de tesis en mexico, cuanto cuesta tesis licenciatura, precio tesis maestria, costo de una tesis, cuanto sale hacer una tesis, tesis precio, elaboracion de tesis precios, tesipedia precios',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Precios de Tesis en México",
+      "serviceType": "Elaboración profesional de tesis",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Precios transparentes de tesis: licenciatura $110/pág, maestría $160/pág, doctorado $210/pág, sin costos ocultos.",
+      "offers": { "@type": "Offer", "price": "110", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "110", "priceCurrency": "MXN", "unitText": "por página" } }
+    }
+  },
+  {
+    path: '/asesoria-tesis',
+    title: 'Asesoría de Tesis Profesional | Acompañamiento Académico — Tesipedia',
+    description: 'Asesoría y acompañamiento metodológico para tu tesis. Asesores con maestría y doctorado te orientan paso a paso en tu investigación. Consulta gratis.',
+    keywords: 'asesoría de tesis, asesor de tesis, acompañamiento tesis, asesoría metodológica, orientación tesis, ayuda con mi tesis, asesoría investigación',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Asesoría de Tesis",
+      "serviceType": "Asesoría y acompañamiento académico",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Asesoría y acompañamiento metodológico para tu tesis con asesores que tienen maestría y doctorado."
+    }
+  },
+  {
+    path: '/tutoria-academica',
+    title: 'Tutoría Académica Profesional | Mentoría para tu Proyecto — Tesipedia',
+    description: 'Tutoría y mentoría académica personalizada. Mentores con maestría y doctorado te orientan paso a paso en tu proyecto de investigación. Consulta gratis.',
+    keywords: 'tutoría académica, mentoría universitaria, orientación tesis, asesoría investigación, tutor tesis, metodología investigación',
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Tutoría Académica",
+      "serviceType": "Tutoría y mentoría académica",
+      "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+      "areaServed": { "@type": "Country", "name": "México" },
+      "description": "Tutoría y mentoría académica personalizada con mentores que tienen maestría y doctorado."
     }
   },
   {
@@ -74,24 +202,6 @@ const routesMeta = [
         { "@type": "Question", "name": "¿Hacen tesis para cualquier universidad?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, para UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac y todas las universidades de México." } }
       ]
     }
-  },
-  {
-    path: '/como-funciona',
-    title: 'Cómo Funciona Tesipedia — Proceso Paso a Paso para Tu Tesis',
-    description: 'Conoce cómo funciona Tesipedia. 4 pasos simples: cotiza, elige tu plan, recibe avances y obtén tu tesis terminada. Proceso transparente y seguro.',
-    keywords: 'cómo funciona Tesipedia, proceso tesis, pasos para hacer tesis, servicio de tesis paso a paso'
-  },
-  {
-    path: '/servicios',
-    title: 'Servicios de Tesis — Tesipedia | Desarrollo, Asesoría y Corrección',
-    description: 'Servicios profesionales de tesis: desarrollo completo, asesoría personalizada, corrección de estilo, revisión antiplagio Turnitin y detección anti-IA.',
-    keywords: 'servicios tesis, desarrollo de tesis, asesoría tesis, corrección tesis, revisión antiplagio, Tesipedia servicios'
-  },
-  {
-    path: '/precios',
-    title: 'Precios de Tesis en México 2026 — Tesipedia | Cotiza Gratis',
-    description: 'Precios transparentes para tu tesis. Desde $9,900 MXN. Planes de pago flexibles: único, 50-50, quincenas y MSI. Cotización gratuita por WhatsApp.',
-    keywords: 'precios tesis México, cuánto cuesta una tesis, cotizar tesis, precio tesis licenciatura, precio tesis maestría, Tesipedia precios'
   },
   {
     path: '/blog',
@@ -478,6 +588,35 @@ const routesMeta = [
   }
 ];
 
+// ─── Blog posts: auto-incluir desde blogData.js (fuente única de verdad) ──
+// Cualquier post en blogData.js que no tenga ya una entrada manual arriba se
+// agrega automáticamente, así el prerender nunca se desincroniza del blog real.
+const existingPaths = new Set(coreRoutes.map(r => r.path));
+const blogRoutes = blogPosts
+  .filter(post => post.slug && !existingPaths.has(`/blog/${post.slug}`))
+  .map(post => ({
+    path: `/blog/${post.slug}`,
+    title: `${post.title} — Tesipedia Blog`,
+    description: post.excerpt || `${post.title}. Guía y recursos para tu tesis por Tesipedia.`,
+    keywords: `${post.category || 'tesis'}, tesis México, hacer tesis, Tesipedia, ${post.title.toLowerCase().split(' ').slice(0, 5).join(', ')}`,
+    image: post.image || DEFAULT_IMAGE,
+    datePublished: post.date,
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": post.title,
+      "description": post.excerpt || '',
+      "image": post.image || DEFAULT_IMAGE,
+      "datePublished": post.date,
+      "dateModified": post.date,
+      "author": { "@type": "Organization", "name": "Tesipedia" },
+      "publisher": { "@type": "Organization", "name": "Tesipedia", "logo": { "@type": "ImageObject", "url": DEFAULT_IMAGE } },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` }
+    }
+  }));
+
+const routesMeta = [...coreRoutes, ...blogRoutes];
+
 // ─── HTML generation ─────────────────────────────────────────────────────
 
 function generateMetaTags(route) {
@@ -544,6 +683,27 @@ function generateCrawlerContent(route) {
       <p>Tesipedia — Hacemos tu tesis en México. <a href="https://wa.me/525670071517">WhatsApp: ${PHONE}</a></p>
     </div>`;
   return content;
+}
+
+const LANDING_PATHS = new Set([
+  '/comprar-tesis', '/tesis-licenciatura', '/tesis-maestria', '/tesis-doctoral',
+  '/ayuda-con-tesis', '/cuanto-cuesta-una-tesis', '/asesoria-tesis', '/tutoria-academica'
+]);
+
+function generateSitemap(routes) {
+  const today = new Date().toISOString().slice(0, 10);
+  const entry = (route) => {
+    const loc = `${SITE_URL}${route.path === '/' ? '/' : route.path}`;
+    const isBlogPost = route.path.startsWith('/blog/');
+    let priority = '0.6', changefreq = 'monthly';
+    if (route.path === '/') { priority = '1.0'; changefreq = 'weekly'; }
+    else if (LANDING_PATHS.has(route.path)) { priority = '0.9'; changefreq = 'weekly'; }
+    else if (route.path === '/blog') { priority = '0.8'; changefreq = 'weekly'; }
+    else if (isBlogPost) { priority = '0.7'; changefreq = 'monthly'; }
+    const lastmod = route.datePublished || today;
+    return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+  };
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(entry).join('\n')}\n</urlset>\n`;
 }
 
 async function prerender() {
@@ -617,6 +777,15 @@ async function prerender() {
     } catch (err) {
       console.error(`     ❌ Error en ${route.path}: ${err.message}`);
     }
+  }
+
+  // Regenerar sitemap.xml desde la misma fuente (nunca se desincroniza)
+  try {
+    const sitemap = generateSitemap(routesMeta);
+    writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap, 'utf-8');
+    console.log(`  🗺️  sitemap.xml regenerado con ${routesMeta.length} URLs`);
+  } catch (err) {
+    console.error(`  ❌ Error generando sitemap.xml: ${err.message}`);
   }
 
   console.log(`\n${'═'.repeat(50)}`);

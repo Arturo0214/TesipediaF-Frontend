@@ -1,5 +1,7 @@
 [build]
-  command = "npm run build"
+  # build:seo = vite build + prerender estático por ruta (meta, OG y JSON-LD por página)
+  # CRÍTICO para SEO de la SPA: genera dist/<ruta>/index.html que Google lee sin ejecutar JS.
+  command = "npm run build:seo"
   publish = "dist"
 
 [build.processing]
