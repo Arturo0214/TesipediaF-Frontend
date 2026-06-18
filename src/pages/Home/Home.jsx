@@ -1,17 +1,11 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import {
-  FaUserGraduate,
-  FaGraduationCap,
-  FaAward,
-  FaHandshake
-} from 'react-icons/fa';
+import { useEffect, lazy, Suspense } from 'react';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { Helmet } from 'react-helmet-async';
 
 // Critical above-the-fold component loaded eagerly
 import HeroSection from '../../components/HomeComponents/HeroSection/HeroSection';
-import { TrustBar, HowItWorks, LevelsPricing, ExploreLinks, HomeFAQ, FinalCTA } from '../../components/HomeComponents/HomeSections';
+import { TrustBar, HowItWorks, RealTimeTracking, LevelsPricing, ExploreLinks, HomeFAQ, FinalCTA } from '../../components/HomeComponents/HomeSections';
 
 // Lazy load below-the-fold components for performance
 const TestimonialsSection = lazy(() => import('../../components/HomeComponents/TestimonialsSection/TestimonialsSection'));
@@ -23,31 +17,7 @@ import './Home.css';
 
 function Home() {
   const dispatch = useDispatch();
-  const [currentStat, setCurrentStat] = useState(0);
   // Chat state is managed by FixedButtons via custom event
-
-  const stats = [
-    {
-      number: "+3,000",
-      text: "Estudiantes Titulados",
-      icon: <FaUserGraduate />
-    },
-    {
-      number: "+3,000",
-      text: "Tesis Aprobadas",
-      icon: <FaGraduationCap />
-    },
-    {
-      number: "98%",
-      text: "Índice de Aprobación",
-      icon: <FaAward />
-    },
-    {
-      number: "+50",
-      text: "Asesores Expertos",
-      icon: <FaHandshake />
-    }
-  ];
 
   useEffect(() => {
     // Lazy load AOS after initial render for performance
@@ -67,18 +37,12 @@ function Home() {
       loadAOS();
     });
 
-    const interval = setInterval(() => {
-      setCurrentStat((prev) => (prev + 1) % stats.length);
-    }, 2000);
-
     // Registrar visita usando el slice
     dispatch(trackVisit({
       path: window.location.pathname,
       referrer: document.referrer || 'Direct',
       userAgent: navigator.userAgent
     }));
-
-    return () => clearInterval(interval);
   }, [dispatch]);
 
   const handleOpenChat = () => {
@@ -283,13 +247,10 @@ function Home() {
         <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>
       </Helmet>
 
-      <HeroSection
-        stats={stats}
-        currentStat={currentStat}
-        onOpenChat={handleOpenChat}
-      />
+      <HeroSection onOpenChat={handleOpenChat} />
       <TrustBar />
       <HowItWorks />
+      <RealTimeTracking />
       <LevelsPricing />
       <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
         <SuccessCasesSection />

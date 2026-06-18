@@ -1,12 +1,13 @@
 import {
   FaCheckCircle, FaShieldAlt, FaClock, FaWhatsapp, FaComments,
-  FaStar, FaUserGraduate, FaArrowRight
+  FaStar, FaArrowRight, FaUserGraduate,
 } from 'react-icons/fa';
 import './HeroSection.css';
 
 const WA = 'https://wa.me/525670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis';
+const HERO_IMG = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&q=72&auto=format&fit=crop';
 
-const HeroSection = ({ stats = [], currentStat = 0, onOpenChat }) => {
+const HeroSection = ({ onOpenChat }) => {
   return (
     <section className="hx-hero">
       <div className="hx-hero-glow hx-hero-glow-1" />
@@ -53,44 +54,44 @@ const HeroSection = ({ stats = [], currentStat = 0, onOpenChat }) => {
           </button>
         </div>
 
-        {/* DERECHA — tarjeta glass + stat rotativo */}
+        {/* DERECHA — visual humano + prueba social flotante */}
         <div className="hx-hero-right hx-reveal hx-reveal-2">
-          <div className="hx-card">
-            <div className="hx-card-head">
-              <FaUserGraduate />
+          <div className="hx-visual">
+            <img
+              className="hx-visual-img"
+              src={HERO_IMG}
+              alt="Estudiantes graduados celebrando su titulación en México"
+              width="900"
+              height="600"
+              loading="eager"
+              fetchpriority="high"
+            />
+            <div className="hx-visual-shade" />
+
+            {/* tarjeta flotante: rating */}
+            <div className="hx-float hx-float-rating">
+              <div className="hx-float-stars">
+                <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
+              </div>
               <div>
-                <strong>Cotización gratis en minutos</strong>
-                <span>Sin compromiso · respuesta por WhatsApp</span>
+                <strong>4.9 / 5</strong>
+                <span>Calificación de estudiantes</span>
               </div>
             </div>
 
-            <div className="hx-stat-rotator" aria-live="polite">
-              {stats.map((s, i) => (
-                <div key={i} className={`hx-stat ${currentStat === i ? 'is-active' : ''}`}>
-                  <span className="hx-stat-ico">{s.icon}</span>
-                  <span className="hx-stat-num">{s.number}</span>
-                  <span className="hx-stat-txt">{s.text}</span>
-                </div>
-              ))}
+            {/* tarjeta flotante: titulados */}
+            <div className="hx-float hx-float-grad">
+              <span className="hx-float-ico"><FaUserGraduate /></span>
+              <div>
+                <strong>+3,000 titulados</strong>
+                <span>en las mejores universidades de México</span>
+              </div>
             </div>
 
-            <div className="hx-card-grid">
-              <div><strong>$110</strong><span>por página</span></div>
-              <div><strong>98%</strong><span>aprobación</span></div>
-              <div><strong>+50</strong><span>asesores</span></div>
+            {/* chip flotante: humano */}
+            <div className="hx-float hx-float-chip">
+              <FaCheckCircle /> 100% humano · sin IA
             </div>
-
-            <a
-              href={WA}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hx-btn hx-btn-primary hx-btn-block"
-              data-track-cta="hero_card_whatsapp"
-              data-track-label="Cotizar gratis - Hero card"
-            >
-              <FaWhatsapp /> Cotizar ahora
-            </a>
-            <p className="hx-card-foot">Atendemos UNAM, IPN, UAM, Tec, UANL y todas las universidades de México</p>
           </div>
         </div>
       </div>

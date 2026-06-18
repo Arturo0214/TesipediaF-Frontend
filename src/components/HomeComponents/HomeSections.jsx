@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
   FaWhatsapp, FaArrowRight, FaCommentDots, FaUserTie, FaFileSignature,
-  FaGraduationCap, FaCheckCircle, FaPlus,
+  FaGraduationCap, FaCheckCircle, FaPlus, FaBell, FaComments, FaFileDownload, FaChartLine,
 } from 'react-icons/fa';
 import './HomeSections.css';
 
@@ -43,6 +43,71 @@ export function HowItWorks() {
             <p>{s.d}</p>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---- Seguimiento en tiempo real ---- */
+export function RealTimeTracking() {
+  const feats = [
+    { icon: <FaChartLine />, t: 'Avance por capítulos', d: 'Ve el porcentaje de progreso de tu tesis y qué etapa se está trabajando.' },
+    { icon: <FaFileDownload />, t: 'Descarga tus avances', d: 'Recibe y descarga cada entrega directamente desde tu cuenta.' },
+    { icon: <FaComments />, t: 'Chat con tu asesor', d: 'Comunícate con quien hace tu tesis y pide ajustes cuando quieras.' },
+    { icon: <FaBell />, t: 'Notificaciones', d: 'Te avisamos cada vez que hay un avance nuevo o una respuesta.' },
+  ];
+  const stages = [
+    { t: 'Protocolo y marco teórico', done: true },
+    { t: 'Metodología', done: true },
+    { t: 'Resultados y análisis', live: true },
+    { t: 'Conclusiones y formato', done: false },
+  ];
+  return (
+    <section className="hs-section hs-realtime" id="seguimiento">
+      <div className="hs-rt-grid">
+        <div className="hs-rt-text" data-aos="fade-right">
+          <span className="hs-rt-eyebrow"><FaChartLine /> Tu proyecto, siempre a la vista</span>
+          <h2>Sigue tu tesis en tiempo real</h2>
+          <p>
+            Con tu cuenta de Tesipedia no te quedas en la incertidumbre: ves el avance de tu tesis
+            <strong> en tiempo real</strong>, capítulo por capítulo, descargas cada entrega y hablas
+            con tu asesor cuando lo necesites. Total transparencia, de principio a fin.
+          </p>
+          <div className="hs-rt-feats">
+            {feats.map((f, i) => (
+              <div className="hs-rt-feat" key={i}>
+                <span className="hs-rt-feat-ico">{f.icon}</span>
+                <div><strong>{f.t}</strong><span>{f.d}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mock del panel del cliente */}
+        <div className="hs-rt-mock" data-aos="fade-left">
+          <div className="hs-rt-mockcard">
+            <div className="hs-rt-mockhead">
+              <span className="hs-rt-dot" /><span className="hs-rt-dot" /><span className="hs-rt-dot" />
+              <span className="hs-rt-mocktitle">Mi proyecto · Tesis de Licenciatura</span>
+            </div>
+            <div className="hs-rt-mockbody">
+              <div className="hs-rt-progresshead">
+                <span>Progreso de tu tesis</span><strong>65%</strong>
+              </div>
+              <div className="hs-rt-bar"><span style={{ width: '65%' }} /></div>
+              <div className="hs-rt-live"><span className="hs-rt-pulse" /> En tiempo real · actualizado hoy</div>
+              <ul className="hs-rt-stages">
+                {stages.map((s, i) => (
+                  <li key={i} className={s.done ? 'is-done' : s.live ? 'is-live' : ''}>
+                    <span className="hs-rt-check">{s.done ? <FaCheckCircle /> : s.live ? <span className="hs-rt-pulse" /> : <span className="hs-rt-circle" />}</span>
+                    {s.t}
+                    {s.live && <em>en proceso</em>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
