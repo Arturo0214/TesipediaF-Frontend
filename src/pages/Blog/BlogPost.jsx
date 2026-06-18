@@ -66,32 +66,60 @@ const formatDate = (dateStr) => {
   });
 };
 
+// Renderiza markdown inline: enlaces internos [texto](/ruta), externos [texto](http...) y **negritas**.
+// Los enlaces internos usan <Link> (SPA) — clave para el interlinking SEO entre artículos y landings.
+const renderInline = (text) => {
+  const regex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
+  const parts = [];
+  let lastIndex = 0;
+  let key = 0;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    if (m[1] !== undefined) {
+      const label = m[1];
+      const url = m[2];
+      if (url.startsWith('/')) {
+        parts.push(<Link key={`l${key++}`} to={url}>{label}</Link>);
+      } else {
+        parts.push(<a key={`l${key++}`} href={url} target="_blank" rel="noopener noreferrer">{label}</a>);
+      }
+    } else if (m[3] !== undefined) {
+      parts.push(<strong key={`b${key++}`}>{m[3]}</strong>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
+};
+
 const formatContent = (content) => {
   return content.split('\n\n').map((paragraph, index) => {
     if (/^[📌🎯📚🔬📊✅📝🔍🎤💡⚡👥🔄🛠📈💰🏆🎓]/.test(paragraph)) {
-      return <h2 key={index} className="bp-subtitle">{paragraph}</h2>;
+      return <h2 key={index} className="bp-subtitle">{renderInline(paragraph)}</h2>;
     }
     if (paragraph.includes('•')) {
       const items = paragraph.split('•').filter(item => item.trim());
       return (
         <ul key={index} className="bp-list">
           {items.map((item, i) => (
-            <li key={i}>{item.trim()}</li>
+            <li key={i}>{renderInline(item.trim())}</li>
           ))}
         </ul>
       );
     }
     if (paragraph.includes('+52 56 7007 1517') || paragraph.includes('wa.me')) {
+      const cleaned = paragraph.replace(/Cotiza gratis por WhatsApp al \+52 56 7007 1517\.?|Contáctanos por WhatsApp al \+52 56 7007 1517[^.]*\.?|Escríbenos por WhatsApp al \+52 56 7007 1517[^.]*\.?|WhatsApp al \+52 56 7007 1517[^.]*\.?/g, '').trim();
       return (
         <div key={index} className="bp-cta-block">
-          <p>{paragraph.replace(/Cotiza gratis por WhatsApp al \+52 56 7007 1517\.?|Contáctanos por WhatsApp al \+52 56 7007 1517[^.]*\.?|Escríbenos por WhatsApp al \+52 56 7007 1517[^.]*\.?|WhatsApp al \+52 56 7007 1517[^.]*\.?/g, '').trim()}</p>
+          <p>{renderInline(cleaned)}</p>
           <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="bp-wa-btn">
             <FaWhatsapp /> Cotizar por WhatsApp
           </a>
         </div>
       );
     }
-    return <p key={index}>{paragraph}</p>;
+    return <p key={index}>{renderInline(paragraph)}</p>;
   });
 };
 
@@ -152,6 +180,17 @@ function BlogPost() {
     ]
   };
 
+  // FAQPage schema → habilita rich snippets de preguntas en Google (solo si el post trae FAQ)
+  const faqSchema = post.faq && post.faq.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": post.faq.map(f => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": { "@type": "Answer", "text": f.a }
+    }))
+  } : null;
+
   return (
     <>
       <Helmet>
@@ -173,6 +212,7 @@ function BlogPost() {
         <meta name="twitter:description" content={post.excerpt} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
       </Helmet>
 
       <article className="bp-page">
@@ -244,6 +284,21 @@ function BlogPost() {
                 <Link to="/preguntas-frecuentes" className="bp-cta-faq">Preguntas Frecuentes</Link>
               </div>
             </div>
+
+            {/* ── FAQ (preguntas frecuentes del artículo) ── */}
+            {post.faq && post.faq.length > 0 && (
+              <section className="bp-faq">
+                <h2 className="bp-faq-title">Preguntas frecuentes</h2>
+                <div className="bp-faq-list">
+                  {post.faq.map((f, i) => (
+                    <details key={i} className="bp-faq-item">
+                      <summary className="bp-faq-q">{f.q}</summary>
+                      <p className="bp-faq-a">{f.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* ── Related Posts ── */}
             {relatedPosts.length > 0 && (
