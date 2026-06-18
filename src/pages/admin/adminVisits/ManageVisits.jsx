@@ -183,7 +183,12 @@ const ManageVisits = () => {
     }
 
     const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: `${i}h`, count: 0 }));
-    visits.forEach(v => { hourly[new Date(v.createdAt).getHours()].count++; });
+    visits.forEach(v => {
+      const h = new Date(v.createdAt).getHours();
+      // createdAt ausente/inválido → getHours() es NaN → hourly[NaN] es undefined.
+      // Guardar el índice evita el crash "Cannot read properties of undefined (reading 'count')".
+      if (Number.isInteger(h) && hourly[h]) hourly[h].count++;
+    });
 
     const prevWeekStart = new Date(weekAgo); prevWeekStart.setDate(prevWeekStart.getDate() - 7);
     const prevWeek = visits.filter(v => {
