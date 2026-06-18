@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import {
   FaWhatsapp, FaArrowRight, FaCommentDots, FaUserTie, FaFileSignature,
   FaGraduationCap, FaCheckCircle, FaPlus, FaBell, FaComments, FaFileDownload, FaChartLine,
+  FaFileAlt, FaSearch, FaRobot, FaShieldAlt, FaQuoteLeft, FaStar, FaPercent,
+  FaMoneyBillWave, FaCreditCard,
 } from 'react-icons/fa';
 import './HomeSections.css';
 
@@ -196,6 +198,125 @@ export function HomeFAQ({ faqs = [] }) {
             <p>{q.acceptedAnswer.text}</p>
           </details>
         ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---- Por qué Tesipedia (diferenciadores) ---- */
+export function WhyTesipedia() {
+  const items = [
+    { icon: <FaFileAlt />, t: 'Desarrollo completo', d: 'Tu tesis de inicio a fin: tema, marco teórico, metodología, resultados y conclusiones.' },
+    { icon: <FaSearch />, t: 'Anti-plagio Turnitin', d: 'Cada trabajo pasa por Turnitin. Recibes tu reporte de originalidad como respaldo.' },
+    { icon: <FaRobot />, t: '100% humano, sin IA', d: 'Escrito por investigadores con posgrado. Pasa los detectores de IA más exigentes.' },
+    { icon: <FaUserTie />, t: 'Asesoría personalizada', d: 'Un asesor dedicado te acompaña, resuelve dudas y te prepara para tu defensa.' },
+    { icon: <FaShieldAlt />, t: 'Garantía de aprobación', d: 'Correcciones ilimitadas hasta que tu asesor y sinodales aprueben tu tesis.' },
+    { icon: <FaGraduationCap />, t: 'Hasta titularte', d: 'No terminamos en la entrega: te apoyamos hasta que tengas tu título en mano.' },
+  ];
+  return (
+    <section className="hs-section" id="por-que">
+      <div className="hs-head" data-aos="fade-up">
+        <h2>Por qué Tesipedia es el servicio #1 en México</h2>
+        <p>Todo lo que necesitas para hacer tu tesis y titularte, con respaldo real.</p>
+      </div>
+      <div className="hs-why">
+        {items.map((it, i) => (
+          <div className="hs-why-card" key={i} data-aos="fade-up" data-aos-delay={(i % 3) * 80}>
+            <span className="hs-why-ico">{it.icon}</span>
+            <h3>{it.t}</h3>
+            <p>{it.d}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---- Historias de éxito (testimonios) ---- */
+export function SuccessStories() {
+  const t = [
+    { name: 'Carlos', deg: 'Ing. Industrial · UNAM', lvl: 'Licenciatura', text: 'Llevaba meses sin avanzar. Con el equipo terminé mi tesis en 8 semanas, con tranquilidad total por el escáner antiplagio. Hasta conseguí una oferta de trabajo gracias a ella.' },
+    { name: 'Ana', deg: 'Psicología · ITESM', lvl: 'Maestría', text: 'Dudaba al principio, pero desde la primera reunión sentí confianza. Mi asesora fue cercana, clara y profesional. Hoy ya tengo mi título en manos.' },
+    { name: 'Roberto', deg: 'Administración · IBERO', lvl: 'Doctorado', text: 'Me ayudaron a estructurar desde cero con argumentos sólidos. El seguimiento fue constante y superé las expectativas de mi comité.' },
+    { name: 'María', deg: 'Derecho · UAM', lvl: 'Licenciatura', text: 'Trabajando y estudiando era imposible avanzar. Me apoyaron paso a paso entendiendo mis tiempos. En 3 meses estaba lista para titularme.' },
+    { name: 'Antonio', deg: 'Ing. Mecánica · IPN', lvl: 'Licenciatura', text: 'Me preocupaba la originalidad. El escáner anti-IA y antiplagio me dieron la certeza de que mi tesis era mía y única. Excelente experiencia.' },
+    { name: 'Vanessa', deg: 'Economía · UNAM', lvl: 'Licenciatura', text: 'No solo entendieron mis necesidades; me apoyaron con normas APA, redacción y análisis estadístico. Todo muy claro y profesional.' },
+  ];
+  return (
+    <section className="hs-section hs-section-alt" id="casos-exito">
+      <div className="hs-head" data-aos="fade-up">
+        <h2>Estudiantes que ya se titularon con nosotros</h2>
+        <p>Historias reales de quienes confiaron en Tesipedia para lograr su título.</p>
+      </div>
+      <div className="hs-stories">
+        {t.map((s, i) => (
+          <figure className="hs-story" key={i} data-aos="fade-up" data-aos-delay={(i % 3) * 80}>
+            <div className="hs-story-stars">{[...Array(5)].map((_, j) => <FaStar key={j} />)}</div>
+            <FaQuoteLeft className="hs-story-quote" />
+            <blockquote>{s.text}</blockquote>
+            <figcaption>
+              <span className="hs-story-avatar">{s.name[0]}</span>
+              <span>
+                <strong>{s.name}</strong>
+                <span>{s.deg}</span>
+              </span>
+              <span className="hs-story-lvl">{s.lvl}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---- Oferta (descuento por transferencia/efectivo) ---- */
+export function SpecialOffer() {
+  return (
+    <section className="hs-offer" id="oferta">
+      <div className="hs-offer-inner" data-aos="fade-up">
+        <div className="hs-offer-left">
+          <span className="hs-offer-tag"><FaPercent /> 10% de descuento</span>
+          <h2>Ahorra 10% al pagar tu tesis por transferencia o efectivo</h2>
+          <p>Incluye asesoría inicial gratuita y planes de pago en parcialidades.</p>
+        </div>
+        <div className="hs-offer-right">
+          <div className="hs-offer-pay"><FaMoneyBillWave /> Transferencia <span>−10%</span></div>
+          <div className="hs-offer-pay"><FaCreditCard /> Pago en efectivo <span>−10%</span></div>
+          <a href={WA} target="_blank" rel="noopener noreferrer" className="hs-btn hs-btn-primary" data-track-cta="home_oferta">
+            <FaWhatsapp /> Solicitar cotización
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- Bloque SEO (texto rico en keywords) ---- */
+export function SeoBlock() {
+  return (
+    <section className="hs-section hs-seoblock">
+      <div className="hs-seoblock-inner" data-aos="fade-up">
+        <h2>Hacer tesis en México — el servicio #1 del país</h2>
+        <p>
+          <strong>¿Necesitas hacer tu tesis?</strong> En Tesipedia somos el servicio líder en México para hacer
+          tesis de licenciatura, maestría y doctorado. Con más de 3,000 estudiantes titulados y un 98% de
+          aprobación, te hacemos tu tesis con la calidad que tu universidad exige.
+        </p>
+        <p>
+          Nuestro equipo de más de 50 asesores expertos cubre todas las áreas: derecho, administración, ingeniería,
+          psicología, educación, medicina, contaduría, arquitectura, ciencias sociales y más. Hacemos tesis para
+          estudiantes de la <Link to="/tesis-unam">UNAM</Link>, <Link to="/tesis-ipn">IPN</Link>,
+          {' '}<Link to="/tesis-tec-monterrey">Tec de Monterrey</Link>, <Link to="/tesis-uam">UAM</Link>,
+          {' '}<Link to="/tesis-uanl">UANL</Link>, <Link to="/tesis-udg">UdeG</Link> y todas las universidades
+          públicas y privadas de México.
+        </p>
+        <p>
+          A diferencia de otros servicios, cada tesis es <strong>100% original</strong>, elaborada por investigadores
+          humanos y verificada con Turnitin y escáner anti-IA. No usamos plantillas ni reciclamos trabajos: tu tesis
+          se desarrolla desde cero siguiendo los lineamientos de tu universidad. Ofrecemos desarrollo completo,
+          acompañamiento y <Link to="/cuanto-cuesta-una-tesis">corrección</Link>, con precios transparentes desde
+          $110 por página y planes de pago flexibles.
+        </p>
       </div>
     </section>
   );

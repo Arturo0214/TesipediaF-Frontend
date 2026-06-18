@@ -173,3 +173,76 @@
 @media (max-width: 480px) {
   .hs-rt-feats { grid-template-columns: 1fr; }
 }
+
+/* ---- POR QUÉ TESIPEDIA ---- */
+.hs-why { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.hs-why-card {
+  background: #fff; border: 1px solid #e9ecf4; border-radius: 18px; padding: 28px 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.hs-why-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(13,23,56,0.1); }
+.hs-why-ico {
+  display: inline-flex; font-size: 1.3rem; color: #fff; padding: 13px; border-radius: 13px; margin-bottom: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+}
+.hs-why-card h3 { font-size: 1.1rem; font-weight: 800; color: #0d1738; margin: 0 0 8px; }
+.hs-why-card p { font-size: 0.93rem; color: #5b6478; line-height: 1.55; margin: 0; }
+
+/* ---- HISTORIAS DE ÉXITO ---- */
+.hs-stories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.hs-story {
+  position: relative; background: #fff; border: 1px solid #e9ecf4; border-radius: 18px;
+  padding: 26px 24px; margin: 0; display: flex; flex-direction: column;
+}
+.hs-story-stars { color: #f5b301; display: flex; gap: 2px; font-size: 0.9rem; margin-bottom: 10px; }
+.hs-story-quote { color: #e3e7f2; font-size: 1.4rem; position: absolute; top: 22px; right: 22px; }
+.hs-story blockquote { margin: 0 0 18px; font-size: 0.95rem; line-height: 1.6; color: #44495a; font-style: italic; flex: 1; }
+.hs-story figcaption { display: flex; align-items: center; gap: 11px; }
+.hs-story-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #fff; background: linear-gradient(135deg, #6366f1, #06b6d4);
+}
+.hs-story figcaption > span:nth-child(2) { display: flex; flex-direction: column; line-height: 1.25; }
+.hs-story figcaption strong { font-size: 0.92rem; color: #0d1738; }
+.hs-story figcaption span span { font-size: 0.8rem; color: #7a8195; }
+.hs-story-lvl { margin-left: auto; font-size: 0.72rem; font-weight: 700; color: #4f46e5; background: #eef1fb; padding: 4px 10px; border-radius: 999px; }
+
+/* ---- OFERTA ---- */
+.hs-offer { padding: clamp(32px, 5vw, 56px) 24px; }
+.hs-offer-inner {
+  max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 26px; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, #0d1738, #15235a); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 22px; padding: 32px 34px; color: #fff;
+}
+.hs-offer-left { flex: 1 1 360px; }
+.hs-offer-tag {
+  display: inline-flex; align-items: center; gap: 7px; background: rgba(245,179,1,0.15); color: #ffd76a;
+  border: 1px solid rgba(245,179,1,0.4); font-weight: 800; font-size: 0.82rem; padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;
+}
+.hs-offer-left h2 { font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 900; margin: 0 0 8px; letter-spacing: -0.01em; }
+.hs-offer-left p { color: rgba(255,255,255,0.82); margin: 0; font-size: 0.98rem; }
+.hs-offer-right { display: flex; flex-direction: column; gap: 10px; min-width: 240px; }
+.hs-offer-pay {
+  display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px; padding: 11px 15px; font-weight: 600; font-size: 0.92rem;
+}
+.hs-offer-pay span { margin-left: auto; color: #34d399; font-weight: 800; }
+.hs-offer-right .hs-btn { margin-top: 4px; }
+
+/* ---- BLOQUE SEO ---- */
+.hs-seoblock-inner { max-width: 880px; margin: 0 auto; }
+.hs-seoblock-inner h2 { font-size: clamp(1.4rem, 2.8vw, 2rem); font-weight: 900; color: #0d1738; text-align: center; margin: 0 0 20px; letter-spacing: -0.02em; }
+.hs-seoblock-inner p { color: #5b6478; line-height: 1.8; font-size: 1rem; margin: 0 0 16px; }
+.hs-seoblock-inner strong { color: #0d1738; }
+.hs-seoblock-inner a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+.hs-seoblock-inner a:hover { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .hs-why { grid-template-columns: 1fr 1fr; }
+  .hs-stories { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .hs-why { grid-template-columns: 1fr; }
+  .hs-stories { grid-template-columns: 1fr; }
+  .hs-offer-inner { flex-direction: column; align-items: stretch; }
+}

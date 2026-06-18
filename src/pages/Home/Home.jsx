@@ -1,17 +1,14 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { Helmet } from 'react-helmet-async';
 
 // Critical above-the-fold component loaded eagerly
 import HeroSection from '../../components/HomeComponents/HeroSection/HeroSection';
-import { TrustBar, HowItWorks, RealTimeTracking, LevelsPricing, ExploreLinks, HomeFAQ, FinalCTA } from '../../components/HomeComponents/HomeSections';
-
-// Lazy load below-the-fold components for performance
-const TestimonialsSection = lazy(() => import('../../components/HomeComponents/TestimonialsSection/TestimonialsSection'));
-const ServicesSection = lazy(() => import('../../components/HomeComponents/ServicesSection/ServicesSection'));
-const GuaranteeSection = lazy(() => import('../../components/HomeComponents/GuaranteeSection/GuaranteeSection'));
-const SuccessCasesSection = lazy(() => import('../../components/HomeComponents/SuccessCasesSection/SuccessCasesSection'));
+import {
+  TrustBar, HowItWorks, RealTimeTracking, WhyTesipedia, LevelsPricing,
+  SuccessStories, SpecialOffer, ExploreLinks, SeoBlock, HomeFAQ, FinalCTA,
+} from '../../components/HomeComponents/HomeSections';
 
 import './Home.css';
 
@@ -251,14 +248,12 @@ function Home() {
       <TrustBar />
       <HowItWorks />
       <RealTimeTracking />
+      <WhyTesipedia />
       <LevelsPricing />
-      <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
-        <SuccessCasesSection />
-        <TestimonialsSection />
-        <ServicesSection onOpenChat={handleOpenChat} />
-        <GuaranteeSection />
-      </Suspense>
+      <SuccessStories />
+      <SpecialOffer />
       <ExploreLinks />
+      <SeoBlock />
       <HomeFAQ faqs={homeFaqSchema.mainEntity} />
       <FinalCTA />
     </>
