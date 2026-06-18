@@ -16,6 +16,8 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { blogPosts } from '../src/pages/Blog/blogData.js';
+import { universidades } from '../src/data/seoUniversidades.js';
+import { carreras } from '../src/data/seoCarreras.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
@@ -615,7 +617,43 @@ const blogRoutes = blogPosts
     }
   }));
 
-const routesMeta = [...coreRoutes, ...blogRoutes];
+// ─── Landings programáticas por universidad (desde seoUniversidades.js) ───
+const uniRoutes = universidades.map((u) => ({
+  path: `/${u.slug}`,
+  title: u.metaTitle,
+  description: u.metaDescription,
+  keywords: u.keywords,
+  schema: {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": `Elaboración de Tesis para la ${u.sigla}`,
+    "serviceType": "Elaboración profesional de tesis",
+    "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+    "areaServed": { "@type": "Place", "name": u.ciudad },
+    "description": u.intro,
+    "offers": { "@type": "Offer", "price": "110", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "110", "priceCurrency": "MXN", "unitText": "por página" } }
+  }
+}));
+
+// ─── Landings programáticas por carrera (desde seoCarreras.js) ────────────
+const carreraRoutes = carreras.map((c) => ({
+  path: `/${c.slug}`,
+  title: c.metaTitle,
+  description: c.metaDescription,
+  keywords: c.keywords,
+  schema: {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": `Elaboración de Tesis de ${c.nombre}`,
+    "serviceType": `Tesis de ${c.nombre}`,
+    "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
+    "areaServed": { "@type": "Country", "name": "México" },
+    "description": c.intro,
+    "offers": { "@type": "Offer", "price": "110", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "110", "priceCurrency": "MXN", "unitText": "por página" } }
+  }
+}));
+
+const routesMeta = [...coreRoutes, ...uniRoutes, ...carreraRoutes, ...blogRoutes];
 
 // ─── HTML generation ─────────────────────────────────────────────────────
 
@@ -687,7 +725,9 @@ function generateCrawlerContent(route) {
 
 const LANDING_PATHS = new Set([
   '/comprar-tesis', '/tesis-licenciatura', '/tesis-maestria', '/tesis-doctoral',
-  '/ayuda-con-tesis', '/cuanto-cuesta-una-tesis', '/asesoria-tesis', '/tutoria-academica'
+  '/ayuda-con-tesis', '/cuanto-cuesta-una-tesis', '/asesoria-tesis', '/tutoria-academica',
+  ...universidades.map((u) => `/${u.slug}`),
+  ...carreras.map((c) => `/${c.slug}`),
 ]);
 
 function generateSitemap(routes) {
@@ -704,6 +744,34 @@ function generateSitemap(routes) {
     return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
   };
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(entry).join('\n')}\n</urlset>\n`;
+}
+
+const INDEXNOW_KEY = 'a3f9c1e08b7d42569e1f0c3b8a6d5e47';
+
+async function pingIndexNow(urls) {
+  // IndexNow notifica a Bing y Yandex al instante. Google lo ignora (usa Search Console).
+  if (typeof fetch !== 'function' || !urls || !urls.length) return;
+  if (process.env.INDEXNOW_DISABLE === '1') { console.log('  ⏭️  IndexNow desactivado (INDEXNOW_DISABLE=1)'); return; }
+  try {
+    const host = SITE_URL.replace(/^https?:\/\//, '');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch('https://api.indexnow.org/indexnow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        host,
+        key: INDEXNOW_KEY,
+        keyLocation: `${SITE_URL}/${INDEXNOW_KEY}.txt`,
+        urlList: urls.slice(0, 10000),
+      }),
+    });
+    clearTimeout(timer);
+    console.log(`  📡 IndexNow (Bing/Yandex): ${res.status} para ${urls.length} URLs`);
+  } catch (err) {
+    console.log(`  ⚠️  IndexNow no disponible (no crítico): ${err.message}`);
+  }
 }
 
 async function prerender() {
@@ -787,6 +855,9 @@ async function prerender() {
   } catch (err) {
     console.error(`  ❌ Error generando sitemap.xml: ${err.message}`);
   }
+
+  // Ping IndexNow (Bing/Yandex) — indexación instantánea. Best-effort: nunca rompe el build.
+  await pingIndexNow(routesMeta.map((r) => `${SITE_URL}${r.path}`));
 
   console.log(`\n${'═'.repeat(50)}`);
   console.log(`✅ Pre-renderizado SEO completado:`);

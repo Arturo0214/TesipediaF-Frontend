@@ -27,7 +27,7 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService/TermsOfService'
 const Blog = lazy(() => import('./pages/Blog/Blog'));
 const BlogPost = lazy(() => import('./pages/Blog/BlogPost'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
-const SalesQuote = lazy(() => import('./pages/SalesQuote/SalesQuote'));
+const PublicQuote = lazy(() => import('./pages/PublicQuote/PublicQuote'));
 
 // SEO Landing Pages
 const ComprarTesis = lazy(() => import('./pages/landing/ComprarTesis'));
@@ -35,9 +35,16 @@ const TesisLicenciatura = lazy(() => import('./pages/landing/TesisLicenciatura')
 const TesisMaestria = lazy(() => import('./pages/landing/TesisMaestria'));
 const TesisDoctorado = lazy(() => import('./pages/landing/TesisDoctorado'));
 const TutoriaAcademica = lazy(() => import('./pages/landing/TutoriaAcademica'));
+const AsesoriaTesis = lazy(() => import('./pages/landing/AsesoriaTesis'));
 const CotizarLanding = lazy(() => import('./pages/landing/CotizarLanding'));
 const CuantoCuestaUnaTesis = lazy(() => import('./pages/landing/CuantoCuestaUnaTesis'));
 const AyudaConTesis = lazy(() => import('./pages/landing/AyudaConTesis'));
+
+// SEO Landing Pages programáticas (por universidad y por carrera)
+const TesisUniversidadLanding = lazy(() => import('./pages/landing/TesisUniversidadLanding'));
+const TesisCarreraLanding = lazy(() => import('./pages/landing/TesisCarreraLanding'));
+import { universidades } from './data/seoUniversidades';
+import { carreras } from './data/seoCarreras';
 
 // Lazy load protected layouts and pages (not needed on initial load)
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
@@ -80,7 +87,7 @@ const router = createBrowserRouter(
         { path: 'preguntas-frecuentes', element: <LazyPage><FAQ /></LazyPage> },
         { path: 'blog', element: <LazyPage><Blog /></LazyPage> },
         { path: 'blog/:slug', element: <LazyPage><BlogPost /></LazyPage> },
-        { path: 'cotizacion/:id', element: <LazyPage><SalesQuote /></LazyPage> },
+        { path: 'cotizacion/:id', element: <LazyPage><PublicQuote /></LazyPage> },
         { path: 'comprar-tesis', element: <LazyPage><ComprarTesis /></LazyPage> },
         { path: 'tesis-licenciatura', element: <LazyPage><TesisLicenciatura /></LazyPage> },
         { path: 'tesis-maestria', element: <LazyPage><TesisMaestria /></LazyPage> },
@@ -88,6 +95,16 @@ const router = createBrowserRouter(
         { path: 'cotizar', element: <LazyPage><CotizarLanding /></LazyPage> },
         { path: 'cuanto-cuesta-una-tesis', element: <LazyPage><CuantoCuestaUnaTesis /></LazyPage> },
         { path: 'ayuda-con-tesis', element: <LazyPage><AyudaConTesis /></LazyPage> },
+        // Landings programáticas por universidad (/tesis-unam, /tesis-ipn, ...)
+        ...universidades.map((u) => ({
+          path: u.slug,
+          element: <LazyPage><TesisUniversidadLanding slug={u.slug} /></LazyPage>,
+        })),
+        // Landings programáticas por carrera (/tesis-de-derecho, ...)
+        ...carreras.map((c) => ({
+          path: c.slug,
+          element: <LazyPage><TesisCarreraLanding slug={c.slug} /></LazyPage>,
+        })),
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },
         { path: '*', element: <LazyPage><NotFound /></LazyPage> },
@@ -100,6 +117,7 @@ const router = createBrowserRouter(
       element: <LazyPage><AdsLandingLayout /></LazyPage>,
       children: [
         { path: 'tutoria-academica', element: <LazyPage><TutoriaAcademica /></LazyPage> },
+        { path: 'asesoria-tesis', element: <LazyPage><AsesoriaTesis /></LazyPage> },
       ],
     },
 

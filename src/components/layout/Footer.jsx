@@ -1,6 +1,8 @@
 import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaEnvelope } from 'react-icons/fa';
+import { universidades } from '../../data/seoUniversidades';
+import { carreras } from '../../data/seoCarreras';
 
 export function Footer() {
     return (
@@ -87,6 +89,29 @@ export function Footer() {
                                 <strong>Horario:</strong><br />
                                 Lun-Sáb: 9:00 - 20:00
                             </li>
+                        </ul>
+                    </Col>
+                </Row>
+                <hr className="my-4" />
+                <Row className="g-4">
+                    <Col md={6}>
+                        <h5 className="mb-3">Tesis por Universidad</h5>
+                        <ul className="list-unstyled" style={{ columnCount: 2, columnGap: "1rem" }}>
+                            {universidades.map((u) => (
+                                <li className="mb-2" key={u.slug}>
+                                    <Link to={`/${u.slug}`} className="text-light text-decoration-none">Tesis {u.sigla}</Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </Col>
+                    <Col md={6}>
+                        <h5 className="mb-3">Tesis por Carrera</h5>
+                        <ul className="list-unstyled" style={{ columnCount: 2, columnGap: "1rem" }}>
+                            {carreras.map((c) => (
+                                <li className="mb-2" key={c.slug}>
+                                    <Link to={`/${c.slug}`} className="text-light text-decoration-none">Tesis de {c.nombre}</Link>
+                                </li>
+                            ))}
                         </ul>
                     </Col>
                 </Row>
