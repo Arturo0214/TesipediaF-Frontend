@@ -263,10 +263,11 @@
   border-radius: 999px; will-change: transform;
 }
 
-.ps-step { position: relative; display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; min-height: 140px; }
+.ps-step { position: relative; display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; min-height: 200px; }
 .ps-card {
   background: #fff; border: 1px solid #eee3d6; border-radius: 18px; padding: 22px 24px;
-  box-shadow: 0 12px 30px rgba(120,72,20,0.07); max-width: 388px;
+  box-shadow: 0 12px 30px rgba(120,72,20,0.07); max-width: 392px; min-height: 152px;
+  display: flex; flex-direction: column; justify-content: center;
   opacity: 0; transition: opacity .6s ease, transform .6s cubic-bezier(0.22,1,0.36,1), box-shadow .2s ease;
   will-change: transform, opacity;
 }
@@ -304,7 +305,7 @@
   .ps-node { grid-column: 1; }
   .ps-node-num { width: 48px; height: 48px; font-size: 1.05rem; }
   .ps-left .ps-card, .ps-right .ps-card {
-    grid-column: 2; justify-self: stretch; text-align: left; transform: translateX(22px); max-width: none;
+    grid-column: 2; justify-self: stretch; text-align: left; transform: translateX(22px); max-width: none; min-height: 0;
   }
   .ps-step.is-on .ps-card { transform: translateX(0); }
 }
