@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { Helmet } from 'react-helmet-async';
@@ -9,9 +9,6 @@ import {
   TrustBar, HowItWorks, RealTimeTracking, WhyTesipedia, LevelsPricing,
   SuccessStories, SpecialOffer, ExploreLinks, SeoBlock, HomeFAQ, FinalCTA,
 } from '../../components/HomeComponents/HomeSections';
-
-// Carrusel de servicios (Swiper) — diferido para no pesar el bundle inicial
-const OfferingsCarousel = lazy(() => import('../../components/HomeComponents/OfferingsCarousel'));
 
 import './Home.css';
 
@@ -252,9 +249,6 @@ function Home() {
       <HowItWorks />
       <RealTimeTracking />
       <WhyTesipedia />
-      <Suspense fallback={<div style={{ minHeight: '320px' }} />}>
-        <OfferingsCarousel />
-      </Suspense>
       <LevelsPricing />
       <SuccessStories />
       <SpecialOffer />

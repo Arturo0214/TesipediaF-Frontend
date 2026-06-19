@@ -95,6 +95,28 @@
 }
 @keyframes hxFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
+/* CINTA DE SERVICIOS (marquee) */
+.hx-marquee { position: relative; z-index: 1; max-width: 1160px; margin: clamp(30px, 4.5vw, 52px) auto 0; }
+.hx-marquee-label {
+  display: block; text-align: center; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #94a3b8; margin-bottom: 14px;
+}
+.hx-marquee-mask {
+  overflow: hidden;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.hx-marquee-track { display: flex; gap: 12px; width: max-content; animation: hxMarquee 32s linear infinite; }
+.hx-marquee:hover .hx-marquee-track { animation-play-state: paused; }
+@keyframes hxMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .hx-marquee-track { animation: none; } }
+.hx-mq-item {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  background: #fff; border: 1px solid #efe3d4; border-radius: 999px; padding: 11px 18px;
+  font-weight: 600; font-size: 0.9rem; color: #0f172a; box-shadow: 0 2px 8px rgba(120,72,20,0.05);
+}
+.hx-mq-item svg { color: #ea580c; flex-shrink: 0; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .hx-hero-inner { grid-template-columns: 1fr; }

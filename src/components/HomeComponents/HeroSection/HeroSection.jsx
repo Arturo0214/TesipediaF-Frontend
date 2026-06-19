@@ -1,11 +1,25 @@
 import {
   FaCheckCircle, FaShieldAlt, FaClock, FaWhatsapp, FaComments,
-  FaStar, FaArrowRight, FaUserGraduate,
+  FaStar, FaArrowRight, FaUserGraduate, FaGraduationCap, FaFileAlt, FaPenFancy, FaUserTie,
+  FaSearch, FaRobot, FaChartBar, FaBookOpen, FaFlask, FaChalkboardTeacher,
 } from 'react-icons/fa';
 import './HeroSection.css';
 
 const WA = 'https://wa.me/525670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis';
 const HERO_IMG = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&q=72&auto=format&fit=crop';
+
+const MARQUEE = [
+  { i: <FaFileAlt />, t: 'Tesis completa' },
+  { i: <FaPenFancy />, t: 'Corrección y estilo' },
+  { i: <FaUserTie />, t: 'Asesoría y acompañamiento' },
+  { i: <FaSearch />, t: 'Antiplagio Turnitin' },
+  { i: <FaRobot />, t: 'Detección anti-IA' },
+  { i: <FaBookOpen />, t: 'Marco teórico' },
+  { i: <FaFlask />, t: 'Metodología' },
+  { i: <FaChartBar />, t: 'Análisis de datos' },
+  { i: <FaChalkboardTeacher />, t: 'Preparación de defensa' },
+  { i: <FaGraduationCap />, t: 'Hasta titularte' },
+];
 
 const HeroSection = ({ onOpenChat }) => {
   return (
@@ -87,6 +101,18 @@ const HeroSection = ({ onOpenChat }) => {
                 <span>en las mejores universidades de México</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cinta de servicios (auto-scroll) */}
+      <div className="hx-marquee hx-reveal" aria-label="Lo que ofrecemos">
+        <span className="hx-marquee-label">Todo lo que hacemos por tu tesis</span>
+        <div className="hx-marquee-mask">
+          <div className="hx-marquee-track">
+            {[...MARQUEE, ...MARQUEE].map((m, i) => (
+              <span className="hx-mq-item" key={i}>{m.i} {m.t}</span>
+            ))}
           </div>
         </div>
       </div>

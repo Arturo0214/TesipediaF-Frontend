@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaWhatsapp, FaArrowRight, FaCommentDots, FaUserTie, FaFileSignature,
@@ -22,27 +23,66 @@ export function TrustBar() {
   );
 }
 
-/* ---- Cómo funciona (4 pasos) ---- */
+/* ---- Cómo se hace tu tesis: historia animada por scroll ---- */
 export function HowItWorks() {
   const steps = [
-    { icon: <FaCommentDots />, t: 'Cotiza gratis', d: 'Escríbenos por WhatsApp con tu tema, nivel, páginas y fecha. Te cotizamos en minutos.' },
-    { icon: <FaUserTie />, t: 'Asesor especializado', d: 'Te asignamos un investigador con posgrado en tu área y un plan de pago flexible.' },
-    { icon: <FaFileSignature />, t: 'Avances y revisiones', d: 'Recibes la tesis por capítulos y pides ajustes en cada etapa del proceso.' },
-    { icon: <FaGraduationCap />, t: 'Entrega y titulación', d: 'Tesis completa, original y citada, con correcciones hasta la aprobación de tu asesor.' },
+    { icon: <FaCommentDots />, tag: 'Empieza aquí', t: 'Cuéntanos tu proyecto', d: 'Escríbenos por WhatsApp con tu tema, nivel, número de páginas y fecha. En minutos te damos una cotización clara y sin compromiso.' },
+    { icon: <FaUserTie />, t: 'Te asignamos a tu experto', d: 'Un investigador con posgrado en tu área toma tu proyecto. Acuerdan alcance, plan de trabajo y un esquema de pago a tu medida.' },
+    { icon: <FaFileSignature />, t: 'Avanzamos juntos, capítulo por capítulo', d: 'Recibes entregas parciales y das visto bueno en cada etapa. Pides ajustes cuando quieras y sigues todo en tiempo real desde tu cuenta.' },
+    { icon: <FaGraduationCap />, tag: 'Y te titulas', t: 'Entrega final y defensa', d: 'Tu tesis completa, original y con citación correcta, lista con correcciones hasta la aprobación de tu asesor. Te preparamos para tu examen.' },
   ];
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const stepEls = () => el.querySelectorAll('.ps-step');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      el.style.setProperty('--p', '1');
+      stepEls().forEach((n) => n.classList.add('is-on'));
+      return;
+    }
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || 800;
+      let p = (vh * 0.8 - rect.top) / (rect.height * 0.72);
+      p = Math.max(0, Math.min(1, p));
+      el.style.setProperty('--p', p.toFixed(3));
+      const nodes = stepEls();
+      const onCount = Math.round(p * nodes.length + 0.15);
+      nodes.forEach((n, i) => n.classList.toggle('is-on', i < onCount));
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
-    <section className="hs-section" id="como-funciona">
+    <section className="hs-section ps-section" id="como-funciona">
       <div className="hs-head" data-aos="fade-up">
-        <h2>Cómo hacemos tu tesis en 4 pasos</h2>
-        <p>Un proceso claro y acompañado, de la primera idea a tu examen profesional.</p>
+        <h2>Así hacemos tu tesis, paso a paso</h2>
+        <p>Te acompañamos en cada etapa — de la primera idea a tu examen profesional.</p>
       </div>
-      <div className="hs-steps">
+      <div className="ps" ref={ref}>
+        <div className="ps-line"><span className="ps-line-fill" /></div>
         {steps.map((s, i) => (
-          <div className="hs-step" key={i} data-aos="fade-up" data-aos-delay={i * 80}>
-            <div className="hs-step-num">{i + 1}</div>
-            <div className="hs-step-ico">{s.icon}</div>
-            <h3>{s.t}</h3>
-            <p>{s.d}</p>
+          <div className={`ps-step ${i % 2 ? 'ps-right' : 'ps-left'}`} key={i}>
+            <div className="ps-card">
+              {s.tag && <span className="ps-tag">{s.tag}</span>}
+              <span className="ps-ico">{s.icon}</span>
+              <h3>{s.t}</h3>
+              <p>{s.d}</p>
+            </div>
+            <div className="ps-node"><span className="ps-node-num">{i + 1}</span></div>
           </div>
         ))}
       </div>
