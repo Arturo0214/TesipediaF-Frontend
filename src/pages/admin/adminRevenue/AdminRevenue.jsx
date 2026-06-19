@@ -1159,7 +1159,14 @@ const AdminRevenue = () => {
           else { c.pending += it.amount; if (overdue) c.overdue = true; }
         }
         const total = p.total || (cobrado + porCobrar);
-        return { ...p, cells, cobrado, porCobrar, vencido, total, pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
+        // Próxima fecha de cobro: la parcialidad pendiente más próxima (o ya vencida).
+        const pendientes = (p.installments || [])
+          .filter(it => it.status !== 'paid' && (it.amount || 0) > 0.005 && it.fecha)
+          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        const next = pendientes[0] || null;
+        const nextDue = next ? next.fecha : null;
+        const nextOverdue = next ? new Date(next.fecha) < today : false;
+        return { ...p, cells, cobrado, porCobrar, vencido, total, nextDue, nextOverdue, pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
       })
       .filter(p => (p.installments || []).length > 0);
     const totalVencido = projRows.reduce((s, p) => s + p.vencido, 0);
@@ -1282,6 +1289,7 @@ const AdminRevenue = () => {
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117' }}>Total</th>
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#10b981' }}>Cobrado</th>
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#f59e0b' }}>Por cobrar</th>
+                  <th style={{ textAlign: 'center', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', minWidth: 104 }}>Próx. cobro</th>
                   <th style={{ textAlign: 'center', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', minWidth: 90 }}>%</th>
                   {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', opacity: colTotal[mk] ? 1 : 0.4, minWidth: 78 }}>{MONTHS[i].slice(0, 3)}</th>)}
                 </tr>
@@ -1309,6 +1317,19 @@ const AdminRevenue = () => {
                     <td style={{ padding: '7px 8px', textAlign: 'right', color: '#9aa6b4', borderTop: '1px solid #161d27' }}>{fmt(p.total)}</td>
                     <td style={{ padding: '7px 8px', textAlign: 'right', color: '#10b981', borderTop: '1px solid #161d27' }}>{fmt(p.cobrado)}</td>
                     <td style={{ padding: '7px 8px', textAlign: 'right', color: '#f59e0b', fontWeight: 700, borderTop: '1px solid #161d27' }}>{p.porCobrar > 0.5 ? fmt(p.porCobrar) : '—'}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'center', borderTop: '1px solid #161d27', whiteSpace: 'nowrap' }}>
+                      {p.nextDue ? (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 8, display: 'inline-block',
+                          background: p.nextOverdue ? '#2a1010' : '#251a08',
+                          color: p.nextOverdue ? '#fca5a5' : '#f59e0b',
+                          border: `1px solid ${p.nextOverdue ? '#4a1c1c' : '#4a3514'}`,
+                        }} title={p.nextOverdue ? 'Cobro vencido' : 'Próximo cobro'}>
+                          {p.nextOverdue ? '🔴 ' : '📅 '}
+                          {new Date(p.nextDue).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                        </span>
+                      ) : <span style={{ color: '#3a4250' }}>—</span>}
+                    </td>
                     <td style={{ padding: '7px 8px', borderTop: '1px solid #161d27' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                         <div style={{ flex: 1, height: 6, background: '#1c232d', borderRadius: 3, overflow: 'hidden' }}>
@@ -1338,7 +1359,7 @@ const AdminRevenue = () => {
                     const due = p.dueDate ? new Date(p.dueDate) : null;
                     return (
                     <tr>
-                      <td colSpan={5 + 12} style={{ padding: '12px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
+                      <td colSpan={6 + 12} style={{ padding: '12px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
                         {/* Contacto + estatus del proyecto */}
                         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid #161d27' }}>
                           <div style={{ fontSize: 13, color: '#e6edf5', fontWeight: 600 }}>{p.client}</div>
@@ -1421,7 +1442,7 @@ const AdminRevenue = () => {
                   );
                 })}
                 {projRows.length === 0 && (
-                  <tr><td colSpan={5 + 12} style={{ padding: 20, textAlign: 'center', color: '#6b7685' }}>Sin proyectos para mostrar.</td></tr>
+                  <tr><td colSpan={6 + 12} style={{ padding: 20, textAlign: 'center', color: '#6b7685' }}>Sin proyectos para mostrar.</td></tr>
                 )}
               </tbody>
               <tfoot>
@@ -1430,6 +1451,7 @@ const AdminRevenue = () => {
                   <td style={{ padding: '9px 8px', textAlign: 'right', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('total'))}</td>
                   <td style={{ padding: '9px 8px', textAlign: 'right', color: '#10b981', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('cobrado'))}</td>
                   <td style={{ padding: '9px 8px', textAlign: 'right', color: '#f59e0b', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('porCobrar'))}</td>
+                  <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
                   <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
                   {monthsOfYear.map(mk => (
                     <td key={mk} style={{ padding: '9px 8px', textAlign: 'right', color: colTotal[mk] ? '#cdd6e0' : '#2c333d', background: '#11161d', borderTop: '2px solid #2a323d' }}>{colTotal[mk] ? fmt(colTotal[mk]) : '·'}</td>
