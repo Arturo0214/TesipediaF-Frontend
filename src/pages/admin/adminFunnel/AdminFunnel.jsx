@@ -45,8 +45,8 @@ const SERVICIO_LABEL = {
   servicio_1: 'Redacción', servicio_2: 'Correcciones', servicio_3: 'Asesoría',
 };
 const NIVEL_MAP = {
-  nivel_1: 'Prepa', nivel_2: 'Lic.', nivel_3: 'Mtría.',
-  nivel_4: 'Esp.', nivel_5: 'Dipl.', nivel_6: 'Doc.',
+  nivel_1: 'Lic.', nivel_2: 'Mtría.', nivel_3: 'Doc.',
+  nivel_4: 'Prepa', nivel_5: 'Esp.', nivel_6: 'Dipl.',
 };
 
 function normalizeAdmin(raw) {

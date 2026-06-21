@@ -56,8 +56,8 @@ const SERVICIO_LABEL = {
 };
 const PROYECTO_MAP = { proyecto_1: 'Tesis', proyecto_2: 'Tesina', proyecto_3: 'Otro' };
 const NIVEL_MAP = {
-  nivel_1: 'Preparatoria', nivel_2: 'Licenciatura', nivel_3: 'Maestría',
-  nivel_4: 'Especialidad', nivel_5: 'Diplomado', nivel_6: 'Doctorado',
+  nivel_1: 'Licenciatura', nivel_2: 'Maestría', nivel_3: 'Doctorado',
+  nivel_4: 'Preparatoria', nivel_5: 'Especialidad', nivel_6: 'Diplomado',
 };
 
 const POLL_INTERVAL = 60000;
