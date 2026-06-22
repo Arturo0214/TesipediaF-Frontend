@@ -202,15 +202,16 @@ const SalesQuote = () => {
         if (tipo === 'personalizado' && (!formData.pagosCustom || !formData.pagosCustom.length)) {
             updates.pagosCustom = [{ monto: '', fecha: new Date().toISOString().split('T')[0] }];
         }
+        const quinMatch = tipo.match(/^(\d+)-quincenales$/);
         const msiMatch = tipo.match(/^(\d+)-msi$/);
-        if (['6-quincenales', '6-mensuales'].includes(tipo) || msiMatch) {
+        if (quinMatch || tipo === '6-mensuales' || msiMatch) {
             const start = new Date(formData.fechaPago1 || new Date());
-            const count = msiMatch ? parseInt(msiMatch[1]) : 6;
+            const count = quinMatch ? parseInt(quinMatch[1]) : msiMatch ? parseInt(msiMatch[1]) : 6;
             const dates = [];
             for (let i = 0; i < count; i++) {
                 const d = new Date(start);
                 if (i > 0) {
-                    if (tipo === '6-quincenales') {
+                    if (quinMatch) {
                         d.setDate(d.getDate() + (i * 15));
                     } else {
                         d.setMonth(d.getMonth() + i);
@@ -851,6 +852,7 @@ const SalesQuote = () => {
                                                         <option value="50-50">50% inicio / 50% final</option>
                                                         <option value="33-33-34">33% inicio / 33% avance / 34% final</option>
                                                         <option value="6-quincenales">6 Pagos Quincenales</option>
+                                                        <option value="8-quincenales">8 Pagos Quincenales</option>
                                                         <option value="6-mensuales">6 Pagos Mensuales</option>
                                                         {[3,4,5,6,7,8,9,10,11,12].map(n => (
                                                             <option key={n} value={`${n}-msi`}>{n} Meses Sin Intereses</option>
@@ -915,7 +917,7 @@ const SalesQuote = () => {
                                                             })()}
                                                         </Col>
                                                     </>
-                                                ) : (['6-quincenales', '6-mensuales'].includes(formData.esquemaTipo) || /^\d+-msi$/.test(formData.esquemaTipo)) ? (
+                                                ) : (/^\d+-quincenales$/.test(formData.esquemaTipo) || formData.esquemaTipo === '6-mensuales' || /^\d+-msi$/.test(formData.esquemaTipo)) ? (
                                                     <>
                                                         {(formData.fechasPagos || []).map((fecha, index) => (
                                                             <Col xs={4} key={index}>
