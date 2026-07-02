@@ -262,20 +262,27 @@
 .mp-pay-schedule-row td { padding: 0 !important; background: #f0f9ff; }
 .mp-pay-schedule { padding: 16px 24px 20px; }
 .mp-pay-schedule h4 { margin: 0 0 12px; font-size: 0.88rem; font-weight: 600; color: #1e40af; }
-.mp-pay-schedule-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+/* Grid responsivo: columnas parejas para cualquier número de meses (6, 12, …)
+   sin que una tarjeta suelta se estire ni el contenido se desborde. */
+.mp-pay-schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
 .mp-pay-installment {
-  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; min-width: 180px; flex: 1;
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+  min-width: 0; overflow: hidden; /* nada de texto se sale de la tarjeta */
 }
 .mp-pay-installment.past { border-color: #a7f3d0; background: #f0fdf4; }
 .mp-pay-installment.past .mp-pay-inst-icon { color: #16a34a; }
 .mp-pay-installment.upcoming { border-color: #fde68a; background: #fffbeb; }
 .mp-pay-installment.upcoming .mp-pay-inst-icon { color: #d97706; }
 .mp-pay-inst-icon { font-size: 1.1rem; flex-shrink: 0; }
-.mp-pay-inst-info { display: flex; flex-direction: column; flex: 1; }
-.mp-pay-inst-info strong { font-size: 0.8rem; color: #1f2937; }
-.mp-pay-inst-info span { font-size: 0.72rem; color: #6b7280; }
-.mp-pay-inst-amount { font-weight: 700; font-size: 0.9rem; color: #1f2937; }
+.mp-pay-inst-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.mp-pay-inst-info strong { font-size: 0.8rem; color: #1f2937; overflow-wrap: anywhere; }
+.mp-pay-inst-info span { font-size: 0.72rem; color: #6b7280; overflow-wrap: anywhere; }
+.mp-pay-inst-amount { font-weight: 700; font-size: 0.9rem; color: #1f2937; flex-shrink: 0; white-space: nowrap; }
 
 /* Pagination */
 .mp-pay-pagination {
@@ -548,8 +555,7 @@
   .mp-pay-search { min-width: 100%; }
   .mp-pay-filters select { width: 100%; }
   .mp-pay-table thead th, .mp-pay-table tbody td { padding: 10px; font-size: 0.78rem; }
-  .mp-pay-schedule-grid { flex-direction: column; }
-  .mp-pay-installment { min-width: 100%; }
+  .mp-pay-schedule-grid { grid-template-columns: 1fr; }
   .mp-pay-upcoming-item { flex-wrap: wrap; gap: 8px; }
   .mp-pay-header { flex-direction: column; align-items: flex-start; }
   .mp-pay-form-grid { grid-template-columns: 1fr; }

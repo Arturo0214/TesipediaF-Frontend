@@ -199,10 +199,18 @@ function ManagePayments() {
         if (source === 'mercadolibre') return <FaCreditCard />;
         return <FaUsers />;
     };
-    const getEsquemaLabel = (esquema) => ({
-        'unico': 'Pago único', '50-50': '50% - 50%', '33-33-34': '33-33-34%',
-        '6-quincenas': '6 Quincenas', '6-msi': '6 MSI'
-    }[esquema] || esquema);
+    const getEsquemaLabel = (esquema) => {
+        const map = {
+            'unico': 'Pago único', '50-50': '50% - 50%', '33-33-34': '33-33-34%',
+            '6-quincenas': '6 Quincenas', '6-msi': '6 MSI'
+        };
+        if (map[esquema]) return map[esquema];
+        const msi = String(esquema || '').match(/^(\d+)-msi$/);
+        if (msi) return `${msi[1]} MSI`;
+        const q = String(esquema || '').match(/^(\d+)-quincenas$/);
+        if (q) return `${q[1]} Quincenas`;
+        return esquema;
+    };
 
     const getStatusBadge = (status) => {
         const map = {
@@ -723,7 +731,10 @@ function ManagePayments() {
                             <option value="50-50">50% - 50%</option>
                             <option value="33-33-34">33-33-34%</option>
                             <option value="6-quincenas">6 Quincenas</option>
+                            <option value="3-msi">3 MSI</option>
                             <option value="6-msi">6 MSI</option>
+                            <option value="9-msi">9 MSI</option>
+                            <option value="12-msi">12 MSI</option>
                         </select>
                         <select value={filterSource} onChange={(e) => { setFilterSource(e.target.value); setCurrentPage(1); }}>
                             <option value="all">Todas las fuentes</option>
@@ -981,7 +992,10 @@ function ManagePayments() {
                                             <option value="50-50">50% - 50%</option>
                                             <option value="33-33-34">33% - 33% - 34%</option>
                                             <option value="6 quincenas">6 Quincenas</option>
+                                            <option value="3 MSI">3 MSI</option>
                                             <option value="6 MSI">6 MSI</option>
+                                            <option value="9 MSI">9 MSI</option>
+                                            <option value="12 MSI">12 MSI</option>
                                         </select>
                                     </div>
                                     <div className="mp-pay-form-group">
