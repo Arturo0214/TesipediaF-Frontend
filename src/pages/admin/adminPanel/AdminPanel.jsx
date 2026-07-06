@@ -31,6 +31,7 @@ import {
     FaRobot,
     FaShareAlt,
     FaFireAlt,
+    FaHeartbeat,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -69,6 +70,7 @@ const AdminCalendars = lazy(() => import('../adminCalendars/AdminCalendars.jsx')
 const AdminAgents = lazy(() => import('../adminAgents/AdminAgents.jsx'));
 const AdminSocial = lazy(() => import('../adminSocial/AdminSocial.jsx'));
 const AdminRevivals = lazy(() => import('../adminPayments/RevivalPipeline.jsx'));
+const AdminStatus = lazy(() => import('../adminStatus/AdminStatus.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -148,6 +150,7 @@ const AdminPanel = () => {
         if (path.includes('/agentes')) return 'agentes';
         if (path.includes('/redes')) return 'redes';
         if (path.includes('/revivals')) return 'revivals';
+        if (path.includes('/estado')) return 'estado';
         return 'dashboard';
     };
 
@@ -173,7 +176,8 @@ const AdminPanel = () => {
         { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns', color: '#1877F2' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas', color: '#F472B6' },
         { key: 'redes', icon: FaShareAlt, label: 'Redes Sociales', section: 'estadisticas', path: '/admin/redes', color: '#E4405F' },
-        { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' }
+        { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' },
+        { key: 'estado', icon: FaHeartbeat, label: 'Estado', section: 'gestion', path: '/admin/estado', color: '#10B981' }
     ];
 
     // Mapeo inverso: sección → tipos de notificación que se marcan como leídos
@@ -321,6 +325,7 @@ const AdminPanel = () => {
         calendarios: AdminCalendars,
         agentes: AdminAgents,
         redes: AdminSocial,
+        estado: AdminStatus,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
