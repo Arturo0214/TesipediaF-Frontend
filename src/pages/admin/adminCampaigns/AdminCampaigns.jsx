@@ -1093,6 +1093,11 @@ const AdminCampaigns = () => {
                     <div><dt>CPM</dt><dd>{fmt(ins.cpm,2)}</dd></div>
                     {ins.conversions > 0 && <div><dt>Conversiones</dt><dd>{ins.conversions}</dd></div>}
                     {ins.costPerLead > 0 && <div><dt>CPL</dt><dd>{fmt(ins.costPerLead,2)}</dd></div>}
+                    <div><dt>Leads (CRM)</dt><dd>{c.crm?.leads ?? "—"}</dd></div>
+                    <div><dt>Clientes</dt><dd style={{color: c.crm?.customers > 0 ? "#10b981" : undefined}}>{c.crm?.customers ?? "—"}</dd></div>
+                    <div><dt>Ingreso</dt><dd>{c.crm?.revenue > 0 ? fmt(c.crm.revenue,0) : "—"}</dd></div>
+                    <div><dt>CAC</dt><dd>{c.crm?.cac != null ? fmt(c.crm.cac,0) : "—"}</dd></div>
+                    <div><dt>ROAS</dt><dd style={{color: c.crm?.roas >= 1 ? "#10b981" : c.crm?.roas > 0 ? "#f59e0b" : undefined}}>{c.crm?.roas != null ? c.crm.roas.toFixed(2)+"x" : "—"}</dd></div>
                   </dl>
                 </div>
               )}
