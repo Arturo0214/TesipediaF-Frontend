@@ -305,6 +305,21 @@
     position: relative;
 }
 
+/* WhatsApp: el panel gestiona su propio scroll interno.
+   El contenedor externo NO debe hacer scroll (evita que el chat "se suba"
+   al colapsar el sidebar cuando scrollIntoView burbujea hacia arriba). */
+.tesipedia-admin-content:has(.wa-panel) {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tesipedia-admin-content:has(.wa-panel) .tesipedia-admin-component {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+
 .tesipedia-admin-content::-webkit-scrollbar { width: 6px; }
 .tesipedia-admin-content::-webkit-scrollbar-track { background: transparent; }
 .tesipedia-admin-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
