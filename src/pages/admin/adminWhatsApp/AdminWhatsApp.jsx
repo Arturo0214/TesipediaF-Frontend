@@ -2447,7 +2447,7 @@ const AdminWhatsApp = () => {
                 const l = selectedLead;
                 const hasData = l.tipo_servicio || l.tipo_proyecto || l.carrera || l.tema || l.precio || l.paginas || l.fecha_entrega || l.origen;
                 if (!hasData) return null;
-                const origenLabel = l.origen === 'manychat' ? 'ManyChat' : l.origen || 'WhatsApp directo';
+                const origenLabel = l.ad_source ? (l.ad_campaign_name || 'Anuncio Meta (CTWA)') : l.origen === 'manychat' ? 'ManyChat' : (l.origen || 'WhatsApp directo');
                 return (
                   <div className="wa-lead-summary">
                     <div className="wa-lead-summary-grid">
