@@ -941,6 +941,9 @@ const AdminCampaigns = () => {
                   <th>CTR</th>
                   <th>CPC</th>
                   <th>Leads</th>
+                  <th>Clientes</th>
+                  <th>CAC</th>
+                  <th>ROAS</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -1008,6 +1011,9 @@ const AdminCampaigns = () => {
                           <span className={ins?.conversions > 0 ? 'mc-good' : ''}>{ins?.conversions || '—'}</span>
                           {ins?.costPerLead > 0 && <div className="mc-sub">{fmt(ins.costPerLead,2)} CPL</div>}
                         </td>
+                        <td><span className={c.crm?.customers > 0 ? 'mc-good' : ''}>{c.crm?.customers || '—'}</span></td>
+                        <td>{c.crm?.cac != null ? fmt(c.crm.cac, 0) : '—'}</td>
+                        <td><span className={c.crm?.roas >= 1 ? 'mc-good' : c.crm?.roas > 0 ? 'mc-warn' : ''}>{c.crm?.roas != null ? c.crm.roas.toFixed(2) + 'x' : '—'}</span></td>
                         <td>
                           <div className="mc-actions-cell">
                             {(c.status === 'ACTIVE' || c.status === 'PAUSED') && (
