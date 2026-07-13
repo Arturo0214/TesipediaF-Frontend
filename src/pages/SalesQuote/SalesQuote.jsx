@@ -205,19 +205,30 @@ const SalesQuote = () => {
         const quinMatch = tipo.match(/^(\d+)-quincenales$/);
         const msiMatch = tipo.match(/^(\d+)-msi$/);
         if (quinMatch || tipo === '6-mensuales' || msiMatch) {
-            const start = new Date(formData.fechaPago1 || new Date());
             const count = quinMatch ? parseInt(quinMatch[1]) : msiMatch ? parseInt(msiMatch[1]) : 6;
+            // Componentes puros de la fecha de inicio (sin new Date(str), que mezcla UTC/local).
+            let py, pm, pd;
+            if (typeof formData.fechaPago1 === 'string' && /^\d{4}-\d{2}-\d{2}/.test(formData.fechaPago1)) {
+                [py, pm, pd] = formData.fechaPago1.slice(0, 10).split('-').map(Number);
+            } else {
+                const t = new Date();
+                py = t.getFullYear(); pm = t.getMonth() + 1; pd = t.getDate();
+            }
+            const pad = (n) => String(n).padStart(2, '0');
             const dates = [];
             for (let i = 0; i < count; i++) {
-                const d = new Date(start);
-                if (i > 0) {
-                    if (quinMatch) {
-                        d.setDate(d.getDate() + (i * 15));
-                    } else {
-                        d.setMonth(d.getMonth() + i);
-                    }
+                if (quinMatch) {
+                    const d = new Date(py, pm - 1, pd + i * 15); // fecha local, sumar días
+                    dates.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+                } else {
+                    // Avanzar i meses clampando el día al último válido del mes destino
+                    // (evita que "31 de sep" desborde a "1 de oct" y se salte meses).
+                    const totalM = (pm - 1) + i;
+                    const ty = py + Math.floor(totalM / 12);
+                    const tm = ((totalM % 12) + 12) % 12;
+                    const lastDay = new Date(ty, tm + 1, 0).getDate();
+                    dates.push(`${ty}-${pad(tm + 1)}-${pad(Math.min(pd, lastDay))}`);
                 }
-                dates.push(d.toISOString().split('T')[0]);
             }
             updates.fechasPagos = dates;
         }

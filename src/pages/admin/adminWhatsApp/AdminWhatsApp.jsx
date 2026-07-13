@@ -2911,14 +2911,30 @@ const AdminWhatsApp = () => {
                             const updates = { esquemaTipo: tipo };
                             const msiMatch = tipo.match(/^(\d+)-msi$/);
                             if (['6-quincenales', '6-mensuales'].includes(tipo) || msiMatch) {
-                              const start = new Date(quoteFields.fechaPago1 || new Date());
                               const count = msiMatch ? parseInt(msiMatch[1]) : 6;
+                              // Componentes puros de la fecha de inicio (sin new Date(str), que mezcla UTC/local).
+                              let py, pm, pd;
+                              if (typeof quoteFields.fechaPago1 === 'string' && /^\d{4}-\d{2}-\d{2}/.test(quoteFields.fechaPago1)) {
+                                [py, pm, pd] = quoteFields.fechaPago1.slice(0, 10).split('-').map(Number);
+                              } else {
+                                const t = new Date();
+                                py = t.getFullYear(); pm = t.getMonth() + 1; pd = t.getDate();
+                              }
+                              const pad = (n) => String(n).padStart(2, '0');
                               const dates = [];
                               for (let i = 0; i < count; i++) {
-                                const d = new Date(start);
-                                if (tipo === '6-quincenales') d.setDate(d.getDate() + (i * 15));
-                                else d.setMonth(d.getMonth() + i);
-                                dates.push(d.toISOString().split('T')[0]);
+                                if (tipo === '6-quincenales') {
+                                  const d = new Date(py, pm - 1, pd + i * 15);
+                                  dates.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+                                } else {
+                                  // Avanzar i meses clampando el día al último válido del mes destino
+                                  // (evita que "31 de sep" desborde a "1 de oct" y se salte meses).
+                                  const totalM = (pm - 1) + i;
+                                  const ty = py + Math.floor(totalM / 12);
+                                  const tm = ((totalM % 12) + 12) % 12;
+                                  const lastDay = new Date(ty, tm + 1, 0).getDate();
+                                  dates.push(`${ty}-${pad(tm + 1)}-${pad(Math.min(pd, lastDay))}`);
+                                }
                               }
                               updates.fechasPagos = dates;
                             }
