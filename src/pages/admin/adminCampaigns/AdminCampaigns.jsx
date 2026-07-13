@@ -70,6 +70,20 @@ function analyzeCampaign(campaign) {
   const frequency = ins.frequency || 0;
   const reach = ins.reach || 0;
 
+  // ── CRM (fuente de verdad real) ──
+  // Meta solo cuenta conversiones que su pixel/atribución detecta (WhatsApp/CTWA suele quedar en 0),
+  // pero el CRM cruza los leads y pagos reales por campaña. Si el CRM registra actividad, la campaña
+  // SÍ está convirtiendo aunque Meta reporte 0 — no debe diagnosticarse como "sin conversiones".
+  const crm = campaign.crm || {};
+  const crmLeads = crm.leads || 0;
+  const crmCustomers = crm.customers || 0;
+  const crmRevenue = crm.revenue || 0;
+  const crmRoas = crm.roas || 0;
+  const crmCPL = crm.cpl || 0;
+  // Conversiones efectivas: prioriza la atribución de Meta y cae al CRM cuando Meta no atribuye.
+  const effConversions = conversions > 0 ? conversions : crmLeads;
+  const hasRealConversions = conversions > 0 || crmLeads > 0 || crmCustomers > 0;
+
   // ── CTR Analysis ──
   if (ctr >= THRESHOLDS.ctr.excellent) {
     score += 15;
@@ -105,24 +119,31 @@ function analyzeCampaign(campaign) {
   }
 
   // ── CPL Analysis ──
-  if (conversions > 0) {
-    if (cpl <= THRESHOLDS.cpl.excellent) {
+  // Usa el CPL de Meta si atribuye; si no, el CPL real del CRM (gasto / leads reales).
+  const effCPL = conversions > 0 ? cpl : crmCPL;
+  if (effConversions > 0) {
+    if (effCPL > 0 && effCPL <= THRESHOLDS.cpl.excellent) {
       score += 15;
-      strengths.push('CPL excelente (' + fmt(cpl, 2) + ') — costo por lead muy eficiente');
-    } else if (cpl <= THRESHOLDS.cpl.good) {
+      strengths.push('CPL excelente (' + fmt(effCPL, 2) + ') — costo por lead muy eficiente');
+    } else if (effCPL > 0 && effCPL <= THRESHOLDS.cpl.good) {
       score += 5;
-      strengths.push('CPL aceptable (' + fmt(cpl, 2) + ')');
-    } else if (cpl > THRESHOLDS.cpl.critical) {
+      strengths.push('CPL aceptable (' + fmt(effCPL, 2) + ')');
+    } else if (effCPL > THRESHOLDS.cpl.critical) {
       score -= 15;
-      alerts.push({ type: 'error', title: 'CPL crítico: ' + fmt(cpl, 2), detail: 'Cada lead cuesta más de ' + fmt(THRESHOLDS.cpl.critical) + '. No es sostenible.' });
+      alerts.push({ type: 'error', title: 'CPL crítico: ' + fmt(effCPL, 2), detail: 'Cada lead cuesta más de ' + fmt(THRESHOLDS.cpl.critical) + '. No es sostenible.' });
       actions.push({ action: 'Reestructurar campaña completa', impact: 'alto', urgency: 'inmediata', detail: 'El costo por lead es insostenible. Revisar landing page, formulario y audiencia.' });
       weaknesses.push('Costo por lead insostenible');
-    } else if (cpl > THRESHOLDS.cpl.high) {
+    } else if (effCPL > THRESHOLDS.cpl.high) {
       score -= 8;
-      alerts.push({ type: 'warning', title: 'CPL alto: ' + fmt(cpl, 2), detail: 'Por encima de ' + fmt(THRESHOLDS.cpl.high) + '. Optimizar embudo de conversión.' });
+      alerts.push({ type: 'warning', title: 'CPL alto: ' + fmt(effCPL, 2), detail: 'Por encima de ' + fmt(THRESHOLDS.cpl.high) + '. Optimizar embudo de conversión.' });
       weaknesses.push('Costo por lead elevado');
     }
-  } else if (spend > THRESHOLDS.spend_no_leads) {
+    // Si Meta reporta 0 pero el CRM sí registra leads, avisa del gap de atribución (no es "sin conversiones").
+    if (conversions === 0 && crmLeads > 0) {
+      strengths.push(crmLeads + ' lead(s) reales atribuidos vía CRM' + (crmCustomers > 0 ? ' · ' + crmCustomers + ' cliente(s)' : ''));
+      alerts.push({ type: 'warning', title: 'Meta no atribuye las conversiones', detail: 'El CRM registra ' + crmLeads + ' lead(s)' + (crmCustomers > 0 ? ' y ' + crmCustomers + ' cliente(s)' : '') + ', pero Meta reporta 0. La campaña SÍ convierte; revisar el pixel/CAPI o la integración WhatsApp para recuperar la atribución y optimizar mejor.' });
+    }
+  } else if (spend > THRESHOLDS.spend_no_leads && !hasRealConversions) {
     score -= 12;
     const isWhatsApp = /whatsapp|wa\b|ctwa/i.test(campaign.name || '') || /MESSAGES/i.test(campaign.objective || '');
     if (isWhatsApp) {
@@ -134,6 +155,22 @@ function analyzeCampaign(campaign) {
       actions.push({ action: 'Revisar landing page y formulario', impact: 'alto', urgency: 'inmediata', detail: 'Los clics llegan pero no convierten. Verificar que la landing page carga correctamente y que el formulario/CTA funciona.' });
     }
     weaknesses.push('Sin conversiones a pesar del gasto');
+  }
+
+  // ── ROAS Analysis (CRM) ──
+  // El retorno real solo se conoce con los ingresos del CRM. Premia/penaliza según rentabilidad.
+  if (crmRevenue > 0) {
+    if (crmRoas >= 3) {
+      score += 15;
+      strengths.push('ROAS excelente (' + crmRoas.toFixed(2) + 'x) — muy rentable');
+    } else if (crmRoas >= 1) {
+      score += 8;
+      strengths.push('Campaña rentable (ROAS ' + crmRoas.toFixed(2) + 'x)');
+    } else {
+      score -= 8;
+      weaknesses.push('ROAS por debajo de 1 (' + crmRoas.toFixed(2) + 'x) — aún no recupera el gasto');
+      actions.push({ action: 'Mejorar conversión de leads a clientes', impact: 'medio', urgency: 'esta-semana', detail: 'La campaña genera ingresos pero aún no supera el gasto. Reforzar seguimiento comercial y cierre de los leads generados.' });
+    }
   }
 
   // ── Frequency Analysis ──
@@ -161,8 +198,8 @@ function analyzeCampaign(campaign) {
   }
 
   // ── Spend efficiency ──
-  if (spend > 0 && clicks > 0 && conversions > 0) {
-    const convRate = (conversions / clicks) * 100;
+  if (spend > 0 && clicks > 0 && effConversions > 0) {
+    const convRate = (effConversions / clicks) * 100;
     if (convRate > 5) {
       strengths.push('Tasa de conversión alta (' + convRate.toFixed(1) + '%)');
       score += 8;
@@ -211,6 +248,7 @@ function analyzePortfolio(campaigns) {
   const totalClicks = withInsights.reduce((s, c) => s + (c.insights?.clicks || 0), 0);
   const totalConversions = withInsights.reduce((s, c) => s + (c.insights?.conversions || 0), 0);
   const totalImpressions = withInsights.reduce((s, c) => s + (c.insights?.impressions || 0), 0);
+  const totalCrmLeads = withInsights.reduce((s, c) => s + (c.crm?.leads || 0), 0);
 
   const globalCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const globalCPC = totalClicks > 0 ? totalSpend / totalClicks : 0;
@@ -218,8 +256,8 @@ function analyzePortfolio(campaigns) {
 
   const alerts = [];
 
-  // No conversions at all
-  if (totalConversions === 0 && totalSpend > 1000) {
+  // No conversions at all — solo si tampoco hay leads reales en el CRM
+  if (totalConversions === 0 && totalCrmLeads === 0 && totalSpend > 1000) {
     alerts.push({ type: 'error', title: 'Sin conversiones totales', detail: `Se han gastado ${fmt(totalSpend, 0)} sin generar ningún lead. Revisar toda la estrategia de campañas, pixel y landing pages.` });
   }
 
@@ -431,6 +469,7 @@ const AdminCampaigns = () => {
     const waWithInsights = waCampaigns.filter(c => c.insights);
     const waSpend = waWithInsights.reduce((s, c) => s + (c.insights?.spend || 0), 0);
     const waLeads = waWithInsights.reduce((s, c) => s + (c.insights?.conversions || 0), 0);
+    const waCrmLeads = waWithInsights.reduce((s, c) => s + (c.crm?.leads || 0), 0);
     const waClicks = waWithInsights.reduce((s, c) => s + (c.insights?.clicks || 0), 0);
     const waImpressions = waWithInsights.reduce((s, c) => s + (c.insights?.impressions || 0), 0);
     const waCPL = waLeads > 0 ? waSpend / waLeads : 0;
@@ -452,12 +491,16 @@ const AdminCampaigns = () => {
         detail: waActive.length > 0 ? `${waActive.length} campaña(s) activa(s) generando leads` : 'Todas las campañas de WhatsApp están pausadas — no se están generando leads',
       });
     }
-    // 3. ¿Están generando leads?
+    // 3. ¿Están generando leads? (Meta atribuido o CRM real)
     if (waWithInsights.length > 0) {
       checks.push({
-        pass: waLeads > 0,
+        pass: waLeads > 0 || waCrmLeads > 0,
         label: 'Conversiones registradas',
-        detail: waLeads > 0 ? `${waLeads} lead(s) generados vía WhatsApp con CPL ${fmt(waCPL, 2)}` : `Se han gastado ${fmt(waSpend, 0)} sin registrar conversiones — verificar que Meta está contando las conversaciones`,
+        detail: waLeads > 0
+          ? `${waLeads} lead(s) generados vía WhatsApp con CPL ${fmt(waCPL, 2)}`
+          : waCrmLeads > 0
+            ? `${waCrmLeads} lead(s) reales en el CRM, pero Meta atribuye 0 — revisar pixel/CAPI para recuperar la atribución`
+            : `Se han gastado ${fmt(waSpend, 0)} sin registrar conversiones — verificar que Meta está contando las conversaciones`,
       });
     }
     // 4. Tasa de conversión click→lead
