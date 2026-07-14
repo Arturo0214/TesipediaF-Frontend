@@ -47,7 +47,41 @@ const THRESHOLDS = {
   cpl: { excellent: 50, good: 150, high: 300, critical: 500 },  // MXN
   frequency: { optimal: 2.5, high: 4, fatigue: 6 },
   spend_no_leads: 500, // MXN gastados sin conversiones = alerta
+  roas: { excellent: 3, healthy: 1.5, breakeven: 1 },           // ingreso / gasto (CRM)
+  cac_ratio: { excellent: 0.3, high: 0.7 },                     // CAC / ticket promedio (gasto por cliente ÷ ingreso por cliente)
 };
+
+/* Definiciones de métricas — se muestran como tooltips (ⓘ) en la ficha de detalle */
+const METRIC_TIPS = {
+  Gasto: 'Dinero invertido en la campaña durante el período seleccionado.',
+  Alcance: 'Personas únicas que vieron el anuncio al menos una vez.',
+  Frecuencia: 'Veces promedio que cada persona vio el anuncio. Por encima de ~4x aparece fatiga: sube el costo y baja la efectividad.',
+  CTR: 'Click-Through Rate: % de personas que hicieron clic tras ver el anuncio. Mide qué tan atractivo es el creativo.',
+  CPC: 'Costo por Clic: cuánto pagas en promedio por cada clic al anuncio.',
+  CPM: 'Costo por Mil impresiones: cuánto cuesta mostrar el anuncio 1,000 veces.',
+  Conversiones: 'Conversiones que la atribución de Meta logró detectar (su pixel/CAPI). En campañas de WhatsApp suele quedar en 0.',
+  CPL: 'Costo por Lead: gasto ÷ número de leads generados. Cuánto te cuesta cada prospecto.',
+  'Leads (CRM)': 'Leads reales registrados en tu CRM atribuidos a esta campaña. No dependen de la atribución de Meta.',
+  Clientes: 'Leads de esta campaña que se convirtieron en clientes que pagaron.',
+  Ingreso: 'Ingreso total (pagos reales) atribuido a esta campaña según el CRM.',
+  CAC: 'Costo de Adquisición de Cliente: cuánto gastas en anuncios para conseguir UN cliente que paga (gasto ÷ clientes). Cuanto más bajo respecto a tu ticket promedio, mejor. Bajarlo = mejor segmentación, creativos que cierran y buen seguimiento comercial.',
+  ROAS: 'Return On Ad Spend: ingresos por cada $1 invertido en anuncios (ingreso ÷ gasto). 1x = recuperas lo invertido, 1.5x+ = margen sano, 3x+ = muy rentable, <1x = pierdes dinero. Subirlo = subir el ticket, cerrar más leads o bajar el CAC.',
+};
+
+// Etiqueta <dt> con tooltip (ⓘ) que muestra la definición de la métrica al pasar el mouse o enfocar con teclado.
+function MetricLabel({ label }) {
+  const tip = METRIC_TIPS[label];
+  if (!tip) return <dt>{label}</dt>;
+  return (
+    <dt className="mc-dt-tip">
+      {label}
+      <span className="mc-tip" tabIndex={0} role="img" aria-label={`Qué es ${label}: ${tip}`}>
+        <FaInfoCircle />
+        <span className="mc-tip-bubble">{tip}</span>
+      </span>
+    </dt>
+  );
+}
 
 function analyzeCampaign(campaign) {
   const ins = campaign.insights;
@@ -80,6 +114,7 @@ function analyzeCampaign(campaign) {
   const crmRevenue = crm.revenue || 0;
   const crmRoas = crm.roas || 0;
   const crmCPL = crm.cpl || 0;
+  const crmCAC = crm.cac || 0;
   // Conversiones efectivas: prioriza la atribución de Meta y cae al CRM cuando Meta no atribuye.
   const effConversions = conversions > 0 ? conversions : crmLeads;
   const hasRealConversions = conversions > 0 || crmLeads > 0 || crmCustomers > 0;
@@ -160,16 +195,38 @@ function analyzeCampaign(campaign) {
   // ── ROAS Analysis (CRM) ──
   // El retorno real solo se conoce con los ingresos del CRM. Premia/penaliza según rentabilidad.
   if (crmRevenue > 0) {
-    if (crmRoas >= 3) {
+    if (crmRoas >= THRESHOLDS.roas.excellent) {
       score += 15;
       strengths.push('ROAS excelente (' + crmRoas.toFixed(2) + 'x) — muy rentable');
-    } else if (crmRoas >= 1) {
+      actions.push({ action: 'Escalar presupuesto gradualmente', impact: 'alto', urgency: 'esta-semana', detail: 'Cada $1 invertido devuelve ' + crmRoas.toFixed(2) + '. Subir presupuesto +20-30% cada 3-4 días y vigilar que el ROAS no baje de ' + THRESHOLDS.roas.healthy + 'x. Duplicar los adsets/creativos ganadores en audiencias similares (lookalike).' });
+    } else if (crmRoas >= THRESHOLDS.roas.breakeven) {
       score += 8;
       strengths.push('Campaña rentable (ROAS ' + crmRoas.toFixed(2) + 'x)');
+      if (crmRoas < THRESHOLDS.roas.healthy) {
+        actions.push({ action: 'Ampliar el margen antes de escalar', impact: 'medio', urgency: 'esta-semana', detail: 'El ROAS (' + crmRoas.toFixed(2) + 'x) es positivo pero ajustado. Antes de subir presupuesto: cerrar más rápido los leads, subir el ticket (paquetes/upsell) y bajar el CAC afinando segmentación y creativos. Escalar con margen delgado puede volver la campaña no rentable.' });
+      }
     } else {
       score -= 8;
       weaknesses.push('ROAS por debajo de 1 (' + crmRoas.toFixed(2) + 'x) — aún no recupera el gasto');
-      actions.push({ action: 'Mejorar conversión de leads a clientes', impact: 'medio', urgency: 'esta-semana', detail: 'La campaña genera ingresos pero aún no supera el gasto. Reforzar seguimiento comercial y cierre de los leads generados.' });
+      actions.push({ action: 'Mejorar conversión de leads a clientes', impact: 'alto', urgency: 'inmediata', detail: 'La campaña genera ingresos pero pierde dinero. Reforzar seguimiento comercial y cierre de los leads; si no mejora en 1-2 semanas, reducir presupuesto o pausar para reestructurar audiencia/oferta.' });
+    }
+  }
+
+  // ── CAC Analysis (CRM) ──
+  // CAC = gasto / clientes. Se evalúa contra el ticket promedio (ingreso / clientes) de la propia campaña.
+  if (crmCAC > 0 && crmCustomers > 0 && crmRevenue > 0) {
+    const ticket = crmRevenue / crmCustomers; // ingreso promedio por cliente
+    const cacRatio = crmCAC / ticket;         // fracción del ingreso por cliente que cuesta adquirirlo
+    if (cacRatio <= THRESHOLDS.cac_ratio.excellent) {
+      score += 5;
+      strengths.push('CAC muy eficiente (' + fmt(crmCAC, 0) + ') — solo ' + (cacRatio * 100).toFixed(0) + '% del ingreso por cliente');
+    } else if (cacRatio >= 1) {
+      score -= 6;
+      weaknesses.push('CAC (' + fmt(crmCAC, 0) + ') supera el ingreso por cliente (' + fmt(ticket, 0) + ')');
+      actions.push({ action: 'Bajar el CAC o subir el ticket', impact: 'alto', urgency: 'inmediata', detail: 'Adquirir un cliente cuesta más de lo que deja. Excluir públicos que no cierran, pausar adsets con peor costo por lead, o subir el ticket promedio con paquetes/upsell.' });
+    } else if (cacRatio >= THRESHOLDS.cac_ratio.high) {
+      weaknesses.push('CAC elevado (' + fmt(crmCAC, 0) + ') — ' + (cacRatio * 100).toFixed(0) + '% del ingreso por cliente');
+      actions.push({ action: 'Optimizar para reducir el CAC', impact: 'medio', urgency: 'esta-semana', detail: 'El costo de adquisición se come buena parte del ingreso. Reforzar los adsets/creativos que mejor cierran y recortar los de peor costo por lead; mejorar el seguimiento para elevar la tasa lead→cliente.' });
     }
   }
 
@@ -218,9 +275,16 @@ function analyzeCampaign(campaign) {
   let recommendedAction = null; // { type: 'pause' | 'resume' | 'budget_down' | 'budget_up', value? }
 
   if (score >= 80) {
-    recommendation = 'Campaña con excelente rendimiento. Considerar aumentar presupuesto para escalar resultados.';
-    if (campaign.dailyBudget) {
-      recommendedAction = { type: 'budget_up', value: Math.round(campaign.dailyBudget * 1.3), reason: 'Buen rendimiento — escalar +30%' };
+    // Solo sugerir escalar presupuesto si la rentabilidad real lo respalda.
+    // Si aún no hay ingreso medido en el CRM, se asume que las métricas de tráfico bastan.
+    const roasThin = crmRevenue > 0 && crmRoas < THRESHOLDS.roas.healthy;
+    if (roasThin) {
+      recommendation = 'Métricas de tráfico excelentes, pero el ROAS real (' + crmRoas.toFixed(2) + 'x) es ajustado. Mejorar cierre, ticket y CAC antes de escalar presupuesto — subir gasto con margen delgado puede dejar de ser rentable.';
+    } else {
+      recommendation = 'Campaña con excelente rendimiento. Considerar aumentar presupuesto para escalar resultados.';
+      if (campaign.dailyBudget) {
+        recommendedAction = { type: 'budget_up', value: Math.round(campaign.dailyBudget * 1.3), reason: 'Buen rendimiento — escalar +30%' };
+      }
     }
   } else if (score >= 60) {
     recommendation = 'Rendimiento aceptable. Aplicar las optimizaciones sugeridas para mejorar métricas.';
@@ -1128,19 +1192,19 @@ const AdminCampaigns = () => {
                 <div className="mc-detail-block">
                   <h4>Métricas del período</h4>
                   <dl className="mc-dl">
-                    <div><dt>Gasto</dt><dd className="mc-td-spend">{fmt(ins.spend,2)} MXN</dd></div>
-                    <div><dt>Alcance</dt><dd>{fmtN(ins.reach)} personas</dd></div>
-                    <div><dt>Frecuencia</dt><dd>{ins.frequency?.toFixed(2) || '—'}x</dd></div>
-                    <div><dt>CTR</dt><dd>{fmtPct(ins.ctr)}</dd></div>
-                    <div><dt>CPC</dt><dd>{fmt(ins.cpc,2)}</dd></div>
-                    <div><dt>CPM</dt><dd>{fmt(ins.cpm,2)}</dd></div>
-                    {ins.conversions > 0 && <div><dt>Conversiones</dt><dd>{ins.conversions}</dd></div>}
-                    {ins.costPerLead > 0 && <div><dt>CPL</dt><dd>{fmt(ins.costPerLead,2)}</dd></div>}
-                    <div><dt>Leads (CRM)</dt><dd>{c.crm?.leads ?? "—"}</dd></div>
-                    <div><dt>Clientes</dt><dd style={{color: c.crm?.customers > 0 ? "#10b981" : undefined}}>{c.crm?.customers ?? "—"}</dd></div>
-                    <div><dt>Ingreso</dt><dd>{c.crm?.revenue > 0 ? fmt(c.crm.revenue,0) : "—"}</dd></div>
-                    <div><dt>CAC</dt><dd>{c.crm?.cac != null ? fmt(c.crm.cac,0) : "—"}</dd></div>
-                    <div><dt>ROAS</dt><dd style={{color: c.crm?.roas >= 1 ? "#10b981" : c.crm?.roas > 0 ? "#f59e0b" : undefined}}>{c.crm?.roas != null ? c.crm.roas.toFixed(2)+"x" : "—"}</dd></div>
+                    <div><MetricLabel label="Gasto" /><dd className="mc-td-spend">{fmt(ins.spend,2)} MXN</dd></div>
+                    <div><MetricLabel label="Alcance" /><dd>{fmtN(ins.reach)} personas</dd></div>
+                    <div><MetricLabel label="Frecuencia" /><dd>{ins.frequency?.toFixed(2) || '—'}x</dd></div>
+                    <div><MetricLabel label="CTR" /><dd>{fmtPct(ins.ctr)}</dd></div>
+                    <div><MetricLabel label="CPC" /><dd>{fmt(ins.cpc,2)}</dd></div>
+                    <div><MetricLabel label="CPM" /><dd>{fmt(ins.cpm,2)}</dd></div>
+                    {ins.conversions > 0 && <div><MetricLabel label="Conversiones" /><dd>{ins.conversions}</dd></div>}
+                    {ins.costPerLead > 0 && <div><MetricLabel label="CPL" /><dd>{fmt(ins.costPerLead,2)}</dd></div>}
+                    <div><MetricLabel label="Leads (CRM)" /><dd>{c.crm?.leads ?? "—"}</dd></div>
+                    <div><MetricLabel label="Clientes" /><dd style={{color: c.crm?.customers > 0 ? "#10b981" : undefined}}>{c.crm?.customers ?? "—"}</dd></div>
+                    <div><MetricLabel label="Ingreso" /><dd>{c.crm?.revenue > 0 ? fmt(c.crm.revenue,0) : "—"}</dd></div>
+                    <div><MetricLabel label="CAC" /><dd>{c.crm?.cac != null ? fmt(c.crm.cac,0) : "—"}</dd></div>
+                    <div><MetricLabel label="ROAS" /><dd style={{color: c.crm?.roas >= 1 ? "#10b981" : c.crm?.roas > 0 ? "#f59e0b" : undefined}}>{c.crm?.roas != null ? c.crm.roas.toFixed(2)+"x" : "—"}</dd></div>
                   </dl>
                 </div>
               )}
