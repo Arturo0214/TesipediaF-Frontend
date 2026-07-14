@@ -147,6 +147,24 @@ function getLeadAttendedBy(lead) {
   return null;
 }
 
+/* ── SLA de asignación (Sandy/Hugo): 90 min para atender o se libera ── */
+const SLA_ASSIGN_MS = 90 * 60 * 1000;
+function getAssignmentSla(lead) {
+  if (lead?.estado_sofia !== 'esperando_aprobacion') return null;
+  const who = getLeadAttendedBy(lead);
+  // Liberado por inactividad: sin dueño y marcado como liberado
+  if (lead?.asignacion_liberada === true && !who) return { kind: 'released' };
+  // Solo aplica el cronómetro a leads asignados a Sandy o Hugo
+  if (!['sandy', 'hugo'].includes(who)) return null;
+  if (lead?.atendido_at) return { kind: 'attended' };
+  if (!lead?.asignado_at) return null;
+  const remaining = SLA_ASSIGN_MS - (Date.now() - new Date(lead.asignado_at).getTime());
+  if (remaining <= 0) return { kind: 'expiring' };
+  const mins = Math.floor(remaining / 60000);
+  const label = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
+  return { kind: 'running', label };
+}
+
 function getAttendedColor(lead) {
   const who = getLeadAttendedBy(lead);
   if (!who) return ADMIN_COLORS._default;
@@ -2189,6 +2207,15 @@ const AdminWhatsApp = () => {
                                 {attendedInfo.label}
                               </span>
                             )}
+                            {(() => {
+                              const sla = getAssignmentSla(lead);
+                              if (!sla) return null;
+                              const base = { fontSize: '0.55rem', padding: '2px 6px', borderRadius: 6, fontWeight: 600, whiteSpace: 'nowrap' };
+                              if (sla.kind === 'released') return <span style={{ ...base, color: '#b91c1c', background: '#fef2f2', border: '1px solid #fecaca' }} title="Liberado por falta de atención (90 min) — sin asignar, disponible para tomar">⚠ Liberado · sin asignar</span>;
+                              if (sla.kind === 'attended') return <span style={{ ...base, color: '#065f46', background: '#d1fae5' }} title="Atendido a tiempo">✓ Atendido</span>;
+                              if (sla.kind === 'expiring') return <span style={{ ...base, color: '#b91c1c', background: '#fee2e2' }} title="Se liberará en el próximo ciclo de revisión">⏳ Por liberar</span>;
+                              return <span style={{ ...base, color: '#92400e', background: '#fef3c7' }} title="Tiempo restante para atender antes de que se libere">⏳ {sla.label} p/ atender</span>;
+                            })()}
                             {lead.origen === 'manychat' && (
                               <Badge bg="light" text="dark" style={{ fontSize: '0.55rem', border: '1px solid #c4b5fd', color: '#7c3aed' }}>
                                 MC{lead.manychat_segment ? `: ${lead.manychat_segment}` : ''}
