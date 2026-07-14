@@ -1263,26 +1263,52 @@ const AdminRevenue = () => {
     //  · mes específico → solo ese mes (una columna, o todos los años de ese mes si año='all')
     //  · año específico → 12 meses del año
     //  · todo → todos los meses con actividad
-    const allActivityCols = [...new Set(filteredRows.flatMap(p => Object.keys(p.cells)))].sort();
+    const monthMode = cfMonth !== 'all';
+    const monthNum = monthMode ? String(cfMonth + 1).padStart(2, '0') : null;
+    const allActivityCols = [...new Set(allRows.flatMap(p => Object.keys(p.cells)))].sort();
     let monthCols;
-    if (cfMonth !== 'all') {
-      const mm = String(cfMonth + 1).padStart(2, '0');
-      monthCols = cfYear === 'all' ? allActivityCols.filter(k => k.slice(5, 7) === mm) : [`${cfYear}-${mm}`];
+    if (monthMode) {
+      monthCols = cfYear === 'all' ? allActivityCols.filter(k => k.slice(5, 7) === monthNum) : [`${cfYear}-${monthNum}`];
     } else if (cfYear === 'all') {
       monthCols = allActivityCols;
     } else {
       monthCols = Array.from({ length: 12 }, (_, i) => `${cfYear}-${String(i + 1).padStart(2, '0')}`);
     }
-    // Con un mes elegido, la matriz muestra solo proyectos con actividad ese mes.
-    let projRows = filteredRows.slice().sort((a, b) => b.vencido - a.vencido || b.porCobrar - a.porCobrar || b.total - a.total);
-    if (cfMonth !== 'all') projRows = projRows.filter(p => monthCols.some(mk => p.cells[mk]));
+    const monthColSet = new Set(monthCols);
+
+    // Alcance por proyecto: con un mes elegido, total/cobrado/porCobrar/vencido/% son SOLO de ese mes
+    // (así "Por cobrar" en Junio no arrastra pendientes de Julio).
+    const scoped = (p) => {
+      if (!monthMode) return { ...p, dTotal: p.total, dCobrado: p.cobrado, dPorCobrar: p.porCobrar, dPerdido: p.perdido, dVencido: p.vencido, dPct: p.pct, dNextDue: p.nextDue, dNextOverdue: p.nextOverdue };
+      let dCobrado = 0, dPorCobrar = 0, dPerdido = 0, dVencido = 0;
+      for (const mk of monthCols) { const c = p.cells[mk]; if (!c) continue; dCobrado += c.paid; dPorCobrar += c.pending; dPerdido += c.lost; if (c.overdue) dVencido += c.pending; }
+      const dTotal = dCobrado + dPorCobrar + dPerdido;
+      const nx = (p.installments || []).filter(it => it.status === 'pending' && monthColSet.has(it.mes) && (it.amount || 0) > 0.005 && it.fecha).sort((a, b) => new Date(a.fecha) - new Date(b.fecha))[0] || null;
+      return { ...p, dTotal, dCobrado, dPorCobrar, dPerdido, dVencido, dPct: dTotal > 0 ? Math.round(dCobrado / dTotal * 100) : 0, dNextDue: nx ? nx.fecha : null, dNextOverdue: nx ? new Date(nx.fecha) < today : false };
+    };
+    // El filtro de estado también se evalúa sobre el alcance del mes (Junio + Por cobrar = pendiente EN junio).
+    const matchEstadoScoped = (p) => {
+      if (!cfEstado) return true;
+      if (cfEstado === 'porCobrar') return p.dPorCobrar > 0.5;
+      if (cfEstado === 'vencido') return p.dVencido > 0.5;
+      if (cfEstado === 'pagado') return p.dCobrado > 0.5 && p.dPorCobrar < 0.5 && p.dPerdido < 0.5;
+      if (cfEstado === 'perdido') return p.dPerdido > 0.5;
+      return true;
+    };
+    const projRows = allRows.map(scoped).filter(p =>
+      (!cfVendedor || p.vendedor === cfVendedor) &&
+      (!cfEsquema || p.esquema === cfEsquema) &&
+      (!cfCliente || norm(p.client).includes(norm(cfCliente))) &&
+      (!monthMode || p.dTotal > 0.005) &&   // en modo mes, solo proyectos con actividad ese mes
+      matchEstadoScoped(p)
+    ).sort((a, b) => b.dVencido - a.dVencido || b.dPorCobrar - a.dPorCobrar || b.dTotal - a.dTotal);
     const colLabel = (mk) => {
       const i = Number(mk.slice(5, 7)) - 1;
       return (cfYear === 'all') ? `${mAbbr(i)} ${mk.slice(2, 4)}` : mAbbr(i);
     };
     const colTotal = {};
     monthCols.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + ((p.cells[mk]?.paid || 0) + (p.cells[mk]?.pending || 0) + (p.cells[mk]?.lost || 0)), 0); });
-    const sumCol = (key) => projRows.reduce((s, p) => s + p[key], 0);
+    const sumCol = (key) => projRows.reduce((s, p) => s + (p[key] || 0), 0);
     const nCols = monthCols.length;
 
     const card = (label, value, color, sub, big) => (
@@ -1480,36 +1506,38 @@ const AdminRevenue = () => {
                       <span style={{ color: '#5a6675', marginRight: 4 }}>{open ? '▾' : '▸'}</span>
                       <span style={{ color: '#e6edf5' }}>{p.client}</span>
                       <span style={{ color: '#5a6675', fontSize: 11 }}> · {p.vendedor || '—'}</span>
-                      {p.concluido
+                      {p.concluido && !monthMode
                         ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0e2a1c', color: '#34d399', border: '1px solid #1b4d33' }}>🏁 Concluido</span>
-                        : p.pagado
-                          ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0d2230', color: '#38bdf8', border: '1px solid #18415a' }}>✅ Pagado</span>
-                          : p.vencido > 0.5
-                            ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#2a1010', color: '#fca5a5', border: '1px solid #4a1c1c' }}>🔴 Vencido {fmt(p.vencido)}</span>
-                            : <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#251a08', color: '#f59e0b', border: '1px solid #4a3514' }}>⏳ {p.pct}%</span>}
+                        : (p.dPorCobrar < 0.5 && p.dPerdido < 0.5 && p.dCobrado > 0.5)
+                          ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0d2230', color: '#38bdf8', border: '1px solid #18415a' }}>✅ {monthMode ? 'Cobrado' : 'Pagado'}</span>
+                          : p.dVencido > 0.5
+                            ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#2a1010', color: '#fca5a5', border: '1px solid #4a1c1c' }}>🔴 Vencido {fmt(p.dVencido)}</span>
+                            : p.dPerdido > 0.5
+                              ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#1a1d22', color: '#9ca3af', border: '1px solid #383d45' }}>🚫 Perdido {fmt(p.dPerdido)}</span>
+                              : <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#251a08', color: '#f59e0b', border: '1px solid #4a3514' }}>⏳ {p.dPct}%</span>}
                     </td>
-                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#9aa6b4', borderTop: '1px solid #161d27' }}>{fmt(p.total)}</td>
-                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#10b981', borderTop: '1px solid #161d27' }}>{fmt(p.cobrado)}</td>
-                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#f59e0b', fontWeight: 700, borderTop: '1px solid #161d27' }}>{p.porCobrar > 0.5 ? fmt(p.porCobrar) : '—'}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#9aa6b4', borderTop: '1px solid #161d27' }}>{fmt(p.dTotal)}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#10b981', borderTop: '1px solid #161d27' }}>{p.dCobrado > 0.5 ? fmt(p.dCobrado) : '—'}</td>
+                    <td style={{ padding: '7px 8px', textAlign: 'right', color: '#f59e0b', fontWeight: 700, borderTop: '1px solid #161d27' }}>{p.dPorCobrar > 0.5 ? fmt(p.dPorCobrar) : '—'}</td>
                     <td style={{ padding: '7px 8px', textAlign: 'center', borderTop: '1px solid #161d27', whiteSpace: 'nowrap' }}>
-                      {p.nextDue ? (
+                      {p.dNextDue ? (
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 8, display: 'inline-block',
-                          background: p.nextOverdue ? '#2a1010' : '#251a08',
-                          color: p.nextOverdue ? '#fca5a5' : '#f59e0b',
-                          border: `1px solid ${p.nextOverdue ? '#4a1c1c' : '#4a3514'}`,
-                        }} title={p.nextOverdue ? 'Cobro vencido' : 'Próximo cobro'}>
-                          {p.nextOverdue ? '🔴 ' : '📅 '}
-                          {new Date(p.nextDue).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                          background: p.dNextOverdue ? '#2a1010' : '#251a08',
+                          color: p.dNextOverdue ? '#fca5a5' : '#f59e0b',
+                          border: `1px solid ${p.dNextOverdue ? '#4a1c1c' : '#4a3514'}`,
+                        }} title={p.dNextOverdue ? 'Cobro vencido' : 'Próximo cobro'}>
+                          {p.dNextOverdue ? '🔴 ' : '📅 '}
+                          {new Date(p.dNextDue).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
                         </span>
                       ) : <span style={{ color: '#3a4250' }}>—</span>}
                     </td>
                     <td style={{ padding: '7px 8px', borderTop: '1px solid #161d27' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                         <div style={{ flex: 1, height: 6, background: '#1c232d', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ width: `${p.pct}%`, height: '100%', background: p.pct >= 100 ? '#10b981' : '#f59e0b' }} />
+                          <div style={{ width: `${p.dPct}%`, height: '100%', background: p.dPct >= 100 ? '#10b981' : '#f59e0b' }} />
                         </div>
-                        <span style={{ fontSize: 10, color: '#7d8896', width: 26, textAlign: 'right' }}>{p.pct}%</span>
+                        <span style={{ fontSize: 10, color: '#7d8896', width: 26, textAlign: 'right' }}>{p.dPct}%</span>
                       </div>
                     </td>
                     {monthCols.map(mk => {
@@ -1627,9 +1655,9 @@ const AdminRevenue = () => {
               <tfoot>
                 <tr style={{ fontWeight: 700, color: '#fff' }}>
                   <td style={{ padding: '9px 10px', position: 'sticky', left: 0, background: '#11161d', borderTop: '2px solid #2a323d' }}>TOTAL ({projRows.length})</td>
-                  <td style={{ padding: '9px 8px', textAlign: 'right', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('total'))}</td>
-                  <td style={{ padding: '9px 8px', textAlign: 'right', color: '#10b981', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('cobrado'))}</td>
-                  <td style={{ padding: '9px 8px', textAlign: 'right', color: '#f59e0b', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('porCobrar'))}</td>
+                  <td style={{ padding: '9px 8px', textAlign: 'right', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('dTotal'))}</td>
+                  <td style={{ padding: '9px 8px', textAlign: 'right', color: '#10b981', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('dCobrado'))}</td>
+                  <td style={{ padding: '9px 8px', textAlign: 'right', color: '#f59e0b', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('dPorCobrar'))}</td>
                   <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
                   <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
                   {monthCols.map(mk => (
