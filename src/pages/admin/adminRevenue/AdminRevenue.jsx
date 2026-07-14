@@ -1259,14 +1259,26 @@ const AdminRevenue = () => {
     const upcoming = monthlyRows.filter(m => m.key >= floorKey && m.porCobrar > 0);
     const maxUpcoming = Math.max(1, ...upcoming.map(m => m.porCobrar));
 
-    // Matriz: columnas de meses (12 del año elegido, o todos los meses con actividad si 'all')
-    const projRows = filteredRows.slice().sort((a, b) => b.vencido - a.vencido || b.porCobrar - a.porCobrar || b.total - a.total);
-    const monthCols = cfYear === 'all'
-      ? [...new Set(projRows.flatMap(p => Object.keys(p.cells)))].sort()
-      : Array.from({ length: 12 }, (_, i) => `${cfYear}-${String(i + 1).padStart(2, '0')}`);
+    // Matriz: columnas de meses — respeta año Y mes elegidos.
+    //  · mes específico → solo ese mes (una columna, o todos los años de ese mes si año='all')
+    //  · año específico → 12 meses del año
+    //  · todo → todos los meses con actividad
+    const allActivityCols = [...new Set(filteredRows.flatMap(p => Object.keys(p.cells)))].sort();
+    let monthCols;
+    if (cfMonth !== 'all') {
+      const mm = String(cfMonth + 1).padStart(2, '0');
+      monthCols = cfYear === 'all' ? allActivityCols.filter(k => k.slice(5, 7) === mm) : [`${cfYear}-${mm}`];
+    } else if (cfYear === 'all') {
+      monthCols = allActivityCols;
+    } else {
+      monthCols = Array.from({ length: 12 }, (_, i) => `${cfYear}-${String(i + 1).padStart(2, '0')}`);
+    }
+    // Con un mes elegido, la matriz muestra solo proyectos con actividad ese mes.
+    let projRows = filteredRows.slice().sort((a, b) => b.vencido - a.vencido || b.porCobrar - a.porCobrar || b.total - a.total);
+    if (cfMonth !== 'all') projRows = projRows.filter(p => monthCols.some(mk => p.cells[mk]));
     const colLabel = (mk) => {
       const i = Number(mk.slice(5, 7)) - 1;
-      return cfYear === 'all' ? `${mAbbr(i)} ${mk.slice(2, 4)}` : mAbbr(i);
+      return (cfYear === 'all') ? `${mAbbr(i)} ${mk.slice(2, 4)}` : mAbbr(i);
     };
     const colTotal = {};
     monthCols.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + ((p.cells[mk]?.paid || 0) + (p.cells[mk]?.pending || 0) + (p.cells[mk]?.lost || 0)), 0); });
@@ -1283,45 +1295,51 @@ const AdminRevenue = () => {
 
     const selStyle = { fontSize: 13, background: '#0d1117', border: '1px solid #2a323d', borderRadius: 8, padding: '6px 10px', color: '#e6edf5' };
     const anyFilter = cfMonth !== 'all' || cfYear !== 'all' || cfVendedor || cfEstado || cfCliente || cfEsquema;
+    const clearFilters = () => { setCfMonth('all'); setCfYear('all'); setCfVendedor(''); setCfEstado(''); setCfCliente(''); setCfEsquema(''); };
+
+    // Controles de filtro reutilizables (barra superior y dentro de la matriz) — comparten el mismo estado.
+    const filterControls = () => (
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: '#8b97a7', textTransform: 'uppercase', letterSpacing: 0.4 }}>🔎 Filtros</span>
+        <select value={cfYear} onChange={(e) => setCfYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} style={selStyle} title="Año">
+          <option value="all">Todos los años</option>
+          {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select value={cfMonth} onChange={(e) => setCfMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} style={selStyle} title="Mes">
+          <option value="all">Todos los meses</option>
+          {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+        </select>
+        <select value={cfVendedor} onChange={(e) => setCfVendedor(e.target.value)} style={selStyle} title="Vendedor">
+          <option value="">Todos los vendedores</option>
+          {vendedores.map(v => <option key={v} value={v}>{v}</option>)}
+        </select>
+        <select value={cfEstado} onChange={(e) => setCfEstado(e.target.value)} style={selStyle} title="Estado">
+          <option value="">Todos los estados</option>
+          <option value="porCobrar">Por cobrar</option>
+          <option value="vencido">Vencido</option>
+          <option value="pagado">Pagado</option>
+          <option value="perdido">Cartera perdida</option>
+        </select>
+        <select value={cfEsquema} onChange={(e) => setCfEsquema(e.target.value)} style={selStyle} title="Esquema de pago">
+          <option value="">Todos los esquemas</option>
+          {esquemas.map(e => <option key={e} value={e}>{e}</option>)}
+        </select>
+        <input value={cfCliente} onChange={(e) => setCfCliente(e.target.value)} placeholder="Buscar cliente…" style={{ ...selStyle, minWidth: 160, flex: 1 }} />
+        {anyFilter && (
+          <button onClick={clearFilters}
+            style={{ fontSize: 12, color: '#8b97a7', background: 'transparent', border: '1px solid #2a323d', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
+            ✕ Limpiar
+          </button>
+        )}
+        <span style={{ fontSize: 12, color: '#5a6675', marginLeft: 'auto' }}>{projRows.length} proyecto(s) · periodo: {periodLabel}</span>
+      </div>
+    );
 
     return (
       <>
         {/* Barra de filtros / periodo (propia del Flujo de caja) */}
         <div className="rev-section" style={{ padding: '12px 16px', marginBottom: 14 }}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#8b97a7', textTransform: 'uppercase', letterSpacing: 0.4 }}>🔎 Filtros</span>
-            <select value={cfYear} onChange={(e) => setCfYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} style={selStyle} title="Año">
-              <option value="all">Todos los años</option>
-              {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <select value={cfMonth} onChange={(e) => setCfMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} style={selStyle} title="Mes">
-              <option value="all">Todos los meses</option>
-              {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
-            </select>
-            <select value={cfVendedor} onChange={(e) => setCfVendedor(e.target.value)} style={selStyle} title="Vendedor">
-              <option value="">Todos los vendedores</option>
-              {vendedores.map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-            <select value={cfEstado} onChange={(e) => setCfEstado(e.target.value)} style={selStyle} title="Estado">
-              <option value="">Todos los estados</option>
-              <option value="porCobrar">Por cobrar</option>
-              <option value="vencido">Vencido</option>
-              <option value="pagado">Pagado</option>
-              <option value="perdido">Cartera perdida</option>
-            </select>
-            <select value={cfEsquema} onChange={(e) => setCfEsquema(e.target.value)} style={selStyle} title="Esquema de pago">
-              <option value="">Todos los esquemas</option>
-              {esquemas.map(e => <option key={e} value={e}>{e}</option>)}
-            </select>
-            <input value={cfCliente} onChange={(e) => setCfCliente(e.target.value)} placeholder="Buscar cliente…" style={{ ...selStyle, minWidth: 160, flex: 1 }} />
-            {anyFilter && (
-              <button onClick={() => { setCfMonth('all'); setCfYear('all'); setCfVendedor(''); setCfEstado(''); setCfCliente(''); setCfEsquema(''); }}
-                style={{ fontSize: 12, color: '#8b97a7', background: 'transparent', border: '1px solid #2a323d', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
-                ✕ Limpiar
-              </button>
-            )}
-            <span style={{ fontSize: 12, color: '#5a6675', marginLeft: 'auto' }}>{projRows.length} proyecto(s) · periodo: {periodLabel}</span>
-          </div>
+          {filterControls()}
         </div>
 
         {/* Hero: cuánto voy a cobrar en total + barras de próximas cobranzas */}
@@ -1392,10 +1410,13 @@ const AdminRevenue = () => {
                 )}
                 {periodRows.map(m => {
                   const gan = m.ganancia;
-                  const isSel = selKey && m.key === selKey;
+                  const rowY = Number(m.key.slice(0, 4));
+                  const rowM = Number(m.key.slice(5, 7)) - 1;
+                  const isSel = cfYear === rowY && cfMonth === rowM;
                   return (
                     <tr key={m.key} style={{ borderTop: '1px solid #1c232d', textAlign: 'right', background: isSel ? '#161d27' : 'transparent', cursor: 'pointer' }}
-                      onClick={() => setCfMonth(cfMonth === (Number(m.key.slice(5, 7)) - 1) ? 'all' : Number(m.key.slice(5, 7)) - 1)}>
+                      title="Click para ver todo de este mes (o volver a todos)"
+                      onClick={() => { if (isSel) { setCfYear('all'); setCfMonth('all'); } else { setCfYear(rowY); setCfMonth(rowM); } }}>
                       <td style={{ textAlign: 'left', padding: '8px 10px', textTransform: 'capitalize', color: '#cdd6e0' }}>{m.label}</td>
                       <td style={{ padding: '8px 10px', color: '#e6edf5' }}>{fmt(m.vendido)}</td>
                       <td style={{ padding: '8px 10px', color: '#10b981' }}>{fmt(m.cobrado)}</td>
@@ -1424,8 +1445,12 @@ const AdminRevenue = () => {
         {/* Matriz por proyecto x mes */}
         <div className="rev-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-            <h3 className="rev-section-title" style={{ margin: 0 }}><FaFileInvoiceDollar /> Matriz de cobranza por proyecto · {cfYear === 'all' ? 'todos los años' : cfYear}</h3>
+            <h3 className="rev-section-title" style={{ margin: 0 }}><FaFileInvoiceDollar /> Matriz de cobranza por proyecto · {cfMonth !== 'all' ? `${MONTHS[cfMonth]}${cfYear === 'all' ? '' : ' ' + cfYear}` : (cfYear === 'all' ? 'todos los años' : cfYear)}</h3>
             <span style={{ fontSize: 13, color: '#8b97a7' }}>{projRows.length} proyecto(s)</span>
+          </div>
+          {/* Filtros dentro de la matriz (mismo estado que la barra superior) */}
+          <div style={{ padding: '10px 12px', margin: '10px 0', background: '#0d1117', border: '1px solid #1c232d', borderRadius: 10 }}>
+            {filterControls()}
           </div>
           <p style={{ fontSize: 12, color: '#6b7685', margin: '4px 0 10px' }}>
             <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp; <span style={{ color: '#ef4444' }}>● vencido ⚠</span> &nbsp; <span style={{ color: '#9ca3af' }}>● perdido 🚫</span> &nbsp;·&nbsp; click en un proyecto para ver el desglose y marcar pagos · ordenado por vencido y saldo
