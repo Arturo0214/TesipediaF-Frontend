@@ -79,9 +79,15 @@ const AdminRevenue = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [activeView, setActiveView] = useState('overview'); // overview | cashflow | expenses | cost-per-sale | sync
-  const [cfOnlyPending, setCfOnlyPending] = useState(false); // matriz: solo proyectos con saldo por cobrar
   const [cfExpanded, setCfExpanded] = useState(null); // id de proyecto expandido en la matriz
   const [cfSaving, setCfSaving] = useState(null); // `${quoteId}-${idx}` del cobro que se está guardando
+  // ── Filtros/periodo propios del Flujo de caja ('all' = todo por defecto) ──
+  const [cfMonth, setCfMonth] = useState('all');     // 'all' | 0..11
+  const [cfYear, setCfYear] = useState('all');       // 'all' | 2026 | 2027 ...
+  const [cfVendedor, setCfVendedor] = useState('');  // '' = todos
+  const [cfEstado, setCfEstado] = useState('');      // '' | porCobrar | vencido | pagado | perdido
+  const [cfCliente, setCfCliente] = useState('');    // búsqueda por nombre
+  const [cfEsquema, setCfEsquema] = useState('');    // '' | tipo de esquema
   const [cfEditId, setCfEditId] = useState(null); // quoteId cuyo contacto se está editando
   const [cfContact, setCfContact] = useState({ phone: '', email: '' });
   const [cfContactSaving, setCfContactSaving] = useState(false);
@@ -101,8 +107,10 @@ const AdminRevenue = () => {
   }, [dispatch, selectedYear, selectedMonth]);
 
   useEffect(() => {
-    if (activeView === 'cashflow') dispatch(fetchCashflow({ year: selectedYear }));
-  }, [dispatch, activeView, selectedYear]);
+    // El endpoint devuelve TODO el horizonte en `monthly`/`projects`; el año solo afecta yearTotals,
+    // que no usamos en la vista filtrada. Con cfYear='all' pedimos el año actual y computamos client-side.
+    if (activeView === 'cashflow') dispatch(fetchCashflow({ year: cfYear === 'all' ? now.getFullYear() : cfYear }));
+  }, [dispatch, activeView, cfYear]);
 
   useEffect(() => {
     if (activeView === 'expenses') {
@@ -175,11 +183,32 @@ const AdminRevenue = () => {
       );
       toast.success(newStatus === 'paid' ? 'Cobro marcado como pagado ✅' : 'Cobro marcado como pendiente');
       // Recargar flujo de caja para recomputar cobrado/por cobrar/vencido
-      await dispatch(fetchCashflow({ year: selectedYear }));
+      await dispatch(fetchCashflow({ year: cfYear === 'all' ? now.getFullYear() : cfYear }));
       // Refrescar también el resumen de revenue (usa los mismos pagos)
       dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al guardar el cobro');
+    } finally {
+      setCfSaving(null);
+    }
+  };
+
+  // Marcar/desmarcar una parcialidad como CARTERA PERDIDA (ya no se cobrará). Reversible → 'pending'.
+  const handleMarkLost = async (quoteId, idx, currentStatus) => {
+    const newStatus = currentStatus === 'lost' ? 'pending' : 'lost';
+    if (newStatus === 'lost' && !window.confirm('¿Marcar este cobro como cartera perdida? Saldrá de "Por cobrar" y contará como pérdida.')) return;
+    const key = `${quoteId}-${idx}`;
+    setCfSaving(key);
+    try {
+      await axiosWithAuth.patch(
+        `/payments/dashboard/${quoteId}/installment?source=sofia`,
+        { installmentIndex: idx, status: newStatus }
+      );
+      toast.success(newStatus === 'lost' ? 'Marcado como cartera perdida 🚫' : 'Restaurado a por cobrar');
+      await dispatch(fetchCashflow({ year: cfYear === 'all' ? now.getFullYear() : cfYear }));
+      dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al guardar');
     } finally {
       setCfSaving(null);
     }
@@ -1129,53 +1158,120 @@ const AdminRevenue = () => {
 
     const monthly = cashflow.monthly || [];
     const projects = cashflow.projects || [];
-    const selKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
-    const sel = monthly.find(m => m.key === selKey) || { vendido: 0, cobrado: 0, porCobrar: 0 };
-    const yearMonths = monthly.filter(m => m.key.startsWith(String(selectedYear)));
-    const yt = cashflow.yearTotals || { vendido: 0, cobrado: 0, porCobrar: 0 };
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const norm = (s) => String(s || '').toLowerCase().trim();
+    const mAbbr = (i) => (MONTHS[i] || '').slice(0, 3);
 
-    // Total pendiente de cobro (TODO el horizonte, no solo el año) — "cuánto voy a cobrar"
-    const totalPorCobrar = monthly.reduce((s, m) => s + m.porCobrar, 0);
-    const totalCobrado = monthly.reduce((s, m) => s + m.cobrado, 0);
-    const totalVendido = monthly.reduce((s, m) => s + m.vendido, 0);
-    // Próximas cobranzas: meses futuros (desde el mes seleccionado) con saldo
-    const upcoming = monthly.filter(m => m.key >= selKey && m.porCobrar > 0);
+    // Opciones de filtro derivadas de los datos
+    const vendedores = [...new Set(projects.map(p => p.vendedor).filter(Boolean))].sort();
+    const esquemas = [...new Set(projects.map(p => p.esquema).filter(Boolean))].sort();
+
+    // Enriquecer cada proyecto: cobrado/porCobrar/perdido/vencido + celdas por mes.
+    const enrich = (p) => {
+      let cobrado = 0, porCobrar = 0, perdido = 0, vencido = 0;
+      const cells = {};
+      for (const it of (p.installments || [])) {
+        const overdue = it.status === 'pending' && new Date(it.fecha) < today;
+        if (it.status === 'paid') cobrado += it.amount;
+        else if (it.status === 'lost') perdido += it.amount;
+        else { porCobrar += it.amount; if (overdue) vencido += it.amount; }
+        const c = (cells[it.mes] = cells[it.mes] || { paid: 0, pending: 0, lost: 0, overdue: false });
+        if (it.status === 'paid') c.paid += it.amount;
+        else if (it.status === 'lost') c.lost += it.amount;
+        else { c.pending += it.amount; if (overdue) c.overdue = true; }
+      }
+      const total = p.total || (cobrado + porCobrar + perdido);
+      const pendientes = (p.installments || [])
+        .filter(it => it.status === 'pending' && (it.amount || 0) > 0.005 && it.fecha)
+        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+      const next = pendientes[0] || null;
+      return { ...p, cells, cobrado, porCobrar, perdido, vencido, total,
+        nextDue: next ? next.fecha : null, nextOverdue: next ? new Date(next.fecha) < today : false,
+        pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
+    };
+    const allRows = projects.map(enrich).filter(p => (p.installments || []).length > 0);
+
+    // Filtros de proyecto (vendedor / cliente / esquema / estado)
+    const matchEstado = (p) => {
+      if (!cfEstado) return true;
+      if (cfEstado === 'porCobrar') return p.porCobrar > 0.5;
+      if (cfEstado === 'vencido') return p.vencido > 0.5;
+      if (cfEstado === 'pagado') return p.porCobrar < 0.5 && p.perdido < 0.5;
+      if (cfEstado === 'perdido') return p.perdido > 0.5;
+      return true;
+    };
+    const filteredRows = allRows.filter(p =>
+      (!cfVendedor || p.vendedor === cfVendedor) &&
+      (!cfEsquema || p.esquema === cfEsquema) &&
+      (!cfCliente || norm(p.client).includes(norm(cfCliente))) &&
+      matchEstado(p)
+    );
+
+    // Serie mensual recomputada desde los proyectos filtrados (respeta filtros y multi-año)
+    const gastosByKey = {}; monthly.forEach(m => { gastosByKey[m.key] = m.gastos || 0; });
+    const magg = {};
+    const touchM = (k) => (magg[k] = magg[k] || { key: k, vendido: 0, cobrado: 0, porCobrar: 0, perdido: 0 });
+    for (const p of filteredRows) {
+      if (p.closeMonth) touchM(p.closeMonth).vendido += p.total || 0;
+      for (const it of (p.installments || [])) {
+        const m = touchM(it.mes);
+        if (it.status === 'paid') m.cobrado += it.amount;
+        else if (it.status === 'lost') m.perdido += it.amount;
+        else m.porCobrar += it.amount;
+      }
+    }
+    // Con filtro de entidad (vendedor/cliente/esquema), gastos/ganancia son de empresa → no se atribuyen.
+    const entityFilter = !!(cfVendedor || cfEsquema || cfCliente);
+    const monthlyRows = Object.values(magg).map(m => {
+      const gastos = entityFilter ? 0 : (gastosByKey[m.key] || 0);
+      const [yy, mm] = m.key.split('-').map(Number);
+      const label = new Date(yy, mm - 1, 1).toLocaleDateString('es-MX', { month: 'short', year: 'numeric' });
+      return { ...m, gastos, ganancia: m.cobrado - gastos, label };
+    }).sort((a, b) => a.key.localeCompare(b.key));
+
+    // Periodo (año/mes) elegido
+    const inYear = (k) => cfYear === 'all' || k.slice(0, 4) === String(cfYear);
+    const inMonth = (k) => cfMonth === 'all' || Number(k.slice(5, 7)) - 1 === cfMonth;
+    const periodRows = monthlyRows.filter(m => inYear(m.key));
+    const yt = periodRows.reduce((a, m) => ({
+      vendido: a.vendido + m.vendido, cobrado: a.cobrado + m.cobrado, porCobrar: a.porCobrar + m.porCobrar,
+      perdido: a.perdido + m.perdido, gastos: a.gastos + m.gastos, ganancia: a.ganancia + m.ganancia,
+    }), { vendido: 0, cobrado: 0, porCobrar: 0, perdido: 0, gastos: 0, ganancia: 0 });
+
+    // Tarjetas del periodo: mes específico si se eligió, si no el total del periodo.
+    const selKey = (cfMonth !== 'all' && cfYear !== 'all') ? `${cfYear}-${String(cfMonth + 1).padStart(2, '0')}` : null;
+    const sel = selKey ? (monthlyRows.find(m => m.key === selKey) || { vendido: 0, cobrado: 0, porCobrar: 0, perdido: 0 }) : null;
+    const periodLabel = cfMonth === 'all'
+      ? (cfYear === 'all' ? 'Todo' : String(cfYear))
+      : `${MONTHS[cfMonth]}${cfYear === 'all' ? '' : ' ' + cfYear}`;
+    const selData = sel || yt;
+
+    // Hero: totales del horizonte filtrado (acotado al periodo elegido)
+    const heroRows = monthlyRows.filter(m => inYear(m.key) && inMonth(m.key));
+    const totalPorCobrar = heroRows.reduce((s, m) => s + m.porCobrar, 0);
+    const totalCobrado = heroRows.reduce((s, m) => s + m.cobrado, 0);
+    const totalVendido = heroRows.reduce((s, m) => s + m.vendido, 0);
+    const totalPerdido = heroRows.reduce((s, m) => s + m.perdido, 0);
+    const totalVencido = filteredRows.reduce((s, p) => s + p.vencido, 0);
+
+    // Próximas cobranzas: desde hoy (o el mes elegido) con saldo — a través de todos los años (muestra 2027).
+    const floorKey = selKey || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const upcoming = monthlyRows.filter(m => m.key >= floorKey && m.porCobrar > 0);
     const maxUpcoming = Math.max(1, ...upcoming.map(m => m.porCobrar));
 
-    // Matriz: proyecto x mes del año. Cada celda separa cobrado/pendiente/vencido.
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const monthsOfYear = Array.from({ length: 12 }, (_, i) => `${selectedYear}-${String(i + 1).padStart(2, '0')}`);
-    let projRows = projects
-      .map(p => {
-        const cells = {};
-        let cobrado = 0, porCobrar = 0, vencido = 0;
-        for (const it of (p.installments || [])) {
-          const overdue = it.status !== 'paid' && new Date(it.fecha) < today;
-          if (it.status === 'paid') cobrado += it.amount;
-          else { porCobrar += it.amount; if (overdue) vencido += it.amount; }
-          if (!it.mes.startsWith(String(selectedYear))) continue;
-          const c = (cells[it.mes] = cells[it.mes] || { paid: 0, pending: 0, overdue: false });
-          if (it.status === 'paid') c.paid += it.amount;
-          else { c.pending += it.amount; if (overdue) c.overdue = true; }
-        }
-        const total = p.total || (cobrado + porCobrar);
-        // Próxima fecha de cobro: la parcialidad pendiente más próxima (o ya vencida).
-        const pendientes = (p.installments || [])
-          .filter(it => it.status !== 'paid' && (it.amount || 0) > 0.005 && it.fecha)
-          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-        const next = pendientes[0] || null;
-        const nextDue = next ? next.fecha : null;
-        const nextOverdue = next ? new Date(next.fecha) < today : false;
-        return { ...p, cells, cobrado, porCobrar, vencido, total, nextDue, nextOverdue, pct: total > 0 ? Math.round((cobrado / total) * 100) : 0 };
-      })
-      .filter(p => (p.installments || []).length > 0);
-    const totalVencido = projRows.reduce((s, p) => s + p.vencido, 0);
-    if (cfOnlyPending) projRows = projRows.filter(p => p.porCobrar > 0.5);
-    projRows.sort((a, b) => b.vencido - a.vencido || b.porCobrar - a.porCobrar || b.total - a.total);
-    // Totales por columna (mes) sobre las filas visibles
+    // Matriz: columnas de meses (12 del año elegido, o todos los meses con actividad si 'all')
+    const projRows = filteredRows.slice().sort((a, b) => b.vencido - a.vencido || b.porCobrar - a.porCobrar || b.total - a.total);
+    const monthCols = cfYear === 'all'
+      ? [...new Set(projRows.flatMap(p => Object.keys(p.cells)))].sort()
+      : Array.from({ length: 12 }, (_, i) => `${cfYear}-${String(i + 1).padStart(2, '0')}`);
+    const colLabel = (mk) => {
+      const i = Number(mk.slice(5, 7)) - 1;
+      return cfYear === 'all' ? `${mAbbr(i)} ${mk.slice(2, 4)}` : mAbbr(i);
+    };
     const colTotal = {};
-    monthsOfYear.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + ((p.cells[mk]?.paid || 0) + (p.cells[mk]?.pending || 0)), 0); });
+    monthCols.forEach(mk => { colTotal[mk] = projRows.reduce((s, p) => s + ((p.cells[mk]?.paid || 0) + (p.cells[mk]?.pending || 0) + (p.cells[mk]?.lost || 0)), 0); });
     const sumCol = (key) => projRows.reduce((s, p) => s + p[key], 0);
+    const nCols = monthCols.length;
 
     const card = (label, value, color, sub, big) => (
       <div style={{ flex: 1, minWidth: 200, background: big ? 'linear-gradient(135deg,#1a2230,#11161d)' : '#11161d', border: `1px solid ${big ? '#3a2a12' : '#232a35'}`, borderRadius: 12, padding: '18px 20px' }}>
@@ -1185,8 +1281,49 @@ const AdminRevenue = () => {
       </div>
     );
 
+    const selStyle = { fontSize: 13, background: '#0d1117', border: '1px solid #2a323d', borderRadius: 8, padding: '6px 10px', color: '#e6edf5' };
+    const anyFilter = cfMonth !== 'all' || cfYear !== 'all' || cfVendedor || cfEstado || cfCliente || cfEsquema;
+
     return (
       <>
+        {/* Barra de filtros / periodo (propia del Flujo de caja) */}
+        <div className="rev-section" style={{ padding: '12px 16px', marginBottom: 14 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: '#8b97a7', textTransform: 'uppercase', letterSpacing: 0.4 }}>🔎 Filtros</span>
+            <select value={cfYear} onChange={(e) => setCfYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} style={selStyle} title="Año">
+              <option value="all">Todos los años</option>
+              {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select value={cfMonth} onChange={(e) => setCfMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} style={selStyle} title="Mes">
+              <option value="all">Todos los meses</option>
+              {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            </select>
+            <select value={cfVendedor} onChange={(e) => setCfVendedor(e.target.value)} style={selStyle} title="Vendedor">
+              <option value="">Todos los vendedores</option>
+              {vendedores.map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <select value={cfEstado} onChange={(e) => setCfEstado(e.target.value)} style={selStyle} title="Estado">
+              <option value="">Todos los estados</option>
+              <option value="porCobrar">Por cobrar</option>
+              <option value="vencido">Vencido</option>
+              <option value="pagado">Pagado</option>
+              <option value="perdido">Cartera perdida</option>
+            </select>
+            <select value={cfEsquema} onChange={(e) => setCfEsquema(e.target.value)} style={selStyle} title="Esquema de pago">
+              <option value="">Todos los esquemas</option>
+              {esquemas.map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
+            <input value={cfCliente} onChange={(e) => setCfCliente(e.target.value)} placeholder="Buscar cliente…" style={{ ...selStyle, minWidth: 160, flex: 1 }} />
+            {anyFilter && (
+              <button onClick={() => { setCfMonth('all'); setCfYear('all'); setCfVendedor(''); setCfEstado(''); setCfCliente(''); setCfEsquema(''); }}
+                style={{ fontSize: 12, color: '#8b97a7', background: 'transparent', border: '1px solid #2a323d', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
+                ✕ Limpiar
+              </button>
+            )}
+            <span style={{ fontSize: 12, color: '#5a6675', marginLeft: 'auto' }}>{projRows.length} proyecto(s) · periodo: {periodLabel}</span>
+          </div>
+        </div>
+
         {/* Hero: cuánto voy a cobrar en total + barras de próximas cobranzas */}
         <div className="rev-section" style={{ background: 'linear-gradient(135deg,#1c1505,#12161d)', border: '1px solid #3a2a12' }}>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1196,11 +1333,18 @@ const AdminRevenue = () => {
               <div style={{ fontSize: 12, color: '#8b97a7', marginTop: 4 }}>
                 de {fmt(totalVendido)} vendido · {fmt(totalCobrado)} ya cobrado ({totalVendido > 0 ? Math.round(totalCobrado / totalVendido * 100) : 0}%)
               </div>
-              {totalVencido > 0.5 && (
-                <div style={{ marginTop: 8, display: 'inline-block', fontSize: 13, fontWeight: 700, color: '#fca5a5', background: '#2a1010', border: '1px solid #4a1c1c', borderRadius: 8, padding: '4px 10px' }}>
-                  🔴 Cartera vencida: {fmt(totalVencido)} <span style={{ fontWeight: 400, color: '#b9747a' }}>(pagos pendientes con fecha pasada)</span>
-                </div>
-              )}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                {totalVencido > 0.5 && (
+                  <div style={{ display: 'inline-block', fontSize: 13, fontWeight: 700, color: '#fca5a5', background: '#2a1010', border: '1px solid #4a1c1c', borderRadius: 8, padding: '4px 10px' }}>
+                    🔴 Cartera vencida: {fmt(totalVencido)} <span style={{ fontWeight: 400, color: '#b9747a' }}>(pagos pendientes con fecha pasada)</span>
+                  </div>
+                )}
+                {totalPerdido > 0.5 && (
+                  <div style={{ display: 'inline-block', fontSize: 13, fontWeight: 700, color: '#9ca3af', background: '#1a1d22', border: '1px solid #383d45', borderRadius: 8, padding: '4px 10px' }}>
+                    🚫 Cartera perdida: {fmt(totalPerdido)} <span style={{ fontWeight: 400, color: '#6b7280' }}>(pagos que ya no se cobrarán)</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div style={{ flex: 1, minWidth: 280 }}>
               <div style={{ fontSize: 12, color: '#8b97a7', marginBottom: 8 }}>Próximas cobranzas</div>
@@ -1218,16 +1362,17 @@ const AdminRevenue = () => {
           </div>
         </div>
 
-        {/* Tarjetas del mes seleccionado */}
+        {/* Tarjetas del periodo seleccionado */}
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 18 }}>
-          {card(`Vendido · ${MONTHS[selectedMonth]}`, sel.vendido, '#e6edf5', 'Ventas cerradas este mes')}
-          {card(`Cobrado · ${MONTHS[selectedMonth]}`, sel.cobrado, '#10b981', 'Parcialidades pagadas en el mes')}
-          {card(`Por cobrar · ${MONTHS[selectedMonth]}`, sel.porCobrar, '#f59e0b', 'Parcialidades pendientes en el mes')}
+          {card(`Vendido · ${periodLabel}`, selData.vendido, '#e6edf5', sel ? 'Ventas cerradas este mes' : 'Ventas cerradas en el periodo')}
+          {card(`Cobrado · ${periodLabel}`, selData.cobrado, '#10b981', sel ? 'Parcialidades pagadas en el mes' : 'Parcialidades pagadas en el periodo')}
+          {card(`Por cobrar · ${periodLabel}`, selData.porCobrar, '#f59e0b', sel ? 'Parcialidades pendientes en el mes' : 'Parcialidades pendientes en el periodo')}
+          {(selData.perdido || 0) > 0.5 && card(`Cartera perdida · ${periodLabel}`, selData.perdido, '#9ca3af', 'Pagos que ya no se cobrarán')}
         </div>
 
         {/* Análisis mensual: vendido / cobrado / por cobrar / gastos / ganancia */}
         <div className="rev-section">
-          <h3 className="rev-section-title"><FaChartLine /> Análisis mensual {selectedYear} — cuánto se gana por mes</h3>
+          <h3 className="rev-section-title"><FaChartLine /> Análisis mensual {cfYear === 'all' ? '(todos los años)' : cfYear} — cuánto se gana por mes</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
@@ -1236,50 +1381,54 @@ const AdminRevenue = () => {
                   <th style={{ padding: '8px 10px' }}>Vendido</th>
                   <th style={{ padding: '8px 10px', color: '#10b981' }}>Cobrado</th>
                   <th style={{ padding: '8px 10px', color: '#f59e0b' }}>Por cobrar</th>
+                  <th style={{ padding: '8px 10px', color: '#9ca3af' }}>Perdido</th>
                   <th style={{ padding: '8px 10px', color: '#f87171' }}>Gastos</th>
                   <th style={{ padding: '8px 10px', color: '#38bdf8' }}>Ganancia</th>
                 </tr>
               </thead>
               <tbody>
-                {yearMonths.map(m => {
-                  const gan = (m.ganancia !== undefined) ? m.ganancia : (m.cobrado || 0) - (m.gastos || 0);
+                {periodRows.length === 0 && (
+                  <tr><td colSpan={7} style={{ padding: 16, textAlign: 'center', color: '#6b7685' }}>Sin actividad para los filtros seleccionados.</td></tr>
+                )}
+                {periodRows.map(m => {
+                  const gan = m.ganancia;
+                  const isSel = selKey && m.key === selKey;
                   return (
-                    <tr key={m.key} style={{ borderTop: '1px solid #1c232d', textAlign: 'right', background: m.key === selKey ? '#161d27' : 'transparent', cursor: 'pointer' }}
-                      onClick={() => setSelectedMonth(parseInt(m.key.split('-')[1]) - 1)}>
+                    <tr key={m.key} style={{ borderTop: '1px solid #1c232d', textAlign: 'right', background: isSel ? '#161d27' : 'transparent', cursor: 'pointer' }}
+                      onClick={() => setCfMonth(cfMonth === (Number(m.key.slice(5, 7)) - 1) ? 'all' : Number(m.key.slice(5, 7)) - 1)}>
                       <td style={{ textAlign: 'left', padding: '8px 10px', textTransform: 'capitalize', color: '#cdd6e0' }}>{m.label}</td>
                       <td style={{ padding: '8px 10px', color: '#e6edf5' }}>{fmt(m.vendido)}</td>
                       <td style={{ padding: '8px 10px', color: '#10b981' }}>{fmt(m.cobrado)}</td>
                       <td style={{ padding: '8px 10px', color: '#f59e0b' }}>{fmt(m.porCobrar)}</td>
+                      <td style={{ padding: '8px 10px', color: '#9ca3af' }}>{m.perdido > 0.5 ? fmt(m.perdido) : '—'}</td>
                       <td style={{ padding: '8px 10px', color: '#f87171' }}>{m.gastos ? '-' + fmt(m.gastos) : '—'}</td>
                       <td style={{ padding: '8px 10px', fontWeight: 600, color: gan >= 0 ? '#38bdf8' : '#ef4444' }}>{fmt(gan)}</td>
                     </tr>
                   );
                 })}
                 <tr style={{ borderTop: '2px solid #2a323d', textAlign: 'right', fontWeight: 700 }}>
-                  <td style={{ textAlign: 'left', padding: '10px', color: '#fff' }}>TOTAL {selectedYear}</td>
+                  <td style={{ textAlign: 'left', padding: '10px', color: '#fff' }}>TOTAL {cfYear === 'all' ? '' : cfYear}</td>
                   <td style={{ padding: '10px', color: '#e6edf5' }}>{fmt(yt.vendido)}</td>
                   <td style={{ padding: '10px', color: '#10b981' }}>{fmt(yt.cobrado)}</td>
                   <td style={{ padding: '10px', color: '#f59e0b' }}>{fmt(yt.porCobrar)}</td>
+                  <td style={{ padding: '10px', color: '#9ca3af' }}>{yt.perdido > 0.5 ? fmt(yt.perdido) : '—'}</td>
                   <td style={{ padding: '10px', color: '#f87171' }}>{yt.gastos ? '-' + fmt(yt.gastos) : '—'}</td>
-                  <td style={{ padding: '10px', color: (yt.ganancia ?? 0) >= 0 ? '#38bdf8' : '#ef4444' }}>{fmt(yt.ganancia ?? (yt.cobrado - (yt.gastos || 0)))}</td>
+                  <td style={{ padding: '10px', color: (yt.ganancia ?? 0) >= 0 ? '#38bdf8' : '#ef4444' }}>{fmt(yt.ganancia)}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p style={{ fontSize: 11, color: '#6b7685', marginTop: 8 }}>Ganancia = Cobrado − Gastos del mes. Las parcialidades en "Por cobrar" suman a la ganancia cuando se cobran en su mes.</p>
+          <p style={{ fontSize: 11, color: '#6b7685', marginTop: 8 }}>Ganancia = Cobrado − Gastos del mes. "Perdido" = cartera dada por incobrable (sale de Por cobrar).{entityFilter ? ' Con filtro de vendedor/cliente/esquema, Gastos y Ganancia no se muestran (son de empresa).' : ' Las parcialidades en "Por cobrar" suman a la ganancia cuando se cobran en su mes.'}</p>
         </div>
 
         {/* Matriz por proyecto x mes */}
         <div className="rev-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-            <h3 className="rev-section-title" style={{ margin: 0 }}><FaFileInvoiceDollar /> Matriz de cobranza por proyecto · {selectedYear}</h3>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#cdd6e0', cursor: 'pointer' }}>
-              <input type="checkbox" checked={cfOnlyPending} onChange={(e) => setCfOnlyPending(e.target.checked)} />
-              Solo con saldo por cobrar ({projRows.length})
-            </label>
+            <h3 className="rev-section-title" style={{ margin: 0 }}><FaFileInvoiceDollar /> Matriz de cobranza por proyecto · {cfYear === 'all' ? 'todos los años' : cfYear}</h3>
+            <span style={{ fontSize: 13, color: '#8b97a7' }}>{projRows.length} proyecto(s)</span>
           </div>
           <p style={{ fontSize: 12, color: '#6b7685', margin: '4px 0 10px' }}>
-            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp; <span style={{ color: '#ef4444' }}>● vencido ⚠</span> &nbsp;·&nbsp; click en un proyecto para ver el desglose · ordenado por vencido y saldo
+            <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp; <span style={{ color: '#ef4444' }}>● vencido ⚠</span> &nbsp; <span style={{ color: '#9ca3af' }}>● perdido 🚫</span> &nbsp;·&nbsp; click en un proyecto para ver el desglose y marcar pagos · ordenado por vencido y saldo
           </p>
           <div style={{ overflowX: 'auto', maxHeight: 560, overflowY: 'auto', border: '1px solid #1c232d', borderRadius: 10 }}>
             <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: 1100 }}>
@@ -1291,7 +1440,7 @@ const AdminRevenue = () => {
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#f59e0b' }}>Por cobrar</th>
                   <th style={{ textAlign: 'center', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', minWidth: 104 }}>Próx. cobro</th>
                   <th style={{ textAlign: 'center', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', minWidth: 90 }}>%</th>
-                  {monthsOfYear.map((mk, i) => <th key={mk} style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', opacity: colTotal[mk] ? 1 : 0.4, minWidth: 78 }}>{MONTHS[i].slice(0, 3)}</th>)}
+                  {monthCols.map((mk) => <th key={mk} style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', opacity: colTotal[mk] ? 1 : 0.4, minWidth: 78 }}>{colLabel(mk)}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -1338,17 +1487,19 @@ const AdminRevenue = () => {
                         <span style={{ fontSize: 10, color: '#7d8896', width: 26, textAlign: 'right' }}>{p.pct}%</span>
                       </div>
                     </td>
-                    {monthsOfYear.map(mk => {
+                    {monthCols.map(mk => {
                       const c = p.cells[mk];
+                      const empty = !c || (!c.paid && !c.pending && !c.lost);
                       return (
                         <td key={mk} style={{ padding: '7px 8px', textAlign: 'right', borderTop: '1px solid #161d27', whiteSpace: 'nowrap', lineHeight: 1.25, minWidth: 78, fontVariantNumeric: 'tabular-nums' }}>
-                          {!c && <span style={{ color: '#2c333d' }}>·</span>}
+                          {empty && <span style={{ color: '#2c333d' }}>·</span>}
                           {c && c.paid > 0 && <div style={{ color: '#10b981' }}>{fmt(c.paid)}</div>}
                           {c && c.pending > 0 && (
                             <div style={{ color: c.overdue ? '#ef4444' : '#f59e0b', fontWeight: c.overdue ? 700 : 400 }}>
                               {fmt(c.pending)}{c.overdue ? <span style={{ fontSize: 9, marginLeft: 1, verticalAlign: 'top' }}>⚠</span> : ''}
                             </div>
                           )}
+                          {c && c.lost > 0 && <div style={{ color: '#9ca3af' }}>{fmt(c.lost)} 🚫</div>}
                         </td>
                       );
                     })}
@@ -1359,7 +1510,7 @@ const AdminRevenue = () => {
                     const due = p.dueDate ? new Date(p.dueDate) : null;
                     return (
                     <tr>
-                      <td colSpan={6 + 12} style={{ padding: '12px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
+                      <td colSpan={6 + nCols} style={{ padding: '12px 16px', background: '#0a0e14', borderTop: '1px solid #161d27' }}>
                         {/* Contacto + estatus del proyecto */}
                         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid #161d27' }}>
                           <div style={{ fontSize: 13, color: '#e6edf5', fontWeight: 600 }}>{p.client}</div>
@@ -1409,28 +1560,31 @@ const AdminRevenue = () => {
                             <span style={{ color: '#8b97a7' }}>📝 Última nota:</span> {p.nota}
                           </div>
                         )}
-                        <div style={{ fontSize: 11, color: '#8b97a7', marginBottom: 8 }}>{p.title} · esquema {p.esquema} — desglose de pagos <span style={{ color: '#5a6675' }}>· click en un cobro para marcarlo pagado/pendiente</span></div>
+                        <div style={{ fontSize: 11, color: '#8b97a7', marginBottom: 8 }}>{p.title} · esquema {p.esquema} — desglose de pagos <span style={{ color: '#5a6675' }}>· click en un cobro para marcarlo pagado/pendiente · 🚫 para cartera perdida</span></div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           {[...(p.installments || [])].sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).map((it, i) => {
-                            const overdue = it.status !== 'paid' && new Date(it.fecha) < today;
-                            const color = it.status === 'paid' ? '#10b981' : overdue ? '#ef4444' : '#f59e0b';
-                            const label = it.status === 'paid' ? '✅ Cobrado' : overdue ? '🔴 Vencido' : '⏳ Por cobrar';
+                            const overdue = it.status === 'pending' && new Date(it.fecha) < today;
+                            const isLost = it.status === 'lost';
+                            const color = it.status === 'paid' ? '#10b981' : isLost ? '#9ca3af' : overdue ? '#ef4444' : '#f59e0b';
+                            const label = it.status === 'paid' ? '✅ Cobrado' : isLost ? '🚫 Perdido' : overdue ? '🔴 Vencido' : '⏳ Por cobrar';
                             const saving = cfSaving === `${p.id}-${it.idx}`;
                             return (
-                              <button
-                                key={i}
-                                onClick={() => handleToggleInstallment(p.id, it.idx, it.status)}
-                                disabled={saving}
-                                title={it.status === 'paid' ? 'Click para marcar como pendiente' : 'Click para marcar como pagado'}
-                                style={{ textAlign: 'left', border: `1px solid ${color}55`, background: '#0d1117', borderRadius: 8, padding: '6px 12px', minWidth: 140, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.5 : 1 }}
-                              >
+                              <div key={i} style={{ textAlign: 'left', border: `1px solid ${color}55`, background: '#0d1117', borderRadius: 8, padding: '6px 12px', minWidth: 148, opacity: saving ? 0.5 : 1 }}>
                                 <div style={{ fontSize: 10, color: '#8b97a7' }}>Pago {i + 1} · {new Date(it.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                                 <div style={{ fontSize: 15, fontWeight: 700, color }}>{fmt(it.amount)}</div>
-                                <div style={{ fontSize: 10, color, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span>{label}</span>
-                                  <span style={{ color: '#5a6675', fontSize: 9 }}>{saving ? '…' : it.status === 'paid' ? '↺ desmarcar' : '✓ marcar'}</span>
+                                <div style={{ fontSize: 10, color, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                                  <button onClick={() => handleToggleInstallment(p.id, it.idx, it.status)} disabled={saving || isLost}
+                                    title={isLost ? 'Restaura a por cobrar con 🚫 primero' : it.status === 'paid' ? 'Marcar como pendiente' : 'Marcar como pagado'}
+                                    style={{ background: 'transparent', border: 'none', color, cursor: saving || isLost ? 'default' : 'pointer', padding: 0, fontSize: 10 }}>
+                                    {label} {!isLost && <span style={{ color: '#5a6675', fontSize: 9 }}>{saving ? '…' : it.status === 'paid' ? '↺' : '✓'}</span>}
+                                  </button>
+                                  <button onClick={() => handleMarkLost(p.id, it.idx, it.status)} disabled={saving || it.status === 'paid'}
+                                    title={isLost ? 'Restaurar a por cobrar' : 'Marcar como cartera perdida'}
+                                    style={{ background: 'transparent', border: 'none', color: isLost ? '#f59e0b' : '#6b7280', cursor: saving || it.status === 'paid' ? 'default' : 'pointer', padding: 0, fontSize: 11 }}>
+                                    {isLost ? '↩︎' : '🚫'}
+                                  </button>
                                 </div>
-                              </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -1442,7 +1596,7 @@ const AdminRevenue = () => {
                   );
                 })}
                 {projRows.length === 0 && (
-                  <tr><td colSpan={6 + 12} style={{ padding: 20, textAlign: 'center', color: '#6b7685' }}>Sin proyectos para mostrar.</td></tr>
+                  <tr><td colSpan={6 + nCols} style={{ padding: 20, textAlign: 'center', color: '#6b7685' }}>Sin proyectos para mostrar.</td></tr>
                 )}
               </tbody>
               <tfoot>
@@ -1453,7 +1607,7 @@ const AdminRevenue = () => {
                   <td style={{ padding: '9px 8px', textAlign: 'right', color: '#f59e0b', background: '#11161d', borderTop: '2px solid #2a323d' }}>{fmt(sumCol('porCobrar'))}</td>
                   <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
                   <td style={{ background: '#11161d', borderTop: '2px solid #2a323d' }} />
-                  {monthsOfYear.map(mk => (
+                  {monthCols.map(mk => (
                     <td key={mk} style={{ padding: '9px 8px', textAlign: 'right', color: colTotal[mk] ? '#cdd6e0' : '#2c333d', background: '#11161d', borderTop: '2px solid #2a323d' }}>{colTotal[mk] ? fmt(colTotal[mk]) : '·'}</td>
                   ))}
                 </tr>

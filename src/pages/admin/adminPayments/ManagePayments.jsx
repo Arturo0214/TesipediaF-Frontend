@@ -169,6 +169,45 @@ function ManagePayments() {
         }
     };
 
+    // Marcar/restaurar una parcialidad como CARTERA PERDIDA (ya no se cobrará). Reversible → 'pending'.
+    const handleMarkLostInstallment = async (payment, instIndex) => {
+        const inst = payment.schedule?.[instIndex];
+        if (!inst) return;
+        if (inst.status === 'paid') { toast.info('Un cobro ya pagado no puede marcarse como perdido'); return; }
+        const newStatus = inst.status === 'lost' ? 'pending' : 'lost';
+        if (newStatus === 'lost' && !window.confirm('¿Marcar este cobro como cartera perdida? Saldrá de "Pendiente" y contará como pérdida.')) return;
+
+        const applyStatus = (sched) => sched.map((s, i) => i === instIndex ? { ...s, status: newStatus } : s);
+        setDashboardData(prev => {
+            if (!prev) return prev;
+            const updated = { ...prev };
+            updated.payments = updated.payments.map(p => p._id === payment._id ? { ...p, schedule: applyStatus(p.schedule) } : p);
+            let cobrado = 0, pendiente = 0;
+            for (const p of updated.payments) {
+                for (const s of (p.schedule || [])) {
+                    if (s.status === 'paid') cobrado += s.amount || 0;
+                    else if (s.status === 'lost') { /* perdido: no suma a pendiente ni cobrado */ }
+                    else pendiente += s.amount || 0;
+                }
+            }
+            updated.summary = { ...updated.summary, cobrado, pendiente };
+            return updated;
+        });
+        if (detailPayment?._id === payment._id) {
+            setDetailPayment(prev => ({ ...prev, schedule: applyStatus(prev.schedule) }));
+        }
+        try {
+            await axiosWithAuth.patch(
+                `/payments/dashboard/${payment._id}/installment?source=${payment.source}`,
+                { installmentIndex: instIndex, status: newStatus }
+            );
+            toast.success(newStatus === 'lost' ? 'Marcado como cartera perdida 🚫' : 'Restaurado a pendiente');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error al guardar');
+            fetchDashboard();
+        }
+    };
+
     const handleDeletePayment = async (payment) => {
         setDeleting(true);
         try {
@@ -868,19 +907,34 @@ function ManagePayments() {
                                                                 const isPaid = inst.status
                                                                     ? inst.status === 'paid'
                                                                     : (payment.schedule.length === 1 && (payment.status === 'paid' || payment.status === 'completed'));
+                                                                const isLost = inst.status === 'lost';
                                                                 return (
-                                                                    <div key={idx} className={`mp-pay-installment ${isPaid ? 'paid' : 'upcoming'}`}>
+                                                                    <div key={idx} className={`mp-pay-installment ${isPaid ? 'paid' : isLost ? 'lost' : 'upcoming'}`} style={isLost ? { opacity: 0.75 } : undefined}>
                                                                         <div className="mp-pay-inst-info">
                                                                             <strong>{inst.label}</strong>
                                                                             <span>{formatDate(inst.dueDate)}</span>
                                                                         </div>
-                                                                        <div className="mp-pay-inst-amount">{formatMoney(inst.amount)}</div>
-                                                                        <label className="mp-pay-toggle" onClick={(e) => e.stopPropagation()}>
-                                                                            <input type="checkbox" checked={isPaid}
-                                                                                onChange={() => handleToggleInstallment(payment, idx)} />
-                                                                            <span className="mp-pay-toggle-slider" />
-                                                                            <span className="mp-pay-toggle-label">{isPaid ? 'Cobrado' : 'Pendiente'}</span>
-                                                                        </label>
+                                                                        <div className="mp-pay-inst-amount" style={isLost ? { textDecoration: 'line-through', color: '#9ca3af' } : undefined}>{formatMoney(inst.amount)}</div>
+                                                                        {isLost ? (
+                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                                                                                <span style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af' }}>🚫 Perdido</span>
+                                                                                <button onClick={() => handleMarkLostInstallment(payment, idx)} title="Restaurar a pendiente"
+                                                                                    style={{ background: 'transparent', border: '1px solid #383d45', borderRadius: 6, color: '#f59e0b', cursor: 'pointer', fontSize: 11, padding: '2px 8px' }}>↩︎ Restaurar</button>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                                                                                <label className="mp-pay-toggle">
+                                                                                    <input type="checkbox" checked={isPaid}
+                                                                                        onChange={() => handleToggleInstallment(payment, idx)} />
+                                                                                    <span className="mp-pay-toggle-slider" />
+                                                                                    <span className="mp-pay-toggle-label">{isPaid ? 'Cobrado' : 'Pendiente'}</span>
+                                                                                </label>
+                                                                                {!isPaid && (
+                                                                                    <button onClick={() => handleMarkLostInstallment(payment, idx)} title="Marcar como cartera perdida"
+                                                                                        style={{ background: 'transparent', border: '1px solid #383d45', borderRadius: 6, color: '#9ca3af', cursor: 'pointer', fontSize: 11, padding: '2px 6px' }}>🚫</button>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 );
                                                             })}
