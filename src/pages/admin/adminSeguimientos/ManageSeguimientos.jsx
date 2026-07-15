@@ -169,7 +169,7 @@ function ManageSeguimientos() {
             <thead><tr><th>#</th><th>Concepto</th><th className="seg-r">Monto</th><th>Vence</th><th>Estado</th></tr></thead>
             <tbody>
               {r.schedule.map((s, i) => {
-                const venc = s.status !== 'paid' && s.dueDate && new Date(s.dueDate) < new Date();
+                const venc = s.status === 'pending' && s.dueDate && new Date(s.dueDate) < new Date();
                 return (
                   <tr key={i}>
                     <td>{s.number || i + 1}</td>
@@ -177,8 +177,10 @@ function ManageSeguimientos() {
                     <td className="seg-r">{fmt(s.amount)}</td>
                     <td className={venc ? 'seg-red' : ''}>{fmtDate(s.dueDate)}</td>
                     <td>{s.status === 'paid'
-                      ? <span className="seg-badge seg-badge-green">Pagado</span>
-                      : <span className={`seg-badge ${venc ? 'seg-badge-red' : 'seg-badge-amber'}`}>{venc ? 'Vencido' : 'Pendiente'}</span>}
+                      ? <span className="seg-badge seg-badge-green">Cobrado</span>
+                      : s.status === 'lost'
+                        ? <span className="seg-badge seg-badge-gray">Perdido</span>
+                        : <span className={`seg-badge ${venc ? 'seg-badge-red' : 'seg-badge-amber'}`}>{venc ? 'Vencido' : 'Por cobrar'}</span>}
                     </td>
                   </tr>
                 );
@@ -289,10 +291,10 @@ function ManageSeguimientos() {
 
       {totales && (
         <div className="seg-kpis">
-          <div className="seg-kpi"><span className="seg-kpi-ic"><FaUsers /></span><div><span className="seg-kpi-n">{totales.clientes}</span><span className="seg-kpi-l">Registros</span></div></div>
-          <div className="seg-kpi"><span className="seg-kpi-ic"><FaMoneyBillWave /></span><div><span className="seg-kpi-n">{fmt(totales.montoTotal)}</span><span className="seg-kpi-l">Monto total</span></div></div>
-          <div className="seg-kpi seg-kpi-green"><span className="seg-kpi-ic"><FaCheckCircle /></span><div><span className="seg-kpi-n">{fmt(totales.pagado)}</span><span className="seg-kpi-l">Pagado</span></div></div>
-          <div className="seg-kpi seg-kpi-amber"><span className="seg-kpi-ic"><FaHourglassHalf /></span><div><span className="seg-kpi-n">{fmt(totales.pendiente)}</span><span className="seg-kpi-l">Pendiente</span></div></div>
+          <div className="seg-kpi"><span className="seg-kpi-ic"><FaUsers /></span><div><span className="seg-kpi-n">{totales.clientes}</span><span className="seg-kpi-l">Clientes</span></div></div>
+          <div className="seg-kpi"><span className="seg-kpi-ic"><FaMoneyBillWave /></span><div><span className="seg-kpi-n">{fmt(totales.montoTotal)}</span><span className="seg-kpi-l">Vendido total</span></div></div>
+          <div className="seg-kpi seg-kpi-green"><span className="seg-kpi-ic"><FaCheckCircle /></span><div><span className="seg-kpi-n">{fmt(totales.pagado)}</span><span className="seg-kpi-l">Cobrado</span></div></div>
+          <div className="seg-kpi seg-kpi-amber"><span className="seg-kpi-ic"><FaHourglassHalf /></span><div><span className="seg-kpi-n">{fmt(totales.pendiente)}</span><span className="seg-kpi-l">Por cobrar</span></div></div>
           <div className="seg-kpi seg-kpi-red"><span className="seg-kpi-ic"><FaExclamationTriangle /></span><div><span className="seg-kpi-n">{totales.conVencidas}</span><span className="seg-kpi-l">Con vencidas</span></div></div>
         </div>
       )}
@@ -326,7 +328,7 @@ function ManageSeguimientos() {
             <thead>
               <tr>
                 <th></th><th>Cliente</th><th>Vendedor</th><th>Modalidad</th><th>Método</th>
-                <th className="seg-r">Monto</th><th className="seg-r">Pagado</th><th className="seg-r">Pendiente</th>
+                <th className="seg-r">Vendido</th><th className="seg-r">Cobrado</th><th className="seg-r">Por cobrar</th>
                 <th className="seg-c">Parc.</th><th>Próx. venc.</th><th>Entrega</th><th>Estado</th><th></th>
               </tr>
             </thead>
