@@ -15,6 +15,17 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
+/* Tope duro al viewport: el admin es position:fixed a pantalla completa con
+   padding de 20px arriba/abajo (AdminPanel.css). Con esto el panel NUNCA puede
+   quedar más alto que la ventana, sin importar cómo resuelvan los contenedores
+   padres — el input de mensaje siempre queda a la vista. */
+@media (min-width: 769px) {
+  .wa-panel {
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+  }
+}
+
 /* Left column header */
 .wa-left-header {
   display: flex;
@@ -61,6 +72,7 @@
   flex: 1;
   display: flex;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Columna izquierda — Lista de conversaciones */
@@ -347,6 +359,11 @@
   flex-direction: column;
   background: #e5ddd5;
   min-width: 0;
+  /* Si el contenido excede la altura, se recorta AQUÍ y el scroll queda en
+     wa-messages-container — sin esto el input de mensaje se salía del panel
+     (y wa-panel lo recortaba) al colapsar el sidebar. */
+  min-height: 0;
+  overflow: hidden;
   position: relative;
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9c3ba' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   max-height: 100%;
@@ -426,6 +443,20 @@
   white-space: nowrap;
 }
 
+/* Fila de campaña de origen — debajo de los botones del header */
+.wa-campaign-row {
+  padding: 3px 14px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border-bottom: 1px solid #d2e3fc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
 /* Chat Row 2: labels — matches wa-search-box height */
 .wa-chat-row2 {
   display: flex;
@@ -443,6 +474,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Contenedor de nombre + teléfono: debe poder encogerse para que
+   los nombres largos hagan ellipsis en vez de desbordarse hacia arriba */
+.wa-chat-header-info > div:last-child {
+  min-width: 0;
 }
 
 .wa-chat-header-avatar {
@@ -461,6 +500,9 @@
   font-weight: 600;
   font-size: 0.95rem;
   color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wa-chat-header-phone {
@@ -469,6 +511,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
 .wa-lead-info-pills {
@@ -508,6 +551,7 @@
 /* Mensajes */
 .wa-messages-container {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   /* El scroll interno nunca debe encadenarse a la página */
   overscroll-behavior: contain;
@@ -2112,15 +2156,18 @@
   display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 4px 12px;
 }
-.wa-summary-item { display: flex; flex-direction: column; }
+/* min-width: 0 permite que el ellipsis funcione dentro del grid;
+   sin esto los valores largos (origen/campaña) se desbordaban y empalmaban */
+.wa-summary-item { display: flex; flex-direction: column; min-width: 0; }
 .wa-summary-wide { grid-column: span 2; }
 .wa-summary-label { font-size: 0.58rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
 .wa-summary-value { font-size: 0.78rem; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wa-summary-price { color: #16a34a; font-weight: 700; }
 .wa-summary-origin {
-  display: inline-flex; align-items: center; gap: 3px;
+  display: inline-block;
   padding: 1px 6px; border-radius: 8px; background: #dbeafe; color: #2563eb;
   font-size: 0.7rem; font-weight: 600; width: fit-content;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 /* ===== ETIQUETAS BAR (siempre visible en chat header) ===== */

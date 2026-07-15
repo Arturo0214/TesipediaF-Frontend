@@ -2328,13 +2328,16 @@ const AdminWhatsApp = () => {
                   >
                     {readLeads.has(selectedLead.wa_id) ? <><FaEnvelope className="me-1" /> No leído</> : <><FaEnvelopeOpen className="me-1" /> Leído</>}
                   </Button>
-                  {(selectedLead.ad_campaign_name || selectedLead.ad_adset_name) && (
-                    <span style={{ fontSize: '0.6rem', color: '#1a73e8', background: '#e8f0fe', borderRadius: 4, padding: '2px 6px', whiteSpace: 'nowrap', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${selectedLead.ad_campaign_name || ''} / ${selectedLead.ad_adset_name || ''}`}>
-                      📣 {selectedLead.ad_campaign_name || 'Meta'}{selectedLead.ad_adset_name ? ` / ${selectedLead.ad_adset_name}` : ''}
-                    </span>
-                  )}
                 </div>
               </div>
+
+              {/* Campaña de origen — fila propia debajo de los botones para no
+                  pelear espacio con el nombre/teléfono del contacto */}
+              {(selectedLead.ad_campaign_name || selectedLead.ad_adset_name) && (
+                <div className="wa-campaign-row" title={`${selectedLead.ad_campaign_name || ''}${selectedLead.ad_adset_name ? ` / ${selectedLead.ad_adset_name}` : ''}`}>
+                  📣 {selectedLead.ad_campaign_name || 'Meta'}{selectedLead.ad_adset_name ? ` / ${selectedLead.ad_adset_name}` : ''}
+                </div>
+              )}
 
               {/* Toggle bar — siempre visible, colapsa los detalles debajo */}
               <div className="wa-lead-toggle-bar" onClick={() => setLeadInfoOpen(!leadInfoOpen)}>
