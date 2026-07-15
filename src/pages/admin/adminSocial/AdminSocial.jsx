@@ -27,6 +27,7 @@ const fmt = (n) => {
 const PLATFORMS = [
     { id: 'overview', name: 'Resumen', icon: FaChartBar, color: '#60A5FA' },
     { id: 'content', name: 'Contenido', icon: FaPenNib, color: '#A78BFA' },
+    { id: 'radar', name: 'Competencia', icon: FaSearch, color: '#F97316' },
     { id: 'instagram', name: 'Instagram', icon: FaInstagram, color: '#E4405F', gradient: 'linear-gradient(135deg, #833AB4, #E4405F, #FCAF45)', handle: '@tesipediaoficial', url: 'https://instagram.com/tesipediaoficial', connected: true },
     { id: 'facebook', name: 'Facebook', icon: FaFacebookF, color: '#1877F2', gradient: '#1877F2', handle: 'Tesipedia', url: 'https://facebook.com/profile.php?id=61582053080466', connected: true },
     { id: 'tiktok', name: 'TikTok', icon: FaTiktok, color: '#FF0050', gradient: 'linear-gradient(135deg, #00F2EA, #FF0050)', handle: '@tesipedia', url: '', connected: false },
@@ -130,31 +131,103 @@ const AdminSocial = () => {
     const [tasks, setTasks] = useState(loadTasks());
     const [newTask, setNewTask] = useState('');
     const [addingTaskPlatform, setAddingTaskPlatform] = useState(null);
-    // Content board
-    const [contentItems, setContentItems] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('social_content') || '[]'); } catch { return []; }
-    });
+    // Content board (persistido en Mongo vía /social/content)
+    const [contentItems, setContentItems] = useState([]);
     const [showContentForm, setShowContentForm] = useState(false);
     const [editingContent, setEditingContent] = useState(null);
     const [contentForm, setContentForm] = useState({ platform: 'instagram', type: 'reel', caption: '', hashtags: '', imagePrompt: '', reelIdea: '', scheduledDate: '', status: 'idea', imageUrl: '', notes: '' });
     const [viewingContent, setViewingContent] = useState(null);
     const [generating, setGenerating] = useState(false);
+    // Radar de competencia
+    const [radar, setRadar] = useState(null);
+    const [radarLoading, setRadarLoading] = useState(false);
+    const [competitorsList, setCompetitorsList] = useState([]);
+    const [newCompUsername, setNewCompUsername] = useState('');
 
-    const saveContent = (items) => { setContentItems(items); localStorage.setItem('social_content', JSON.stringify(items)); };
-    const addContent = () => {
+    const fetchContent = async () => {
+        try {
+            const { data } = await axioswithAuth.get('/social/content');
+            let items = data.data || [];
+            // Migración one-shot: piezas que quedaron en localStorage
+            let legacy = [];
+            try { legacy = JSON.parse(localStorage.getItem('social_content') || '[]'); } catch { legacy = []; }
+            if (legacy.length) {
+                await axioswithAuth.post('/social/content/import', { items: legacy });
+                localStorage.removeItem('social_content');
+                const r2 = await axioswithAuth.get('/social/content');
+                items = r2.data.data || [];
+            }
+            setContentItems(items);
+        } catch { /* endpoint aún no desplegado */ }
+    };
+    const addContent = async () => {
         if (!contentForm.caption && !contentForm.reelIdea && !contentForm.imagePrompt) return;
-        const item = { ...contentForm, id: Date.now(), createdAt: new Date().toISOString() };
-        if (editingContent) {
-            saveContent(contentItems.map(c => c.id === editingContent ? item : c));
-        } else {
-            saveContent([item, ...contentItems]);
-        }
+        try {
+            if (editingContent) {
+                const { data } = await axioswithAuth.put(`/social/content/${editingContent}`, contentForm);
+                setContentItems(prev => prev.map(c => c._id === editingContent ? data.data : c));
+            } else {
+                const { data } = await axioswithAuth.post('/social/content', contentForm);
+                setContentItems(prev => [data.data, ...prev]);
+            }
+        } catch (err) { alert('Error guardando: ' + (err.response?.data?.message || err.message)); return; }
         setContentForm({ platform: 'instagram', type: 'reel', caption: '', hashtags: '', imagePrompt: '', reelIdea: '', scheduledDate: '', status: 'idea' });
         setShowContentForm(false); setEditingContent(null);
     };
-    const moveContent = (id, newStatus) => saveContent(contentItems.map(c => c.id === id ? { ...c, status: newStatus } : c));
-    const deleteContent = (id) => saveContent(contentItems.filter(c => c.id !== id));
-    const editContent = (item) => { setContentForm({ ...item }); setEditingContent(item.id); setShowContentForm(true); };
+    const patchContent = async (id, patch) => {
+        setContentItems(prev => prev.map(c => c._id === id ? { ...c, ...patch } : c));
+        try { await axioswithAuth.put(`/social/content/${id}`, patch); } catch { /* optimista */ }
+    };
+    const moveContent = (id, newStatus) => patchContent(id, { status: newStatus });
+    const deleteContent = async (id) => {
+        setContentItems(prev => prev.filter(c => c._id !== id));
+        try { await axioswithAuth.delete(`/social/content/${id}`); } catch { /* optimista */ }
+    };
+    const editContent = (item) => {
+        setContentForm({ platform: item.platform, type: item.type, caption: item.caption || '', hashtags: item.hashtags || '', imagePrompt: item.imagePrompt || '', reelIdea: item.reelIdea || '', scheduledDate: item.scheduledDate || '', status: item.status, imageUrl: item.imageUrl || '', notes: item.notes || '' });
+        setEditingContent(item._id); setShowContentForm(true);
+    };
+
+    const fetchRadar = async (force = false) => {
+        setRadarLoading(true);
+        try {
+            const [compsRes, scanRes] = await Promise.all([
+                axioswithAuth.get('/social/competitors'),
+                axioswithAuth.get(`/social/competitors/scan${force ? '?force=true' : ''}`),
+            ]);
+            setCompetitorsList(compsRes.data.data || []);
+            setRadar(scanRes.data.data);
+        } catch (err) { alert('Error del radar: ' + (err.response?.data?.message || err.message)); }
+        setRadarLoading(false);
+    };
+    const addComp = async () => {
+        const u = newCompUsername.trim();
+        if (!u) return;
+        try {
+            await axioswithAuth.post('/social/competitors', { username: u });
+            setNewCompUsername('');
+            fetchRadar(true);
+        } catch (err) { alert(err.response?.data?.message || err.message); }
+    };
+    const removeComp = async (id) => {
+        setCompetitorsList(prev => prev.filter(c => c._id !== id));
+        try { await axioswithAuth.delete(`/social/competitors/${id}`); } catch { /* optimista */ }
+    };
+    // Convierte un post ganador de la competencia en una idea del board
+    const radarToIdea = async (post) => {
+        try {
+            const { data } = await axioswithAuth.post('/social/content', {
+                platform: 'instagram',
+                type: post.type === 'VIDEO' ? 'reel' : post.type === 'CAROUSEL_ALBUM' ? 'carousel' : 'post',
+                status: 'idea',
+                source: 'radar',
+                reelIdea: `Adaptar a Tesipedia — referencia @${post.username} (${post.likes} likes, ${post.comments} comments):\n"${post.caption}"\n${post.url}`,
+                sourceRef: { username: post.username, permalink: post.url, likes: post.likes, comments: post.comments },
+            });
+            setContentItems(prev => [data.data, ...prev]);
+            alert('Agregado como idea al board de contenido');
+        } catch (err) { alert('Error: ' + (err.response?.data?.message || err.message)); }
+    };
 
     const fetchAll = async () => {
         setLoading(true);
@@ -171,7 +244,12 @@ const AdminSocial = () => {
         setLoading(false);
     };
 
-    useEffect(() => { fetchAll(); }, []);
+    useEffect(() => { fetchAll(); fetchContent(); }, []);
+    // Cargar el radar la primera vez que se abre el tab
+    useEffect(() => {
+        if (activeTab === 'radar' && !radar && !radarLoading) fetchRadar();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]);
 
     const handlePublish = async () => {
         if (!publishMsg && !publishImg) return;
@@ -342,18 +420,19 @@ const AdminSocial = () => {
                                             {items.map(item => {
                                                 const typeInfo = TYPES.find(t => t.key === item.type);
                                                 return (
-                                                    <div key={item.id} className="social-kanban-card" onClick={() => { console.log('[Content] Opening item:', item.id, item); setViewingContent(item); }} style={{ cursor: 'pointer' }}>
+                                                    <div key={item._id} className="social-kanban-card" onClick={() => setViewingContent(item)} style={{ cursor: 'pointer' }}>
                                                         <div className="social-kanban-card-top">
                                                             {platformIcon(item.platform)}
                                                             <span className="social-kanban-type">{typeInfo?.icon} {typeInfo?.label}</span>
+                                                            {item.source === 'radar' && <Badge bg="warning" text="dark" style={{ fontSize: '0.5rem' }}>Radar</Badge>}
                                                             {item.imageUrl && <FaImage style={{ color: '#10B981', fontSize: '0.7rem' }} title="Imagen lista" />}
                                                         </div>
-                                                        {item.caption && <p className="social-kanban-caption">{item.caption.slice(0, 100)}{item.caption.length > 100 ? '...' : ''}</p>}
+                                                        {(item.caption || item.reelIdea) && <p className="social-kanban-caption">{(item.caption || item.reelIdea).slice(0, 100)}{(item.caption || item.reelIdea).length > 100 ? '...' : ''}</p>}
                                                         {item.hashtags && <p className="social-kanban-hashtags">{item.hashtags.slice(0, 60)}</p>}
                                                         {item.scheduledDate && <span className="social-kanban-date"><FaClock /> {new Date(item.scheduledDate).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>}
                                                         <div className="social-kanban-move">
-                                                            {status.key !== 'idea' && <button onClick={(e) => { e.stopPropagation(); moveContent(item.id, STATUSES[STATUSES.findIndex(s => s.key === status.key) - 1]?.key || 'idea'); }}>←</button>}
-                                                            {status.key !== 'published' && <button onClick={(e) => { e.stopPropagation(); moveContent(item.id, STATUSES[STATUSES.findIndex(s => s.key === status.key) + 1]?.key || 'published'); }}>→</button>}
+                                                            {status.key !== 'idea' && <button onClick={(e) => { e.stopPropagation(); moveContent(item._id, STATUSES[STATUSES.findIndex(s => s.key === status.key) - 1]?.key || 'idea'); }}>←</button>}
+                                                            {status.key !== 'published' && <button onClick={(e) => { e.stopPropagation(); moveContent(item._id, STATUSES[STATUSES.findIndex(s => s.key === status.key) + 1]?.key || 'published'); }}>→</button>}
                                                         </div>
                                                     </div>
                                                 );
@@ -438,6 +517,98 @@ const AdminSocial = () => {
                 );
             })()}
 
+            {/* ═══ RADAR DE COMPETENCIA ═══ */}
+            {activeTab === 'radar' && (
+                <div className="social-content-board">
+                    <div className="social-content-header">
+                        <h3><FaSearch style={{ color: '#F97316' }} /> Radar de Competencia</h3>
+                        <p>Qué está funcionando en el nicho (Business Discovery API, últimos 14 días). Convierte lo mejor en ideas para tu board.</p>
+                        <button className="social-content-add-btn" onClick={() => fetchRadar(true)} disabled={radarLoading}>
+                            <FaSync className={radarLoading ? 'social-spin' : ''} /> {radarLoading ? 'Escaneando...' : 'Escanear ahora'}
+                        </button>
+                    </div>
+
+                    {/* Watchlist */}
+                    <div className="social-section-box">
+                        <h4><FaUsers style={{ color: '#F97316' }} /> Cuentas vigiladas ({competitorsList.length})</h4>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                            {competitorsList.map(c => (
+                                <span key={c._id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1F2937', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem' }}>
+                                    @{c.username}
+                                    {c.lastScan?.followers != null && <strong style={{ color: '#F97316' }}>{fmt(c.lastScan.followers)}</strong>}
+                                    <button onClick={() => removeComp(c._id)} style={{ background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', padding: 0 }}><FaTimes /></button>
+                                </span>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <input value={newCompUsername} onChange={e => setNewCompUsername(e.target.value)} placeholder="@usuario (cuenta business/creator)"
+                                onKeyDown={e => { if (e.key === 'Enter') addComp(); }}
+                                style={{ background: '#0B0F1A', border: '1px solid #374151', color: '#F9FAFB', padding: '6px 10px', borderRadius: 8, fontSize: '0.8rem', flex: '0 1 280px' }} />
+                            <button className="social-task-add-btn" onClick={addComp} style={{ width: 'auto' }}><FaPlus /> Vigilar</button>
+                        </div>
+                    </div>
+
+                    {radar && (
+                        <>
+                            {/* Resumen por cuenta */}
+                            <div className="social-section-box">
+                                <h4><FaChartBar style={{ color: '#60A5FA' }} /> Actividad por cuenta (14 días)</h4>
+                                <div className="social-posts-table">
+                                    <div className="social-posts-header">
+                                        <span>Cuenta</span><span>Seguidores</span><span>Posts 14d</span><span>Eng. promedio</span><span></span>
+                                    </div>
+                                    {radar.accounts.map(a => (
+                                        <div key={a.username} className="social-posts-row">
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                {a.profilePic && <img src={a.profilePic} alt="" style={{ width: 22, height: 22, borderRadius: '50%' }} />}
+                                                <strong>@{a.username}</strong>
+                                            </span>
+                                            <span>{fmt(a.followers)}</span>
+                                            <span>{a.postsLast14d}</span>
+                                            <span><FaFire style={{ color: '#F97316' }} /> {fmt(a.avgEngagement)}</span>
+                                            <span><a href={`https://instagram.com/${a.username}`} target="_blank" rel="noopener noreferrer" className="social-post-link"><FaExternalLinkAlt /></a></span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {radar.errors?.length > 0 && (
+                                    <p style={{ color: '#F59E0B', fontSize: '0.7rem', marginTop: 8 }}>
+                                        Sin datos: {radar.errors.map(e => '@' + e.username).join(', ')} (cuenta no business o inaccesible)
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Top posts */}
+                            {[['topByVirality', 'Más virales (engagement por 1K seguidores)', FaFire, '#EF4444'],
+                              ['topByVolume', 'Más engagement absoluto', FaTrophy, '#F59E0B']].map(([key, title, TIcon, color]) => (
+                                <div key={key} className="social-section-box">
+                                    <h4><TIcon style={{ color }} /> {title}</h4>
+                                    {(radar[key] || []).map((post, i) => (
+                                        <div key={i} className="social-competitor-card">
+                                            <div className="social-competitor-header">
+                                                <strong>@{post.username}</strong>
+                                                <span style={{ display: 'flex', gap: 10, fontSize: '0.75rem' }}>
+                                                    <span><FaHeart style={{ color: '#E4405F' }} /> {fmt(post.likes)}</span>
+                                                    <span><FaComment style={{ color: '#60A5FA' }} /> {fmt(post.comments)}</span>
+                                                    {key === 'topByVirality' && <span style={{ color: '#EF4444' }}>{post.engagementPerK}/1K</span>}
+                                                    <Badge bg={post.type === 'VIDEO' ? 'danger' : 'primary'} style={{ fontSize: '0.55rem' }}>{post.type === 'VIDEO' ? 'Reel' : post.type === 'CAROUSEL_ALBUM' ? 'Carrusel' : 'Post'}</Badge>
+                                                </span>
+                                            </div>
+                                            <p style={{ fontSize: '0.78rem', color: '#D1D5DB', margin: '6px 0' }}>{post.caption || '(sin caption)'}</p>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <button className="social-competitor-assign" onClick={() => radarToIdea(post)}><FaPlus /> Idea al board</button>
+                                                <a href={post.url} target="_blank" rel="noopener noreferrer" className="social-kanban-copy-btn" style={{ textDecoration: 'none' }}><FaExternalLinkAlt /> Ver post</a>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                            <p style={{ color: '#6B7280', fontSize: '0.7rem' }}>Último escaneo: {new Date(radar.scannedAt).toLocaleString('es-MX')} · cache 6h</p>
+                        </>
+                    )}
+                    {!radar && radarLoading && <div className="social-kanban-empty" style={{ padding: 40 }}>Escaneando {competitorsList.length || 11} cuentas vía Business Discovery...</div>}
+                </div>
+            )}
+
             {/* ═══ OVERVIEW ═══ */}
             {activeTab === 'overview' && (
                 <div className="social-overview">
@@ -501,7 +672,7 @@ const AdminSocial = () => {
 
                     {/* Platform overview cards */}
                     <div className="social-compare-grid">
-                        {PLATFORMS.filter(p => p.id !== 'overview').map(p => {
+                        {PLATFORMS.filter(p => !['overview', 'content', 'radar'].includes(p.id)).map(p => {
                             const Icon = p.icon; const d = metrics?.[p.id]; const pending = (tasks[p.id] || []).filter(t => !t.done).length;
                             return <div key={p.id} className="social-compare-card" onClick={() => setActiveTab(p.id)} style={{ cursor: 'pointer' }}>
                                 <div className="social-compare-header" style={{ background: p.gradient || p.color }}><Icon /> {p.name} {!p.connected && <Badge bg="dark" style={{ fontSize: '0.5rem', marginLeft: 'auto' }}>Pendiente</Badge>}</div>
@@ -519,7 +690,7 @@ const AdminSocial = () => {
             )}
 
             {/* ═══ PLATFORM TABS ═══ */}
-            {PLATFORMS.filter(p => p.id !== 'overview').map(p => {
+            {PLATFORMS.filter(p => !['overview', 'content', 'radar'].includes(p.id)).map(p => {
                 if (activeTab !== p.id) return null;
                 const Icon = p.icon;
                 const platformMetrics = metrics?.[p.id];
@@ -655,9 +826,8 @@ const AdminSocial = () => {
                                                     try {
                                                         const { data } = await axioswithAuth.post('/social/upload-image', { imageUrl: reader.result });
                                                         if (data.success) {
-                                                            const u = { ...vc, imageUrl: data.url };
-                                                            setViewingContent(u);
-                                                            saveContent(contentItems.map(c => c.id === vc.id ? u : c));
+                                                            setViewingContent({ ...vc, imageUrl: data.url });
+                                                            patchContent(vc._id, { imageUrl: data.url });
                                                         }
                                                     } catch (err) { alert('Error al subir: ' + err.message); }
                                                     setGenerating(false);
@@ -672,9 +842,8 @@ const AdminSocial = () => {
                                             try {
                                                 const { data } = await axioswithAuth.post('/social/upload-image', { imageUrl: url });
                                                 if (data.success) {
-                                                    const u = { ...vc, imageUrl: data.url };
-                                                    setViewingContent(u);
-                                                    saveContent(contentItems.map(c => c.id === vc.id ? u : c));
+                                                    setViewingContent({ ...vc, imageUrl: data.url });
+                                                    patchContent(vc._id, { imageUrl: data.url });
                                                 }
                                             } catch (err) { alert('Error: ' + err.message); }
                                             setGenerating(false);
@@ -696,7 +865,7 @@ const AdminSocial = () => {
                                     {generating && <div className="sd-uploading"><FaSync className="social-spin" /> Subiendo a Cloudinary...</div>}
                                     <div className="social-detail-image-input">
                                         <label>O pega URL</label>
-                                        <input value={vc.imageUrl || ''} onChange={e => { const u = { ...vc, imageUrl: e.target.value }; setViewingContent(u); saveContent(contentItems.map(c => c.id === vc.id ? u : c)); }} placeholder="https://..." />
+                                        <input value={vc.imageUrl || ''} onChange={e => { setViewingContent({ ...vc, imageUrl: e.target.value }); patchContent(vc._id, { imageUrl: e.target.value }); }} placeholder="https://..." />
                                     </div>
                                 </div>
 
@@ -738,14 +907,14 @@ const AdminSocial = () => {
                                 {/* Notes */}
                                 <div className="social-detail-section">
                                     <h5><FaEdit /> Notas</h5>
-                                    <textarea value={vc.notes || ''} onChange={e => { const u = { ...vc, notes: e.target.value }; setViewingContent(u); saveContent(contentItems.map(c => c.id === vc.id ? u : c)); }} placeholder="Notas..." rows={2} />
+                                    <textarea value={vc.notes || ''} onChange={e => { setViewingContent({ ...vc, notes: e.target.value }); patchContent(vc._id, { notes: e.target.value }); }} placeholder="Notas..." rows={2} />
                                 </div>
 
                                 {/* Actions */}
                                 <div className="social-detail-actions">
                                     <button className="social-detail-edit-btn" onClick={() => { editContent(vc); setViewingContent(null); }}><FaEdit /> Editar</button>
-                                    {vc.status !== 'published' && <button className="social-detail-advance-btn" onClick={() => { const idx = CONTENT_STATUSES.findIndex(s => s.key === vc.status); const next = CONTENT_STATUSES[idx + 1]?.key; if (next) { moveContent(vc.id, next); setViewingContent({ ...vc, status: next }); } }}><FaCheckCircle /> Avanzar</button>}
-                                    <button className="social-detail-delete-btn" onClick={() => { deleteContent(vc.id); setViewingContent(null); }}><FaTrash /> Eliminar</button>
+                                    {vc.status !== 'published' && <button className="social-detail-advance-btn" onClick={() => { const idx = CONTENT_STATUSES.findIndex(s => s.key === vc.status); const next = CONTENT_STATUSES[idx + 1]?.key; if (next) { moveContent(vc._id, next); setViewingContent({ ...vc, status: next }); } }}><FaCheckCircle /> Avanzar</button>}
+                                    <button className="social-detail-delete-btn" onClick={() => { deleteContent(vc._id); setViewingContent(null); }}><FaTrash /> Eliminar</button>
                                 </div>
                             </div>
                         </div>
