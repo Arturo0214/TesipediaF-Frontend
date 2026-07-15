@@ -238,7 +238,7 @@ const AdminWhatsApp = () => {
   const audioChunksRef = useRef([]);
   const recordingTimerRef = useRef(null);
 
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -670,9 +670,12 @@ const AdminWhatsApp = () => {
     prevMsgCountRef.current = msgCount;
 
     if (isNewLead || fullHistoryJustLoaded || newMessagesArrived) {
-      // Usar timeout para dar tiempo a React de pintar todos los mensajes en el DOM
+      // Usar timeout para dar tiempo a React de pintar todos los mensajes en el DOM.
+      // Scroll directo al contenedor (NO scrollIntoView: ese desplaza también a los
+      // ancestros scrolleables y "subía" toda la página al colapsar el sidebar).
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: isNewLead ? 'smooth' : 'auto' });
+        const el = messagesContainerRef.current;
+        if (el) el.scrollTo({ top: el.scrollHeight, behavior: isNewLead ? 'smooth' : 'auto' });
       }, 100);
     }
   }, [selectedLead]);
@@ -2550,7 +2553,7 @@ const AdminWhatsApp = () => {
               })()}
 
               {/* Mensajes */}
-              <div className="wa-messages-container">
+              <div className="wa-messages-container" ref={messagesContainerRef}>
                 {/* Info de quién atiende este lead (solo informativo, no bloquea) */}
                 {getLeadAttendedBy(selectedLead) && (
                   <div style={{
@@ -2575,7 +2578,6 @@ const AdminWhatsApp = () => {
                   </div>
                 )}
                 {renderMessages()}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Overlay de drag & drop */}

@@ -509,6 +509,8 @@
 .wa-messages-container {
   flex: 1;
   overflow-y: auto;
+  /* El scroll interno nunca debe encadenarse a la página */
+  overscroll-behavior: contain;
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
