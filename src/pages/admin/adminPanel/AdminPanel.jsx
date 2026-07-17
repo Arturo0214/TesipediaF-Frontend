@@ -33,6 +33,7 @@ import {
     FaFireAlt,
     FaHeartbeat,
     FaFileInvoiceDollar,
+    FaRecycle,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -72,6 +73,7 @@ const AdminAgents = lazy(() => import('../adminAgents/AdminAgents.jsx'));
 const AdminSocial = lazy(() => import('../adminSocial/AdminSocial.jsx'));
 const AdminRevivals = lazy(() => import('../adminPayments/RevivalPipeline.jsx'));
 const AdminStatus = lazy(() => import('../adminStatus/AdminStatus.jsx'));
+const AdminLoops = lazy(() => import('../adminLoops/AdminLoops.jsx'));
 const ManageSeguimientos = lazy(() => import('../adminSeguimientos/ManageSeguimientos.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
@@ -154,6 +156,7 @@ const AdminPanel = () => {
         if (path.includes('/redes')) return 'redes';
         if (path.includes('/revivals')) return 'revivals';
         if (path.includes('/estado')) return 'estado';
+        if (path.includes('/loops')) return 'loops';
         return 'dashboard';
     };
 
@@ -181,7 +184,8 @@ const AdminPanel = () => {
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas', color: '#F472B6' },
         { key: 'redes', icon: FaShareAlt, label: 'Redes Sociales', section: 'estadisticas', path: '/admin/redes', color: '#E4405F' },
         { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' },
-        { key: 'estado', icon: FaHeartbeat, label: 'Estado', section: 'gestion', path: '/admin/estado', color: '#10B981' }
+        { key: 'estado', icon: FaHeartbeat, label: 'Estado', section: 'gestion', path: '/admin/estado', color: '#10B981' },
+        { key: 'loops', icon: FaRecycle, label: 'Loops', section: 'finanzas', path: '/admin/loops', color: '#38BDF8' }
     ];
 
     // Mapeo inverso: sección → tipos de notificación que se marcan como leídos
@@ -331,6 +335,7 @@ const AdminPanel = () => {
         agentes: AdminAgents,
         redes: AdminSocial,
         estado: AdminStatus,
+        loops: AdminLoops,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);
