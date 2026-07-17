@@ -206,7 +206,7 @@ const AdminWhatsApp = () => {
   const [error, setError] = useState(null);
   const [togglingHuman, setTogglingHuman] = useState(false);
   const [togglingAutoPaused, setTogglingAutoPaused] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]); // [{ file, previewUrl }]
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
   const [leadInfoOpen, setLeadInfoOpen] = useState(false);
@@ -1024,7 +1024,7 @@ const AdminWhatsApp = () => {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if ((!message.trim() && !selectedFile) || !selectedLead || sending) return;
+    if ((!message.trim() && selectedFiles.length === 0) || !selectedLead || sending) return;
     setSending(true);
     try {
       // Auto-reclamar lead si no tiene dueño
@@ -1037,50 +1037,78 @@ const AdminWhatsApp = () => {
         }
       }
 
-      // ── ACTUALIZACIÓN OPTIMISTA: mostrar el mensaje inmediatamente en el UI ──
       const adminName = authUser?.name || authUser?.nombre || 'Admin';
       const msgText = message.trim();
-      const fileToSend = selectedFile; // Guardar referencia antes de limpiar
-      const optimisticMsg = {
-        role: 'assistant',
-        content: msgText ? `[HUMANO:${adminName}] ${msgText}` : `[HUMANO:${adminName}] (Archivo)`,
-        timestamp: new Date().toISOString(),
-        delivery_status: 'sending',
-      };
-      // Agregar el mensaje optimista al historial local ANTES de enviar
+      const filesToSend = selectedFiles.map(a => a.file); // referencia antes de limpiar
+      const hadFile = filesToSend.length > 0;
+
+      // ── ACTUALIZACIÓN OPTIMISTA: una burbuja por archivo (+ texto en la 1ª) ──
+      const optimistas = hadFile
+        ? filesToSend.map((f, i) => ({
+            role: 'assistant',
+            content: (i === 0 && msgText) ? `[HUMANO:${adminName}] ${msgText}` : `[HUMANO:${adminName}] (Archivo)`,
+            timestamp: new Date().toISOString(),
+            delivery_status: 'sending',
+          }))
+        : [{
+            role: 'assistant',
+            content: `[HUMANO:${adminName}] ${msgText}`,
+            timestamp: new Date().toISOString(),
+            delivery_status: 'sending',
+          }];
       setSelectedLead(prev => {
         if (!prev) return prev;
         const currentHist = parseHistorial(prev.historial_chat);
-        const updatedHist = [...currentHist, optimisticMsg];
+        const updatedHist = [...currentHist, ...optimistas];
         return { ...prev, historial_chat: JSON.stringify(updatedHist), updated_at: new Date().toISOString() };
       });
 
       // Limpiar inputs inmediatamente para UX fluida
       setMessage('');
-      if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
-      setFilePreviewUrl(null);
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      clearFiles();
 
-      // Enviar por WhatsApp + guardar en historial (todo vía Backend)
-      const sendResult = await sendWhatsAppMessage(selectedLead.wa_id, msgText, fileToSend);
-      if (sendResult?.delivery_status === 'failed') {
-        toast.error('El mensaje NO se pudo enviar por WhatsApp');
-      } else if (sendResult?.pendingMessage) {
+      // La API de WhatsApp manda 1 media por mensaje: enviamos secuencialmente
+      // (orden preservado) y la caption (texto) va solo en el 1er archivo.
+      let anyFailed = false, anyPending = false;
+      if (hadFile) {
+        for (let i = 0; i < filesToSend.length; i++) {
+          const caption = i === 0 ? msgText : '';
+          let res;
+          try {
+            res = await sendWhatsAppMessage(selectedLead.wa_id, caption, filesToSend[i]);
+          } catch (sendErr) {
+            anyFailed = true;
+            console.warn('Fallo al enviar archivo', filesToSend[i]?.name, sendErr?.message);
+            continue;
+          }
+          if (res?.delivery_status === 'failed') anyFailed = true;
+          if (res?.pendingMessage) { anyPending = true; break; } // ventana 24h expirada → no repetir plantilla
+        }
+      } else {
+        const res = await sendWhatsAppMessage(selectedLead.wa_id, msgText, null);
+        if (res?.delivery_status === 'failed') anyFailed = true;
+        if (res?.pendingMessage) anyPending = true;
+      }
+
+      if (anyPending) {
         toast('Plantilla enviada. Tu mensaje se enviará automáticamente cuando el cliente responda.', {
           icon: '⏳',
           duration: 6000,
           style: { background: '#fef3c7', color: '#92400e', fontWeight: 500 },
         });
         setWindowExpired(false);
-      } else if (sendResult?.delivery_status === 'sent') {
-        toast.success(hadFile ? 'Archivo enviado por WhatsApp' : 'Mensaje enviado por WhatsApp');
+      } else if (anyFailed) {
+        toast.error(hadFile ? 'Algún archivo NO se pudo enviar por WhatsApp' : 'El mensaje NO se pudo enviar por WhatsApp');
       } else {
-        toast.success(hadFile ? 'Mensaje con archivo enviado' : 'Mensaje enviado');
+        toast.success(
+          hadFile
+            ? (filesToSend.length > 1 ? `${filesToSend.length} archivos enviados por WhatsApp` : 'Archivo enviado por WhatsApp')
+            : 'Mensaje enviado por WhatsApp'
+        );
       }
 
       // Si se envió un PDF y el lead está en cotizacion_lista → marcar como cotizacion_enviada
-      const isPdfSent = fileToSend && (fileToSend.type === 'application/pdf' || fileToSend.name?.endsWith('.pdf'));
+      const isPdfSent = filesToSend.some(f => f.type === 'application/pdf' || f.name?.endsWith('.pdf'));
       const estadoActual = selectedLead?.estado_sofia;
       if (isPdfSent && ['cotizacion_lista', 'cotizando', 'cotizacion_iniciada'].includes(estadoActual)) {
         try {
@@ -1130,26 +1158,32 @@ const AdminWhatsApp = () => {
     }
   };
 
-  const [filePreviewUrl, setFilePreviewUrl] = useState(null);
-
+  // ── Adjuntos múltiples: selectedFiles = [{ file, previewUrl }] ──
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      // Generar preview si es imagen
-      if (file.type.startsWith('image/')) {
-        const url = URL.createObjectURL(file);
-        setFilePreviewUrl(url);
-      } else {
-        setFilePreviewUrl(null);
-      }
+    const incoming = Array.from(e.target.files || []);
+    if (incoming.length) {
+      const mapped = incoming.map((file) => ({
+        file,
+        previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+      }));
+      setSelectedFiles((prev) => [...prev, ...mapped]);
     }
+    if (fileInputRef.current) fileInputRef.current.value = ''; // permite re-seleccionar el mismo archivo
   };
 
-  const clearFile = () => {
-    if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
-    setFilePreviewUrl(null);
-    setSelectedFile(null);
+  const removeFileAt = (idx) => {
+    setSelectedFiles((prev) => {
+      const target = prev[idx];
+      if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const clearFiles = () => {
+    setSelectedFiles((prev) => {
+      prev.forEach((a) => a.previewUrl && URL.revokeObjectURL(a.previewUrl));
+      return [];
+    });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -1185,15 +1219,14 @@ const AdminWhatsApp = () => {
     e.stopPropagation();
     setIsDragging(false);
     dragCounter.current = 0;
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      setSelectedFile(file);
-      if (file.type.startsWith('image/')) {
-        setFilePreviewUrl(URL.createObjectURL(file));
-      } else {
-        setFilePreviewUrl(null);
-      }
-      toast.success(`Archivo "${file.name}" listo para enviar`);
+    const dropped = Array.from(e.dataTransfer.files || []);
+    if (dropped.length) {
+      const mapped = dropped.map((file) => ({
+        file,
+        previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+      }));
+      setSelectedFiles((prev) => [...prev, ...mapped]);
+      toast.success(dropped.length > 1 ? `${dropped.length} archivos listos para enviar` : `Archivo "${dropped[0].name}" listo para enviar`);
       e.dataTransfer.clearData();
     }
   }, []);
@@ -2593,67 +2626,52 @@ const AdminWhatsApp = () => {
                 </div>
               )}
 
-              {/* Preview de archivo seleccionado — estilo WhatsApp */}
-              {selectedFile && filePreviewUrl && (
-                <div className="wa-img-preview-overlay">
-                  <div className="wa-img-preview-header">
-                    <button className="wa-img-preview-close" onClick={clearFile} disabled={sending}>
-                      <FaTimes />
-                    </button>
-                    <span className="wa-img-preview-filename">{selectedFile.name}</span>
-                  </div>
-                  <div className="wa-img-preview-body">
-                    <img src={filePreviewUrl} alt="Preview" className="wa-img-preview-image" />
-                  </div>
-                  <div className="wa-img-preview-footer">
-                    <textarea
-                      ref={inputRef}
-                      className="wa-img-preview-caption"
-                      placeholder="Agregar comentario..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend(e);
-                        }
-                      }}
-                      disabled={sending}
-                      rows={1}
-                    />
-                    <button className="wa-img-preview-send" onClick={handleSend} disabled={sending}>
-                      {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {selectedFile && !filePreviewUrl && (
-                <div className="wa-doc-preview">
-                  <div className="wa-doc-preview-icon">
-                    {selectedFile.type === 'application/pdf' ? <FaFilePdf /> :
-                     selectedFile.type?.includes('word') || selectedFile.name?.endsWith('.docx') ? <FaFileWord /> :
-                     selectedFile.type?.startsWith('image/') ? <FaImage /> : <FaFile />}
-                  </div>
-                  <div className="wa-doc-preview-info">
-                    <span className="wa-doc-preview-name">{selectedFile.name}</span>
-                    <span className="wa-doc-preview-meta">
-                      {selectedFile.type?.split('/').pop()?.toUpperCase() || 'FILE'} · {(selectedFile.size / 1024).toFixed(0)} KB
+              {/* Tira de adjuntos: varios archivos/imágenes listos para enviar */}
+              {selectedFiles.length > 0 && (
+                <div className="wa-attach-strip">
+                  <div className="wa-attach-strip-head">
+                    <span className="wa-attach-strip-count">
+                      {selectedFiles.length} archivo{selectedFiles.length > 1 ? 's' : ''} listo{selectedFiles.length > 1 ? 's' : ''} para enviar
                     </span>
+                    <button className="wa-attach-strip-clear" onClick={clearFiles} disabled={sending}>
+                      Quitar todos
+                    </button>
                   </div>
-                  <button className="wa-doc-preview-close" onClick={clearFile} disabled={sending}>
-                    <FaTimes />
-                  </button>
+                  <div className="wa-attach-strip-items">
+                    {selectedFiles.map((att, i) => (
+                      <div className="wa-attach-item" key={`${att.file.name}-${i}`} title={att.file.name}>
+                        <button
+                          className="wa-attach-item-remove"
+                          onClick={() => removeFileAt(i)}
+                          disabled={sending}
+                          title="Quitar"
+                        >
+                          <FaTimes />
+                        </button>
+                        {att.previewUrl ? (
+                          <img src={att.previewUrl} alt={att.file.name} className="wa-attach-item-img" />
+                        ) : (
+                          <div className="wa-attach-item-doc">
+                            {att.file.type === 'application/pdf' ? <FaFilePdf /> :
+                             att.file.type?.includes('word') || att.file.name?.endsWith('.docx') ? <FaFileWord /> :
+                             att.file.type?.startsWith('image/') ? <FaImage /> : <FaFile />}
+                          </div>
+                        )}
+                        <span className="wa-attach-item-name">{att.file.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Input genérico para archivos (oculto) */}
+              {/* Input genérico para archivos (oculto) — acepta varios */}
               <input
                 type="file"
                 ref={fileInputRef}
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
                 disabled={sending}
+                multiple
               />
 
               {/* Aviso de ventana 24h expirada + botón para revivir */}
@@ -2762,19 +2780,19 @@ const AdminWhatsApp = () => {
                     // Enter envía, Shift+Enter nueva línea
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      if (message.trim() || selectedFile) handleSend(e);
+                      if (message.trim() || selectedFiles.length) handleSend(e);
                     }
                   }}
                   disabled={sending}
                   rows={1}
                 />
                 {/* Botón de micrófono / enviar */}
-                {message.trim() || selectedFile ? (
+                {message.trim() || selectedFiles.length ? (
                   <Button
                     type="submit"
                     variant="success"
                     className="wa-send-btn"
-                    disabled={(!message.trim() && !selectedFile) || sending}
+                    disabled={(!message.trim() && selectedFiles.length === 0) || sending}
                   >
                     {sending ? <Spinner size="sm" /> : <FaPaperPlane />}
                   </Button>
