@@ -259,6 +259,9 @@
   flex-shrink: 0;
 }
 
+/* deja que el texto envuelva en vez de desbordar la card */
+.st-kpi__body { min-width: 0; flex: 1; }
+
 .st-kpi__title {
   display: block;
   font-size: 0.68rem;
@@ -266,7 +269,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--st-dim);
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .st-kpi__value {
@@ -277,7 +281,7 @@
 
 .st-kpi__spark { display: block; color: var(--st-cyan); }
 
-.st-spark { width: 120px; height: 34px; display: block; }
+.st-spark { width: 100%; max-width: 120px; height: 34px; display: block; }
 .st-spark--empty {
   width: 120px;
   height: 34px;
