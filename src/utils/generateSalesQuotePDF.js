@@ -76,7 +76,8 @@ export const generateSalesQuotePDF = async (rawData) => {
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'letter'
+        format: 'letter',
+        compress: true
     });
 
     // Colores del diseño (azul oscuro y naranja/dorado)
@@ -87,8 +88,8 @@ export const generateSalesQuotePDF = async (rawData) => {
     const lightGray = [245, 245, 248];
     const successGreen = [34, 139, 34];
 
-    // URL del logo
-    const logoUrl = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
+    // URL del logo — c_limit,w_400 reduce el PNG de 1.5MB a ~42KB (a 32mm de ancho no se nota)
+    const logoUrl = 'https://res.cloudinary.com/dbowaer8j/image/upload/c_limit,w_400,q_auto/v1743713944/Tesipedia-logo_n1liaw.png';
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
