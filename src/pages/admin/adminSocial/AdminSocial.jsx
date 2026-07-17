@@ -211,10 +211,26 @@ const AdminSocial = () => {
         try {
             const { data } = await axioswithAuth.post('/social/content/suggest', { count: 6 });
             setContentItems(prev => [...(data.data || []), ...prev]);
-            toast.success(`${data.creadas} ideas de contenido propuestas ✨`);
+            toast.success(`${data.creadas} piezas propuestas ✨`);
         } catch (e) {
             toast.error('No se pudo proponer contenido: ' + (e.response?.data?.message || e.message));
         } finally { setSuggesting(false); }
+    };
+    const generateCalendarPieces = async () => {
+        setSuggesting(true);
+        try {
+            const { data } = await axioswithAuth.post('/social/content/calendar', { weeks: 4, perWeek: 3 });
+            setContentItems(prev => [...(data.data || []), ...prev]);
+            toast.success(`Calendario generado: ${data.creadas} piezas agendadas 📅`);
+        } catch (e) {
+            toast.error('No se pudo generar el calendario: ' + (e.response?.data?.message || e.message));
+        } finally { setSuggesting(false); }
+    };
+    // Actualiza un slide del carrusel (texto/prompt/url)
+    const patchSlide = (piece, idx, patch) => {
+        const slides = (piece.slides || []).map((s, i) => i === idx ? { ...s, ...patch } : s);
+        patchContent(piece._id, { slides });
+        setViewingContent(v => v && v._id === piece._id ? { ...v, slides } : v);
     };
     const deleteContent = async (id) => {
         setContentItems(prev => prev.filter(c => c._id !== id));
@@ -440,8 +456,11 @@ const AdminSocial = () => {
                             <h3><FaPenNib /> Board de Contenido</h3>
                             <p>Planifica, redacta y publica desde un solo lugar. Los agentes CM + Content pueden poblar esto.</p>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                <button className="social-content-add-btn" style={{ background: 'linear-gradient(135deg,#7C3AED,#A78BFA)' }} onClick={suggestContentPieces} disabled={suggesting}>
-                                    <FaMagic className={suggesting ? 'social-spin' : ''} /> {suggesting ? 'Proponiendo…' : 'Proponer contenido (IA)'}
+                                <button className="social-content-add-btn" style={{ background: 'linear-gradient(135deg,#7C3AED,#A78BFA)' }} onClick={generateCalendarPieces} disabled={suggesting}>
+                                    <FaMagic className={suggesting ? 'social-spin' : ''} /> {suggesting ? 'Generando…' : 'Generar calendario del mes (IA)'}
+                                </button>
+                                <button className="social-content-add-btn" style={{ background: 'linear-gradient(135deg,#6D28D9,#8B5CF6)' }} onClick={suggestContentPieces} disabled={suggesting}>
+                                    <FaMagic className={suggesting ? 'social-spin' : ''} /> +6 piezas
                                 </button>
                                 <button className="social-content-add-btn" onClick={() => { setShowContentForm(true); setEditingContent(null); setContentForm({ platform: 'instagram', type: 'reel', caption: '', hashtags: '', imagePrompt: '', reelIdea: '', scheduledDate: '', status: 'idea' }); }}>
                                     <FaPlus /> Nueva pieza de contenido
@@ -920,18 +939,55 @@ const AdminSocial = () => {
 
                                 {vc.hashtags && <div className="social-detail-section"><h5><FaHashtag /> Hashtags</h5><p style={{ color: '#60A5FA', fontSize: '0.8rem', wordBreak: 'break-all' }}>{vc.hashtags}</p><button className="social-kanban-copy-btn" onClick={() => navigator.clipboard.writeText(vc.hashtags)}><FaCopy /> Copiar</button></div>}
 
-                                {/* Carrusel: imágenes extra (una URL por línea) */}
-                                <div className="social-detail-section">
-                                    <h5><FaImage /> Carrusel (varias imágenes)</h5>
-                                    <textarea
-                                        className="social-detail-image-input"
-                                        style={{ width: '100%', minHeight: 70, background: '#0d1526', color: '#e6edf7', border: '1px solid #1e2c48', borderRadius: 8, padding: 8, fontSize: '0.78rem' }}
-                                        placeholder="Una URL de imagen por línea (2-10). La primera es la portada. Solo Instagram."
-                                        defaultValue={(vc.mediaUrls || []).join('\n')}
-                                        onBlur={e => { const arr = e.target.value.split('\n').map(s => s.trim()).filter(Boolean); patchContent(vc._id, { mediaUrls: arr }); setViewingContent({ ...vc, mediaUrls: arr }); }}
-                                    />
-                                    <p className="sd-prompt-hint">{(vc.mediaUrls || []).length > 1 ? `Se publicará como carrusel de ${vc.mediaUrls.length} imágenes.` : 'Con 2+ imágenes se publica como carrusel en Instagram.'}</p>
-                                </div>
+                                {/* Carrusel: slides con texto + prompt para Flow + URL por diapositiva */}
+                                {(vc.slides || []).length > 0 ? (
+                                    <div className="social-detail-section">
+                                        <h5><FaImage /> Carrusel — {vc.slides.length} diapositivas</h5>
+                                        <p className="sd-prompt-hint">Por cada slide: copia el prompt → genéralo en Google Flow → pega la URL. Se publica en orden.</p>
+                                        {vc.slides.map((s, i) => (
+                                            <div key={i} style={{ border: '1px solid #1e2c48', borderRadius: 10, padding: 10, marginBottom: 8, background: '#0d1526' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                                    <strong style={{ color: '#A78BFA', fontSize: '0.8rem' }}>Slide {i + 1}{i === 0 ? ' (portada)' : ''}</strong>
+                                                    {s.imageUrl && <span style={{ color: '#34D399', fontSize: '0.72rem' }}>✅ imagen puesta</span>}
+                                                </div>
+                                                {s.text && <p style={{ fontSize: '0.78rem', color: '#e6edf7', margin: '0 0 6px' }}>📝 {s.text}</p>}
+                                                {s.imagePrompt && (
+                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 6 }}>
+                                                        <p style={{ fontSize: '0.72rem', color: '#F59E0B', margin: 0, flex: 1 }}>🎨 {s.imagePrompt}</p>
+                                                        <button className="social-kanban-copy-btn" style={{ flexShrink: 0, padding: '2px 8px' }} onClick={() => navigator.clipboard.writeText(s.imagePrompt)}><FaCopy /></button>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    style={{ width: '100%', background: '#0a1020', color: '#e6edf7', border: '1px solid #1e2c48', borderRadius: 6, padding: 6, fontSize: '0.74rem' }}
+                                                    placeholder="URL de la imagen generada en Flow…"
+                                                    defaultValue={s.imageUrl || ''}
+                                                    onBlur={e => patchSlide(vc, i, { imageUrl: e.target.value.trim() })}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="social-detail-section">
+                                        <h5><FaImage /> Carrusel (varias imágenes)</h5>
+                                        <textarea
+                                            className="social-detail-image-input"
+                                            style={{ width: '100%', minHeight: 70, background: '#0d1526', color: '#e6edf7', border: '1px solid #1e2c48', borderRadius: 8, padding: 8, fontSize: '0.78rem' }}
+                                            placeholder="Una URL de imagen por línea (2-10). La primera es la portada. Solo Instagram."
+                                            defaultValue={(vc.mediaUrls || []).join('\n')}
+                                            onBlur={e => { const arr = e.target.value.split('\n').map(s => s.trim()).filter(Boolean); patchContent(vc._id, { mediaUrls: arr }); setViewingContent({ ...vc, mediaUrls: arr }); }}
+                                        />
+                                        <p className="sd-prompt-hint">Con 2+ imágenes se publica como carrusel en Instagram.</p>
+                                    </div>
+                                )}
+
+                                {/* Reel: prompt de video para Flow */}
+                                {vc.videoPrompt && (
+                                    <div className="social-detail-section">
+                                        <h5><FaVideo style={{ color: '#E4405F' }} /> Prompt de video (Google Flow / Veo)</h5>
+                                        <div className="social-detail-prompt-box"><pre>{vc.videoPrompt}</pre></div>
+                                        <button className="social-kanban-copy-btn" style={{ borderColor: '#E4405F40', color: '#E4405F' }} onClick={() => navigator.clipboard.writeText(vc.videoPrompt)}><FaCopy /> Copiar prompt de video</button>
+                                    </div>
+                                )}
 
                                 {/* Reel: URL de video */}
                                 <div className="social-detail-section">
