@@ -681,3 +681,8 @@
   transform: translateY(-2px);
 }
 .landing-pill:hover svg { color: #fff; }
+
+/* Guía SEO generada del trabajo real (loop de contenido) */
+.landing-guide-block { margin-bottom: 1.4rem; }
+.landing-guide-block h3 { font-size: 1.12rem; margin-bottom: 0.4rem; }
+.landing-guide-block p { line-height: 1.7; color: inherit; }

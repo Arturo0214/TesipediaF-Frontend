@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -18,11 +18,23 @@ const SITE = 'https://tesipedia.com';
 function TesisCarreraLanding({ slug }) {
   const dispatch = useDispatch();
   const c = getCarreraBySlug(slug);
+  // Loop de contenido/SEO: guía publicada (generada del trabajo vendido de esta carrera)
+  const [guia, setGuia] = useState(null);
 
   useEffect(() => {
     dispatch(trackVisit({ path: `/${slug}`, referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
     window.scrollTo(0, 0);
   }, [dispatch, slug]);
+
+  useEffect(() => {
+    let alive = true;
+    const base = import.meta.env.VITE_BASE_URL || '/api/';
+    fetch(`${base}content-guides/public/${slug}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((g) => { if (alive) setGuia(g); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [slug]);
 
   const handleWAClick = (ctaName) => {
     trackCTA(ctaName, 'WhatsApp CTA');
@@ -205,6 +217,20 @@ function TesisCarreraLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      {/* Guía SEO generada del trabajo real de esta carrera (loop de contenido) */}
+      {guia && (
+        <section className="landing-section landing-section-alt" id="guia">
+          <h2>{guia.title}</h2>
+          {guia.intro && <p className="landing-lead">{guia.intro}</p>}
+          {(guia.sections || []).map((s, i) => (
+            <div className="landing-guide-block" key={i}>
+              <h3>{s.heading}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* FAQ */}
       <section className="landing-section" id="preguntas-frecuentes">
