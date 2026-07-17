@@ -328,8 +328,8 @@ const AdminStatus = () => {
               >
                 <span className="mono">{sofia?.recent?.successRate != null ? `${sofia.recent.successRate}%` : '—'}</span>
               </Kpi>
-              <Kpi icon={<FaWhatsapp />} title="Leads activos hoy" tone="var(--st-cyan)" delay={240}>
-                <span className="mono">{supa?.leadsActivosHoy ?? '—'}</span>
+              <Kpi icon={<FaWhatsapp />} title="Leads nuevos hoy" tone="var(--st-cyan)" delay={240}>
+                <span className="mono">{supa?.leadsNuevosHoy ?? '—'}</span>
               </Kpi>
             </div>
 
@@ -392,6 +392,9 @@ const AdminStatus = () => {
                   {supa && (
                     <Row label={<><FaWhatsapp /> Leads WhatsApp</>}>
                       {supa.leadsTotal ?? '—'} totales
+                      {supa.actividadHoy != null && (
+                        <span className="st-dim"> · {supa.actividadHoy} con actividad hoy</span>
+                      )}
                       {supa.esperandoAprobacion != null && supa.esperandoAprobacion > 0 && (
                         <span className="st-warn"> · {supa.esperandoAprobacion} esperando aprobación</span>
                       )}
