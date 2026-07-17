@@ -344,3 +344,27 @@
 .social-agenda-type { display: inline-flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #cbd5e1; white-space: nowrap; flex-shrink: 0; }
 .social-agenda-caption { flex: 1; min-width: 0; font-size: 0.8rem; color: #e6edf7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .social-agenda-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+
+/* ── Vista Calendario mensual ── */
+.social-cal { max-width: 1100px; }
+.social-cal-nav { display: flex; align-items: center; gap: 16px; justify-content: center; margin-bottom: 12px; }
+.social-cal-nav strong { font-size: 1rem; color: #e6edf7; text-transform: capitalize; min-width: 180px; text-align: center; }
+.social-cal-nav button { background: #101a30; border: 1px solid #1e2c48; color: #e6edf7; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; }
+.social-cal-nav button:hover { border-color: #3B82F6; }
+.social-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.social-cal-dow { text-align: center; font-size: 0.7rem; font-weight: 700; color: #8294b5; text-transform: uppercase; padding: 4px 0; }
+.social-cal-cell { min-height: 92px; background: #101a30; border: 1px solid #1e2c48; border-radius: 8px; padding: 4px; overflow: hidden; }
+.social-cal-cell.out { opacity: 0.4; }
+.social-cal-cell.today { border-color: #3B82F6; box-shadow: inset 0 0 0 1px #3B82F6; }
+.social-cal-daynum { font-size: 0.72rem; color: #8294b5; font-weight: 600; display: block; margin-bottom: 3px; }
+.social-cal-chip {
+  display: flex; align-items: center; gap: 4px; font-size: 0.66rem; color: #e6edf7;
+  background: #0d1526; border-left: 3px solid #3B82F6; border-radius: 4px;
+  padding: 3px 5px; margin-bottom: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.social-cal-chip:hover { background: #16223a; }
+.social-cal-chip-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.social-cal-legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 0.72rem; color: #8294b5; }
+.social-cal-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.social-cal-nodate { margin-top: 16px; padding: 12px; background: #101a30; border: 1px solid #1e2c48; border-radius: 10px; }
+.social-cal-nodate strong { font-size: 0.8rem; color: #F59E0B; }

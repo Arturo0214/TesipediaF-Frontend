@@ -7,7 +7,7 @@ import {
     FaEye, FaClock, FaChartBar, FaClipboardList,
     FaSearch, FaCheckCircle, FaPlus, FaTimes,
     FaBookmark, FaUsers, FaArrowUp, FaArrowDown, FaBullseye,
-    FaPenNib, FaCopy, FaTrash, FaEdit, FaMagic
+    FaPenNib, FaCopy, FaTrash, FaEdit, FaMagic, FaCalendarAlt
 } from 'react-icons/fa';
 import { Badge, Modal } from 'react-bootstrap';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -184,7 +184,8 @@ const AdminSocial = () => {
     // ── Auto-publicación ──
     const [publishingId, setPublishingId] = useState(null);
     const [suggesting, setSuggesting] = useState(false);
-    const [contentView, setContentView] = useState('agenda'); // 'agenda' | 'kanban'
+    const [contentView, setContentView] = useState('calendar'); // 'calendar' | 'agenda' | 'kanban'
+    const [calMonth, setCalMonth] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d; });
     // ¿La pieza tiene su visual listo? (post: imagen; carrusel: todos los slides; reel: video)
     const needsVisual = (it) => {
         if (it.type === 'reel') return !it.videoUrl;
@@ -473,11 +474,71 @@ const AdminSocial = () => {
                                     <FaPlus /> Nueva pieza
                                 </button>
                                 <div style={{ display: 'flex', gap: 2, marginLeft: 'auto', background: '#0d1526', borderRadius: 8, padding: 3 }}>
+                                    <button className="social-content-add-btn" style={{ background: contentView === 'calendar' ? '#3B82F6' : 'transparent', padding: '6px 12px' }} onClick={() => setContentView('calendar')}><FaCalendarAlt /> Calendario</button>
                                     <button className="social-content-add-btn" style={{ background: contentView === 'agenda' ? '#3B82F6' : 'transparent', padding: '6px 12px' }} onClick={() => setContentView('agenda')}><FaClock /> Agenda</button>
                                     <button className="social-content-add-btn" style={{ background: contentView === 'kanban' ? '#3B82F6' : 'transparent', padding: '6px 12px' }} onClick={() => setContentView('kanban')}><FaClipboardList /> Kanban</button>
                                 </div>
                             </div>
                         </div>
+
+                        {/* ── Vista CALENDARIO mensual ── */}
+                        {contentView === 'calendar' && (() => {
+                            const y = calMonth.getFullYear(), m = calMonth.getMonth();
+                            const first = new Date(y, m, 1);
+                            const startOffset = (first.getDay() + 6) % 7; // lunes = 0
+                            const gridStart = new Date(y, m, 1 - startOffset);
+                            const byDay = {};
+                            for (const it of contentItems) {
+                                if (!it.scheduledFor) continue;
+                                const k = new Date(it.scheduledFor).toDateString();
+                                (byDay[k] = byDay[k] || []).push(it);
+                            }
+                            const sinFecha = contentItems.filter(it => !it.scheduledFor && it.status !== 'published');
+                            const days = Array.from({ length: 42 }, (_, i) => { const d = new Date(gridStart); d.setDate(gridStart.getDate() + i); return d; });
+                            const todayStr = new Date().toDateString();
+                            const typeColor = t => t === 'reel' ? '#E4405F' : t === 'carousel' ? '#A78BFA' : '#3B82F6';
+                            return (
+                                <div className="social-cal">
+                                    <div className="social-cal-nav">
+                                        <button onClick={() => setCalMonth(new Date(y, m - 1, 1))}>‹</button>
+                                        <strong>{calMonth.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</strong>
+                                        <button onClick={() => setCalMonth(new Date(y, m + 1, 1))}>›</button>
+                                    </div>
+                                    <div className="social-cal-grid">
+                                        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => <div key={d} className="social-cal-dow">{d}</div>)}
+                                        {days.map((d, i) => {
+                                            const inMonth = d.getMonth() === m;
+                                            const items = byDay[d.toDateString()] || [];
+                                            return (
+                                                <div key={i} className={`social-cal-cell${inMonth ? '' : ' out'}${d.toDateString() === todayStr ? ' today' : ''}`}>
+                                                    <span className="social-cal-daynum">{d.getDate()}</span>
+                                                    {items.map(it => (
+                                                        <div key={it._id} className="social-cal-chip" style={{ borderLeftColor: typeColor(it.type), opacity: it.status === 'published' ? 0.55 : 1 }}
+                                                            title={it.caption || it.reelIdea} onClick={() => setViewingContent(it)}>
+                                                            <span className="social-cal-chip-dot" style={{ background: it.status === 'published' ? '#3B82F6' : needsVisual(it) ? '#F59E0B' : '#10B981' }} />
+                                                            {it.type === 'reel' ? '🎬' : it.type === 'carousel' ? '🖼️' : '📸'} {(it.caption || it.reelIdea || '').slice(0, 22)}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="social-cal-legend">
+                                        <span><i style={{ background: '#F59E0B' }} /> Falta visual</span>
+                                        <span><i style={{ background: '#10B981' }} /> Listo</span>
+                                        <span><i style={{ background: '#3B82F6' }} /> Publicado</span>
+                                    </div>
+                                    {sinFecha.length > 0 && (
+                                        <div className="social-cal-nodate">
+                                            <strong>Sin fecha ({sinFecha.length})</strong>
+                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                                                {sinFecha.map(it => <span key={it._id} className="social-cal-chip" style={{ borderLeftColor: typeColor(it.type) }} onClick={() => setViewingContent(it)}>{(it.caption || it.reelIdea || '').slice(0, 30)}</span>)}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* ── Vista AGENDA: calendario cronológico ── */}
                         {contentView === 'agenda' && (() => {
