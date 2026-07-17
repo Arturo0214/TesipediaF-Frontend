@@ -433,6 +433,9 @@
 .st-mini--hl { border-color: rgba(56, 189, 248, 0.4); }
 .st-mini--hl span { color: var(--st-cyan); }
 
+.st-mini--alert { border-color: rgba(248, 113, 113, 0.5); }
+.st-mini--alert span { color: var(--st-red); }
+
 /* barra de consumo (Cloudinary) */
 .st-usage { margin: 0.3rem 0 0.8rem; }
 

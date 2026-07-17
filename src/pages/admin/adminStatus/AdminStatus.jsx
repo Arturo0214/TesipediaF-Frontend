@@ -11,6 +11,7 @@ import {
   FaRegCopy,
   FaBolt,
   FaWhatsapp,
+  FaShieldAlt,
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import statusService from '../../../services/statusService';
@@ -28,6 +29,22 @@ const STATUS_META = {
   degraded: { label: 'Degradado', color: 'var(--st-amber)' },
   down: { label: 'Caído', color: 'var(--st-red)' },
   unknown: { label: 'Desconocido', color: 'var(--st-muted)' },
+};
+
+const SECURITY_META = {
+  up: { label: 'Sin amenazas', color: 'var(--st-green)' },
+  degraded: { label: 'Actividad sospechosa', color: 'var(--st-amber)' },
+  down: { label: 'Bajo ataque', color: 'var(--st-red)' },
+  unknown: { label: 'Sin datos', color: 'var(--st-muted)' },
+};
+
+const SECURITY_EVENT_LABELS = {
+  brute_force: 'Fuerza bruta',
+  probe: 'Sondeo',
+  injection: 'Inyección',
+  rate_spike: 'Ráfaga',
+  failed_login: 'Login fallido',
+  blocked_hit: 'IP bloqueada',
 };
 
 // Formatea segundos de uptime a "2d 4h 13m 05s"
@@ -174,6 +191,7 @@ const AdminStatus = () => {
   const [refreshMs, setRefreshMs] = useState(30000);
   const [apiLatency, setApiLatency] = useState([]); // historial round-trip del propio panel
   const [showLog, setShowLog] = useState(false);
+  const [showSecLog, setShowSecLog] = useState(false);
   const [tick, setTick] = useState(0); // re-render por segundo para uptime vivo
   const timerRef = useRef(null);
 
@@ -218,6 +236,8 @@ const AdminStatus = () => {
   const supa = data?.supabase;
   const cloud = data?.cloudinary;
   const anthropic = data?.anthropic;
+  const security = data?.security;
+  const securityMeta = SECURITY_META[security?.status] || SECURITY_META.unknown;
 
   // Uptime vivo: base del servidor + segundos transcurridos desde el fetch
   const liveUptime = useMemo(() => {
@@ -331,6 +351,9 @@ const AdminStatus = () => {
               </Kpi>
               <Kpi icon={<FaWhatsapp />} title="Leads nuevos hoy" tone="var(--st-cyan)" delay={240}>
                 <span className="mono">{supa?.leadsNuevosHoy ?? '—'}</span>
+              </Kpi>
+              <Kpi icon={<FaShieldAlt />} title="Seguridad" tone={securityMeta.color} delay={300}>
+                <span style={{ color: securityMeta.color }}>{securityMeta.label}</span>
               </Kpi>
             </div>
 
@@ -528,6 +551,74 @@ const AdminStatus = () => {
                     <div className="st-note">
                       <FaExclamationTriangle /> Anthropic reporta incidentes ({anthropic.indicator}) — Sofia puede responder lento o fallar. Revisa status.claude.com
                     </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Seguridad */}
+              <div className="st-card" style={{ '--enter-delay': '245ms' }}>
+                <div className="st-card__head">
+                  <div className="st-card__title"><FaShieldAlt /> Seguridad</div>
+                  <span className={`st-pill st-pill--${security?.status || 'unknown'}`}>
+                    <StatusDot status={security?.status} size={8} /> {securityMeta.label}
+                  </span>
+                </div>
+                <div className="st-card__body">
+                  {security ? (
+                    <>
+                      <div className="st-minigrid">
+                        <div className={security.blockedIps?.length ? 'st-mini st-mini--alert' : 'st-mini'}>
+                          <span className="mono">{security.blockedIps?.length ?? 0}</span><label>IPs bloq.</label>
+                        </div>
+                        <div className="st-mini"><span className="mono">{security.eventos24h?.brute_force ?? 0}</span><label>fza. bruta 24h</label></div>
+                        <div className="st-mini"><span className="mono">{(security.eventos24h?.probe ?? 0) + (security.eventos24h?.rate_spike ?? 0)}</span><label>sondeos 24h</label></div>
+                        <div className="st-mini"><span className="mono">{security.eventos24h?.injection ?? 0}</span><label>inyecciones 24h</label></div>
+                      </div>
+                      <Row label="Logins fallidos (10 min)">
+                        <span className={security.failedLoginAttempts > 0 ? 'st-warn' : ''}>
+                          {security.failedLoginAttempts ?? 0}
+                        </span>
+                      </Row>
+                      {security.blockedIps?.length > 0 && (
+                        <Row label="Bloqueadas ahora">
+                          <span className="st-warn">{security.blockedIps.join(', ')}</span>
+                        </Row>
+                      )}
+
+                      {security.eventsRecent?.length > 0 ? (
+                        <>
+                          <button className="st-log-toggle" onClick={() => setShowSecLog((v) => !v)}>
+                            <FaChevronDown className={showSecLog ? 'is-open' : ''} />
+                            {showSecLog ? 'Ocultar eventos' : `Ver eventos (${security.eventsRecent.length})`}
+                          </button>
+                          <div className={`st-log ${showSecLog ? 'is-open' : ''}`}>
+                            {security.eventsRecent.map((e, i) => (
+                              <div className="st-log__row" key={`${e.at}-${i}`}>
+                                <StatusDot status={e.severity === 'critical' ? 'down' : e.severity === 'warning' ? 'degraded' : 'unknown'} size={7} />
+                                <span className={`st-log__status ${e.severity === 'info' ? '' : 'bad'}`}>
+                                  {SECURITY_EVENT_LABELS[e.type] || e.type}
+                                </span>
+                                <span className="st-log__mode mono">{e.ip}</span>
+                                <span className="st-log__dur">{e.path}</span>
+                                <span className="st-log__time">{timeAgo(e.at)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="st-dim" style={{ marginTop: '0.6rem', fontSize: '0.82rem' }}>
+                          Sin eventos sospechosos desde el último reinicio.
+                        </div>
+                      )}
+
+                      {security.status === 'down' && (
+                        <div className="st-note st-note--warn">
+                          <FaExclamationTriangle /> Ataque en curso detectado: hay IPs bloqueadas automáticamente. Revisa el log de eventos.
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="st-dim">Monitor de seguridad sin datos (requiere deploy del backend).</div>
                   )}
                 </div>
               </div>
