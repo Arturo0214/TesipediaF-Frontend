@@ -242,6 +242,12 @@ const ManageQuotes = () => {
 
   const handleDownload = async (quote) => {
     if (quote._source === 'generated') {
+      // Abrir el PDF real guardado en Cloudinary (con logos y diseño original);
+      // regenerar con jsPDF solo si la cotización no tiene PDF guardado
+      if (quote.pdfUrl) {
+        window.open(quote.pdfUrl, '_blank', 'noopener');
+        return;
+      }
       try { await generateSalesQuotePDF(quote); toast.success('PDF generado'); }
       catch { toast.error('Error al generar PDF'); }
     } else {
