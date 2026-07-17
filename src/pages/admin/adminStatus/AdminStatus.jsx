@@ -217,6 +217,7 @@ const AdminStatus = () => {
   const mongo = data?.mongo;
   const supa = data?.supabase;
   const cloud = data?.cloudinary;
+  const anthropic = data?.anthropic;
 
   // Uptime vivo: base del servidor + segundos transcurridos desde el fetch
   const liveUptime = useMemo(() => {
@@ -389,15 +390,33 @@ const AdminStatus = () => {
                       <div className="st-mini"><span className="mono">{mongo.counts.projects}</span><label>proyectos</label></div>
                     </div>
                   )}
-                  {supa && (
-                    <Row label={<><FaWhatsapp /> Leads WhatsApp</>}>
-                      {supa.leadsTotal ?? '—'} totales
-                      {supa.actividadHoy != null && (
-                        <span className="st-dim"> · {supa.actividadHoy} con actividad hoy</span>
-                      )}
-                      {supa.esperandoAprobacion != null && supa.esperandoAprobacion > 0 && (
-                        <span className="st-warn"> · {supa.esperandoAprobacion} esperando aprobación</span>
-                      )}
+                </div>
+              </div>
+
+              {/* Supabase */}
+              <div className="st-card" style={{ '--enter-delay': '170ms' }}>
+                <div className="st-card__head">
+                  <div className="st-card__title"><FaBolt /> Supabase · Leads</div>
+                  <StatusPill status={supa?.status || 'unknown'} />
+                </div>
+                <div className="st-card__body">
+                  <Row label="Proyecto">
+                    <span style={{ color: supa?.reachable ? 'var(--st-green)' : 'var(--st-red)' }}>
+                      {supa?.reachable ? 'Alcanzable' : 'Sin respuesta'}
+                    </span>
+                    {supa?.latencyMs != null && <span className="st-dim"> · {supa.latencyMs} ms</span>}
+                  </Row>
+                  {supa?.leadsTotal != null && (
+                    <div className="st-minigrid">
+                      <div className="st-mini"><span className="mono">{supa.leadsTotal}</span><label>leads</label></div>
+                      <div className="st-mini st-mini--hl"><span className="mono">+{supa.leadsNuevosHoy ?? 0}</span><label>nuevos hoy</label></div>
+                      <div className="st-mini"><span className="mono">{supa.actividadHoy ?? 0}</span><label>activos hoy</label></div>
+                      <div className="st-mini"><span className="mono">{supa.esperandoAprobacion ?? 0}</span><label>esp. aprob.</label></div>
+                    </div>
+                  )}
+                  {supa?.esperandoAprobacion > 0 && (
+                    <Row label={<><FaWhatsapp /> Pendiente</>}>
+                      <span className="st-warn">{supa.esperandoAprobacion} cotizaciones esperando aprobación</span>
                     </Row>
                   )}
                 </div>
@@ -476,6 +495,38 @@ const AdminStatus = () => {
                     <div className="st-note">
                       <FaExclamationTriangle /> Solo se verifica alcanzabilidad. Configura{' '}
                       <code>N8N_API_KEY</code> en Railway para ver workflow y ejecuciones.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Anthropic */}
+              <div className="st-card" style={{ '--enter-delay': '230ms' }}>
+                <div className="st-card__head">
+                  <div className="st-card__title"><FaRobot /> Anthropic · Claude API</div>
+                  <StatusPill status={anthropic?.status || 'unknown'} />
+                </div>
+                <div className="st-card__body">
+                  <Row label="Estado oficial">
+                    {anthropic?.description ? (
+                      <span style={{ color: anthropic.indicator === 'none' ? 'var(--st-green)' : 'var(--st-amber)' }}>
+                        {anthropic.description}
+                      </span>
+                    ) : '—'}
+                  </Row>
+                  <Row label="API key">
+                    {anthropic?.keyValid == null ? '—' : (
+                      <span style={{ color: anthropic.keyValid ? 'var(--st-green)' : 'var(--st-red)' }}>
+                        {anthropic.keyValid ? 'Válida' : 'Inválida o revocada'}
+                      </span>
+                    )}
+                  </Row>
+                  <Row label="Latencia API">
+                    {anthropic?.latencyMs != null ? `${anthropic.latencyMs} ms` : '—'}
+                  </Row>
+                  {anthropic?.indicator && anthropic.indicator !== 'none' && (
+                    <div className="st-note">
+                      <FaExclamationTriangle /> Anthropic reporta incidentes ({anthropic.indicator}) — Sofia puede responder lento o fallar. Revisa status.claude.com
                     </div>
                   )}
                 </div>
