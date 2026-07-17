@@ -209,7 +209,7 @@ const AdminSocial = () => {
     const suggestContentPieces = async () => {
         setSuggesting(true);
         try {
-            const { data } = await axioswithAuth.post('/social/content/suggest', { count: 6 });
+            const { data } = await axioswithAuth.post('/social/content/suggest', { count: 6 }, { timeout: 180000 });
             setContentItems(prev => [...(data.data || []), ...prev]);
             toast.success(`${data.creadas} piezas propuestas ✨`);
         } catch (e) {
@@ -219,7 +219,7 @@ const AdminSocial = () => {
     const generateCalendarPieces = async () => {
         setSuggesting(true);
         try {
-            const { data } = await axioswithAuth.post('/social/content/calendar', { weeks: 4, perWeek: 3 });
+            const { data } = await axioswithAuth.post('/social/content/calendar', { weeks: 4, perWeek: 3 }, { timeout: 180000 });
             setContentItems(prev => [...(data.data || []), ...prev]);
             toast.success(`Calendario generado: ${data.creadas} piezas agendadas 📅`);
         } catch (e) {
