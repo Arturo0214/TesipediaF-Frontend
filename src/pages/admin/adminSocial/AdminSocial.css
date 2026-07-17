@@ -327,3 +327,20 @@
     .social-kanban { grid-template-columns: 1fr; }
     .social-publish-platforms { flex-wrap: wrap; }
 }
+
+/* ── Vista Agenda (calendario cronológico del board) ── */
+.social-agenda { display: flex; flex-direction: column; gap: 2px; max-width: 900px; }
+.social-agenda-day {
+  font-size: 0.78rem; font-weight: 700; color: #93C5FD; text-transform: capitalize;
+  margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #1e2c48;
+}
+.social-agenda-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  background: #101a30; border: 1px solid #1e2c48; border-radius: 10px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.social-agenda-row:hover { border-color: #3B82F6; background: #0d1526; }
+.social-agenda-time { font-size: 0.74rem; color: #8294b5; font-variant-numeric: tabular-nums; width: 44px; flex-shrink: 0; }
+.social-agenda-type { display: inline-flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #cbd5e1; white-space: nowrap; flex-shrink: 0; }
+.social-agenda-caption { flex: 1; min-width: 0; font-size: 0.8rem; color: #e6edf7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.social-agenda-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }

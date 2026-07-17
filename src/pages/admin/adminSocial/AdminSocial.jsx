@@ -184,6 +184,13 @@ const AdminSocial = () => {
     // ── Auto-publicación ──
     const [publishingId, setPublishingId] = useState(null);
     const [suggesting, setSuggesting] = useState(false);
+    const [contentView, setContentView] = useState('agenda'); // 'agenda' | 'kanban'
+    // ¿La pieza tiene su visual listo? (post: imagen; carrusel: todos los slides; reel: video)
+    const needsVisual = (it) => {
+        if (it.type === 'reel') return !it.videoUrl;
+        if (it.type === 'carousel') { const s = it.slides || []; return s.length ? s.some(x => !x.imageUrl) : (it.mediaUrls || []).length < 2; }
+        return !it.imageUrl;
+    };
     const publishNow = async (item) => {
         if (item.platform === 'tiktok') { toast.error('TikTok requiere aprobación de su API (pendiente)'); return; }
         if (item.platform === 'instagram' && !item.imageUrl && !(item.mediaUrls || []).length) { toast.error('Instagram requiere al menos una imagen'); return; }
@@ -463,13 +470,61 @@ const AdminSocial = () => {
                                     <FaMagic className={suggesting ? 'social-spin' : ''} /> +6 piezas
                                 </button>
                                 <button className="social-content-add-btn" onClick={() => { setShowContentForm(true); setEditingContent(null); setContentForm({ platform: 'instagram', type: 'reel', caption: '', hashtags: '', imagePrompt: '', reelIdea: '', scheduledDate: '', status: 'idea' }); }}>
-                                    <FaPlus /> Nueva pieza de contenido
+                                    <FaPlus /> Nueva pieza
                                 </button>
+                                <div style={{ display: 'flex', gap: 2, marginLeft: 'auto', background: '#0d1526', borderRadius: 8, padding: 3 }}>
+                                    <button className="social-content-add-btn" style={{ background: contentView === 'agenda' ? '#3B82F6' : 'transparent', padding: '6px 12px' }} onClick={() => setContentView('agenda')}><FaClock /> Agenda</button>
+                                    <button className="social-content-add-btn" style={{ background: contentView === 'kanban' ? '#3B82F6' : 'transparent', padding: '6px 12px' }} onClick={() => setContentView('kanban')}><FaClipboardList /> Kanban</button>
+                                </div>
                             </div>
                         </div>
 
+                        {/* ── Vista AGENDA: calendario cronológico ── */}
+                        {contentView === 'agenda' && (() => {
+                            const sorted = [...contentItems].sort((a, b) => {
+                                const da = a.scheduledFor ? new Date(a.scheduledFor).getTime() : Infinity;
+                                const db = b.scheduledFor ? new Date(b.scheduledFor).getTime() : Infinity;
+                                return da - db;
+                            });
+                            const fmtDay = (d) => d ? new Date(d).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha';
+                            let lastDay = null;
+                            return (
+                                <div className="social-agenda">
+                                    {sorted.length === 0 && <div className="social-kanban-empty" style={{ padding: 40 }}>Aún no hay contenido. Pulsa "Generar calendario del mes".</div>}
+                                    {sorted.map(item => {
+                                        const typeInfo = TYPES.find(t => t.key === item.type);
+                                        const day = item.scheduledFor ? new Date(item.scheduledFor).toDateString() : 'nofecha';
+                                        const showHeader = day !== lastDay; lastDay = day;
+                                        const nv = needsVisual(item);
+                                        const pub = item.status === 'published';
+                                        return (
+                                            <div key={item._id}>
+                                                {showHeader && <div className="social-agenda-day">{item.scheduledFor ? fmtDay(item.scheduledFor) : 'Sin fecha programada'}</div>}
+                                                <div className="social-agenda-row" onClick={() => setViewingContent(item)}>
+                                                    <span className="social-agenda-time">{item.scheduledFor ? new Date(item.scheduledFor).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+                                                    <span className="social-agenda-type">{typeInfo?.icon} {typeInfo?.label}</span>
+                                                    {platformIcon(item.platform)}
+                                                    <span className="social-agenda-caption">{(item.caption || item.reelIdea || '(sin copy)').slice(0, 80)}</span>
+                                                    {pub ? <span className="social-agenda-badge" style={{ background: '#3B82F620', color: '#3B82F6' }}>✅ Publicado</span>
+                                                        : nv ? <span className="social-agenda-badge" style={{ background: '#F59E0B20', color: '#F59E0B' }}>🎨 Falta visual</span>
+                                                            : item.autoPublish ? <span className="social-agenda-badge" style={{ background: '#10B98120', color: '#10B981' }}>⏰ Programado</span>
+                                                                : <span className="social-agenda-badge" style={{ background: '#10B98120', color: '#10B981' }}>✔ Listo</span>}
+                                                    {!pub && !nv && (
+                                                        <button className="social-kanban-copy-btn" style={{ padding: '3px 8px', flexShrink: 0 }} disabled={publishingId === item._id}
+                                                            onClick={(e) => { e.stopPropagation(); publishNow(item); }}>
+                                                            {publishingId === item._id ? <FaSync className="social-spin" /> : <><FaPaperPlane /> Publicar</>}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
+
                         {/* Kanban columns */}
-                        <div className="social-kanban">
+                        {contentView === 'kanban' && <div className="social-kanban">
                             {STATUSES.map(status => {
                                 const items = contentItems.filter(c => c.status === status.key);
                                 return (
@@ -490,7 +545,8 @@ const AdminSocial = () => {
                                                         </div>
                                                         {(item.caption || item.reelIdea) && <p className="social-kanban-caption">{(item.caption || item.reelIdea).slice(0, 100)}{(item.caption || item.reelIdea).length > 100 ? '...' : ''}</p>}
                                                         {item.hashtags && <p className="social-kanban-hashtags">{item.hashtags.slice(0, 60)}</p>}
-                                                        {item.scheduledDate && <span className="social-kanban-date"><FaClock /> {new Date(item.scheduledDate).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>}
+                                                        {(item.scheduledFor || item.scheduledDate) && <span className="social-kanban-date"><FaClock /> {new Date(item.scheduledFor || item.scheduledDate).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>}
+                                                        {needsVisual(item) && item.status !== 'published' && <span className="social-kanban-date" style={{ color: '#F59E0B' }}>🎨 falta visual</span>}
                                                         <div className="social-kanban-move">
                                                             {status.key !== 'idea' && <button onClick={(e) => { e.stopPropagation(); moveContent(item._id, STATUSES[STATUSES.findIndex(s => s.key === status.key) - 1]?.key || 'idea'); }}>←</button>}
                                                             {status.key !== 'published' && <button onClick={(e) => { e.stopPropagation(); moveContent(item._id, STATUSES[STATUSES.findIndex(s => s.key === status.key) + 1]?.key || 'published'); }}>→</button>}
@@ -503,7 +559,7 @@ const AdminSocial = () => {
                                     </div>
                                 );
                             })}
-                        </div>
+                        </div>}
 
                         {/* Content form modal */}
                         <Modal show={showContentForm} onHide={() => { setShowContentForm(false); setEditingContent(null); }} centered size="lg">
