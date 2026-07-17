@@ -933,6 +933,19 @@ const AdminSocial = () => {
                                     <p className="sd-prompt-hint">{(vc.mediaUrls || []).length > 1 ? `Se publicará como carrusel de ${vc.mediaUrls.length} imágenes.` : 'Con 2+ imágenes se publica como carrusel en Instagram.'}</p>
                                 </div>
 
+                                {/* Reel: URL de video */}
+                                <div className="social-detail-section">
+                                    <h5><FaVideo style={{ color: '#E4405F' }} /> Reel (video)</h5>
+                                    <input
+                                        className="social-detail-image-input"
+                                        style={{ width: '100%', background: '#0d1526', color: '#e6edf7', border: '1px solid #1e2c48', borderRadius: 8, padding: 8, fontSize: '0.78rem' }}
+                                        placeholder="URL del video .mp4 (Instagram lo publica como Reel)"
+                                        defaultValue={vc.videoUrl || ''}
+                                        onBlur={e => { const v = e.target.value.trim(); patchContent(vc._id, { videoUrl: v }); setViewingContent({ ...vc, videoUrl: v }); }}
+                                    />
+                                    <p className="sd-prompt-hint">Si hay video, la pieza se publica como Reel (tarda unos segundos en procesar).</p>
+                                </div>
+
                                 {/* Publicar / Programar */}
                                 <div className="social-detail-section">
                                     <h5><FaPaperPlane style={{ color: '#34D399' }} /> Publicar / Programar</h5>
