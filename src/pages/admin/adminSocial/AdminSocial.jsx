@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import { Badge, Modal } from 'react-bootstrap';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { toast } from 'react-toastify';
 import axioswithAuth from '../../../utils/axioswithAuth';
 import './AdminSocial.css';
 
@@ -179,6 +180,42 @@ const AdminSocial = () => {
         try { await axioswithAuth.put(`/social/content/${id}`, patch); } catch { /* optimista */ }
     };
     const moveContent = (id, newStatus) => patchContent(id, { status: newStatus });
+
+    // ── Auto-publicación ──
+    const [publishingId, setPublishingId] = useState(null);
+    const [suggesting, setSuggesting] = useState(false);
+    const publishNow = async (item) => {
+        if (item.platform === 'tiktok') { toast.error('TikTok requiere aprobación de su API (pendiente)'); return; }
+        if (item.platform === 'instagram' && !item.imageUrl && !(item.mediaUrls || []).length) { toast.error('Instagram requiere al menos una imagen'); return; }
+        if (!window.confirm(`¿Publicar ahora en ${item.platform}? Esto sube el post a tu perfil real.`)) return;
+        setPublishingId(item._id);
+        try {
+            const { data } = await axioswithAuth.post(`/social/content/${item._id}/publish`);
+            setContentItems(prev => prev.map(c => c._id === item._id ? data.data : c));
+            setViewingContent(v => v && v._id === item._id ? data.data : v);
+            toast.success('¡Publicado! 🎉');
+        } catch (e) {
+            toast.error('No se pudo publicar: ' + (e.response?.data?.message || e.message));
+        } finally { setPublishingId(null); }
+    };
+    const scheduleContent = async (item, scheduledFor, autoPublish) => {
+        try {
+            const { data } = await axioswithAuth.patch(`/social/content/${item._id}/schedule`, { scheduledFor, autoPublish });
+            setContentItems(prev => prev.map(c => c._id === item._id ? data.data : c));
+            setViewingContent(v => v && v._id === item._id ? data.data : v);
+            toast.success(autoPublish ? 'Programado para auto-publicarse ⏰' : 'Programación actualizada');
+        } catch (e) { toast.error('No se pudo programar: ' + (e.response?.data?.message || e.message)); }
+    };
+    const suggestContentPieces = async () => {
+        setSuggesting(true);
+        try {
+            const { data } = await axioswithAuth.post('/social/content/suggest', { count: 6 });
+            setContentItems(prev => [...(data.data || []), ...prev]);
+            toast.success(`${data.creadas} ideas de contenido propuestas ✨`);
+        } catch (e) {
+            toast.error('No se pudo proponer contenido: ' + (e.response?.data?.message || e.message));
+        } finally { setSuggesting(false); }
+    };
     const deleteContent = async (id) => {
         setContentItems(prev => prev.filter(c => c._id !== id));
         try { await axioswithAuth.delete(`/social/content/${id}`); } catch { /* optimista */ }
@@ -402,9 +439,14 @@ const AdminSocial = () => {
                         <div className="social-content-header">
                             <h3><FaPenNib /> Board de Contenido</h3>
                             <p>Planifica, redacta y publica desde un solo lugar. Los agentes CM + Content pueden poblar esto.</p>
-                            <button className="social-content-add-btn" onClick={() => { setShowContentForm(true); setEditingContent(null); setContentForm({ platform: 'instagram', type: 'reel', caption: '', hashtags: '', imagePrompt: '', reelIdea: '', scheduledDate: '', status: 'idea' }); }}>
-                                <FaPlus /> Nueva pieza de contenido
-                            </button>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <button className="social-content-add-btn" style={{ background: 'linear-gradient(135deg,#7C3AED,#A78BFA)' }} onClick={suggestContentPieces} disabled={suggesting}>
+                                    <FaMagic className={suggesting ? 'social-spin' : ''} /> {suggesting ? 'Proponiendo…' : 'Proponer contenido (IA)'}
+                                </button>
+                                <button className="social-content-add-btn" onClick={() => { setShowContentForm(true); setEditingContent(null); setContentForm({ platform: 'instagram', type: 'reel', caption: '', hashtags: '', imagePrompt: '', reelIdea: '', scheduledDate: '', status: 'idea' }); }}>
+                                    <FaPlus /> Nueva pieza de contenido
+                                </button>
+                            </div>
                         </div>
 
                         {/* Kanban columns */}
@@ -877,6 +919,54 @@ const AdminSocial = () => {
                                 </div>
 
                                 {vc.hashtags && <div className="social-detail-section"><h5><FaHashtag /> Hashtags</h5><p style={{ color: '#60A5FA', fontSize: '0.8rem', wordBreak: 'break-all' }}>{vc.hashtags}</p><button className="social-kanban-copy-btn" onClick={() => navigator.clipboard.writeText(vc.hashtags)}><FaCopy /> Copiar</button></div>}
+
+                                {/* Carrusel: imágenes extra (una URL por línea) */}
+                                <div className="social-detail-section">
+                                    <h5><FaImage /> Carrusel (varias imágenes)</h5>
+                                    <textarea
+                                        className="social-detail-image-input"
+                                        style={{ width: '100%', minHeight: 70, background: '#0d1526', color: '#e6edf7', border: '1px solid #1e2c48', borderRadius: 8, padding: 8, fontSize: '0.78rem' }}
+                                        placeholder="Una URL de imagen por línea (2-10). La primera es la portada. Solo Instagram."
+                                        defaultValue={(vc.mediaUrls || []).join('\n')}
+                                        onBlur={e => { const arr = e.target.value.split('\n').map(s => s.trim()).filter(Boolean); patchContent(vc._id, { mediaUrls: arr }); setViewingContent({ ...vc, mediaUrls: arr }); }}
+                                    />
+                                    <p className="sd-prompt-hint">{(vc.mediaUrls || []).length > 1 ? `Se publicará como carrusel de ${vc.mediaUrls.length} imágenes.` : 'Con 2+ imágenes se publica como carrusel en Instagram.'}</p>
+                                </div>
+
+                                {/* Publicar / Programar */}
+                                <div className="social-detail-section">
+                                    <h5><FaPaperPlane style={{ color: '#34D399' }} /> Publicar / Programar</h5>
+                                    {vc.status === 'published' && vc.publishResult?.ok ? (
+                                        <div style={{ color: '#34D399', fontSize: '0.85rem' }}>
+                                            ✅ Publicado {vc.publishedAt ? new Date(vc.publishedAt).toLocaleString('es-MX') : ''}
+                                            {vc.publishResult.permalink && <> · <a href={vc.publishResult.permalink} target="_blank" rel="noopener noreferrer" style={{ color: '#60A5FA' }}>ver post</a></>}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {vc.publishResult && vc.publishResult.ok === false && (
+                                                <p style={{ color: '#F87171', fontSize: '0.78rem' }}>Último intento falló: {vc.publishResult.error}</p>
+                                            )}
+                                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                                                <button className="social-kanban-copy-btn" style={{ borderColor: '#34D39960', color: '#34D399' }} disabled={publishingId === vc._id} onClick={() => publishNow(vc)}>
+                                                    {publishingId === vc._id ? <><FaSync className="social-spin" /> Publicando…</> : <><FaPaperPlane /> Publicar ahora en {vc.platform}</>}
+                                                </button>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 8 }}>
+                                                <input type="datetime-local" defaultValue={vc.scheduledFor ? new Date(vc.scheduledFor).toISOString().slice(0, 16) : ''}
+                                                    onChange={e => setViewingContent({ ...vc, _schedInput: e.target.value })}
+                                                    style={{ background: '#0d1526', color: '#e6edf7', border: '1px solid #1e2c48', borderRadius: 8, padding: '6px 8px', fontSize: '0.78rem' }} />
+                                                <button className="social-kanban-copy-btn" style={{ borderColor: '#60A5FA60', color: '#60A5FA' }}
+                                                    onClick={() => { const dt = vc._schedInput || (vc.scheduledFor ? new Date(vc.scheduledFor).toISOString().slice(0, 16) : ''); if (!dt) { toast.error('Elige fecha y hora'); return; } scheduleContent(vc, new Date(dt).toISOString(), true); }}>
+                                                    <FaClock /> Programar auto-publicación
+                                                </button>
+                                                {vc.autoPublish && vc.scheduledFor && (
+                                                    <span style={{ fontSize: '0.75rem', color: '#FBBF24' }}>⏰ Se publicará solo el {new Date(vc.scheduledFor).toLocaleString('es-MX')}</span>
+                                                )}
+                                            </div>
+                                            {vc.platform === 'tiktok' && <p className="sd-prompt-hint" style={{ color: '#F87171' }}>TikTok aún no: su API requiere aprobación.</p>}
+                                        </>
+                                    )}
+                                </div>
 
                                 {vc.imagePrompt && <div className="social-detail-section">
                                     <h5><FaMagic style={{ color: '#F59E0B' }} /> Prompt para Google Flow / Gemini</h5>
