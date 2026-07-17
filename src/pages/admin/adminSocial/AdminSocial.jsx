@@ -186,6 +186,8 @@ const AdminSocial = () => {
     const [suggesting, setSuggesting] = useState(false);
     const [contentView, setContentView] = useState('calendar'); // 'calendar' | 'agenda' | 'kanban'
     const [calMonth, setCalMonth] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d; });
+    const [igIdx, setIgIdx] = useState(0); // slide activo en el preview de Instagram
+    useEffect(() => { setIgIdx(0); }, [viewingContent?._id]);
     // ¿La pieza tiene su visual listo? (post: imagen; carrusel: todos los slides; reel: video)
     const needsVisual = (it) => {
         if (it.type === 'reel') return !it.videoUrl;
@@ -984,6 +986,47 @@ const AdminSocial = () => {
                                 <button className="sd-overlay-close" onClick={() => setViewingContent(null)}><FaTimes /></button>
                             </div>
                             <div className="sd-overlay-body">
+                                {/* ── Preview estilo Instagram (cómo se verá al publicar) ── */}
+                                {(() => {
+                                    const media = vc.type === 'carousel'
+                                        ? (vc.slides || []).map(s => ({ url: s.imageUrl, label: s.text }))
+                                        : vc.type === 'reel'
+                                            ? [{ url: vc.videoUrl, video: true }]
+                                            : [{ url: vc.imageUrl }];
+                                    const total = media.length || 1;
+                                    const idx = Math.min(igIdx, total - 1);
+                                    const cur = media[idx] || {};
+                                    return (
+                                        <div className="ig-preview">
+                                            <div className="ig-preview-head">
+                                                <div className="ig-avatar" />
+                                                <span className="ig-user">tesipediaoficial</span>
+                                                <span className="ig-more">•••</span>
+                                            </div>
+                                            <div className="ig-media">
+                                                {cur.video ? (
+                                                    cur.url ? <video src={cur.url} className="ig-media-img" controls /> : <div className="ig-media-ph">🎬<span>Reel — genera el video en Flow y pega la URL</span></div>
+                                                ) : cur.url ? (
+                                                    <img src={cur.url} alt="" className="ig-media-img" />
+                                                ) : (
+                                                    <div className="ig-media-ph">🖼️<span>{vc.type === 'carousel' ? `Slide ${idx + 1} — falta imagen` : 'Falta imagen — genera en Flow y pégala abajo'}</span>{cur.label && <em>“{cur.label}”</em>}</div>
+                                                )}
+                                                {total > 1 && (
+                                                    <>
+                                                        <button className="ig-nav ig-prev" onClick={() => setIgIdx(i => (i - 1 + total) % total)}>‹</button>
+                                                        <button className="ig-nav ig-next" onClick={() => setIgIdx(i => (i + 1) % total)}>›</button>
+                                                        <span className="ig-count">{idx + 1}/{total}</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {total > 1 && <div className="ig-dots">{media.map((_, i) => <span key={i} className={i === idx ? 'on' : ''} onClick={() => setIgIdx(i)} />)}</div>}
+                                            <div className="ig-actions"><span>♡</span><span>💬</span><span>➤</span><span className="ig-save">🔖</span></div>
+                                            <div className="ig-caption"><strong>tesipediaoficial</strong> {(vc.caption || '').slice(0, 180)}{(vc.caption || '').length > 180 ? '… más' : ''}</div>
+                                            {vc.hashtags && <div className="ig-hashtags">{vc.hashtags}</div>}
+                                        </div>
+                                    );
+                                })()}
+
                                 {/* Image */}
                                 <div className="social-detail-preview"
                                     onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('sd-drag-over'); }}
