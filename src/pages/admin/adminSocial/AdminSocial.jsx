@@ -242,6 +242,35 @@ const AdminSocial = () => {
         patchContent(piece._id, { slides });
         setViewingContent(v => v && v._id === piece._id ? { ...v, slides } : v);
     };
+    // Incrusta una imagen (URL o archivo base64) en el slide idx (o en la imagen del post)
+    const [embedding, setEmbedding] = useState(false);
+    const embedImage = async (piece, idx, src) => {
+        if (!src) return;
+        setEmbedding(true);
+        try {
+            // Re-aloja en Cloudinary (URLs de Flow pueden ser temporales; IG necesita URL pública estable)
+            const { data } = await axioswithAuth.post('/social/upload-image', { imageUrl: src }, { timeout: 60000 });
+            const finalUrl = data?.url || src;
+            if (piece.type === 'carousel') {
+                const slides = (piece.slides || []).map((s, i) => i === idx ? { ...s, imageUrl: finalUrl } : s);
+                patchContent(piece._id, { slides });
+                setViewingContent(v => v && v._id === piece._id ? { ...v, slides } : v);
+            } else {
+                patchContent(piece._id, { imageUrl: finalUrl });
+                setViewingContent(v => v && v._id === piece._id ? { ...v, imageUrl: finalUrl } : v);
+            }
+            toast.success('Imagen incrustada ✅');
+        } catch (e) {
+            toast.error('No se pudo incrustar: ' + (e.response?.data?.message || e.message));
+        } finally { setEmbedding(false); }
+    };
+    const embedFromEvent = (piece, idx, e) => {
+        const file = e.dataTransfer?.files?.[0] || e.clipboardData?.files?.[0];
+        if (file && file.type.startsWith('image/')) { const r = new FileReader(); r.onload = () => embedImage(piece, idx, r.result); r.readAsDataURL(file); return true; }
+        const url = (e.dataTransfer || e.clipboardData)?.getData('text/uri-list') || (e.dataTransfer || e.clipboardData)?.getData('text');
+        if (url && url.startsWith('http')) { embedImage(piece, idx, url.trim()); return true; }
+        return false;
+    };
     const deleteContent = async (id) => {
         setContentItems(prev => prev.filter(c => c._id !== id));
         try { await axioswithAuth.delete(`/social/content/${id}`); } catch { /* optimista */ }
@@ -1003,13 +1032,30 @@ const AdminSocial = () => {
                                                 <span className="ig-user">tesipediaoficial</span>
                                                 <span className="ig-more">•••</span>
                                             </div>
-                                            <div className="ig-media">
+                                            <div className="ig-media"
+                                                onPaste={e => { if (!cur.video && !cur.url) embedFromEvent(vc, idx, e); }}
+                                                onDragOver={e => { if (!cur.video) { e.preventDefault(); e.currentTarget.classList.add('ig-media-drag'); } }}
+                                                onDragLeave={e => e.currentTarget.classList.remove('ig-media-drag')}
+                                                onDrop={e => { if (!cur.video) { e.preventDefault(); e.currentTarget.classList.remove('ig-media-drag'); embedFromEvent(vc, idx, e); } }}
+                                            >
                                                 {cur.video ? (
-                                                    cur.url ? <video src={cur.url} className="ig-media-img" controls /> : <div className="ig-media-ph">🎬<span>Reel — genera el video en Flow y pega la URL</span></div>
+                                                    cur.url ? <video src={cur.url} className="ig-media-img" controls /> : <div className="ig-media-ph">🎬<span>Reel — genera el video en Flow y pega la URL abajo</span></div>
                                                 ) : cur.url ? (
-                                                    <img src={cur.url} alt="" className="ig-media-img" />
+                                                    <>
+                                                        <img src={cur.url} alt="" className="ig-media-img" />
+                                                        <button className="ig-media-remove" title="Quitar imagen" onClick={() => vc.type === 'carousel' ? patchSlide(vc, idx, { imageUrl: '' }) : (patchContent(vc._id, { imageUrl: '' }), setViewingContent({ ...vc, imageUrl: '' }))}><FaTimes /></button>
+                                                    </>
                                                 ) : (
-                                                    <div className="ig-media-ph">🖼️<span>{vc.type === 'carousel' ? `Slide ${idx + 1} — falta imagen` : 'Falta imagen — genera en Flow y pégala abajo'}</span>{cur.label && <em>“{cur.label}”</em>}</div>
+                                                    <div className="ig-media-drop" tabIndex={0}>
+                                                        {embedding ? <FaSync className="social-spin" style={{ fontSize: '1.6rem' }} /> : <>
+                                                            <FaImage style={{ fontSize: '1.8rem' }} />
+                                                            <span>{vc.type === 'carousel' ? `Slide ${idx + 1}: arrastra, pega (Ctrl+V) o pon la URL` : 'Arrastra, pega (Ctrl+V) o pon la URL de la imagen'}</span>
+                                                            {cur.label && <em>“{cur.label}”</em>}
+                                                            <input className="ig-media-url" placeholder="https://… (imagen de Flow)" onClick={e => e.stopPropagation()}
+                                                                onKeyDown={e => { if (e.key === 'Enter' && e.target.value.trim()) embedImage(vc, idx, e.target.value.trim()); }}
+                                                                onBlur={e => { if (e.target.value.trim()) embedImage(vc, idx, e.target.value.trim()); }} />
+                                                        </>}
+                                                    </div>
                                                 )}
                                                 {total > 1 && (
                                                     <>
@@ -1027,7 +1073,8 @@ const AdminSocial = () => {
                                     );
                                 })()}
 
-                                {/* Image */}
+                                {/* Imagen única — solo post/story; carrusel y reel se manejan en el preview de arriba */}
+                                {vc.type !== 'carousel' && vc.type !== 'reel' && (
                                 <div className="social-detail-preview"
                                     onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('sd-drag-over'); }}
                                     onDragLeave={e => { e.currentTarget.classList.remove('sd-drag-over'); }}
@@ -1089,6 +1136,7 @@ const AdminSocial = () => {
                                         <input value={vc.imageUrl || ''} onChange={e => { setViewingContent({ ...vc, imageUrl: e.target.value }); patchContent(vc._id, { imageUrl: e.target.value }); }} placeholder="https://..." />
                                     </div>
                                 </div>
+                                )}
 
                                 {/* Caption */}
                                 <div className="social-detail-section">
