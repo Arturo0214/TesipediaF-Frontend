@@ -650,6 +650,17 @@ const AdminWhatsApp = () => {
     return () => clearTimeout(searchTimerRef.current);
   }, [searchQuery]);
 
+  // Salto desde "Leads del Día": llegar con la búsqueda prellenada al wa_id elegido
+  useEffect(() => {
+    try {
+      const jump = sessionStorage.getItem('wa_jump_search');
+      if (jump) {
+        sessionStorage.removeItem('wa_jump_search');
+        setSearchQuery(jump);
+      }
+    } catch { /* sessionStorage no disponible */ }
+  }, []);
+
   // Scroll inteligente: al cambiar de lead, al cargar historial completo, o al llegar mensajes nuevos
   useEffect(() => {
     if (!selectedLead) {
