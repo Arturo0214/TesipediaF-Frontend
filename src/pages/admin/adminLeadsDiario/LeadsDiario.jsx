@@ -41,9 +41,9 @@ const FILTROS = [
   { v: 'todos', label: 'Todos' },
   { v: 'sin_respuesta', estados: ['bienvenida'], label: 'Sin respuesta' },
   { v: 'en_proceso', estados: ['calificando', 'cotizando', 'cotizacion_iniciada', 'cotizacion_lista', 'modo_humano'], label: 'En proceso' },
-  { v: 'cotizados', estados: ['cotizacion_enviada', 'cotizacion_confirmada', 'cliente_acepto'], label: 'Cotizados' },
+  { v: 'cotizados', label: 'Cotizados' },
   { v: 'esperando', estados: ['esperando_aprobacion'], label: 'Esperando aprobación' },
-  { v: 'pagados', estados: ['pagado'], label: 'Pagados' },
+  { v: 'pagados', label: 'Pagados' },
   { v: 'descartados', estados: ['descartado', 'no_interesado'], label: 'Descartados' },
   { v: 'senales', label: 'Con señales ⚠' },
 ];
@@ -120,6 +120,8 @@ function LeadsDiario() {
       if (q && !((l.nombre || '').toLowerCase().includes(q) || (l.wa_id || '').includes(q)
         || (l.tema || '').toLowerCase().includes(q) || (l.carrera || '').toLowerCase().includes(q))) return false;
       if (filtro === 'senales' && !(l.senales?.length > 0)) return false;
+      if (filtro === 'cotizados' && !l.cotizado) return false;
+      if (filtro === 'pagados' && !l.pago) return false;
       if (fDef?.estados && !fDef.estados.includes(l.estado_sofia)) return false;
       if (fDueno === 'sin_asignar' && l.atendido_por) return false;
       if (fDueno && fDueno !== 'sin_asignar' && (l.atendido_por || '').toLowerCase().trim() !== fDueno) return false;
@@ -150,12 +152,13 @@ function LeadsDiario() {
   };
 
   const exportCsv = () => {
-    const headers = ['No', 'Nombre', 'Teléfono', 'Fecha de llegada', 'Dueño', 'Origen', 'Estatus', 'Último mensaje', 'De quién', 'Hace', 'Señales', 'Observaciones', 'Razón de descarte', 'Precio'];
+    const headers = ['No', 'Nombre', 'Teléfono', 'Fecha de llegada', 'Dueño', 'Origen', 'Estatus', 'Cotizado', 'Pagó', 'Último mensaje', 'De quién', 'Hace', 'Señales', 'Observaciones', 'Razón de descarte', 'Precio'];
     const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = filtered.map((l, i) => [
       i + 1, l.nombre || 'Sin nombre', l.wa_id, `${fecha} ${fmtHora(l.created_at)}`,
       cap(l.atendido_por) || 'Sin asignar', origenLead(l),
       ESTADOS_META[l.estado_sofia]?.label || l.estado_sofia || '—',
+      l.cotizado ? 'Sí' : 'No', l.pago ? 'Sí' : 'No',
       l.ultimoMensaje?.texto || '', l.ultimoMensaje?.de === 'cliente' ? 'Cliente' : (l.ultimoMensaje?.de ? 'Nosotros' : ''),
       fmtHace(l.ultimoMensaje?.horasDesde),
       (l.senales || []).map((s) => s.texto).join(' | '),
@@ -171,9 +174,11 @@ function LeadsDiario() {
   const kpis = stats ? [
     { icon: FaUsers, n: stats.total, l: 'Leads del día', cls: '', f: 'todos' },
     { icon: FaCommentDots, n: `${stats.contestaron} (${stats.total ? Math.round((stats.contestaron / stats.total) * 100) : 0}%)`, l: 'Contestaron', cls: '', f: 'todos' },
-    { icon: FaFileInvoiceDollar, n: `${stats.cotizados} (${stats.tasaCotizacion}%)`, l: 'Cotizados · tasa conversión', cls: 'ld-kpi-violet', f: 'cotizados' },
+    { icon: FaFileInvoiceDollar, n: `${stats.cotizados} (${stats.tasaCotizacion}%)`, l: 'Del día cotizados · conversión', cls: 'ld-kpi-violet', f: 'cotizados' },
+    { icon: FaFileInvoiceDollar, n: stats.cotizacionesEnviadasDia?.total ?? '—', l: `Cotizaciones enviadas ese día${stats.cotizacionesEnviadasDia ? ` (${stats.cotizacionesEnviadasDia.aLeadsDelDia} del día · ${stats.cotizacionesEnviadasDia.aLeadsPrevios} previos)` : ''}`, cls: 'ld-kpi-violet', f: 'todos' },
     { icon: FaHourglassHalf, n: stats.esperandoAprobacion, l: 'Esperando aprobación', cls: 'ld-kpi-amber', f: 'esperando' },
-    { icon: FaMoneyBillWave, n: `${stats.pagados} (${stats.tasaPago}%)`, l: 'Pagados · tasa de pago', cls: 'ld-kpi-green', f: 'pagados' },
+    { icon: FaMoneyBillWave, n: `${stats.pagados} (${stats.tasaPago}%)`, l: 'Del día que ya pagaron', cls: 'ld-kpi-green', f: 'pagados' },
+    { icon: FaMoneyBillWave, n: stats.ventasCerradasDia ?? '—', l: 'Ventas cerradas ese día', cls: 'ld-kpi-green', f: 'todos' },
     { icon: FaTrophy, n: `${stats.tasaCierre}%`, l: 'Cierre (pagados / cotizados)', cls: 'ld-kpi-green', f: 'pagados' },
     { icon: FaExclamationTriangle, n: stats.conSenales, l: 'Con señales de riesgo', cls: 'ld-kpi-red', f: 'senales' },
   ] : [];
@@ -283,7 +288,15 @@ function LeadsDiario() {
                   <td className="ld-nowrap">{fmtHora(l.created_at)}</td>
                   <td>{l.atendido_por ? cap(l.atendido_por) : <span className="ld-badge ld-badge-gray">Sin asignar</span>}</td>
                   <td className="ld-origen" title={l.ad_name || ''}>{origenLead(l)}</td>
-                  <td><span className="ld-badge" style={{ background: `${em.color}26`, color: em.color }}>{em.label}</span></td>
+                  <td>
+                    <span className="ld-badge" style={{ background: `${em.color}26`, color: em.color }}>{em.label}</span>
+                    {l.cotizado && !['cotizacion_enviada', 'cotizacion_confirmada', 'esperando_aprobacion', 'cliente_acepto', 'pagado'].includes(l.estado_sofia) && (
+                      <div className="ld-sub2">📄 sí se cotizó</div>
+                    )}
+                    {l.fecha_pago && (
+                      <div className="ld-sub2">💰 pagó {new Date(l.fecha_pago).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', timeZone: 'America/Mexico_City' })}</div>
+                    )}
+                  </td>
                   <td className="ld-msg">
                     {um.texto ? (
                       <>
