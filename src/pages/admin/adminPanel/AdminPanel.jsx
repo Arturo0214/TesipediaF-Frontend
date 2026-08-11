@@ -35,6 +35,7 @@ import {
     FaFileInvoiceDollar,
     FaRecycle,
     FaBookOpen,
+    FaUserClock,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -77,6 +78,7 @@ const AdminStatus = lazy(() => import('../adminStatus/AdminStatus.jsx'));
 const AdminLoops = lazy(() => import('../adminLoops/AdminLoops.jsx'));
 const AdminContent = lazy(() => import('../adminContent/AdminContent.jsx'));
 const ManageSeguimientos = lazy(() => import('../adminSeguimientos/ManageSeguimientos.jsx'));
+const LeadsDiario = lazy(() => import('../adminLeadsDiario/LeadsDiario.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -145,6 +147,7 @@ const AdminPanel = () => {
         if (path.includes('/cotizaciones')) return 'cotizaciones';
         if (path.includes('/proyectos')) return 'proyectos';
         if (path.includes('/seguimientos')) return 'seguimientos';
+        if (path.includes('/leads-diario')) return 'leadsdiario';
         if (path.includes('/pagos')) return 'pagos';
         if (path.includes('/visitas')) return 'visitas';
         if (path.includes('/hubspot')) return 'hubspot';
@@ -173,6 +176,7 @@ const AdminPanel = () => {
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos', color: '#A78BFA' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos', color: '#F472B6' },
         { key: 'seguimientos', icon: FaFileInvoiceDollar, label: 'Seguimientos', section: 'principal', path: '/admin/seguimientos', color: '#F59E0B' },
+        { key: 'leadsdiario', icon: FaUserClock, label: 'Leads del Día', section: 'principal', path: '/admin/leads-diario', color: '#22C55E' },
         { key: 'calendarios', icon: FaCalendarAlt, label: 'Calendarios', section: 'principal', path: '/admin/calendarios', color: '#38BDF8' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp', color: '#25D366' },
         { key: 'manychat', icon: FaRocket, label: 'ManyChat', section: 'gestion', path: '/admin/manychat', color: '#FB923C' },
@@ -323,6 +327,7 @@ const AdminPanel = () => {
         proyectos: ManageProjects,
         pagos: ManagePayments,
         seguimientos: ManageSeguimientos,
+        leadsdiario: LeadsDiario,
         visitas: ManageVisits,
         usuarios: ManageUsers,
         hubspot: AdminHubSpot,
