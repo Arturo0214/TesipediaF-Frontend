@@ -153,6 +153,11 @@ function getAttendedColor(lead) {
   return ADMIN_COLORS[who] || ADMIN_COLORS._attended;
 }
 
+/* ── Leads de la campaña Meta "Alto Ticket": marco rojo pastel en la lista ── */
+function isAltoTicketLead(lead) {
+  return (lead?.ad_campaign_name || '').toLowerCase().includes('alto ticket');
+}
+
 /* ── Formatear labels internos a legibles ── */
 const LABEL_MAP = {
   servicio_1: 'Redacción completa', servicio_2: 'Correcciones', servicio_3: 'Asesoría',
@@ -649,6 +654,17 @@ const AdminWhatsApp = () => {
     }, 400);
     return () => clearTimeout(searchTimerRef.current);
   }, [searchQuery]);
+
+  // Salto desde "Leads del Día": llegar con la búsqueda prellenada al wa_id elegido
+  useEffect(() => {
+    try {
+      const jump = sessionStorage.getItem('wa_jump_search');
+      if (jump) {
+        sessionStorage.removeItem('wa_jump_search');
+        setSearchQuery(jump);
+      }
+    } catch { /* sessionStorage no disponible */ }
+  }, []);
 
   // Scroll inteligente: al cambiar de lead, al cargar historial completo, o al llegar mensajes nuevos
   useEffect(() => {
@@ -2187,7 +2203,7 @@ const AdminWhatsApp = () => {
                     elements.push(
                       <div
                         key={lead.wa_id}
-                        className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''} ${hasUnread ? 'wa-has-unread' : ''}`}
+                        className={`wa-conversation-item ${isSelected ? 'wa-selected' : ''} ${lead.modo_humano ? 'wa-human-mode' : ''} ${lead.bloqueado ? 'wa-blocked' : ''} ${hasUnread ? 'wa-has-unread' : ''} ${isAltoTicketLead(lead) ? 'wa-alto-ticket' : ''}`}
                         style={{ borderLeftColor: attendedInfo.color, borderLeftWidth: 3, borderLeftStyle: 'solid', background: attendedInfo.bg }}
                         onClick={() => handleSelectLeadWithRead(lead)}
                       >
@@ -2224,6 +2240,9 @@ const AdminWhatsApp = () => {
                                 <FaLock style={{ fontSize: '0.55rem', marginRight: 3, opacity: 0.7 }} />
                                 {attendedInfo.label}
                               </span>
+                            )}
+                            {isAltoTicketLead(lead) && (
+                              <span className="wa-alto-ticket-tag" title={lead.ad_campaign_name}>🎯 Alto Ticket</span>
                             )}
                             {lead.origen === 'manychat' && (
                               <Badge bg="light" text="dark" style={{ fontSize: '0.55rem', border: '1px solid #c4b5fd', color: '#7c3aed' }}>
@@ -2502,7 +2521,7 @@ const AdminWhatsApp = () => {
                       {l.ad_source && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">📣 Campaña</span><span className="wa-summary-value" style={{color: '#1a73e8', fontWeight: 500}}>{l.ad_campaign_name || 'Anuncio Meta'}</span></div>}
                       {l.ad_adset_name && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">🎯 Adset</span><span className="wa-summary-value" style={{fontSize: '0.75rem'}}>{l.ad_adset_name}</span></div>}
                       {l.ad_name && <div className="wa-summary-item wa-summary-wide"><span className="wa-summary-label">Anuncio</span><span className="wa-summary-value" style={{fontSize: '0.75rem', color: '#9ca3af'}}>{l.ad_name}</span></div>}
-                      <div className="wa-summary-item"><span className="wa-summary-label">Llegó</span><span className="wa-summary-value">{l.created_at ? new Date(l.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</span></div>
+                      <div className="wa-summary-item"><span className="wa-summary-label">Llegó</span><span className="wa-summary-value">{l.created_at ? new Date(/[Z+]/.test(String(l.created_at).slice(10)) ? l.created_at : l.created_at + 'Z').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Mexico_City' }) : '-'}</span></div>
                     </div>
                   </div>
                 );
