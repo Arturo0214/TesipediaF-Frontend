@@ -72,12 +72,6 @@ function AsesoriaTesis() {
     { num: '4', title: 'Revisión y Preparación', desc: 'Revisamos tu trabajo, te damos retroalimentación final y te preparamos para tu defensa.' },
   ];
 
-  const testimonials = [
-    { text: 'Mi asesor me ayudó a entender la metodología cualitativa desde cero. En pocas semanas logré estructurar toda mi investigación.', name: 'Ana L.', role: 'Maestría en Educación', color: '#4F46E5' },
-    { text: 'Llevaba meses sin avanzar. La asesoría me dio un plan claro y el acompañamiento que necesitaba para retomar mi tesis.', name: 'Roberto M.', role: 'Licenciatura en Derecho', color: '#059669' },
-    { text: 'Los asesores realmente saben de investigación. Me orientaron en el análisis estadístico y en cómo presentar mis resultados.', name: 'Diana P.', role: 'Doctorado en Psicología', color: '#7c3aed' },
-  ];
-
   const faqs = [
     { q: '¿Qué incluye la asesoría de tesis?', a: 'Orientación en metodología, revisión de estructura, guía en marco teórico, apoyo en análisis de datos, corrección de estilo académico y retroalimentación sobre tus borradores para que mejores tu propio trabajo.' },
     { q: '¿Quiénes son los asesores?', a: 'Profesionales con maestría y doctorado en diversas áreas, con experiencia en investigación y publicaciones. Asignamos un asesor especializado en tu tema.' },
@@ -131,7 +125,7 @@ function AsesoriaTesis() {
             <div style={styles.trustRow}>
               <span style={styles.trustItem}><FaCheckCircle style={{ color: '#25d366' }} /> +3,000 estudiantes orientados</span>
               <span style={styles.trustItem}><FaShieldAlt style={{ color: '#25d366' }} /> Asesores certificados</span>
-              <span style={styles.trustItem}><FaStar style={{ color: '#ffc107' }} /> 4.9/5 satisfacción</span>
+              <span style={styles.trustItem}><FaStar style={{ color: '#ffc107' }} /> Acompañamiento 1 a 1</span>
             </div>
           </div>
         </section>
@@ -199,30 +193,6 @@ function AsesoriaTesis() {
                 </a>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* TESTIMONIOS */}
-        <section style={styles.sectionAlt}>
-          <div style={styles.sectionInner}>
-            <h2 style={styles.sectionTitle}>Lo que dicen nuestros estudiantes</h2>
-            <p style={styles.sectionSub}>Miles de estudiantes ya avanzaron en su tesis con nuestra asesoría</p>
-            <div style={styles.testimonialsGrid}>
-              {testimonials.map((t, i) => (
-                <div key={i} style={styles.testimonialCard}>
-                  <div style={styles.testimonialStars}>{[...Array(5)].map((_, j) => <FaStar key={j} />)}</div>
-                  <FaQuoteLeft style={{ color: '#e2e8f0', fontSize: '1.2rem', marginBottom: '10px' }} />
-                  <p style={styles.testimonialText}>{t.text}</p>
-                  <div style={styles.testimonialAuthor}>
-                    <div style={{ ...styles.authorAvatar, background: t.color }}>{t.name.charAt(0)}</div>
-                    <div>
-                      <div style={styles.authorName}>{t.name}</div>
-                      <div style={styles.authorRole}>{t.role}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 

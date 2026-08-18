@@ -9,16 +9,16 @@ const WA = 'https://wa.me/525670071517?text=Hola%2C%20quiero%20cotizar%20mi%20te
 const HERO_IMG = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&q=72&auto=format&fit=crop';
 
 const MARQUEE = [
-  { i: <FaFileAlt />, t: 'Tesis completa' },
-  { i: <FaPenFancy />, t: 'Corrección y estilo' },
+  { i: <FaFileAlt />, t: 'Asesoría en tesis completa' },
+  { i: <FaPenFancy />, t: 'Revisión y estilo' },
   { i: <FaUserTie />, t: 'Asesoría y acompañamiento' },
-  { i: <FaSearch />, t: 'Antiplagio Turnitin' },
-  { i: <FaRobot />, t: 'Detección anti-IA' },
+  { i: <FaSearch />, t: 'Revisión de originalidad' },
+  { i: <FaRobot />, t: 'Trabajo 100% tuyo, con guía' },
   { i: <FaBookOpen />, t: 'Marco teórico' },
   { i: <FaFlask />, t: 'Metodología' },
   { i: <FaChartBar />, t: 'Análisis de datos' },
   { i: <FaChalkboardTeacher />, t: 'Preparación de defensa' },
-  { i: <FaGraduationCap />, t: 'Hasta titularte' },
+  { i: <FaGraduationCap />, t: 'Hasta tu examen' },
 ];
 
 const HeroSection = ({ onOpenChat }) => {
@@ -30,21 +30,21 @@ const HeroSection = ({ onOpenChat }) => {
         {/* IZQUIERDA */}
         <div className="hx-hero-left hx-reveal">
           <span className="hx-eyebrow">
-            <FaStar /> 4.9/5 · +3,000 titulados · 100% humano, sin IA
+            <FaStar /> +3,000 estudiantes asesorados · Asesoría 100% humana
           </span>
           <h1 className="hx-title">
-            Hacemos tu <span className="hx-grad">tesis profesional</span> para que te titules sin estrés
+            ¿Buscas quién te haga la tesis? Te asesoramos para hacer tu <span className="hx-grad">tesis profesional</span> y titularte sin estrés
           </h1>
           <p className="hx-sub">
-            Elaboramos tu tesis de licenciatura, maestría y doctorado en México: 100% original,
-            con citación correcta y revisión de originalidad. Desde <strong>$110 por página</strong>,
-            entrega desde 3 semanas.
+            Te asesoramos en tu tesis de licenciatura, maestría y doctorado en México: te guiamos
+            en la redacción con citación correcta y revisión de originalidad, para que sea 100% tuya.
+            Desde <strong>$110 por página</strong>, avances desde 3 semanas.
           </p>
 
           <div className="hx-chips">
-            <span><FaCheckCircle /> Garantía de aprobación</span>
-            <span><FaShieldAlt /> Sin plagio ni IA</span>
-            <span><FaClock /> Entrega desde 3 semanas</span>
+            <span><FaCheckCircle /> Acompañamiento hasta tu defensa</span>
+            <span><FaShieldAlt /> Trabajo original, redactado por ti con nuestra guía</span>
+            <span><FaClock /> Primeros avances desde 3 semanas</span>
           </div>
 
           <div className="hx-ctas">
@@ -74,7 +74,7 @@ const HeroSection = ({ onOpenChat }) => {
             <img
               className="hx-visual-img"
               src={HERO_IMG}
-              alt="Estudiantes graduados celebrando su titulación en México"
+              alt="Estudiantes celebrando su titulación tras la asesoría de tesis en México"
               width="900"
               height="600"
               loading="eager"
@@ -82,14 +82,14 @@ const HeroSection = ({ onOpenChat }) => {
             />
             <div className="hx-visual-shade" />
 
-            {/* tarjeta flotante: rating */}
+            {/* tarjeta flotante: acompañamiento */}
             <div className="hx-float hx-float-rating">
               <div className="hx-float-stars">
                 <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
               </div>
               <div>
-                <strong>4.9 / 5</strong>
-                <span>Calificación de estudiantes</span>
+                <strong>Asesoría cercana</strong>
+                <span>Acompañamiento en cada etapa</span>
               </div>
             </div>
 
@@ -97,7 +97,7 @@ const HeroSection = ({ onOpenChat }) => {
             <div className="hx-float hx-float-grad">
               <span className="hx-float-ico"><FaUserGraduate /></span>
               <div>
-                <strong>+3,000 titulados</strong>
+                <strong>+3,000 estudiantes asesorados</strong>
                 <span>en las mejores universidades de México</span>
               </div>
             </div>
@@ -107,7 +107,7 @@ const HeroSection = ({ onOpenChat }) => {
 
       {/* Cinta de servicios (auto-scroll) */}
       <div className="hx-marquee hx-reveal" aria-label="Lo que ofrecemos">
-        <span className="hx-marquee-label">Todo lo que hacemos por tu tesis</span>
+        <span className="hx-marquee-label">Así te acompañamos en tu tesis</span>
         <div className="hx-marquee-mask">
           <div className="hx-marquee-track">
             {[...MARQUEE, ...MARQUEE].map((m, i) => (

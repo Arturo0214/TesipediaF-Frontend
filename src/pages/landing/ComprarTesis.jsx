@@ -28,39 +28,22 @@ function ComprarTesis() {
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": "Servicio de Elaboración de Tesis — Tesipedia",
-    "description": "Compra tu tesis en México con Tesipedia. Servicio profesional de elaboración de tesis de licenciatura, maestría y doctorado. 100% original, libre de plagio e IA.",
+    "name": "Asesoría de Tesis — Tesipedia",
+    "description": "¿Buscas comprar tesis? Mejor asesórate y termina la tuya con Tesipedia. Servicio de asesoría académica para tesis de licenciatura, maestría y doctorado. Tú eres el autor; nosotros te guiamos.",
     "brand": { "@type": "Brand", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3247", "bestRating": "5", "worstRating": "1" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "87500", "offerCount": "3" },
-    "review": [
-      {
-        "@type": "Review",
-        "author": { "@type": "Person", "name": "María G." },
-        "datePublished": "2025-11-15",
-        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-        "reviewBody": "Mi tesis quedó increíble. La entregaron antes de tiempo y pasó Turnitin sin problema."
-      },
-      {
-        "@type": "Review",
-        "author": { "@type": "Person", "name": "Carlos R." },
-        "datePublished": "2025-10-20",
-        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-        "reviewBody": "Llevaba 2 años atorado con mi tesis de maestría. Con Tesipedia me titulé en 6 semanas."
-      }
-    ]
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "87500", "offerCount": "3" }
   };
 
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "name": "Comprar Tesis en México — Servicio Profesional de Elaboración",
-    "serviceType": "Elaboración de Tesis Profesional",
+    "name": "Asesoría de Tesis en México — Servicio Profesional de Acompañamiento",
+    "serviceType": "Asesoría y Acompañamiento de Tesis",
     "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": "https://tesipedia.com" },
     "areaServed": { "@type": "Country", "name": "México" },
-    "description": "Servicio profesional para comprar tu tesis en México. Elaboramos tesis de licenciatura, maestría y doctorado 100% originales. Verificadas con Turnitin y escáner anti-IA. Más de 3,000 estudiantes titulados.",
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "110", "highPrice": "250", "unitText": "por página" }
+    "description": "Servicio profesional de asesoría de tesis en México. Te acompañamos para que hagas tu tesis de licenciatura, maestría o doctorado: guía en la redacción, revisión de tu borrador y asesoría metodológica. Más de 3,000 estudiantes asesorados. Trabajo original, redactado por ti con nuestra guía.",
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "87500", "unitText": "por programa de asesoría" }
   };
 
   const faqSchema = {
@@ -69,28 +52,28 @@ function ComprarTesis() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "¿Cuánto cuesta comprar una tesis en México?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El precio de comprar una tesis en México varía según el nivel académico, área de estudio y número de páginas. Para licenciatura: desde $5,500 MXN (50 páginas a $110/pág). Para maestría: desde $12,800 MXN (80 páginas a $160/pág). Para doctorado: desde $25,200 MXN (120 páginas a $210/pág). Las áreas de salud y ciencias exactas tienen un costo ligeramente mayor. En Tesipedia ofrecemos los precios más bajos del mercado, cotización gratuita y planes de pago." }
+        "name": "¿Cuánto cuesta la asesoría de tesis en México?",
+        "acceptedAnswer": { "@type": "Answer", "text": "El precio de un programa de asesoría de tesis en México varía según el nivel académico, el área de estudio y el alcance del acompañamiento. Para licenciatura: desde $5,500 MXN. Para maestría: desde $12,800 MXN. Para doctorado: desde $25,200 MXN. Las áreas de salud y ciencias exactas suelen tener un costo mayor. En Tesipedia ofrecemos cotización gratuita y planes de pago flexibles." }
       },
       {
         "@type": "Question",
-        "name": "¿Es seguro comprar una tesis en Tesipedia?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Tesipedia es el servicio más confiable de México con más de 3,000 estudiantes titulados y 98% de aprobación. Cada tesis se elabora desde cero por investigadores humanos con maestría y doctorado. Incluimos verificación Turnitin y escáner anti-IA." }
+        "name": "¿Por qué conviene asesorarte en lugar de comprar una tesis?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Comprar una tesis hecha implica riesgos académicos y de originalidad. Con la asesoría de Tesipedia tú eres el autor de tu trabajo: te acompañamos en la investigación y la redacción para que la tesis sea tuya, la entiendas y puedas defenderla con seguridad. Trabajas con investigadores con maestría y doctorado que te guían en cada etapa." }
       },
       {
         "@type": "Question",
-        "name": "¿Cuánto tiempo tardan en entregar la tesis?",
-        "acceptedAnswer": { "@type": "Answer", "text": "El tiempo estándar de entrega es de 3 a 4 semanas para licenciatura, 4 a 6 semanas para maestría y 6 a 8 semanas para doctorado. También ofrecemos servicio express para entregas urgentes." }
+        "name": "¿Cuánto tiempo dura el acompañamiento?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Los tiempos dependen de tu punto de partida y tu ritmo de trabajo. Como referencia, el acompañamiento típico es de 3 a 4 semanas por etapa para licenciatura, 4 a 6 semanas para maestría y 6 a 8 semanas para doctorado. También ofrecemos sesiones intensivas para avances urgentes." }
       },
       {
         "@type": "Question",
-        "name": "¿La tesis pasa los detectores de plagio y de IA?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Todas las tesis de Tesipedia son escritas por investigadores humanos (no IA). Verificamos con Turnitin y escáneres anti-IA antes de entregar. Nuestras tesis pasan todos los sistemas de detección de las universidades mexicanas." }
+        "name": "¿El trabajo es original y lo redacto yo?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. La tesis la redactas tú con nuestra guía: te orientamos en la metodología, revisamos y mejoramos tu borrador y te damos retroalimentación experta. Es trabajo original tuyo, elaborado con acompañamiento profesional." }
       },
       {
         "@type": "Question",
-        "name": "¿Hacen tesis para cualquier carrera y universidad?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Elaboramos tesis para todas las carreras y universidades de México: UNAM, IPN, UAM, BUAP, UDG, UANL, TEC, universidades privadas y más. Contamos con asesores especializados en todas las áreas del conocimiento." }
+        "name": "¿Asesoran tesis para cualquier carrera y universidad?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Ofrecemos asesoría de tesis para todas las carreras y universidades de México: UNAM, IPN, UAM, BUAP, UDG, UANL, TEC, universidades privadas y más. Contamos con asesores especializados en todas las áreas del conocimiento." }
       }
     ]
   };
@@ -104,21 +87,17 @@ function ComprarTesis() {
     ]
   };
 
-  const testimonials = [
-    { name: 'María G.', carrera: 'Lic. en Derecho, UNAM', text: 'Mi tesis quedó increíble. La entregaron antes de tiempo y pasó Turnitin sin problema. 100% recomendado.', rating: 5 },
-    { name: 'Carlos R.', carrera: 'Maestría en Administración, IPN', text: 'Llevaba 2 años atorado con mi tesis de maestría. Con Tesipedia me titulé en 6 semanas. Excelente servicio.', rating: 5 },
-    { name: 'Ana L.', carrera: 'Lic. en Psicología, UAM', text: 'Los asesores son muy profesionales. Me explicaron todo el proceso y las correcciones fueron rápidas. Mi sinodal quedó impresionado.', rating: 5 },
-  ];
+  const testimonials = [];
 
   return (
     <div className="landing-page">
       <Helmet>
-        <title>Comprar Tesis en México 2026 — Desde $110/Página | Tesipedia #1 en Tesis Profesionales</title>
-        <meta name="description" content="Compra tu tesis profesional en México desde $110 por página. Tesis de licenciatura, maestría y doctorado 100% originales. Verificadas con Turnitin y anti-IA. Más de 3,000 titulados. Entrega en 3 semanas. Cotiza gratis por WhatsApp." />
-        <meta name="keywords" content="comprar tesis, comprar tesis en México, comprar tesis México, tesis por encargo México, hacer tesis, tesis profesional, tesis 100% original, tesis sin plagio, tesis licenciatura, tesis maestría, tesis doctorado, tesipedia, elaboración de tesis, encargar tesis, quién me hace mi tesis" />
+        <title>¿Comprar Tesis? Mejor Asesórate y Termínala | Tesipedia México 2026</title>
+        <meta name="description" content="¿Buscas comprar tesis en México? Mejor asesórate y termina la tuya. En Tesipedia te acompañamos para hacer tu tesis de licenciatura, maestría o doctorado: guía metodológica, revisión de tu borrador y asesoría experta. Tú eres el autor. Más de 3,000 estudiantes asesorados. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="comprar tesis, comprar tesis en México, comprar tesis México, asesoría de tesis, asesoría de tesis México, hacer tesis, ayuda con tesis, tesis licenciatura, tesis maestría, tesis doctorado, tesipedia, asesoría académica, quién me ayuda con mi tesis" />
         <link rel="canonical" href="https://tesipedia.com/comprar-tesis" />
-        <meta property="og:title" content="Comprar Tesis en México 2026 — Desde $110/Página | Tesipedia" />
-        <meta property="og:description" content="Compra tu tesis profesional en México. Desde $110/página. 100% original, Turnitin + anti-IA. +3,000 titulados. Cotiza gratis." />
+        <meta property="og:title" content="¿Comprar Tesis? Mejor Asesórate y Termínala | Tesipedia" />
+        <meta property="og:description" content="¿Buscas comprar tesis en México? Mejor asesórate y termina la tuya. Te acompañamos para que hagas tu tesis. Tú eres el autor. +3,000 estudiantes asesorados. Cotiza gratis." />
         <meta property="og:url" content="https://tesipedia.com/comprar-tesis" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -132,11 +111,11 @@ function ComprarTesis() {
       <section className="landing-hero">
         <div className="landing-hero-content">
           <div className="landing-hero-badge">
-            <FaStar className="star-icon" /> 4.9/5 — Más de 3,000 estudiantes titulados
+            <FaStar className="star-icon" /> Más de 3,000 estudiantes asesorados
           </div>
-          <h1>Comprar Tesis en México — Desde $110 por Página, Original y Sin Plagio</h1>
+          <h1>¿Buscas Comprar Tesis? Te Asesoramos para que la Termines Tú</h1>
           <p className="landing-hero-sub">
-            En <strong>Tesipedia</strong> puedes <strong>comprar tu tesis de licenciatura, maestría y doctorado</strong> desde <strong>$110 MXN por página</strong>. Escrita por investigadores humanos, verificada con <strong>Turnitin</strong> y escáner <strong>anti-IA</strong>. Más de 3,000 estudiantes titulados en México.
+            En <strong>Tesipedia</strong> no vendemos tesis hechas: te <strong>asesoramos para hacer tu tesis de licenciatura, maestría o doctorado</strong>. Trabajas con investigadores con posgrado que te guían en la metodología, revisan tu borrador y te dan retroalimentación experta. <strong>Tú eres el autor</strong> y presentas un trabajo original y propio.
           </p>
           <div className="landing-hero-ctas">
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick('comprar_hero')} data-track-cta="comprar_hero" data-track-label="Cotizar Gratis por WhatsApp">
@@ -147,34 +126,34 @@ function ComprarTesis() {
             </a>
           </div>
           <div className="landing-hero-trust">
-            <span><FaCheckCircle /> 100% Original</span>
-            <span><FaShieldAlt /> Verificada con Turnitin</span>
-            <span><FaUserGraduate /> +3,000 Titulados</span>
+            <span><FaCheckCircle /> Trabajo 100% Tuyo</span>
+            <span><FaShieldAlt /> Asesoría Profesional</span>
+            <span><FaUserGraduate /> +3,000 Asesorados</span>
           </div>
         </div>
       </section>
 
-      {/* POR QUÉ COMPRAR TU TESIS CON NOSOTROS */}
+      {/* POR QUÉ ASESORARTE CON NOSOTROS */}
       <section className="landing-section" id="por-que-tesipedia">
-        <h2>¿Por qué comprar tu tesis en Tesipedia?</h2>
+        <h2>¿Por qué asesorar tu tesis con Tesipedia?</h2>
         <p className="landing-section-intro">
-          Somos el servicio de elaboración de tesis más confiable de México. A diferencia de otros servicios, en Tesipedia cada tesis es escrita por investigadores humanos con posgrado — nunca usamos inteligencia artificial. Ya sea que busques una <Link to="/tesis-licenciatura">tesis de licenciatura</Link>, <Link to="/tesis-maestria">tesis de maestría</Link> o <Link to="/tesis-doctoral">tesis doctoral</Link>, estás en el lugar correcto.
+          Somos el servicio de asesoría académica más confiable de México. En lugar de venderte una tesis hecha, te acompañamos para que la tuya sea original, la entiendas y la puedas defender. Trabajas con investigadores con posgrado que te guían en cada etapa. Ya sea que necesites apoyo con tu <Link to="/tesis-licenciatura">tesis de licenciatura</Link>, <Link to="/tesis-maestria">tesis de maestría</Link> o <Link to="/tesis-doctoral">tesis doctoral</Link>, estás en el lugar correcto.
         </p>
         <div className="landing-features-grid">
           <div className="landing-feature-card">
             <FaShieldAlt className="feature-icon" />
-            <h3>100% Original — Sin Plagio ni IA</h3>
-            <p>Cada tesis se elabora desde cero por investigadores con maestría y doctorado. Incluimos reporte Turnitin y certificado anti-IA.</p>
+            <h3>Trabajo Original y Tuyo</h3>
+            <p>Tú redactas tu tesis con nuestra guía. Te orientamos en la metodología y revisamos tu borrador para que presentes un trabajo original y propio.</p>
           </div>
           <div className="landing-feature-card">
             <FaUserGraduate className="feature-icon" />
-            <h3>+3,000 Estudiantes Titulados</h3>
-            <p>Más de 3,000 estudiantes de la UNAM, IPN, UAM, BUAP, UDG y más ya se titularon con nosotros. 98% de índice de aprobación.</p>
+            <h3>+3,000 Estudiantes Asesorados</h3>
+            <p>Más de 3,000 estudiantes de la UNAM, IPN, UAM, BUAP, UDG y más han avanzado en su tesis con nuestro acompañamiento.</p>
           </div>
           <div className="landing-feature-card">
             <FaClock className="feature-icon" />
-            <h3>Entrega en 3-4 Semanas</h3>
-            <p>Recibe tu tesis completa en tiempo récord. Incluimos avances parciales y correcciones ilimitadas hasta la aprobación.</p>
+            <h3>Acompañamiento por Etapas</h3>
+            <p>Avanzas por capítulos con retroalimentación experta y revisiones en cada etapa, a tu ritmo y con un plan claro.</p>
           </div>
           <div className="landing-feature-card">
             <FaFileAlt className="feature-icon" />
@@ -186,84 +165,84 @@ function ComprarTesis() {
 
       {/* CÓMO FUNCIONA */}
       <section className="landing-section landing-section-alt" id="como-funciona">
-        <h2>¿Cómo funciona comprar tu tesis?</h2>
+        <h2>¿Cómo funciona la asesoría de tu tesis?</h2>
         <div className="landing-steps">
           <div className="landing-step">
             <div className="step-number">1</div>
             <h3>Cotiza gratis</h3>
-            <p>Escríbenos por WhatsApp con los datos de tu tesis: carrera, nivel, número de páginas y fecha de entrega. Te enviamos cotización en minutos.</p>
+            <p>Escríbenos por WhatsApp con los datos de tu tesis: carrera, nivel, en qué punto vas y fecha objetivo. Te enviamos una propuesta en minutos.</p>
           </div>
           <div className="landing-step">
             <div className="step-number">2</div>
-            <h3>Recibe tu propuesta</h3>
-            <p>Te asignamos un asesor especializado en tu área. Recibes una propuesta personalizada con alcance, precio y esquema de pago flexible.</p>
+            <h3>Recibe tu plan de asesoría</h3>
+            <p>Te asignamos un asesor especializado en tu área. Recibes un plan personalizado con alcance, precio y esquema de pago flexible.</p>
           </div>
           <div className="landing-step">
             <div className="step-number">3</div>
-            <h3>Desarrollo y avances</h3>
-            <p>Tu investigador elabora la tesis con avances semanales. Puedes revisar y solicitar ajustes en cada etapa del proceso.</p>
+            <h3>Avanzas con acompañamiento</h3>
+            <p>Trabajas tu tesis capítulo por capítulo. Tu asesor te guía en la redacción, revisa tus avances y te da retroalimentación en cada etapa.</p>
           </div>
           <div className="landing-step">
             <div className="step-number">4</div>
-            <h3>Entrega y aprobación</h3>
-            <p>Recibes tu tesis completa con reporte Turnitin y certificado anti-IA. Incluimos correcciones de sinodales hasta la aprobación final.</p>
+            <h3>Preparas tu titulación</h3>
+            <p>Pulimos tu borrador contigo y te ayudamos a atender las observaciones de tus sinodales, para que llegues seguro a tu examen.</p>
           </div>
         </div>
         <div className="landing-cta-center">
           <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary" onClick={() => handleWAClick('comprar_como_funciona')} data-track-cta="comprar_como_funciona" data-track-label="Quiero Cotizar Mi Tesis">
-            <FaWhatsapp /> Quiero Cotizar Mi Tesis
+            <FaWhatsapp /> Quiero Asesoría para Mi Tesis
           </a>
         </div>
       </section>
 
       {/* PRECIOS */}
       <section className="landing-section" id="precios">
-        <h2>¿Cuánto cuesta comprar una tesis en México?</h2>
+        <h2>¿Cuánto cuesta la asesoría de tesis en México?</h2>
         <p className="landing-section-intro">
-          El precio depende del nivel académico, número de páginas y tiempo de entrega.
-          Ofrecemos los precios más competitivos del mercado con la mejor calidad.
+          El precio depende del nivel académico, el área y el alcance del acompañamiento.
+          Ofrecemos programas de asesoría claros y con planes de pago flexibles.
         </p>
         <div className="landing-pricing-grid">
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
-            <h3>Tesis de Licenciatura</h3>
-            <div className="pricing-price">Desde <strong>$110/pág</strong></div>
-            <div className="pricing-ref">~$5,500 MXN (50 págs)</div>
+            <h3>Asesoría de Licenciatura</h3>
+            <div className="pricing-price">Desde <strong>$5,500 MXN</strong></div>
+            <div className="pricing-ref">por programa de asesoría</div>
             <ul>
-              <li>50-120 páginas</li>
-              <li>Entrega: 3-4 semanas</li>
-              <li>Incluye Turnitin + Anti-IA</li>
-              <li>Correcciones de sinodales</li>
-              <li>Áreas salud/exactas: $150/pág</li>
+              <li>Acompañamiento por etapas</li>
+              <li>Guía metodológica y de redacción</li>
+              <li>Revisión de tu borrador</li>
+              <li>Apoyo con observaciones de sinodales</li>
+              <li>Áreas salud/exactas: costo mayor</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('comprar_pricing_licenciatura')} data-track-cta="comprar_pricing_licenciatura" data-track-label="Cotizar Licenciatura">Cotizar Licenciatura</a>
           </div>
           <div className="landing-pricing-card landing-pricing-featured">
             <FaGraduationCap className="pricing-icon" />
             <div className="pricing-badge">Más Popular</div>
-            <h3>Tesis de Maestría</h3>
-            <div className="pricing-price">Desde <strong>$160/pág</strong></div>
-            <div className="pricing-ref">~$12,800 MXN (80 págs)</div>
+            <h3>Asesoría de Maestría</h3>
+            <div className="pricing-price">Desde <strong>$12,800 MXN</strong></div>
+            <div className="pricing-ref">por programa de asesoría</div>
             <ul>
-              <li>80-150 páginas</li>
-              <li>Entrega: 4-6 semanas</li>
-              <li>Investigador con doctorado</li>
-              <li>Incluye Turnitin + Anti-IA</li>
-              <li>Áreas salud/exactas: $200/pág</li>
+              <li>Acompañamiento por etapas</li>
+              <li>Asesor con doctorado</li>
+              <li>Guía metodológica y de redacción</li>
+              <li>Revisión de tu borrador</li>
+              <li>Áreas salud/exactas: costo mayor</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('comprar_pricing_maestria')} data-track-cta="comprar_pricing_maestria" data-track-label="Cotizar Maestría">Cotizar Maestría</a>
           </div>
           <div className="landing-pricing-card">
             <FaGraduationCap className="pricing-icon" />
-            <h3>Tesis de Doctorado</h3>
-            <div className="pricing-price">Desde <strong>$210/pág</strong></div>
-            <div className="pricing-ref">~$25,200 MXN (120 págs)</div>
+            <h3>Asesoría de Doctorado</h3>
+            <div className="pricing-price">Desde <strong>$25,200 MXN</strong></div>
+            <div className="pricing-ref">por programa de asesoría</div>
             <ul>
-              <li>120-250 páginas</li>
-              <li>Entrega: 6-8 semanas</li>
-              <li>Investigador con doctorado</li>
-              <li>Publicación indexada opcional</li>
-              <li>Áreas salud/exactas: $250/pág</li>
+              <li>Acompañamiento por etapas</li>
+              <li>Asesor con doctorado</li>
+              <li>Guía en investigación y redacción</li>
+              <li>Apoyo para publicación opcional</li>
+              <li>Áreas salud/exactas: costo mayor</li>
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-card" onClick={() => handleWAClick('comprar_pricing_doctorado')} data-track-cta="comprar_pricing_doctorado" data-track-label="Cotizar Doctorado">Cotizar Doctorado</a>
           </div>
@@ -272,7 +251,7 @@ function ComprarTesis() {
 
       {/* TESTIMONIOS */}
       <section className="landing-section landing-section-alt" id="testimonios">
-        <h2>Lo que dicen nuestros estudiantes titulados</h2>
+        <h2>Estudiantes que avanzaron su tesis con nuestra asesoría</h2>
         <div className="landing-testimonials-grid">
           {testimonials.map((t, i) => (
             <div className="landing-testimonial-card" key={i}>
@@ -292,7 +271,7 @@ function ComprarTesis() {
 
       {/* FAQ */}
       <section className="landing-section" id="preguntas-frecuentes">
-        <h2>Preguntas frecuentes sobre comprar tesis en México</h2>
+        <h2>Preguntas frecuentes sobre asesoría de tesis en México</h2>
         <div className="landing-faq-list">
           {faqSchema.mainEntity.map((q, i) => (
             <details className="landing-faq-item" key={i} open={i === 0}>
@@ -305,8 +284,8 @@ function ComprarTesis() {
 
       {/* CTA FINAL */}
       <section className="landing-final-cta">
-        <h2>Titúlate hoy — Cotiza tu tesis gratis</h2>
-        <p>Únete a los más de 3,000 estudiantes que ya se titularon con Tesipedia. Cotización sin compromiso en menos de 5 minutos.</p>
+        <h2>Avanza tu tesis hoy — Cotiza tu asesoría gratis</h2>
+        <p>Únete a los más de 3,000 estudiantes que ya avanzaron su tesis con la asesoría de Tesipedia. Cotización sin compromiso en menos de 5 minutos.</p>
         <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="landing-cta-primary landing-cta-big" onClick={() => handleWAClick('comprar_final_cta')} data-track-cta="comprar_final_cta" data-track-label="Cotizar Mi Tesis por WhatsApp">
           <FaWhatsapp /> Cotizar Mi Tesis por WhatsApp
         </a>
@@ -318,9 +297,9 @@ function ComprarTesis() {
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
           <h3 style={{ fontSize: '1.1rem', color: '#1e3a5f', marginBottom: '1rem' }}>Servicios relacionados</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-            <Link to="/tesis-licenciatura" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Tesis de Licenciatura desde $110/pág</Link>
-            <Link to="/tesis-maestria" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Tesis de Maestría desde $160/pág</Link>
-            <Link to="/tesis-doctoral" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Tesis Doctoral desde $210/pág</Link>
+            <Link to="/tesis-licenciatura" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Asesoría de Tesis de Licenciatura</Link>
+            <Link to="/tesis-maestria" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Asesoría de Tesis de Maestría</Link>
+            <Link to="/tesis-doctoral" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Asesoría de Tesis Doctoral</Link>
             <Link to="/preguntas-frecuentes" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Preguntas Frecuentes</Link>
             <Link to="/blog" style={{ padding: '0.5rem 1rem', background: '#f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#2563eb', fontWeight: '500', fontSize: '0.9rem' }}>Blog Académico</Link>
           </div>

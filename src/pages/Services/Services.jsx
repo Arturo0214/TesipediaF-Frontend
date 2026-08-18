@@ -72,38 +72,38 @@ function Services() {
   const services = [
     {
       icon: <FaGraduationCap />,
-      title: 'Desarrollo de Tesis',
-      description: 'Garantizamos el desarrollo completo de tu tesis con una metodología profesional y un 100% de aprobación.',
+      title: 'Asesoría Integral de Tesis',
+      description: 'Te asesoramos en el desarrollo completo de tu tesis con una metodología profesional para que la termines tú, capítulo por capítulo.',
       features: [
         {
-          title: 'Desarrollo completo desde cero',
-          description: 'Iniciamos tu proyecto desde la conceptualización hasta la entrega final, guiándote en cada paso del proceso con metodologías probadas y efectivas.',
+          title: 'Acompañamiento desde cero',
+          description: 'Te guiamos en tu proyecto desde la conceptualización hasta la revisión final, acompañándote en cada paso del proceso con metodologías probadas y efectivas para que lo desarrolles tú.',
           benefits: ['Ahorro de tiempo', 'Estructura profesional', 'Guía experta']
         },
         {
-          title: 'Escáner anti-plagio',
-          description: 'Verificamos la originalidad de tu tesis utilizando Turnitin®, el software líder mundial en detección de plagio, garantizando un trabajo 100% único y validado.',
-          benefits: ['Reporte oficial Turnitin', 'Verificación exhaustiva', 'Garantía de originalidad']
+          title: 'Verificación de originalidad',
+          description: 'Revisamos la originalidad de tu tesis utilizando Turnitin®, el software líder mundial en detección de plagio, para que identifiques y corrijas cualquier cita mal referenciada.',
+          benefits: ['Reporte oficial Turnitin', 'Verificación exhaustiva', 'Trabajo original']
         },
         {
-          title: 'Escáner Anti-IA',
-          description: 'Utilizamos Turnitin® AI Writing Detection para asegurar que el contenido sea genuinamente humano, cumpliendo con los estándares académicos más exigentes.',
+          title: 'Revisión de escritura humana',
+          description: 'Utilizamos Turnitin® AI Writing Detection para ayudarte a comprobar que tu contenido, redactado por ti, cumple con los estándares académicos más exigentes.',
           benefits: ['Detección Turnitin AI', 'Contenido auténtico', 'Cumplimiento académico']
         },
         {
-          title: 'Entrega en 3 semanas',
-          description: 'Nos comprometemos a entregar tu tesis completa en un plazo de 3 semanas, manteniendo la más alta calidad en cada capítulo.',
-          benefits: ['Entrega rápida', 'Calidad garantizada', 'Tiempo optimizado']
+          title: 'Ritmo de avance en 3 semanas',
+          description: 'Organizamos el acompañamiento para que avances de forma consistente en un plazo aproximado de 3 semanas, cuidando la calidad de cada capítulo.',
+          benefits: ['Avance ágil', 'Calidad cuidada', 'Tiempo optimizado']
         },
         {
           title: 'Metodología científica rigurosa',
-          description: 'Aplicamos métodos de investigación validados académicamente, asegurando la calidad y rigor científico de tu trabajo.',
+          description: 'Te orientamos en métodos de investigación validados académicamente, cuidando la calidad y el rigor científico de tu trabajo.',
           benefits: ['Validez académica', 'Fundamentación sólida', 'Resultados confiables']
         },
         {
-          title: '100% de garantía de aprobación',
-          description: 'Nuestro compromiso es tu éxito. Trabajamos hasta asegurar la aprobación de tu tesis con los más altos estándares.',
-          benefits: ['100% de éxito', 'Revisiones ilimitadas', 'Soporte continuo']
+          title: 'Acompañamiento hasta la revisión final',
+          description: 'Nuestro compromiso es apoyarte. Te acompañamos con revisiones y retroalimentación para que llegues con un trabajo sólido y bien preparado.',
+          benefits: ['Apoyo constante', 'Revisiones incluidas', 'Soporte continuo']
         },
         {
           title: 'Seguimiento personalizado',
@@ -112,7 +112,7 @@ function Services() {
         },
         {
           title: 'Cumplimiento de normativas institucionales',
-          description: 'Nos adaptamos a los requerimientos específicos de tu institución, asegurando el cumplimiento de todas las normas.',
+          description: 'Te orientamos según los requerimientos específicos de tu institución, cuidando el cumplimiento de todas las normas.',
           benefits: ['Formato correcto', 'Referencias precisas', 'Documentación completa']
         },
         {
@@ -164,7 +164,7 @@ function Services() {
     {
       icon: <FaClipboardCheck />,
       title: 'Preparación para Examen Profesional',
-      description: 'Asesoría especializada para tu examen profesional, garantizando tu éxito.',
+      description: 'Asesoría especializada para preparar tu examen profesional con confianza.',
       features: [
         {
           title: 'Preparación integral del tema',
@@ -242,19 +242,19 @@ function Services() {
   const servicePageSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "serviceType": "Asesoría y Desarrollo de Tesis Profesional",
+    "serviceType": "Asesoría y Acompañamiento de Tesis Profesional",
     "provider": {
       "@type": "ProfessionalService",
       "name": "Tesipedia",
       "url": "https://tesipedia.com"
     },
     "areaServed": { "@type": "Country", "name": "México" },
-    "description": "Servicios profesionales de asesoría, elaboración y corrección de tesis de licenciatura, maestría y doctorado en México. Incluye antiplagio Turnitin y detección anti-IA.",
+    "description": "Servicios profesionales de asesoría, acompañamiento y corrección de tesis de licenciatura, maestría y doctorado en México, para que el estudiante desarrolle su propio trabajo. Incluye verificación de originalidad con Turnitin y revisión de escritura humana.",
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "Servicios de Tesis",
+      "name": "Servicios de Asesoría de Tesis",
       "itemListElement": [
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Elaboración Completa de Tesis" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Asesoría Integral en la Elaboración de Tesis" } },
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Asesoría y Acompañamiento de Tesis" } },
         { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Corrección y Revisión de Tesis" } }
       ]
@@ -273,11 +273,11 @@ function Services() {
   return (
     <>
     <Helmet>
-      <title>Servicios de Tesis Profesional en México | Asesoría, Elaboración y Corrección — Tesipedia</title>
-      <meta name="description" content="Servicios profesionales de asesoría de tesis en México: elaboración completa, acompañamiento personalizado y corrección de tesis de licenciatura, maestría y doctorado. Incluye antiplagio Turnitin y detección anti-IA. +3,000 titulados." />
-      <meta name="keywords" content="servicios de tesis, asesoría de tesis México, elaboración de tesis, corrección de tesis, ayuda con tesis profesional, tesis licenciatura, tesis maestría, tesis doctorado, servicio de tesis CDMX, asesor de tesis" />
-      <meta property="og:title" content="Servicios de Tesis Profesional — Tesipedia | #1 en México" />
-      <meta property="og:description" content="Asesoría, elaboración y corrección de tesis profesional. Más de 3,000 estudiantes titulados confían en Tesipedia." />
+      <title>Servicios de Asesoría de Tesis en México | Asesoría, Acompañamiento y Corrección — Tesipedia</title>
+      <meta name="description" content="Servicios profesionales de asesoría de tesis en México: asesoría integral en la elaboración, acompañamiento personalizado y corrección de tesis de licenciatura, maestría y doctorado. Incluye verificación de originalidad con Turnitin. +3,000 estudiantes asesorados." />
+      <meta name="keywords" content="servicios de tesis, asesoría de tesis México, asesoría en la elaboración de tesis, corrección de tesis, ayuda con tesis profesional, tesis licenciatura, tesis maestría, tesis doctorado, asesoría de tesis CDMX, asesor de tesis" />
+      <meta property="og:title" content="Servicios de Asesoría de Tesis Profesional — Tesipedia | #1 en México" />
+      <meta property="og:description" content="Asesoría, acompañamiento y corrección de tesis profesional. Más de 3,000 estudiantes asesorados confían en Tesipedia." />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://tesipedia.com/servicios" />
       <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />

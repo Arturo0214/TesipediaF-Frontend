@@ -40,92 +40,92 @@ const faqCategories = [
 const faqItems = [
   {
     category: 'servicio',
-    question: '¿Cómo funciona el servicio para hacer mi tesis?',
-    answer: 'Nuestro servicio para hacer tu tesis es un proceso personalizado que comienza con una consulta inicial gratuita para entender tus necesidades específicas. Asignamos un asesor especializado en tu área de estudio quien te guiará durante todo el proceso, desde la conceptualización hasta la entrega final. Ofrecemos 3 modalidades: Desarrollo Completo (te hacemos toda tu tesis), Acompañamiento (trabajo conjunto) y Corrección (revisión de tu trabajo existente). Cada modalidad incluye escáner antiplagio Turnitin y detección anti-IA.',
+    question: '¿Cómo funciona la asesoría para hacer mi tesis?',
+    answer: 'Nuestra asesoría para hacer tu tesis es un proceso personalizado que comienza con una consulta inicial gratuita para entender tus necesidades específicas. Asignamos un asesor especializado en tu área de estudio quien te guiará durante todo el proceso, desde la conceptualización hasta la revisión final de tu trabajo. Ofrecemos 3 modalidades: Asesoría Integral (te acompañamos en cada capítulo mientras tú lo desarrollas), Acompañamiento (trabajo conjunto sobre tus avances) y Corrección (revisión y mejora de tu borrador existente). Cada modalidad incluye revisión de originalidad y de estilo para que tu trabajo sea sólido y propio.',
     icon: <FaFileAlt />,
   },
   {
     category: 'servicio',
-    question: '¿Qué tipos de tesis y trabajos académicos hacen?',
-    answer: 'Desarrollamos todo tipo de trabajos académicos: tesis de licenciatura, tesis de maestría, tesis de doctorado, tesinas, artículos científicos, ensayos académicos, protocolos de investigación, trabajos de titulación y más. Cubrimos todas las áreas del conocimiento incluyendo ciencias sociales, ingenierías, ciencias de la salud, derecho, administración, educación, psicología, entre otras. Contamos con más de 50 asesores especializados en diferentes disciplinas.',
+    question: '¿Para qué tipos de tesis y trabajos académicos dan asesoría?',
+    answer: 'Asesoramos en todo tipo de trabajos académicos: tesis de licenciatura, tesis de maestría, tesis de doctorado, tesinas, artículos científicos, ensayos académicos, protocolos de investigación, trabajos de titulación y más. Cubrimos todas las áreas del conocimiento incluyendo ciencias sociales, ingenierías, ciencias de la salud, derecho, administración, educación, psicología, entre otras. Contamos con más de 50 asesores especializados en diferentes disciplinas que te guían para que desarrolles tu propio trabajo.',
     icon: <FaFileAlt />,
   },
   {
     category: 'tiempos',
-    question: '¿Cuánto tiempo tardan en hacer una tesis?',
-    answer: 'El tiempo estándar de entrega es de 3 a 4 semanas para una tesis completa de licenciatura. Para tesis de maestría y doctorado, el plazo puede ser de 4 a 8 semanas dependiendo de la complejidad del proyecto y los requisitos específicos de tu institución. También ofrecemos servicios express para casos urgentes con entrega acelerada. Durante todo el proceso tienes seguimiento en tiempo real del avance de tu proyecto.',
+    question: '¿Cuánto tiempo toma la asesoría de una tesis?',
+    answer: 'El tiempo estándar de acompañamiento es de 3 a 4 semanas para una tesis de licenciatura. Para tesis de maestría y doctorado, el plazo puede ser de 4 a 8 semanas dependiendo de la complejidad del proyecto y los requisitos específicos de tu institución. También ofrecemos asesoría express para casos urgentes con ritmo acelerado. Durante todo el proceso tienes seguimiento en tiempo real del avance de tu proyecto.',
     icon: <FaClock />,
   },
   {
     category: 'calidad',
-    question: '¿Cómo garantizan que mi tesis sea original y sin plagio?',
-    answer: 'Cada tesis pasa por un riguroso proceso de verificación. Utilizamos Turnitin®, el software antiplagio más reconocido a nivel mundial y usado por las principales universidades de México (UNAM, IPN, ITESM, UAM). Además, aplicamos escáneres anti-IA para garantizar que el contenido sea 100% humano. Nuestro equipo de investigadores desarrolla cada proyecto desde cero, asegurando contenido único y personalizado. Te entregamos el reporte de Turnitin como respaldo.',
+    question: '¿Cómo se asegura que mi tesis sea original y esté bien escrita?',
+    answer: 'Tu tesis la escribes tú con nuestra guía, por lo que el contenido es original desde su origen. Como apoyo, revisamos la redacción y realizamos verificaciones de originalidad con herramientas como Turnitin®, usadas por las principales universidades de México (UNAM, IPN, ITESM, UAM), para que identifiques y corrijas cualquier cita mal referenciada. Nuestros asesores te orientan en la argumentación, la estructura y la correcta citación para que entregues un trabajo sólido, propio y bien fundamentado.',
     icon: <FaShieldAlt />,
   },
   {
     category: 'pagos',
-    question: '¿Cuánto cuesta que me hagan una tesis en México?',
-    answer: 'El costo de una tesis varía según el tipo de trabajo, nivel académico, número de páginas y modalidad elegida. Para tesis de licenciatura, los precios van desde $110 MXN por página. Para maestría desde $160/página y doctorado desde $210/página. Ofrecemos descuento del 10% por pago en efectivo. Aceptamos tarjetas de crédito/débito, PayPal, transferencias bancarias y pagos en OXXO. También manejamos planes de pago flexibles.',
+    question: '¿Cuánto cuesta la asesoría de una tesis en México?',
+    answer: 'El costo de la asesoría varía según el tipo de trabajo, nivel académico, alcance del acompañamiento y modalidad elegida. Para tesis de licenciatura, los precios de asesoría inician desde $110 MXN por página de trabajo acompañado. Para maestría desde $160 y doctorado desde $210. Ofrecemos descuento del 10% por pago en efectivo. Aceptamos tarjetas de crédito/débito, PayPal, transferencias bancarias y pagos en OXXO. También manejamos planes de pago flexibles.',
     icon: <FaCreditCard />,
   },
   {
     category: 'calidad',
-    question: '¿Ofrecen garantía de aprobación de la tesis?',
-    answer: 'Sí, ofrecemos garantía de aprobación. Si tu trabajo requiere modificaciones después de la revisión de fondo y estilo incluida en el paquete, las realizamos para obtener la aprobación de tu asesor y sinodales. Nuestro índice de aprobación es del 98% con más de 3,000 estudiantes titulados exitosamente. Te acompañamos hasta que obtengas tu título, incluyendo preparación para tu defensa de tesis.',
+    question: '¿Qué incluye el acompañamiento hasta la revisión de tu asesor y sinodales?',
+    answer: 'Te acompañamos durante todo el proceso de tu tesis, incluida la revisión de fondo y estilo. Si tu asesor o sinodales piden ajustes dentro del alcance contratado, te guiamos para realizarlos y fortalecer tu trabajo. Hemos acompañado a más de 3,000 estudiantes en su proceso de titulación. Nuestro apoyo es metodológico y de revisión; la aprobación depende de tu institución, por lo que trabajamos para que llegues con un trabajo sólido y bien preparado, incluyendo la preparación para tu defensa.',
     icon: <FaCheckCircle />,
   },
   {
     category: 'servicio',
-    question: '¿Cuántas correcciones incluye mi paquete de tesis?',
-    answer: 'La Modalidad 1 (Desarrollo Completo) incluye correcciones de fondo y estilo del asesor y sinodales, más una asesoría 1:1 al entregarse la versión preliminar. La Modalidad 2 (Acompañamiento) incluye acompañamiento continuo con ajustes durante todo el proceso. La modalidad de Corrección incluye una revisión integral de tu trabajo existente. Correcciones adicionales fuera del alcance original pueden tener un costo extra según la magnitud del cambio.',
+    question: '¿Cuántas revisiones incluye mi programa de asesoría?',
+    answer: 'La Modalidad 1 (Asesoría Integral) incluye revisiones de fondo y estilo del asesor y sinodales, más una asesoría 1:1 al llegar a la versión preliminar. La Modalidad 2 (Acompañamiento) incluye acompañamiento continuo con ajustes durante todo el proceso. La modalidad de Corrección incluye una revisión integral de tu borrador existente. Las revisiones adicionales fuera del alcance original pueden tener un costo extra según la magnitud del cambio.',
     icon: <FaRedo />,
   },
   {
     category: 'tiempos',
     question: '¿Brindan atención los fines de semana?',
-    answer: 'Nuestro horario de atención es de lunes a viernes de 9:00 AM a 6:00 PM. Los sábados atendemos de 9:00 AM a 2:00 PM. Si envías una solicitud durante el fin de semana o un día festivo, será atendida el siguiente día hábil en orden de llegada. Por WhatsApp puedes escribirnos las 24 horas y te respondemos en menos de 5 minutos durante horario de atención. Te garantizamos respuesta oportuna y seguimiento dedicado.',
+    answer: 'Nuestro horario de atención es de lunes a viernes de 9:00 AM a 6:00 PM. Los sábados atendemos de 9:00 AM a 2:00 PM. Si envías una solicitud durante el fin de semana o un día festivo, será atendida el siguiente día hábil en orden de llegada. Por WhatsApp puedes escribirnos las 24 horas y te respondemos en menos de 5 minutos durante horario de atención. Nos esforzamos por darte una respuesta oportuna y un seguimiento dedicado.',
     icon: <FaClock />,
   },
   {
     category: 'servicio',
-    question: '¿Es confidencial el servicio de tesis?',
-    answer: 'Absolutamente. La confidencialidad es uno de nuestros pilares fundamentales. No compartimos información de ningún cliente con terceros. Tu identidad, datos personales y el contenido de tu tesis están protegidos bajo nuestra política de privacidad. No publicamos ni reutilizamos ningún trabajo. Cada proyecto es único y exclusivo para cada estudiante.',
+    question: '¿Es confidencial la asesoría de tesis?',
+    answer: 'Absolutamente. La confidencialidad es uno de nuestros pilares fundamentales. No compartimos información de ningún estudiante con terceros. Tu identidad, datos personales y el contenido de tu tesis están protegidos bajo nuestra política de privacidad. No publicamos ni reutilizamos ningún trabajo. Cada asesoría es única y exclusiva para cada estudiante.',
     icon: <FaShieldAlt />,
   },
   {
     category: 'pagos',
-    question: '¿Puedo pagar mi tesis en parcialidades o a meses?',
+    question: '¿Puedo pagar mi asesoría de tesis en parcialidades o a meses?',
     answer: 'Sí, ofrecemos planes de pago flexibles adaptados a tus necesidades. Puedes hacer un anticipo para iniciar y liquidar conforme avanza tu proyecto. Aceptamos tarjetas de crédito y débito (con opción de meses sin intereses según tu banco), PayPal, transferencias bancarias SPEI, y pagos en efectivo en OXXO. Además, ofrecemos 10% de descuento por pago completo en efectivo.',
     icon: <FaCreditCard />,
   },
   {
     category: 'servicio',
-    question: '¿Dónde puedo comprar mi tesis en México de forma segura?',
-    answer: 'Tesipedia es el servicio más confiable para comprar tu tesis en México. Con más de 3,000 estudiantes titulados y 98% de aprobación, ofrecemos tesis 100% originales desde $110 MXN por página, verificadas con Turnitin y escáner anti-IA. Cada tesis se elabora desde cero por investigadores con maestría y doctorado. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517. Operamos de forma legal como servicio de asesoría académica profesional.',
+    question: '¿Buscas quién te haga la tesis? Mejor asesórate y termínala tú',
+    answer: 'Si estás buscando comprar tu tesis, considera una opción más segura: en Tesipedia te asesoramos para que la termines tú mismo. Con más de 3,000 estudiantes asesorados, te acompañamos para que desarrolles un trabajo original y propio desde $110 MXN por página de acompañamiento, con revisión de originalidad y de estilo. Nuestros asesores con maestría y doctorado te guían en cada etapa. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517. Operamos de forma legal como servicio de asesoría académica profesional.',
     icon: <FaFileAlt />,
   },
   {
     category: 'servicio',
-    question: '¿Hacen tesis para cualquier universidad de México?',
-    answer: 'Sí, en Tesipedia hacemos tesis para estudiantes de cualquier universidad pública o privada de México. Hemos ayudado a titularse a estudiantes de la UNAM, IPN, ITESM (Tec de Monterrey), UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL, y muchas más. Conocemos los lineamientos y formatos específicos de cada institución para que tu tesis cumpla al 100% con los requisitos.',
+    question: '¿Dan asesoría de tesis para cualquier universidad de México?',
+    answer: 'Sí, en Tesipedia asesoramos a estudiantes de cualquier universidad pública o privada de México. Hemos acompañado en su titulación a estudiantes de la UNAM, IPN, ITESM (Tec de Monterrey), UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL, y muchas más. Conocemos los lineamientos y formatos específicos de cada institución para que tu tesis cumpla con los requisitos.',
     icon: <FaGraduationCap />,
   },
   {
     category: 'servicio',
-    question: '¿Pueden hacer mi tesis aunque ya tenga avances?',
+    question: '¿Pueden asesorarme aunque ya tenga avances de mi tesis?',
     answer: 'Por supuesto. Si ya tienes avances en tu tesis, podemos continuar desde donde te quedaste. Ofrecemos la modalidad de Acompañamiento donde trabajamos contigo sobre tus avances existentes, y también la modalidad de Corrección si solo necesitas una revisión profesional. Evaluamos tu trabajo actual de forma gratuita y te damos un plan personalizado para terminar tu tesis lo más rápido posible.',
     icon: <FaFileAlt />,
   },
   {
     category: 'calidad',
-    question: '¿La tesis pasa los detectores de IA de las universidades?',
-    answer: 'Sí, todas las tesis que hacemos en Tesipedia son escritas 100% por investigadores humanos. Además, antes de entregar tu tesis la verificamos con los escáneres anti-IA más exigentes del mercado para garantizar que no sea detectada como contenido artificial. En 2026, las universidades mexicanas están implementando detectores de IA cada vez más sofisticados, y nuestras tesis pasan todas estas verificaciones sin problema.',
+    question: '¿El trabajo es original y redactado por ti con guía humana?',
+    answer: 'Sí. En Tesipedia el trabajo lo redactas tú con la guía de investigadores humanos, sin contenido generado por IA, por lo que es original desde su origen. Nuestros asesores te orientan en la argumentación y la redacción, y realizamos verificaciones de originalidad para que revises la calidad y autenticidad de tu propio contenido.',
     icon: <FaShieldAlt />,
   },
   {
     category: 'tiempos',
-    question: '¿Pueden hacer mi tesis urgente o express?',
-    answer: 'Sí, ofrecemos servicio express para tesis urgentes con entregas aceleradas. Si necesitas tu tesis en menos de 3 semanas, contáctanos para evaluar tu caso. El costo puede variar según la urgencia y complejidad, pero garantizamos la misma calidad y rigurosidad que en nuestro servicio estándar. Muchos estudiantes nos contactan con plazos ajustados y hemos logrado entregar exitosamente en cada caso.',
+    question: '¿Pueden asesorarme con mi tesis urgente o express?',
+    answer: 'Sí, ofrecemos asesoría express para tesis urgentes con un ritmo de acompañamiento acelerado. Si necesitas avanzar en menos de 3 semanas, contáctanos para evaluar tu caso. El costo puede variar según la urgencia y complejidad, pero mantenemos la misma calidad y rigurosidad que en nuestra asesoría estándar. Muchos estudiantes nos contactan con plazos ajustados y los hemos acompañado con buenos resultados.',
     icon: <FaClock />,
   },
 ];
@@ -175,10 +175,10 @@ function FAQ() {
     <div className="fq-page">
       <Helmet>
         <title>Preguntas Frecuentes | ¿Cuánto cuesta hacer una tesis? ¿Cómo comprar tesis? | Tesipedia</title>
-        <meta name="description" content="Respuestas a las preguntas más comunes: ¿Cuánto cuesta hacer una tesis en México? ¿Dónde comprar tesis? ¿Cuánto tardan? ¿Es original? Te hacemos tu tesis con garantía de aprobación." />
-        <meta name="keywords" content="hacer tesis, comprar tesis, cuánto cuesta hacer una tesis, cuánto cuesta una tesis México, dónde comprar tesis, quién me hace mi tesis, hacer tesis rápido, tesis sin plagio, garantía aprobación tesis, pagar tesis a meses, Tesipedia FAQ" />
-        <meta property="og:title" content="Preguntas Frecuentes | ¿Cuánto cuesta una tesis? | Tesipedia" />
-        <meta property="og:description" content="Todas las respuestas sobre nuestro servicio de tesis: precios, tiempos, calidad y garantías." />
+        <meta name="description" content="Respuestas a las preguntas más comunes: ¿Cuánto cuesta la asesoría de una tesis en México? ¿Cómo funciona? ¿Cuánto tarda? ¿El trabajo es original? Te asesoramos para que hagas y termines tu propia tesis." />
+        <meta name="keywords" content="hacer tesis, comprar tesis, asesoría de tesis, cuánto cuesta hacer una tesis, cuánto cuesta una tesis México, quién me asesora con mi tesis, hacer tesis rápido, revisión de originalidad tesis, pagar asesoría de tesis a meses, Tesipedia FAQ" />
+        <meta property="og:title" content="Preguntas Frecuentes | ¿Cuánto cuesta la asesoría de una tesis? | Tesipedia" />
+        <meta property="og:description" content="Todas las respuestas sobre nuestra asesoría de tesis: precios, tiempos, calidad y acompañamiento." />
         <meta property="og:url" content="https://tesipedia.com/preguntas-frecuentes" />
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://tesipedia.com/preguntas-frecuentes" />
@@ -189,7 +189,7 @@ function FAQ() {
       </Helmet>
 
       {/* ── SEO Hidden H1 ── */}
-      <h1 className="visually-hidden">Preguntas Frecuentes sobre Servicio de Tesis Profesional en México - Tesipedia</h1>
+      <h1 className="visually-hidden">Preguntas Frecuentes sobre Asesoría de Tesis Profesional en México - Tesipedia</h1>
 
       {/* ── Main Content ── */}
       <Container className="fq-main">

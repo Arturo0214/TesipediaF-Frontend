@@ -275,7 +275,7 @@ function BlogPost() {
             <div className="bp-cta-banner">
               <div className="bp-cta-banner-content">
                 <h3>¿Necesitas ayuda con tu tesis?</h3>
-                <p>En Tesipedia te hacemos tu tesis 100% original. +3,000 estudiantes titulados en México.</p>
+                <p>En Tesipedia te asesoramos para que termines tu tesis. Más de 3,000 estudiantes asesorados en México.</p>
               </div>
               <div className="bp-cta-banner-actions">
                 <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="bp-cta-wa">

@@ -153,11 +153,11 @@ export const blogPosts = [
 
 El costo de una tesis en México varía enormemente — desde los $5,000 MXN hasta más de $60,000 MXN. La diferencia depende de factores clave como el nivel académico, la complejidad del tema, la extensión del documento y la urgencia de entrega.
 
-En el mercado actual hay tres tipos de servicios: los económicos (riesgo alto de plagio o IA), los intermedios (calidad variable), y los profesionales como Tesipedia (calidad garantizada con Turnitin y anti-IA).
+En el mercado actual hay tres tipos de servicios: los económicos (calidad muy variable), los intermedios, y los profesionales de asesoría académica como Tesipedia, donde te acompañamos a lo largo de todo tu proyecto.
 
-💰 Precios por nivel académico — Tesipedia 2026
+💰 Precios de referencia por nivel académico — Asesoría 2026
 
-Para que tengas una referencia concreta, estos son nuestros rangos de precios actualizados:
+Para que tengas una referencia concreta, estos son rangos orientativos de los programas de asesoría en el mercado:
 
 • Tesina o trabajo recepcional (40-60 páginas): Desde $6,000 MXN
 • Tesis de licenciatura (70-100 páginas): Desde $10,000 MXN
@@ -165,7 +165,7 @@ Para que tengas una referencia concreta, estos son nuestros rangos de precios ac
 • Tesis doctoral (150-250 páginas): Desde $30,000 MXN
 • Artículos científicos: Desde $8,000 MXN
 
-Estos precios incluyen todo: desarrollo desde cero, Turnitin, escáner anti-IA, correcciones y preparación para defensa.
+Un programa de asesoría integral suele incluir el acompañamiento desde la definición del tema, revisión de tus borradores, orientación metodológica, apoyo en las correcciones y preparación para tu defensa.
 
 📊 ¿Por qué varían tanto los precios?
 
@@ -184,9 +184,9 @@ En 2026, las universidades ya detectan IA y plagio con herramientas sofisticadas
 
 ✅ Formas de pago que aceptamos
 
-Aceptamos tarjetas (Visa, Mastercard, AMEX), transferencia SPEI, PayPal, OXXO y pagos en parcialidades. Si pagas de contado, te hacemos un descuento del 10%.
+Aceptamos tarjetas (Visa, Mastercard, AMEX), transferencia SPEI, PayPal, OXXO y pagos en parcialidades. Si pagas de contado, aplicamos un descuento del 10%.
 
-📝 Cotiza tu tesis gratis
+📝 Cotiza tu asesoría gratis
 
 Cada proyecto es único, así que la mejor forma de saber el precio exacto es cotizar directamente. Escríbenos por WhatsApp al +52 56 7007 1517 — te respondemos en minutos con un presupuesto detallado y sin compromiso.`
   },
@@ -222,19 +222,19 @@ Tip importante: cada facultad tiene su propia plantilla de portada. No uses una 
 
 Siendo realistas, el proceso completo desde que empiezas a escribir hasta tu examen profesional toma de 4 a 8 meses. El desarrollo de la tesis toma de 2 a 6 meses, la revisión y correcciones con tu director de 2 a 4 semanas, los trámites administrativos de 2 a 4 semanas, y la asignación de sinodales y programación de examen de 2 a 6 semanas.
 
-🚀 Cómo Tesipedia te ayuda con tu tesis UNAM
+🚀 Cómo Tesipedia te asesora con tu tesis UNAM
 
-Hemos trabajado con estudiantes de prácticamente todas las facultades de la UNAM: Derecho, Contaduría y Administración, Ciencias Políticas, Psicología, Filosofía y Letras, Ingeniería, FES Acatlán, FES Aragón, FES Iztacala, FES Cuautitlán y FES Zaragoza.
+Hemos acompañado a estudiantes de prácticamente todas las facultades de la UNAM: Derecho, Contaduría y Administración, Ciencias Políticas, Psicología, Filosofía y Letras, Ingeniería, FES Acatlán, FES Aragón, FES Iztacala, FES Cuautitlán y FES Zaragoza.
 
-Conocemos los lineamientos específicos de cada facultad. Te asignamos un asesor con experiencia en tu área que conoce exactamente qué espera tu comité. Desarrollamos tu tesis desde cero, pasamos todo por Turnitin y escáner anti-IA, e incluimos correcciones de sinodales sin costo extra.
+Conocemos los lineamientos específicos de cada facultad. Te asignamos un asesor con experiencia en tu área que conoce exactamente qué espera tu comité. Te guiamos desde la definición del tema, revisamos tus avances, te orientamos en la metodología y te acompañamos en las correcciones de sinodales, para que tú desarrolles tu propia tesis con seguridad.
 
-📊 Datos que nos respaldan
+📊 Nuestra experiencia
 
-Más de 500 de nuestros 3,000+ estudiantes titulados son de la UNAM. Nuestro índice de aprobación es del 98%.
+Hemos asesorado a más de 3,000 estudiantes en México, muchos de ellos de la UNAM.
 
-📝 ¿Necesitas ayuda con tu tesis UNAM?
+📝 ¿Necesitas asesoría con tu tesis UNAM?
 
-Cotiza gratis por WhatsApp al +52 56 7007 1517. Te decimos precio exacto, tiempo de entrega y te asignamos un asesor especialista en tu área.`
+Cotiza gratis por WhatsApp al +52 56 7007 1517. Te compartimos precio, tiempos y te asignamos un asesor especialista en tu área.`
   },
   {
     id: 10,
@@ -292,7 +292,7 @@ Muchas universidades mexicanas usan "APA con modificaciones". Por ejemplo, algun
 
 📝 ¿Necesitas ayuda con el formato de tu tesis?
 
-En Tesipedia todos nuestros trabajos se entregan en el formato que exige tu universidad. Escríbenos por WhatsApp al +52 56 7007 1517 para cotizar tu proyecto.`
+En Tesipedia te asesoramos para que tu tesis cumpla con el formato que exige tu universidad. Escríbenos por WhatsApp al +52 56 7007 1517 para cotizar tu asesoría.`
   },
   {
     id: 11,
@@ -338,7 +338,7 @@ Los más frecuentes son marcos teóricos demasiado cortos (menos de 20 páginas 
 
 📝 ¿Necesitas ayuda con tu marco teórico?
 
-Es el capítulo donde más estudiantes se atascan. En Tesipedia, nuestros asesores con maestría y doctorado construyen marcos teóricos sólidos con fuentes actualizadas. Cotiza gratis por WhatsApp al +52 56 7007 1517.`
+Es el capítulo donde más estudiantes se atascan. En Tesipedia, nuestros asesores con maestría y doctorado te orientan para que construyas un marco teórico sólido con fuentes actualizadas. Cotiza tu asesoría gratis por WhatsApp al +52 56 7007 1517.`
   },
   {
     id: 12,
@@ -380,11 +380,11 @@ Paso 10: Prepara tu defensa (3-5 días). Haz tu presentación, ensaya frente a a
 
 ⏰ Tiempo total realista: 6-8 semanas haciendo todo tú mismo
 
-🚀 La opción más rápida: Tesipedia
+🚀 Avanza más rápido con asesoría: Tesipedia
 
-Si quieres reducir ese tiempo a 3-4 semanas (o menos con servicio express), nosotros nos encargamos del desarrollo mientras tú te enfocas en lo que necesites. Más de 3,000 estudiantes ya se titularon con nuestra ayuda.
+Si quieres reducir ese tiempo, un asesor te ayuda a evitar el tiempo perdido: te da dirección clara desde el inicio, revisa tus avances sin demoras y te orienta capítulo por capítulo mientras tú redactas tu tesis. Más de 3,000 estudiantes ya han avanzado con nuestra asesoría.
 
-📝 Cotiza tu tesis ahora: WhatsApp +52 56 7007 1517. Cotización gratuita en minutos.`
+📝 Cotiza tu asesoría ahora: WhatsApp +52 56 7007 1517. Cotización gratuita en minutos.`
   },
   {
     id: 4,
@@ -404,28 +404,28 @@ Seamos honestos: el sistema educativo mexicano exige tesis como requisito de tit
 
 Por eso existen los servicios profesionales de asesoría de tesis. No es hacer trampa — es buscar la ayuda experta que tu universidad no te dio.
 
-🎯 ¿Cómo funciona Tesipedia en la práctica?
+🎯 ¿Cómo funciona la asesoría de Tesipedia en la práctica?
 
 El proceso es bastante directo. Primero nos escribes por WhatsApp y nos cuentas qué necesitas: tu carrera, universidad, tema (si ya tienes uno) y fecha límite. A partir de ahí:
 
 • Te damos una cotización clara, sin costos ocultos ni sorpresas
 • Asignamos a un asesor con experiencia real en tu área de estudio
-• Se desarrolla tu tesis capítulo por capítulo, con tu retroalimentación
-• Pasamos todo por Turnitin y escáner anti-IA antes de entregarte
-• Incluimos las correcciones que pida tu asesor universitario o sinodales
+• Te guiamos capítulo por capítulo mientras tú avanzas tu tesis, con retroalimentación constante
+• Revisamos tus borradores y te orientamos para que tu trabajo sea original
+• Te acompañamos en las correcciones que pida tu asesor universitario o sinodales
 • Te preparamos para tu defensa de tesis
 
-No es solo "entregar un documento" — te acompañamos hasta que te titules.
+No es solo resolver dudas sueltas — te acompañamos en todo tu proceso de titulación.
 
 💰 ¿Cuánto cuesta realmente?
 
-Depende de varios factores: nivel académico, número de páginas, área de estudio y urgencia. Como referencia, nuestros precios van desde $110 por página en redacción y $55 por página en corrección. El precio final depende de tu proyecto específico — por eso ofrecemos cotización personalizada y gratuita.
+Depende de varios factores: nivel académico, número de páginas, área de estudio y urgencia. Como referencia, nuestros programas de asesoría parten desde $110 por página en asesoría integral y $55 por página en revisión y corrección. El precio final depende de tu proyecto específico — por eso ofrecemos cotización personalizada y gratuita.
 
 Aceptamos tarjetas, transferencias, OXXO y pagos en parcialidades. Sabemos que no todos pueden pagar de un jalón.
 
-🏆 Algunos números que nos respaldan
+🏆 Nuestra experiencia
 
-Llevamos más de 3,000 estudiantes titulados con un índice de aprobación del 98%. Nuestro equipo tiene más de 50 asesores con posgrado en áreas como derecho, administración, ingeniería, psicología, educación, medicina y más. Todos los proyectos incluyen escáner Turnitin y anti-IA — porque en 2026 las universidades ya lo revisan.
+Hemos asesorado a más de 3,000 estudiantes en México. Nuestro equipo tiene más de 50 asesores con posgrado en áreas como derecho, administración, ingeniería, psicología, educación, medicina y más. Además, te orientamos para que tu trabajo sea original, algo clave porque en 2026 las universidades revisan la originalidad de forma rigurosa.
 
 ✅ Estudiantes de todas las universidades
 
@@ -438,51 +438,51 @@ Hemos trabajado con estudiantes de la UNAM, IPN, Tec de Monterrey, UAM, UVM, UNI
   {
     id: 5,
     title: '¿Es Seguro Comprar Tesis en México? Lo Que Debes Saber',
-    excerpt: '¿Estás pensando en comprar tu tesis? Te explicamos cómo funciona el servicio de elaboración de tesis por encargo, qué garantías pedir y cómo asegurarte de recibir un trabajo de calidad.',
+    excerpt: '¿Estás pensando en comprar tu tesis? Te explicamos los riesgos, por qué la asesoría es la mejor alternativa y cómo elegir un acompañamiento académico de calidad.',
     image: images.comprarTesis,
     date: '2026-03-18',
     category: 'Consejos',
     readTime: '7 min',
     featured: false,
     slug: 'es-seguro-comprar-tesis-en-mexico-lo-que-debes-saber',
-    content: `"Comprar tesis" suena fuerte, pero la realidad es mucho más matizada de lo que parece. No se trata de ir a una tienda y llevarte un documento genérico bajo el brazo. Se trata de contratar asesoría profesional para que expertos desarrollen tu proyecto de investigación desde cero, adaptado a ti, tu tema y tu universidad.
+    content: `"Comprar tesis" suena fuerte, y por eso conviene entender bien qué hay detrás de esa búsqueda. Muchos estudiantes que la escriben en Google en realidad buscan apoyo para no quedarse atorados. La opción más sana y sostenible no es comprar un documento hecho, sino contratar asesoría profesional que te acompañe a desarrollar tu propio proyecto de investigación, adaptado a ti, tu tema y tu universidad.
 
-📌 Qué es realmente una tesis por encargo
+📌 Comprar tesis vs. asesorarte: la diferencia importa
 
-Cuando contratas un servicio de tesis, lo que obtienes es un proyecto de investigación personalizado. Un asesor con experiencia en tu área desarrolla el trabajo siguiendo los lineamientos de tu institución: la estructura que pide tu universidad, el formato de citación (APA, Chicago, Harvard), la extensión requerida y la metodología adecuada para tu tema.
+Existe una diferencia enorme entre pagar por un documento terminado y contratar asesoría. Comprar un trabajo hecho por otra persona conlleva riesgos serios: problemas de originalidad, incapacidad de defenderlo ante tus sinodales y consecuencias académicas. En cambio, un servicio de asesoría te asigna un especialista de tu área que te guía siguiendo los lineamientos de tu institución: la estructura que pide tu universidad, el formato de citación (APA, Chicago, Harvard), la extensión requerida y la metodología adecuada para tu tema.
 
-No es copiar y pegar. No es reciclar. Es investigación original hecha por profesionales.
+La diferencia clave: la tesis la desarrollas tú, con acompañamiento experto. Así el trabajo es realmente tuyo y puedes defenderlo con seguridad.
 
-🎯 Lo que deberías exigir antes de contratar
+🎯 Lo que deberías exigir antes de contratar asesoría
 
 Hay muchos servicios en el mercado, y no todos son iguales. Antes de pagar un solo peso, verifica que el servicio ofrezca:
 
-• Turnitin real (no software genérico): Muchos presumen "antiplagio" pero usan herramientas gratuitas que las universidades no aceptan
-• Escáner anti-IA: En 2026 esto ya no es opcional — tu universidad lo va a revisar
-• Correcciones de sinodales incluidas: Porque siempre van a pedir cambios, y eso no debería costarte extra
-• Garantía de aprobación: Si no te aprueban, ¿de qué sirvió?
-• Comunicación directa con tu asesor: Nada de intermediarios que no saben de tu tema
+• Un asesor real de tu área, no un intermediario que no conoce tu tema
+• Orientación para que tu trabajo sea original y redactado por ti
+• Acompañamiento en las correcciones de sinodales sin costo sorpresa
+• Comunicación directa y avances revisables
+• Transparencia en precios, contrato y facturación
 
 📊 Rango de precios realista
 
-En Tesipedia manejamos precios desde $110 por página en redacción y $55 por página en corrección. El costo final depende de tu nivel académico, área y urgencia. Si alguien te ofrece precios ridículamente bajos, desconfía — probablemente sea un trabajo reciclado o generado con ChatGPT sin revisión.
+En Tesipedia nuestros programas de asesoría parten desde $110 por página en asesoría integral y $55 por página en revisión y corrección. El costo final depende de tu nivel académico, área y urgencia. Si alguien te ofrece precios ridículamente bajos por un documento "llave en mano", desconfía — ahí es donde aparecen los trabajos reciclados o generados con IA sin revisión.
 
-🔬 Lo que incluye Tesipedia
+🔬 Cómo te acompaña Tesipedia
 
-Con nosotros obtienes desarrollo original desde cero, asesores con maestría y doctorado, doble escáner (Turnitin + anti-IA), correcciones ilimitadas, pago seguro y entrega puntual. Más de 3,000 estudiantes ya pasaron por este proceso exitosamente.
+Con nosotros obtienes asesores con maestría y doctorado, orientación para que tu trabajo sea original, revisión de tus avances, acompañamiento en las correcciones, pago seguro y comunicación puntual. Más de 3,000 estudiantes ya han avanzado su tesis con nuestra asesoría.
 
 ✅ ¿Es legal?
 
-Sí. Los servicios de asesoría y elaboración de tesis operan bajo la figura de consultoría educativa profesional. Tu tesis es un proyecto único que tú presentas, defiendes y del que eres responsable académicamente.
+La asesoría y tutoría académica operan bajo la figura de consultoría educativa profesional. Tu tesis es un proyecto único que tú desarrollas, presentas, defiendes y del que eres responsable académicamente; por eso el modelo de acompañamiento es el más recomendable.
 
 📝 ¿Te interesa?
 
-Cotiza gratis por WhatsApp al +52 56 7007 1517 y te decimos exactamente cuánto costaría tu proyecto.`
+Cotiza tu asesoría gratis por WhatsApp al +52 56 7007 1517 y te decimos exactamente cuánto costaría acompañarte en tu proyecto.`
   },
   {
     id: 6,
     title: 'Hacemos Tu Tesis: ¿Cómo Elegir el Mejor Servicio de Tesis en México?',
-    excerpt: '¿Buscas quién te haga tu tesis? Compara los servicios de elaboración de tesis disponibles en México y aprende a elegir el mejor para tu proyecto académico.',
+    excerpt: '¿Buscas quién te ayude con tu tesis? Compara los servicios de asesoría de tesis disponibles en México y aprende a elegir el mejor para tu proyecto académico.',
     image: images.elegirServicio,
     date: '2026-03-15',
     category: 'Guía',
@@ -498,7 +498,7 @@ Antes de contratar cualquier servicio, hay cosas básicas que debes verificar. T
 • ¿Usan Turnitin o software genérico? Las universidades solo aceptan Turnitin. Si te dicen "nuestro software antiplagio", desconfía
 • ¿Tienen escáner anti-IA? Desde 2025, universidades como la UNAM y el IPN ya revisan contenido generado por inteligencia artificial. Si tu servicio no lo filtra, te van a detectar
 • ¿Las correcciones de sinodales están incluidas? Si cobran extra por cada ronda de correcciones, vas a terminar pagando el doble
-• ¿Cuál es su índice de aprobación? Pregúntalo directamente. Si no te dan un número, mala señal
+• ¿Cómo acompañan tu proceso hasta la titulación? Pregúntalo directamente. Si no te explican su método, mala señal
 • ¿Puedes hablar con tu asesor? Si todo es a través de un "ejecutivo de ventas" que no sabe de tu tema, el resultado va a reflejarlo
 
 🎯 Señales de alerta
@@ -515,20 +515,20 @@ Hay patrones que identifican a servicios poco confiables:
 
 Somos un equipo 100% mexicano que lleva años en esto. Conocemos las particularidades del sistema universitario del país — desde los formatos que pide la UNAM hasta los estándares del Tec de Monterrey. Tenemos más de 50 asesores con posgrado, una plataforma donde puedes dar seguimiento a tu proyecto, y comunicación directa por WhatsApp.
 
-Nuestro índice de aprobación es del 98% con más de 3,000 estudiantes titulados. Incluimos Turnitin y escáner anti-IA en todos los proyectos, sin excepción.
+Hemos asesorado a más de 3,000 estudiantes en México. Como parte del acompañamiento, te orientamos para que tu trabajo sea original, algo que hoy toda universidad revisa con detalle.
 
-📊 Lo que dicen nuestros estudiantes
+📊 A quiénes hemos acompañado
 
-Hemos trabajado con alumnos de la UNAM, IPN, ITESM, UAM, UVM, La Salle, Anáhuac y decenas de universidades más. Puedes ver reseñas reales en nuestro sitio y redes sociales.
+Hemos asesorado a alumnos de la UNAM, IPN, ITESM, UAM, UVM, La Salle, Anáhuac y decenas de universidades más.
 
-✅ ¿Listo para cotizar?
+✅ ¿Listo para cotizar tu asesoría?
 
-Escríbenos por WhatsApp al +52 56 7007 1517. Te decimos precio, tiempo de entrega y te asignamos un asesor en tu área. Sin compromiso.`
+Escríbenos por WhatsApp al +52 56 7007 1517. Te decimos precio, tiempos y te asignamos un asesor en tu área. Sin compromiso.`
   },
   {
     id: 7,
     title: 'Tesis por Encargo en México: Precios, Tiempos y Todo Lo Que Necesitas Saber',
-    excerpt: '¿Cuánto cuesta encargar una tesis en México? ¿Cuánto tiempo tarda? Resolvemos todas tus dudas sobre el servicio de tesis por encargo más confiable del país.',
+    excerpt: '¿Cuánto cuesta la asesoría de tesis en México? ¿Cuánto tiempo tarda? Resolvemos todas tus dudas sobre el servicio de asesoría de tesis más confiable del país.',
     image: images.preciosTesis,
     date: '2026-03-10',
     category: 'Precios',
@@ -546,12 +546,12 @@ No hay un precio único porque cada proyecto es diferente. Los factores principa
 • Extensión y complejidad: Una tesis cuantitativa con análisis estadístico en SPSS cuesta más que una cualitativa documental
 • Urgencia: Si necesitas entrega en 2 semanas en lugar de 6, el precio sube
 
-💰 Precios de Tesipedia actualizados a 2026
+💰 Precios de asesoría de Tesipedia actualizados a 2026
 
 Manejamos un esquema transparente por página:
 
-• Redacción: desde $120 MXN por página
-• Corrección: desde $60 MXN por página
+• Asesoría integral: desde $120 MXN por página
+• Revisión y corrección: desde $60 MXN por página
 
 El precio final de tu proyecto depende del nivel académico, la complejidad del tema y el plazo de entrega. Cada cotización es personalizada — no hay paquetes genéricos.
 
@@ -563,15 +563,15 @@ Seamos realistas — una tesis bien hecha no se produce de la noche a la mañana
 • Maestría: 4 a 6 semanas
 • Doctorado: 6 a 10 semanas
 
-¿Tienes más prisa? Tenemos servicio express con entrega acelerada, pero te recomendamos planearlo con tiempo para un mejor resultado.
+¿Tienes más prisa? Tenemos programas de asesoría con ritmo acelerado, pero te recomendamos planearlo con tiempo para un mejor resultado.
 
-🔬 ¿Qué incluye exactamente?
+🔬 ¿Qué incluye la asesoría?
 
-Todo. Desarrollo completo desde cero, marco teórico con fuentes actualizadas, metodología profesional, análisis de datos, escáner Turnitin, escáner anti-IA, correcciones de tu asesor y sinodales, y preparación para defensa de tesis. Sin costos ocultos.
+Un programa de asesoría integral suele contemplar: acompañamiento desde la definición del tema, orientación para tu marco teórico con fuentes actualizadas, guía metodológica, apoyo en el análisis de datos, orientación para que tu trabajo sea original, acompañamiento en las correcciones de tu asesor y sinodales, y preparación para tu defensa. Sin costos ocultos.
 
 ✅ Formas de pago flexibles
 
-Sabemos que el dinero importa. Por eso aceptamos tarjetas (Visa, Mastercard, AMEX), transferencia SPEI, PayPal, OXXO, y ofrecemos pagos en parcialidades. Si pagas de contado en una sola exhibición, te hacemos un 10% de descuento.
+Sabemos que el dinero importa. Por eso aceptamos tarjetas (Visa, Mastercard, AMEX), transferencia SPEI, PayPal, OXXO, y ofrecemos pagos en parcialidades. Si pagas de contado en una sola exhibición, aplicamos un 10% de descuento.
 
 📝 ¿Quieres saber tu precio exacto?
 
@@ -688,7 +688,7 @@ Si estás en maestría o doctorado, es probable que tu universidad use iThentica
 
 La clave para pasar todas las herramientas de detección es simple: investigación original con redacción propia. Cita correctamente todas tus fuentes, parafrasea con tus propias palabras (no solo cambiando sinónimos), y asegúrate de que tu voz como investigador se note en el texto.
 
-En Tesipedia, cada trabajo pasa por Turnitin y escáner anti-IA antes de ser entregado. Garantizamos que tu tesis tenga originalidad verificable y lista para cualquier revisión institucional.`
+En Tesipedia te asesoramos para que tu tesis sea original, redactada por ti con nuestra guía. Te orientamos en la citación correcta y en la redacción propia para que tu trabajo esté listo para cualquier revisión institucional.`
   },
   {
     id: 14,
@@ -887,7 +887,7 @@ Haz estas preguntas específicas antes de pagar:
 
 📋 Cómo funciona un buen servicio
 
-Un servicio profesional como Tesipedia sigue un proceso estructurado: diagnóstico inicial de tu proyecto, asignación de un especialista en tu área, entregas parciales con tu retroalimentación, revisiones ilimitadas hasta tu satisfacción, reporte de Turnitin y anti-IA incluido, y preparación para tu defensa.
+Un servicio de asesoría profesional como Tesipedia sigue un proceso estructurado: diagnóstico inicial de tu proyecto, asignación de un especialista en tu área, revisión de tus avances con retroalimentación constante, acompañamiento en las correcciones, orientación para que tu trabajo sea original y preparación para tu defensa.
 
 💰 Protege tu inversión
 
@@ -895,7 +895,7 @@ Siempre pide un contrato por escrito que detalle alcance, plazos, número de cor
 
 🎯 La diferencia de Tesipedia
 
-En Tesipedia trabajamos con contratos formales, pagos parciales, entregas verificables con Turnitin, y un equipo de más de 50 especialistas con posgrado. No somos los más baratos porque la calidad cuesta — pero garantizamos que tu inversión se traduzca en un título profesional.`
+En Tesipedia trabajamos con contratos formales, pagos parciales, avances revisables, y un equipo de más de 50 especialistas con posgrado. No somos los más baratos porque un buen acompañamiento cuesta — pero te damos método, seguimiento cercano y una asesoría en la que puedes confiar.`
   },
   {
     id: 19,
@@ -941,7 +941,7 @@ Si ya tienes varios años trabajando en tu área, algunas universidades te permi
 
 Cada modalidad tiene su balance entre inversión de tiempo, dinero y esfuerzo. La tesis requiere más tiempo pero te da la mayor preparación académica. El EGEL es rápido pero arriesgado. El diplomado combina titulación con actualización pero es costoso.
 
-En Tesipedia te ayudamos con las modalidades que implican redacción académica: tesis, tesina, informes de experiencia profesional y artículos. Cotiza sin compromiso y elige la mejor ruta para tu título.`
+En Tesipedia te asesoramos en las modalidades que implican redacción académica: tesis, tesina, informes de experiencia profesional y artículos. Cotiza sin compromiso y elige la mejor ruta para tu título.`
   },
   {
     id: 20,
@@ -986,7 +986,7 @@ Piensa en la IA como un asistente de investigación muy capaz pero que no puede 
 
 💡 Consejo de Tesipedia
 
-Si necesitas ayuda profesional con tu tesis, es mejor contratar un servicio donde un especialista humano con posgrado te guíe y redacte contigo, en lugar de depender de IA genérica. En Tesipedia, cada trabajo es redactado por profesionales reales y pasa tanto por Turnitin como por escáneres anti-IA. Tu tesis será original, humana y lista para cualquier evaluación.`
+Si necesitas ayuda profesional con tu tesis, es mejor contratar asesoría donde un especialista humano con posgrado te guíe paso a paso, en lugar de depender de IA genérica. En Tesipedia te acompañamos para que tú redactes tu tesis con orientación experta y aprendas a citar y parafrasear correctamente. Así tu trabajo será original, humano y realmente tuyo, listo para cualquier evaluación.`
   },
   {
     id: 21,
@@ -1014,9 +1014,9 @@ Ventajas: más estructura que un freelancer, precios accesibles. Desventajas: at
 
 ⭐ Servicios profesionales especializados: $10,000 - $35,000 MXN
 
-Empresas como Tesipedia que se especializan en asesoría académica profesional. Los precios son más altos pero incluyen garantías reales.
+Empresas como Tesipedia que se especializan en asesoría académica profesional. Los precios son más altos pero incluyen método, seguimiento cercano y respaldo formal.
 
-Lo que incluye Tesipedia: especialista con posgrado en tu área asignado, entregas parciales con tu retroalimentación, correcciones ilimitadas hasta aprobación, reporte de Turnitin incluido, escáner anti-IA, preparación para defensa oral, contrato formal y factura fiscal.
+Lo que incluye la asesoría de Tesipedia: especialista con posgrado en tu área asignado, revisión de tus avances con retroalimentación constante, acompañamiento en las correcciones, orientación para que tu trabajo sea original, preparación para tu defensa oral, contrato formal y factura fiscal.
 
 💡 El costo real de "ahorrar"
 
@@ -1030,7 +1030,7 @@ Hemos recibido a muchos clientes que primero contrataron un servicio barato y te
 • Tesis doctoral (150-250 páginas): Desde $30,000 MXN
 • Artículo científico: Desde $8,000 MXN
 
-Todos nuestros precios incluyen asesoría completa, revisiones y herramientas de originalidad. Cotiza tu proyecto sin compromiso en tesipedia.com.`
+Todos nuestros programas incluyen asesoría completa, revisión de tus avances y orientación para que tu trabajo sea original. Cotiza tu proyecto sin compromiso en tesipedia.com.`
   },
   {
     id: 3,
@@ -1077,7 +1077,7 @@ Hazte estas preguntas: ¿Qué tipo de respuesta necesito (número o comprensión
   {
     id: 22,
     title: 'Comparativa de Precios de Servicios de Tesis en México 2026: ¿Cuánto Cobran Realmente?',
-    excerpt: 'Analizamos los precios reales de los principales servicios de elaboración de tesis en México. Comparativa detallada por nivel académico, área de estudio y tipo de servicio para que tomes la mejor decisión.',
+    excerpt: 'Analizamos los precios reales de los principales servicios de asesoría de tesis en México. Comparativa detallada por nivel académico, área de estudio y tipo de servicio para que tomes la mejor decisión.',
     image: images.comparativaPrecios,
     date: '2026-03-28',
     category: 'Precios',
@@ -1104,7 +1104,7 @@ Esta es la pregunta clave que muchos estudiantes olvidan hacer. Un precio bajo q
 
 Servicios que DEBEN estar incluidos: reporte de Turnitin (antiplagio), escáner anti-IA, al menos 1-2 rondas de correcciones, asesoría personalizada, avances parciales y formato según tu universidad.
 
-Servicios que son extra en algunos proveedores pero que Tesipedia incluye: correcciones de sinodales, preparación para defensa, acompañamiento hasta titulación y certificado anti-IA.
+Servicios que son extra en algunos proveedores pero que la asesoría de Tesipedia incluye: acompañamiento en las correcciones de sinodales, preparación para defensa, acompañamiento a lo largo de tu titulación y orientación en originalidad.
 
 Costos ocultos comunes: correcciones adicionales ($500-$2,000 por ronda), cambio de tema ($3,000-$5,000), urgencia ($2,000-$8,000 extra), formato especial ($1,000-$2,000).
 
@@ -1116,17 +1116,17 @@ Los servicios ultra-baratos generalmente: reciclan tesis anteriores (alto riesgo
 
 El resultado: reprobas, pierdes tu dinero, y tienes que empezar de cero con otro servicio.
 
-✅ Tesipedia: precios competitivos con calidad garantizada
+✅ Tesipedia: asesoría con precios competitivos y método sólido
 
-En Tesipedia ofrecemos los precios más competitivos del mercado mexicano SIN sacrificar calidad. Nuestros precios desde $110/página para licenciatura incluyen: investigadores humanos con posgrado (nunca IA), reporte Turnitin + certificado anti-IA, correcciones ilimitadas incluyendo sinodales, acompañamiento hasta tu titulación, y pagos flexibles en 3, 6 o 12 meses.
+En Tesipedia ofrecemos asesoría a precios competitivos del mercado mexicano SIN sacrificar calidad. Nuestros programas desde $110/página para licenciatura incluyen: asesores humanos con posgrado (nunca IA genérica), orientación para que tu trabajo sea original, acompañamiento en las correcciones incluyendo las de sinodales, seguimiento a lo largo de tu titulación, y pagos flexibles en 3, 6 o 12 meses.
 
-Más de 3,000 estudiantes ya se titularon con nosotros. 98% de índice de aprobación. Cotiza gratis por WhatsApp al +52 56 7007 1517.
+Hemos asesorado a más de 3,000 estudiantes en México. Cotiza tu asesoría gratis por WhatsApp al +52 56 7007 1517.
 
 🎯 Cómo elegir el mejor servicio para tu presupuesto
 
-No elijas solo por precio. Considera estos factores: ¿Incluye Turnitin y anti-IA? ¿Cuántas correcciones incluye? ¿Quién redacta (investigador con posgrado o freelancer sin experiencia)? ¿Tienen contrato y factura? ¿Ofrecen garantía de aprobación? ¿Puedes ver avances parciales?
+No elijas solo por precio. Considera estos factores: ¿Te orientan sobre originalidad y citación? ¿En cuántas rondas de corrección te acompañan? ¿Quién te asesora (investigador con posgrado o freelancer sin experiencia)? ¿Tienen contrato y factura? ¿Puedes ver avances y revisarlos?
 
-El servicio ideal combina precio justo, calidad verificable y garantías reales. Eso es exactamente lo que ofrecemos en Tesipedia.`
+El servicio ideal combina precio justo, método verificable y acompañamiento cercano. Eso es exactamente lo que ofrecemos en Tesipedia.`
   },
   {
     id: 23,
@@ -1138,29 +1138,29 @@ El servicio ideal combina precio justo, calidad verificable y garantías reales.
     readTime: '15 min',
     featured: true,
     slug: 'comprar-tesis-mexico-2026-guia-completa',
-    content: `Comprar una tesis en México es una decisión importante que puede marcar la diferencia entre titularte en semanas o seguir atorado durante años. Pero con tantas opciones en internet, ¿cómo saber cuál es la correcta? Esta guía te explica todo: precios reales, cómo funciona el proceso, qué debes exigir y cómo protegerte.
+    content: `Buscar "comprar una tesis" en México suele reflejar una necesidad real: no quedarte atorado durante años. Pero antes de decidir conviene entender los riesgos de pagar por un documento hecho y por qué la mejor alternativa es contratar asesoría para desarrollar tu propia tesis con acompañamiento experto. Esta guía te explica todo: precios reales, cómo funciona el proceso de asesoría, qué debes exigir y cómo protegerte.
 
-📋 ¿Es legal comprar una tesis en México?
+📋 ¿Es legal contratar ayuda para tu tesis en México?
 
-Los servicios de asesoría y elaboración de tesis operan como consultorías académicas profesionales. Al igual que contratar a un contador para tu declaración fiscal o a un abogado para un contrato, contratar a un especialista para tu investigación académica es legal. Lo importante es que el servicio sea profesional, que la investigación sea original, y que tú comprendas el contenido de tu tesis para defenderla ante tu jurado.
+La asesoría y la tutoría académica operan como consultorías educativas profesionales. Al igual que contratar a un contador para tu declaración fiscal o a un abogado para un contrato, contratar a un especialista que te oriente en tu investigación es legal. Lo importante es que la tesis la desarrolles tú, que el trabajo sea original, y que comprendas a fondo tu contenido para defenderlo ante tu jurado. Por eso el modelo de acompañamiento es más seguro que comprar un documento terminado.
 
-💡 ¿Cómo funciona el proceso de comprar una tesis?
+💡 ¿Cómo funciona el proceso de asesoría?
 
-El proceso profesional en un servicio como Tesipedia funciona así:
+El proceso profesional en un servicio de asesoría como Tesipedia funciona así:
 
 Paso 1 — Cotización gratuita: Envías los datos de tu tesis (carrera, nivel, número de páginas, tema y fecha de entrega). Recibes una cotización personalizada sin compromiso.
 
-Paso 2 — Asignación de investigador: Se te asigna un investigador especialista en tu área con maestría o doctorado. Revisas su perfil y apruebas.
+Paso 2 — Asignación de asesor: Se te asigna un asesor especialista en tu área con maestría o doctorado. Revisas su perfil y apruebas.
 
-Paso 3 — Desarrollo con avances: Tu investigador elabora la tesis con avances semanales o quincenales. Puedes revisar, hacer comentarios y solicitar ajustes en cada entrega parcial.
+Paso 3 — Trabajo con avances: Avanzas tu tesis con acompañamiento semanal o quincenal. Tu asesor revisa tus borradores, te da retroalimentación y te orienta en cada etapa mientras tú redactas.
 
-Paso 4 — Verificación y entrega: Se ejecuta verificación con Turnitin (antiplagio) y escáner anti-IA. Recibes la tesis completa con reportes de verificación.
+Paso 4 — Revisión de originalidad: Te orientamos para que tu trabajo sea original y esté correctamente citado, listo para las revisiones que haga tu institución.
 
-Paso 5 — Correcciones y defensa: Si tu jurado solicita cambios, se realizan sin costo adicional. Opcionalmente te preparan para la defensa oral.
+Paso 5 — Correcciones y defensa: Si tu jurado solicita cambios, te acompañamos en las correcciones. Opcionalmente te preparan para la defensa oral.
 
 💰 Precios actualizados 2026
 
-Los precios de una tesis profesional en México dependen del nivel académico:
+Los precios de la asesoría de tesis en México dependen del nivel académico:
 
 Licenciatura: Desde $110 MXN por página. Una tesis de 50-80 páginas cuesta entre $5,500 y $8,800 MXN.
 Maestría: Desde $160 MXN por página. Una tesis de 80-120 páginas cuesta entre $12,800 y $19,200 MXN.
@@ -1170,7 +1170,7 @@ Doctorado: Desde $210 MXN por página. Una tesis de 120-200 páginas cuesta entr
 
 🔍 Señales de un servicio confiable vs uno fraudulento
 
-CONFIABLE: Tiene página web profesional, ofrece contrato de servicios, trabaja con pagos parciales, incluye Turnitin y anti-IA, muestra testimonios verificables, da avances parciales, tiene equipo con credenciales verificables.
+CONFIABLE: Tiene página web profesional, ofrece contrato de servicios, trabaja con pagos parciales, te orienta sobre originalidad y citación, da avances revisables, tiene equipo con credenciales verificables.
 
 FRAUDULENTO: Solo tiene página de Facebook o WhatsApp, exige pago completo por adelantado, promete tesis en 3-5 días, precios de $2,000-$3,000 por una tesis completa, no ofrece correcciones, no da reportes de verificación.
 
@@ -1180,13 +1180,13 @@ Siempre exige contrato por escrito que detalle: número exacto de páginas, plaz
 
 📱 Preguntas que debes hacer antes de pagar
 
-¿Quién va a redactar mi tesis? ¿Qué formación tiene? ¿Incluyen reporte Turnitin y certificado anti-IA? ¿Cuántas correcciones están incluidas? ¿Puedo ver avances parciales? ¿Qué pasa si mi jurado pide cambios? ¿Tienen garantía de aprobación? ¿Ofrecen factura y contrato?
+¿Quién va a asesorarme? ¿Qué formación tiene? ¿Me orientan sobre originalidad y citación? ¿En cuántas rondas de corrección me acompañan? ¿Puedo ver y revisar mis avances? ¿Qué pasa si mi jurado pide cambios? ¿Ofrecen factura y contrato?
 
 🎓 ¿Por qué más de 3,000 estudiantes eligieron Tesipedia?
 
-Tesipedia es el servicio #1 de elaboración de tesis en México. Ofrecemos los precios más competitivos del mercado (desde $110/página), investigadores humanos con posgrado, verificación Turnitin + anti-IA incluida, correcciones ilimitadas incluyendo observaciones de sinodales, acompañamiento hasta tu titulación, y pagos flexibles en 3, 6 o 12 meses.
+Tesipedia es un servicio de asesoría de tesis en México. Ofrecemos asesoría a precios competitivos del mercado (desde $110/página), asesores humanos con posgrado, orientación para que tu trabajo sea original, acompañamiento en las correcciones incluyendo las observaciones de sinodales, seguimiento a lo largo de tu titulación, y pagos flexibles en 3, 6 o 12 meses.
 
-No arriesgues tu título con servicios dudosos. Cotiza gratis por WhatsApp al +52 56 7007 1517 o visita tesipedia.com/comprar-tesis para conocer todos nuestros planes.`
+No arriesgues tu título con servicios dudosos. Cotiza tu asesoría gratis por WhatsApp al +52 56 7007 1517 o visita tesipedia.com/comprar-tesis para conocer todos nuestros planes.`
   }
 ];
 

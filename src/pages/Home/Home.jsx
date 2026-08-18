@@ -50,41 +50,18 @@ function Home() {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": "Servicio de Elaboración de Tesis — Tesipedia",
-    "description": "¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. Compra tu tesis 100% original, libre de plagio e IA. +3,000 titulados.",
+    "name": "Servicio de Asesoría de Tesis — Tesipedia",
+    "description": "¿Necesitas hacer tu tesis? Tesipedia te asesora para hacer tu tesis de licenciatura, maestría y doctorado en México. Acompañamiento académico para que redactes tu propia tesis, original y libre de plagio. +3,000 estudiantes asesorados.",
     "brand": { "@type": "Brand", "name": "Tesipedia" },
     "image": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "3247",
-      "bestRating": "5",
-      "worstRating": "1"
-    },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "50000", "offerCount": "3" },
-    "review": [
-      {
-        "@type": "Review",
-        "author": { "@type": "Person", "name": "María G." },
-        "datePublished": "2025-11-15",
-        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-        "reviewBody": "Mi tesis quedó increíble. La entregaron antes de tiempo y pasó Turnitin sin problema."
-      },
-      {
-        "@type": "Review",
-        "author": { "@type": "Person", "name": "Carlos R." },
-        "datePublished": "2025-10-20",
-        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-        "reviewBody": "Llevaba 2 años atorado con mi tesis de maestría. Con Tesipedia me titulé en 6 semanas."
-      }
-    ]
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "MXN", "lowPrice": "5500", "highPrice": "50000", "offerCount": "3" }
   };
 
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "serviceType": "Hacer Tesis Profesional",
-    "name": "Te Hacemos Tu Tesis — Servicio de Elaboración de Tesis en México",
+    "serviceType": "Asesoría de Tesis Profesional",
+    "name": "Te Asesoramos para Hacer Tu Tesis — Servicio de Asesoría de Tesis en México",
     "provider": {
       "@type": "ProfessionalService",
       "name": "Tesipedia",
@@ -94,7 +71,7 @@ function Home() {
       "@type": "Country",
       "name": "México"
     },
-    "description": "Servicio integral de desarrollo de tesis: elaboración completa, acompañamiento o corrección. Incluye antiplagio Turnitin, detección anti-IA y asesoría personalizada.",
+    "description": "Servicio integral de asesoría de tesis: acompañamiento en la elaboración, tutoría o revisión de tu borrador. Incluye revisión de originalidad, guía en la redacción y asesoría personalizada para que termines tu propia tesis.",
     "offers": {
       "@type": "AggregateOffer",
       "priceCurrency": "MXN",
@@ -105,14 +82,14 @@ function Home() {
     },
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "Modalidades de Servicio",
+      "name": "Modalidades de Asesoría",
       "itemListElement": [
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Desarrollo Completo de Tesis (Hacemos Todo)",
-            "description": "Elaboramos tu tesis de inicio a fin. Incluye escáner antiplagio, anti-IA, correcciones y asesoría 1:1."
+            "name": "Asesoría Integral de Tesis (Te Guiamos de Principio a Fin)",
+            "description": "Te asesoramos en la elaboración de tu tesis de inicio a fin. Incluye revisión de originalidad, guía en la redacción, correcciones y asesoría 1:1."
           }
         },
         {
@@ -120,15 +97,15 @@ function Home() {
           "itemOffered": {
             "@type": "Service",
             "name": "Acompañamiento de Tesis",
-            "description": "Trabajo conjunto con el estudiante. Incluye escáner antiplagio, anti-IA y acompañamiento continuo."
+            "description": "Tutoría continua para que avances tu tesis con seguridad. Incluye revisión de originalidad y acompañamiento en cada etapa."
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Corrección de Tesis",
-            "description": "Revisión y corrección de trabajo existente. Incluye escáner antiplagio y anti-IA."
+            "name": "Revisión y Corrección de Tesis",
+            "description": "Revisamos y mejoramos tu borrador: estilo, formato y citación. Incluye revisión de originalidad."
           }
         }
       ]
@@ -158,39 +135,39 @@ function Home() {
         "name": "¿Cuánto cuesta hacer una tesis en México?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "El costo de una tesis en México varía según el nivel académico y la modalidad. Para una tesis de licenciatura de 100 páginas, los precios van desde $9,900 MXN (corrección) hasta $19,800 MXN (desarrollo completo). Para maestría y doctorado los precios son mayores según la complejidad. En Tesipedia ofrecemos cotización gratuita y planes de pago flexibles."
+          "text": "El costo de la asesoría de tesis en México varía según el nivel académico y la modalidad de acompañamiento. Para una tesis de licenciatura de 100 páginas, la asesoría va desde $9,900 MXN (revisión y corrección) hasta $19,800 MXN (asesoría integral). Para maestría y doctorado la asesoría es mayor según la complejidad. En Tesipedia ofrecemos cotización gratuita y planes de pago flexibles."
         }
       },
       {
         "@type": "Question",
-        "name": "¿Dónde puedo comprar una tesis en México de forma segura?",
+        "name": "¿Dónde puedo obtener asesoría de tesis en México de forma segura?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Tesipedia es el servicio más confiable para comprar tu tesis en México. Con más de 3,000 estudiantes titulados y 98% de aprobación, ofrecemos tesis 100% originales verificadas con Turnitin y escáner anti-IA. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517."
+          "text": "Tesipedia es el servicio de asesoría de tesis más confiable de México. Con más de 3,000 estudiantes asesorados, te acompañamos para que redactes tu propia tesis, original y con revisión de originalidad. Puedes cotizar gratis por WhatsApp al +52 56 7007 1517."
         }
       },
       {
         "@type": "Question",
-        "name": "¿Cuánto tiempo tardan en hacer una tesis?",
+        "name": "¿Cuánto tiempo lleva terminar una tesis con asesoría?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "El tiempo estándar de entrega es de 3 a 4 semanas para una tesis de licenciatura. Para maestría y doctorado, de 4 a 8 semanas según la complejidad. También ofrecemos servicio express para casos urgentes."
+          "text": "Con un buen acompañamiento, una tesis de licenciatura suele avanzarse en 3 a 4 semanas por etapas de asesoría. Para maestría y doctorado, de 4 a 8 semanas según la complejidad. También ofrecemos asesoría acelerada para casos urgentes."
         }
       },
       {
         "@type": "Question",
-        "name": "¿La tesis es 100% original y pasa los detectores antiplagio?",
+        "name": "¿La asesoría es con investigadores humanos y el trabajo queda original?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Sí, cada tesis se elabora desde cero por investigadores humanos con maestría y doctorado. Verificamos con Turnitin y escáneres anti-IA antes de entregar. Nuestras tesis pasan todos los detectores de plagio e IA de las universidades mexicanas."
+          "text": "Sí, te asesoran investigadores humanos con maestría y doctorado. Tu tesis la redactas tú con nuestra guía, así que es un trabajo original; te apoyamos con revisión de originalidad en cada etapa."
         }
       },
       {
         "@type": "Question",
-        "name": "¿Hacen tesis para cualquier universidad de México?",
+        "name": "¿Dan asesoría de tesis para cualquier universidad de México?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Sí, hacemos tesis para estudiantes de cualquier universidad de México: UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL y más. Conocemos los lineamientos y formatos de cada institución."
+          "text": "Sí, asesoramos a estudiantes de cualquier universidad de México: UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL y más. Conocemos los lineamientos y formatos de cada institución."
         }
       }
     ]
@@ -199,12 +176,12 @@ function Home() {
   const howToSchema = {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    "name": "Cómo hacemos tu tesis en México",
+    "name": "Cómo te asesoramos para hacer tu tesis en México",
     "step": [
-      { "@type": "HowToStep", "position": 1, "name": "Cotiza gratis", "text": "Escríbenos por WhatsApp con tu tema, nivel, número de páginas y fecha de entrega. Te cotizamos en minutos." },
+      { "@type": "HowToStep", "position": 1, "name": "Cotiza gratis", "text": "Escríbenos por WhatsApp con tu tema, nivel, número de páginas y fecha objetivo. Te cotizamos la asesoría en minutos." },
       { "@type": "HowToStep", "position": 2, "name": "Asesor especializado", "text": "Te asignamos un investigador con posgrado en tu área y un plan de pago flexible." },
-      { "@type": "HowToStep", "position": 3, "name": "Avances y revisiones", "text": "Recibes la tesis por capítulos y solicitas ajustes en cada etapa del proceso." },
-      { "@type": "HowToStep", "position": 4, "name": "Entrega y titulación", "text": "Tesis completa, original y citada, con correcciones hasta la aprobación de tu asesor." }
+      { "@type": "HowToStep", "position": 3, "name": "Avances y revisiones", "text": "Trabajas tu tesis por capítulos con nuestra guía y revisamos tus avances en cada etapa del proceso." },
+      { "@type": "HowToStep", "position": 4, "name": "Preparación para tu defensa", "text": "Tu tesis queda original y bien citada, con revisiones y preparación para tu examen profesional." }
     ]
   };
 
@@ -213,7 +190,7 @@ function Home() {
     "@type": "WebSite",
     "name": "Tesipedia",
     "url": "https://tesipedia.com",
-    "description": "Servicio profesional de desarrollo de tesis en México",
+    "description": "Servicio profesional de asesoría de tesis en México",
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://tesipedia.com/?q={search_term_string}",
@@ -224,11 +201,11 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>Comprar Tesis en México | Tesipedia — Hacemos Tu Tesis de Licenciatura, Maestría y Doctorado | Desde $110/pág</title>
-        <meta name="description" content="¿Quieres comprar tesis en México? Tesipedia elabora tu tesis de licenciatura, maestría y doctorado. 100% original, sin plagio ni IA. Desde $110/página. +3,000 titulados. Cotiza gratis por WhatsApp." />
-        <meta name="keywords" content="comprar tesis, comprar tesis México, hacer tesis, hacer mi tesis, te hacemos tu tesis, hacemos tesis, quien me hace mi tesis, hacer tesis licenciatura, hacer tesis maestría, hacer tesis doctorado, tesis por encargo, encargar tesis, elaboración de tesis, desarrollo de tesis México, asesoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
-        <meta property="og:title" content="Comprar Tesis en México | Tesipedia — Tesis 100% Original Desde $110/pág" />
-        <meta property="og:description" content="¿Quieres comprar tesis? +3,000 estudiantes titulados con Tesipedia. Tesis 100% original desde $110/página. Cotiza gratis." />
+        <title>¿Comprar Tesis en México? Mejor Asesórate y Termínala | Tesipedia — Asesoría de Tesis de Licenciatura, Maestría y Doctorado</title>
+        <meta name="description" content="¿Buscas comprar tesis en México? Mejor te asesoramos para hacer tu tesis de licenciatura, maestría y doctorado. Acompañamiento para que la redactes tú, original y con revisión. Desde $110/página. +3,000 estudiantes asesorados. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="comprar tesis, comprar tesis México, hacer tesis, hacer mi tesis, te asesoramos para hacer tu tesis, asesoría de tesis, quien me ayuda con mi tesis, asesoría tesis licenciatura, asesoría tesis maestría, asesoría tesis doctorado, tesis por encargo, elaboración de tesis, desarrollo de tesis México, tutoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
+        <meta property="og:title" content="¿Comprar Tesis en México? Mejor Asesórate | Tesipedia — Asesoría de Tesis Desde $110/pág" />
+        <meta property="og:description" content="¿Buscas comprar tesis? Mejor asesórate con Tesipedia: +3,000 estudiantes asesorados. Te guiamos para que redactes tu propia tesis, original. Desde $110/página. Cotiza gratis." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tesipedia.com" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />

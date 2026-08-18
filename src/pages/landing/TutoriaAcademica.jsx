@@ -603,11 +603,6 @@ function TutoriaAcademica() {
     { num: '4', title: 'Revisión y Preparación', desc: 'Revisamos tu trabajo final, verificamos calidad y te preparamos para tu defensa.' },
   ];
 
-  const testimonials = [
-    { text: 'Mi tutor me ayudó a entender la metodología cualitativa desde cero. En 6 semanas logré estructurar toda mi investigación.', name: 'Ana L.', role: 'Maestría en Educación', color: '#4F46E5' },
-    { text: 'Llevaba un año sin avanzar. La mentoría me dio un plan claro y el acompañamiento que necesitaba para terminar.', name: 'Roberto M.', role: 'Licenciatura en Derecho', color: '#059669' },
-    { text: 'Los tutores realmente saben de investigación. Me orientaron en el análisis estadístico y la presentación de resultados.', name: 'Diana P.', role: 'Doctorado en Psicología', color: '#7c3aed' },
-  ];
 
   const faqs = [
     { q: '¿Qué incluye la tutoría académica?', a: 'Incluye orientación en metodología de investigación, revisión de estructura, guía en marco teórico, apoyo en análisis de datos, corrección de estilo académico y preparación para tu presentación o defensa.' },
@@ -666,7 +661,7 @@ function TutoriaAcademica() {
           <div style={styles.trustRow}>
             <span style={styles.trustItem}><FaCheckCircle style={{ color: '#25d366' }} /> +3,000 estudiantes orientados</span>
             <span style={styles.trustItem}><FaShieldAlt style={{ color: '#25d366' }} /> Mentores certificados</span>
-            <span style={styles.trustItem}><FaStar style={{ color: '#ffc107' }} /> 4.9/5 satisfacción</span>
+            <span style={styles.trustItem}><FaStar style={{ color: '#ffc107' }} /> Mentoría 1 a 1</span>
           </div>
         </div>
       </section>
@@ -773,34 +768,6 @@ function TutoriaAcademica() {
               data-track-cta="tutoria_precio_doctorado" data-track-label="Consultar Programa Doctorado">
               <FaWhatsapp /> Consultar Programa
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIOS ── */}
-      <section style={styles.sectionAlt}>
-        <div style={styles.sectionInner}>
-          <h2 style={styles.sectionTitle}>Lo que dicen nuestros estudiantes</h2>
-          <p style={styles.sectionSub}>Miles de estudiantes ya avanzaron en su proyecto con nuestra mentoría</p>
-          <div style={styles.testimonialsGrid}>
-            {testimonials.map((t, i) => (
-              <div key={i} style={styles.testimonialCard}>
-                <div style={styles.testimonialStars}>
-                  {[...Array(5)].map((_, j) => <FaStar key={j} />)}
-                </div>
-                <FaQuoteLeft style={{ color: '#e2e8f0', fontSize: '1.2rem', marginBottom: '10px' }} />
-                <p style={styles.testimonialText}>{t.text}</p>
-                <div style={styles.testimonialAuthor}>
-                  <div style={{ ...styles.authorAvatar, background: t.color }}>
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div style={styles.authorName}>{t.name}</div>
-                    <div style={styles.authorRole}>{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

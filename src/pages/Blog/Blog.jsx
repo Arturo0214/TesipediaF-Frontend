@@ -115,8 +115,8 @@ function Blog() {
     <>
     <Helmet>
       <title>Blog: Hacer Tesis en México | Guías, Precios y Consejos — Tesipedia</title>
-      <meta name="description" content="¿Necesitas hacer tu tesis? Blog con guías completas sobre cómo hacer tu tesis, cuánto cuesta, dónde comprar tesis en México, y consejos de expertos. Tesipedia: te hacemos tu tesis." />
-      <meta name="keywords" content="hacer tesis, comprar tesis México, tesis por encargo, cuánto cuesta una tesis, hacer mi tesis, te hacemos tu tesis, servicio de tesis, guía tesis profesional, Tesipedia blog" />
+      <meta name="description" content="¿Necesitas hacer tu tesis? Blog con guías completas sobre cómo hacer tu tesis, cuánto cuesta, dónde asesorarte en México, y consejos de expertos. Tesipedia: te asesoramos para que termines tu tesis." />
+      <meta name="keywords" content="hacer tesis, comprar tesis México, tesis por encargo, cuánto cuesta una tesis, hacer mi tesis, asesoría de tesis, servicio de asesoría de tesis, guía tesis profesional, Tesipedia blog" />
       <meta property="og:title" content="Blog Académico — Tesipedia | Guías y Consejos para tu Tesis" />
       <meta property="og:description" content="Recursos gratuitos y guías profesionales para que tu tesis sea un éxito. Por los expertos de Tesipedia." />
       <meta property="og:type" content="blog" />

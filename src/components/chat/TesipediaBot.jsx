@@ -94,14 +94,14 @@ const STEPS = {
       { label: '¿Cuánto cuesta?', next: 'faq_precio' },
       { label: '¿Cuánto tiempo tarda?', next: 'faq_tiempo' },
       { label: '¿Es confidencial?', next: 'faq_confidencial' },
-      { label: '¿Tienen garantía?', next: 'faq_garantia' },
+      { label: '¿Cómo es el acompañamiento?', next: 'faq_garantia' },
       { label: 'Otra pregunta', next: 'otra_pregunta' },
     ],
   },
   faq_original: {
     messages: [
-      '¡Por supuesto! Todos nuestros trabajos son 100% originales.',
-      'Usamos herramientas profesionales antiplagio y NO utilizamos inteligencia artificial para redactar. Cada tesis es desarrollada por un especialista en tu área.',
+      '¡Por supuesto! Tu tesis es 100% tuya y original.',
+      'Tú la redactas con la guía de un especialista en tu área y te apoyamos con revisión de originalidad en cada etapa. No usamos inteligencia artificial para redactar.',
       '¿Te puedo ayudar con algo más?',
     ],
     options: [
@@ -148,8 +148,8 @@ const STEPS = {
   },
   faq_garantia: {
     messages: [
-      '¡Sí! Ofrecemos Garantía de Aprobación Total.',
-      'Si tu trabajo no es aprobado, lo corregimos sin costo adicional hasta que sea aceptado. Más de 3,000 estudiantes ya se titularon con nosotros.',
+      '¡Con gusto! Te acompañamos en cada etapa de tu tesis.',
+      'Tu asesor revisa tus avances y te da retroalimentación en cada capítulo, con revisiones incluidas para que llegues seguro a tu defensa. Más de 3,000 estudiantes ya se titularon con nuestra asesoría.',
     ],
     options: [
       { label: 'Quiero cotizar', next: 'nivel' },
@@ -359,7 +359,7 @@ const TesipediaBot = ({ isOpen, onClose }) => {
 
     if (option.action === 'whatsapp') {
       const text = encodeURIComponent(
-        `Hola, soy ${userData.name || 'un interesado'}. Me gustaría información sobre el servicio de tesis.`
+        `Hola, soy ${userData.name || 'un interesado'}. Me gustaría información sobre la asesoría de tesis.`
       );
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
       return;

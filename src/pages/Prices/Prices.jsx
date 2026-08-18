@@ -52,8 +52,8 @@ function Prices() {
     const pricingSchema = {
         "@context": "https://schema.org",
         "@type": "Product",
-        "name": "Servicio de Tesis Profesional — Tesipedia",
-        "description": "Planes de desarrollo de tesis profesional en México con precios desde $6,300 MXN. Incluye antiplagio Turnitin y detección anti-IA.",
+        "name": "Asesoría de Tesis Profesional — Tesipedia",
+        "description": "Planes de asesoría para el desarrollo de tu tesis profesional en México con precios desde $6,300 MXN. Incluye verificación de originalidad con Turnitin y revisión de escritura humana.",
         "brand": { "@type": "Brand", "name": "Tesipedia" },
         "offers": {
             "@type": "AggregateOffer",
@@ -62,12 +62,6 @@ function Prices() {
             "highPrice": "22000",
             "offerCount": "3",
             "availability": "https://schema.org/InStock"
-        },
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "reviewCount": "3000",
-            "bestRating": "5"
         }
     };
 
@@ -83,11 +77,11 @@ function Prices() {
     return (
         <>
         <Helmet>
-            <title>Precios de Tesis en México 2025 | Planes desde $6,300 MXN — Tesipedia</title>
-            <meta name="description" content="Conoce los precios de nuestros servicios de tesis profesional en México. Planes desde $6,300 MXN: elaboración completa, acompañamiento y corrección. Pagos a meses sin intereses. Incluye Turnitin y anti-IA." />
-            <meta name="keywords" content="precios tesis México, cuánto cuesta una tesis, costos asesoría de tesis, precio elaboración tesis, tesis barata México, planes de tesis, pagar tesis a meses" />
-            <meta property="og:title" content="Precios de Tesis Profesional — Tesipedia | Desde $6,300 MXN" />
-            <meta property="og:description" content="Planes accesibles para tu tesis profesional. Desde $6,300 MXN con pagos a meses sin intereses." />
+            <title>Precios de Asesoría de Tesis en México 2025 | Planes desde $6,300 MXN — Tesipedia</title>
+            <meta name="description" content="Conoce los precios de nuestra asesoría de tesis profesional en México. Planes desde $6,300 MXN: asesoría integral, acompañamiento y corrección. Pagos a meses sin intereses. Incluye verificación de originalidad con Turnitin." />
+            <meta name="keywords" content="precios asesoría de tesis México, cuánto cuesta la asesoría de una tesis, costos asesoría de tesis, precio asesoría elaboración tesis, asesoría de tesis accesible México, planes de asesoría de tesis, pagar asesoría de tesis a meses" />
+            <meta property="og:title" content="Precios de Asesoría de Tesis Profesional — Tesipedia | Desde $6,300 MXN" />
+            <meta property="og:description" content="Planes accesibles de asesoría para tu tesis profesional. Desde $6,300 MXN con pagos a meses sin intereses." />
             <meta property="og:type" content="website" />
             <meta property="og:url" content="https://tesipedia.com/precios" />
             <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -406,7 +400,7 @@ function Prices() {
                                     <div className="cta-content">
                                         <span className="success-tag animate-bounce">
                                             <FaStar className="star-icon" />
-                                            Más de 1,500 tesis exitosas
+                                            Más de 1,500 estudiantes asesorados
                                         </span>
                                         <h2 className="cta-title animate-fade-in">¿Listo para Iniciar tu Tesis?</h2>
                                         <div className="trust-indicators animate-slide-right">
@@ -445,8 +439,8 @@ function Prices() {
                         <FaUserGraduate className="support-icon" />
                     </Col>
                     <Col md={10}>
-                        <h4 className="mb-2">Acompañamiento Garantizado hasta tu Titulación</h4>
-                        <p className="mb-0">Nuestro compromiso es tu éxito académico. Te acompañamos en cada paso del proceso hasta lograr tu objetivo.</p>
+                        <h4 className="mb-2">Acompañamiento en tu Proceso de Titulación</h4>
+                        <p className="mb-0">Nuestro compromiso es apoyarte académicamente. Te acompañamos en cada paso del proceso para que avances hacia tu objetivo.</p>
                     </Col>
                 </Row>
             </div>

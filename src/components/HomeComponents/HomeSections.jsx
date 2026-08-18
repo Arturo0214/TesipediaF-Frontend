@@ -15,7 +15,7 @@ export function TrustBar() {
   const unis = ['UNAM', 'IPN', 'UAM', 'Tec de Monterrey', 'UANL', 'BUAP', 'UdeG', 'UV'];
   return (
     <section className="hs-trust" aria-label="Universidades">
-      <p className="hs-trust-label">Estudiantes titulados de</p>
+      <p className="hs-trust-label">Estudiantes asesorados de</p>
       <div className="hs-trust-logos">
         {unis.map((u) => <span key={u} className="hs-trust-uni">{u}</span>)}
       </div>
@@ -27,9 +27,9 @@ export function TrustBar() {
 export function HowItWorks() {
   const steps = [
     { icon: <FaCommentDots />, tag: 'Empieza aquí', t: 'Cuéntanos tu proyecto', d: 'Escríbenos por WhatsApp con tu tema, nivel, número de páginas y fecha. En minutos te damos una cotización clara y sin compromiso.' },
-    { icon: <FaUserTie />, t: 'Te asignamos a tu experto', d: 'Un investigador con posgrado en tu área toma tu proyecto. Acuerdan alcance, plan de trabajo y un esquema de pago a tu medida.' },
-    { icon: <FaFileSignature />, t: 'Avanzamos juntos, capítulo por capítulo', d: 'Recibes entregas parciales y das visto bueno en cada etapa. Pides ajustes cuando quieras y sigues todo en tiempo real desde tu cuenta.' },
-    { icon: <FaGraduationCap />, tag: 'Y te titulas', t: 'Entrega final y defensa', d: 'Tu tesis completa, original y con citación correcta, lista con correcciones hasta la aprobación de tu asesor. Te preparamos para tu examen.' },
+    { icon: <FaUserTie />, t: 'Te asignamos a tu asesor', d: 'Un investigador con posgrado en tu área te acompaña. Acuerdan alcance, plan de trabajo y un esquema de pago a tu medida.' },
+    { icon: <FaFileSignature />, t: 'Avanzas con nuestra guía, capítulo por capítulo', d: 'Trabajas cada capítulo con la asesoría de tu experto y revisamos tus avances en cada etapa. Pides ajustes cuando quieras y sigues todo en tiempo real desde tu cuenta.' },
+    { icon: <FaGraduationCap />, tag: 'Y te titulas', t: 'Tesis lista y defensa', d: 'Tu tesis completa, original y con citación correcta, revisada hasta pulir cada detalle. Te preparamos para tu examen profesional.' },
   ];
   const ref = useRef(null);
 
@@ -69,7 +69,7 @@ export function HowItWorks() {
   return (
     <section className="hs-section ps-section" id="como-funciona">
       <div className="hs-head" data-aos="fade-up">
-        <h2>Así hacemos tu tesis, paso a paso</h2>
+        <h2>Así te asesoramos en tu tesis, paso a paso</h2>
         <p>Te acompañamos en cada etapa — de la primera idea a tu examen profesional.</p>
       </div>
       <div className="ps" ref={ref}>
@@ -95,7 +95,7 @@ export function RealTimeTracking() {
   const feats = [
     { icon: <FaChartLine />, t: 'Avance por capítulos', d: 'Ve el porcentaje de progreso de tu tesis y qué etapa se está trabajando.' },
     { icon: <FaFileDownload />, t: 'Descarga tus avances', d: 'Recibe y descarga cada entrega directamente desde tu cuenta.' },
-    { icon: <FaComments />, t: 'Chat con tu asesor', d: 'Comunícate con quien hace tu tesis y pide ajustes cuando quieras.' },
+    { icon: <FaComments />, t: 'Chat con tu asesor', d: 'Comunícate con quien te asesora y pide ajustes cuando quieras.' },
     { icon: <FaBell />, t: 'Notificaciones', d: 'Te avisamos cada vez que hay un avance nuevo o una respuesta.' },
   ];
   const stages = [
@@ -158,14 +158,14 @@ export function RealTimeTracking() {
 /* ---- Niveles + precios (enlazan a landings) ---- */
 export function LevelsPricing() {
   const levels = [
-    { t: 'Tesis de Licenciatura', price: '110', to: '/tesis-licenciatura', feats: ['50-120 páginas', 'Entrega 3-4 semanas', 'Revisión de originalidad'] },
-    { t: 'Tesis de Maestría', price: '160', to: '/tesis-maestria', feats: ['80-150 páginas', 'Investigador con doctorado', 'Entrega 4-6 semanas'], featured: true },
-    { t: 'Tesis de Doctorado', price: '210', to: '/tesis-doctoral', feats: ['120-250 páginas', 'Nivel publicable', 'Entrega 6-8 semanas'] },
+    { t: 'Asesoría Tesis de Licenciatura', price: '110', to: '/tesis-licenciatura', feats: ['50-120 páginas', 'Avances 3-4 semanas', 'Revisión de originalidad'] },
+    { t: 'Asesoría Tesis de Maestría', price: '160', to: '/tesis-maestria', feats: ['80-150 páginas', 'Asesor con doctorado', 'Avances 4-6 semanas'], featured: true },
+    { t: 'Asesoría Tesis de Doctorado', price: '210', to: '/tesis-doctoral', feats: ['120-250 páginas', 'Nivel publicable', 'Avances 6-8 semanas'] },
   ];
   return (
     <section className="hs-section hs-section-alt" id="precios">
       <div className="hs-head" data-aos="fade-up">
-        <h2>Precios transparentes por nivel</h2>
+        <h2>Precios de asesoría transparentes por nivel</h2>
         <p>Desde $110 por página, sin costos ocultos. Cotización gratuita y planes de pago.</p>
       </div>
       <div className="hs-levels">
@@ -202,7 +202,7 @@ export function ExploreLinks() {
   return (
     <section className="hs-section" aria-label="Explora">
       <div className="hs-head" data-aos="fade-up">
-        <h2>Tesis para tu universidad y carrera</h2>
+        <h2>Asesoría de tesis para tu universidad y carrera</h2>
         <p>Conocemos los requisitos de cada institución y área del conocimiento.</p>
       </div>
       <div className="hs-explore">
@@ -229,7 +229,7 @@ export function HomeFAQ({ faqs = [] }) {
     <section className="hs-section hs-section-alt" id="preguntas-frecuentes">
       <div className="hs-head" data-aos="fade-up">
         <h2>Preguntas frecuentes</h2>
-        <p>Resolvemos las dudas más comunes sobre hacer tu tesis con Tesipedia.</p>
+        <p>Resolvemos las dudas más comunes sobre la asesoría de tesis con Tesipedia.</p>
       </div>
       <div className="hs-faq">
         {faqs.map((q, i) => (
@@ -246,18 +246,18 @@ export function HomeFAQ({ faqs = [] }) {
 /* ---- Por qué Tesipedia (diferenciadores) ---- */
 export function WhyTesipedia() {
   const items = [
-    { icon: <FaFileAlt />, t: 'Desarrollo completo', d: 'Tu tesis de inicio a fin: tema, marco teórico, metodología, resultados y conclusiones.' },
-    { icon: <FaSearch />, t: 'Anti-plagio Turnitin', d: 'Cada trabajo pasa por Turnitin. Recibes tu reporte de originalidad como respaldo.' },
-    { icon: <FaRobot />, t: '100% humano, sin IA', d: 'Escrito por investigadores con posgrado. Pasa los detectores de IA más exigentes.' },
+    { icon: <FaFileAlt />, t: 'Asesoría integral', d: 'Te guiamos en tu tesis de inicio a fin: tema, marco teórico, metodología, resultados y conclusiones.' },
+    { icon: <FaSearch />, t: 'Revisión de originalidad', d: 'Revisamos la originalidad de tu trabajo y te apoyamos a fortalecer citas y referencias.' },
+    { icon: <FaRobot />, t: 'Asesoría 100% humana', d: 'Te asesoran investigadores con posgrado. Tu tesis la redactas tú, con nuestra guía: un trabajo original.' },
     { icon: <FaUserTie />, t: 'Asesoría personalizada', d: 'Un asesor dedicado te acompaña, resuelve dudas y te prepara para tu defensa.' },
-    { icon: <FaShieldAlt />, t: 'Garantía de aprobación', d: 'Correcciones ilimitadas hasta que tu asesor y sinodales aprueben tu tesis.' },
-    { icon: <FaGraduationCap />, t: 'Hasta titularte', d: 'No terminamos en la entrega: te apoyamos hasta que tengas tu título en mano.' },
+    { icon: <FaShieldAlt />, t: 'Revisiones hasta pulir tu tesis', d: 'Te acompañamos con revisiones en cada etapa para que llegues seguro a tu examen profesional.' },
+    { icon: <FaGraduationCap />, t: 'Hasta tu defensa', d: 'No terminamos en la última revisión: te apoyamos hasta que presentes tu examen.' },
   ];
   return (
     <section className="hs-section" id="por-que">
       <div className="hs-head" data-aos="fade-up">
-        <h2>Por qué Tesipedia es el servicio #1 en México</h2>
-        <p>Todo lo que necesitas para hacer tu tesis y titularte, con respaldo real.</p>
+        <h2>Por qué Tesipedia es la asesoría de tesis #1 en México</h2>
+        <p>Todo lo que necesitas para hacer tu tesis y titularte, con acompañamiento real.</p>
       </div>
       <div className="hs-why">
         {items.map((it, i) => (
@@ -275,18 +275,18 @@ export function WhyTesipedia() {
 /* ---- Historias de éxito (testimonios) ---- */
 export function SuccessStories() {
   const t = [
-    { name: 'Carlos', deg: 'Ing. Industrial · UNAM', lvl: 'Licenciatura', text: 'Llevaba meses sin avanzar. Con el equipo terminé mi tesis en 8 semanas, con tranquilidad total por el escáner antiplagio. Hasta conseguí una oferta de trabajo gracias a ella.' },
+    { name: 'Carlos', deg: 'Ing. Industrial · UNAM', lvl: 'Licenciatura', text: 'Llevaba meses sin avanzar. Con la asesoría del equipo saqué adelante mi tesis en 8 semanas, con la tranquilidad de que el trabajo era mío. Hasta conseguí una oferta de trabajo gracias a ella.' },
     { name: 'Ana', deg: 'Psicología · ITESM', lvl: 'Maestría', text: 'Dudaba al principio, pero desde la primera reunión sentí confianza. Mi asesora fue cercana, clara y profesional. Hoy ya tengo mi título en manos.' },
-    { name: 'Roberto', deg: 'Administración · IBERO', lvl: 'Doctorado', text: 'Me ayudaron a estructurar desde cero con argumentos sólidos. El seguimiento fue constante y superé las expectativas de mi comité.' },
-    { name: 'María', deg: 'Derecho · UAM', lvl: 'Licenciatura', text: 'Trabajando y estudiando era imposible avanzar. Me apoyaron paso a paso entendiendo mis tiempos. En 3 meses estaba lista para titularme.' },
-    { name: 'Antonio', deg: 'Ing. Mecánica · IPN', lvl: 'Licenciatura', text: 'Me preocupaba la originalidad. El escáner anti-IA y antiplagio me dieron la certeza de que mi tesis era mía y única. Excelente experiencia.' },
-    { name: 'Vanessa', deg: 'Economía · UNAM', lvl: 'Licenciatura', text: 'No solo entendieron mis necesidades; me apoyaron con normas APA, redacción y análisis estadístico. Todo muy claro y profesional.' },
+    { name: 'Roberto', deg: 'Administración · IBERO', lvl: 'Doctorado', text: 'Me guiaron para estructurar desde cero con argumentos sólidos. El seguimiento fue constante y superé las expectativas de mi comité.' },
+    { name: 'María', deg: 'Derecho · UAM', lvl: 'Licenciatura', text: 'Trabajando y estudiando era imposible avanzar. Me acompañaron paso a paso entendiendo mis tiempos. En 3 meses estaba lista para titularme.' },
+    { name: 'Antonio', deg: 'Ing. Mecánica · IPN', lvl: 'Licenciatura', text: 'Me preocupaba la originalidad. La revisión y la guía de mi asesor me dieron la certeza de que mi tesis era mía y única. Excelente experiencia.' },
+    { name: 'Vanessa', deg: 'Economía · UNAM', lvl: 'Licenciatura', text: 'No solo entendieron mis necesidades; me guiaron con normas APA, redacción y análisis estadístico. Todo muy claro y profesional.' },
   ];
   return (
     <section className="hs-section hs-section-alt" id="casos-exito">
       <div className="hs-head" data-aos="fade-up">
-        <h2>Estudiantes que ya se titularon con nosotros</h2>
-        <p>Historias reales de quienes confiaron en Tesipedia para lograr su título.</p>
+        <h2>Estudiantes que ya se titularon con nuestra asesoría</h2>
+        <p>Historias reales de quienes confiaron en la asesoría de Tesipedia para lograr su título.</p>
       </div>
       <div className="hs-stories">
         {t.map((s, i) => (
@@ -316,7 +316,7 @@ export function SpecialOffer() {
       <div className="hs-offer-inner" data-aos="fade-up">
         <div className="hs-offer-left">
           <span className="hs-offer-tag"><FaPercent /> 10% de descuento</span>
-          <h2>Ahorra 10% al pagar tu tesis por transferencia o efectivo</h2>
+          <h2>Ahorra 10% al pagar tu asesoría por transferencia o efectivo</h2>
           <p>Incluye asesoría inicial gratuita y planes de pago en parcialidades.</p>
         </div>
         <div className="hs-offer-right">
@@ -336,26 +336,26 @@ export function SeoBlock() {
   return (
     <section className="hs-section hs-seoblock">
       <div className="hs-seoblock-inner" data-aos="fade-up">
-        <h2>Hacer tesis en México — el servicio #1 del país</h2>
+        <h2>Hacer tesis en México — la asesoría #1 del país</h2>
         <p>
-          <strong>¿Necesitas hacer tu tesis?</strong> En Tesipedia somos el servicio líder en México para hacer
-          tesis de licenciatura, maestría y doctorado. Con más de 3,000 estudiantes titulados y un 98% de
-          aprobación, te hacemos tu tesis con la calidad que tu universidad exige.
+          <strong>¿Necesitas hacer tu tesis?</strong> En Tesipedia somos la asesoría líder en México para
+          hacer tesis de licenciatura, maestría y doctorado. Con más de 3,000 estudiantes asesorados,
+          te acompañamos para que termines tu tesis con la calidad que tu universidad exige.
         </p>
         <p>
           Nuestro equipo de más de 50 asesores expertos cubre todas las áreas: derecho, administración, ingeniería,
-          psicología, educación, medicina, contaduría, arquitectura, ciencias sociales y más. Hacemos tesis para
+          psicología, educación, medicina, contaduría, arquitectura, ciencias sociales y más. Asesoramos a
           estudiantes de la <Link to="/tesis-unam">UNAM</Link>, <Link to="/tesis-ipn">IPN</Link>,
           {' '}<Link to="/tesis-tec-monterrey">Tec de Monterrey</Link>, <Link to="/tesis-uam">UAM</Link>,
           {' '}<Link to="/tesis-uanl">UANL</Link>, <Link to="/tesis-udg">UdeG</Link> y todas las universidades
           públicas y privadas de México.
         </p>
         <p>
-          A diferencia de otros servicios, cada tesis es <strong>100% original</strong>, elaborada por investigadores
-          humanos y verificada con Turnitin y escáner anti-IA. No usamos plantillas ni reciclamos trabajos: tu tesis
-          se desarrolla desde cero siguiendo los lineamientos de tu universidad. Ofrecemos desarrollo completo,
-          acompañamiento y <Link to="/cuanto-cuesta-una-tesis">corrección</Link>, con precios transparentes desde
-          $110 por página y planes de pago flexibles.
+          A diferencia de otros servicios, tu tesis es <strong>100% tuya</strong>: la redactas con la guía de
+          investigadores humanos y te apoyamos con revisión de originalidad. No usamos plantillas ni reciclamos
+          trabajos: tu tesis se construye desde cero siguiendo los lineamientos de tu universidad. Ofrecemos asesoría
+          integral, acompañamiento y <Link to="/cuanto-cuesta-una-tesis">revisión</Link>, con precios transparentes
+          desde $110 por página y planes de pago flexibles.
         </p>
       </div>
     </section>
@@ -367,8 +367,8 @@ export function FinalCTA() {
   return (
     <section className="hs-final">
       <div className="hs-final-inner" data-aos="fade-up">
-        <h2>Titúlate este año — cotiza tu tesis gratis</h2>
-        <p>Únete a los más de 3,000 estudiantes que ya se titularon con Tesipedia. Respuesta en minutos, sin compromiso.</p>
+        <h2>Titúlate este año — cotiza tu asesoría gratis</h2>
+        <p>Únete a los más de 3,000 estudiantes que ya se titularon con la asesoría de Tesipedia. Respuesta en minutos, sin compromiso.</p>
         <a href={WA} target="_blank" rel="noopener noreferrer" className="hs-btn hs-btn-primary hs-btn-lg" data-track-cta="home_final_whatsapp">
           <FaWhatsapp /> Cotizar mi tesis por WhatsApp
         </a>

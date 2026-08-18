@@ -22,7 +22,7 @@ function AboutUs() {
         "mainEntity": {
             "@type": "ProfessionalService",
             "name": "Tesipedia",
-            "description": "Plataforma de referencia en habla hispana para la elaboración de tesis y asesoría académica profesional.",
+            "description": "Plataforma de referencia en habla hispana para la asesoría en la elaboración de tesis y el acompañamiento académico profesional.",
             "foundingLocation": "Ciudad de México, México",
             "numberOfEmployees": { "@type": "QuantitativeValue", "minValue": 50, "unitText": "asesores" }
         }
@@ -40,11 +40,11 @@ function AboutUs() {
     return (
         <div className="page-aboutUs">
             <Helmet>
-                <title>Sobre Nosotros | Tesipedia — +3,000 Estudiantes Titulados en México</title>
-                <meta name="description" content="Conoce a Tesipedia: la plataforma #1 en México para desarrollo de tesis profesional. +3,000 titulados, 50+ asesores especializados, 98% de aprobación. Facilitamos tu titulación." />
-                <meta name="keywords" content="quiénes somos Tesipedia, equipo Tesipedia, asesores de tesis México, empresa de tesis confiable, servicio de tesis profesional CDMX" />
-                <meta property="og:title" content="Sobre Nosotros | Tesipedia — +3,000 Estudiantes Titulados" />
-                <meta property="og:description" content="50+ asesores especializados y +3,000 estudiantes titulados. Conoce nuestra historia." />
+                <title>Sobre Nosotros | Tesipedia — +3,000 Estudiantes Asesorados en México</title>
+                <meta name="description" content="Conoce a Tesipedia: la plataforma de asesoría de tesis profesional en México. +3,000 estudiantes asesorados y 50+ asesores especializados que te acompañan en tu proceso de titulación." />
+                <meta name="keywords" content="quiénes somos Tesipedia, equipo Tesipedia, asesores de tesis México, asesoría de tesis confiable, asesoría de tesis profesional CDMX" />
+                <meta property="og:title" content="Sobre Nosotros | Tesipedia — +3,000 Estudiantes Asesorados" />
+                <meta property="og:description" content="50+ asesores especializados y +3,000 estudiantes asesorados. Conoce nuestra historia." />
                 <meta property="og:url" content="https://tesipedia.com/sobre-nosotros" />
                 <link rel="canonical" href="https://tesipedia.com/sobre-nosotros" />
                 <script type="application/ld+json">{JSON.stringify(aboutSchema)}</script>
@@ -112,7 +112,7 @@ function AboutUs() {
                                 <div className="page-aboutUs__info-content">
                                     <h3>Nuestra Visión</h3>
                                     <p>
-                                        Ser la plataforma de referencia en habla hispana para la elaboración de tesis y asesoría académica profesional, impulsando la educación de calidad y la culminación exitosa de estudios superiores.
+                                        Ser la plataforma de referencia en habla hispana para la asesoría en la elaboración de tesis y el acompañamiento académico profesional, impulsando la educación de calidad y la culminación exitosa de estudios superiores.
                                     </p>
                                 </div>
                             </div>
@@ -141,7 +141,7 @@ function AboutUs() {
                                     <div className="page-aboutUs__advisor-text">
                                         <h3>Experiencia Multidisciplinaria</h3>
                                         <p>
-                                            Nuestro equipo de más de 50 asesores especializados combina experiencia académica con conocimiento práctico en diversas áreas, garantizando un acompañamiento integral en tu proceso de titulación.
+                                            Nuestro equipo de más de 50 asesores especializados combina experiencia académica con conocimiento práctico en diversas áreas, ofreciéndote un acompañamiento integral en tu proceso de titulación.
                                         </p>
                                     </div>
                                 </div>

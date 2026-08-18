@@ -10,9 +10,9 @@ const SEO = ({
   schema = null,
   noindex = false
 }) => {
-  const defaultTitle = 'Tesipedia | ¿Necesitas ayuda con tu tesis? Servicio #1 en México';
-  const defaultDescription = '¿No sabes cómo hacer tu tesis? En Tesipedia desarrollamos tu tesis de licenciatura, maestría o doctorado. 100% original, sin plagio ni IA. +3,000 titulados. Cotiza gratis.';
-  const defaultKeywords = 'hacer mi tesis, ayuda con mi tesis, quién me hace mi tesis México, desarrollo de tesis, asesoría de tesis, cuánto cuesta una tesis, tesis licenciatura, tesis maestría, corrección de tesis, Tesipedia';
+  const defaultTitle = 'Tesipedia | ¿Necesitas ayuda con tu tesis? Asesoría de Tesis #1 en México';
+  const defaultDescription = '¿No sabes cómo hacer tu tesis? En Tesipedia te asesoramos para hacer tu tesis de licenciatura, maestría o doctorado. Te guiamos para que la redactes tú, original y con revisión. +3,000 estudiantes asesorados. Cotiza gratis.';
+  const defaultKeywords = 'hacer mi tesis, ayuda con mi tesis, quién me ayuda con mi tesis México, asesoría de tesis, tutoría de tesis, cuánto cuesta una tesis, tesis licenciatura, tesis maestría, revisión de tesis, Tesipedia';
 
   const fullTitle = title ? `${title} | Tesipedia` : defaultTitle;
 

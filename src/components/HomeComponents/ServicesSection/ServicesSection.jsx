@@ -15,26 +15,26 @@ import './ServicesSection.css';
 const services = [
     {
         icon: <FaFileAlt />,
-        title: "Desarrollo Completo de Tesis",
-        description: "Desde la selección del tema hasta las conclusiones. Cubrimos tesis, tesinas, ensayos y trabajos de investigación para todos los niveles académicos.",
+        title: "Asesoría Integral de Tesis",
+        description: "Desde la selección del tema hasta las conclusiones. Te guiamos en tesis, tesinas, ensayos y trabajos de investigación para todos los niveles académicos.",
         color: "#2563eb",
     },
     {
         icon: <FaSearch />,
-        title: "Escáner Anti-Plagio (Turnitin)",
-        description: "Cada trabajo pasa por Turnitin para garantizar 100% de originalidad. Recibe tu reporte de autenticidad como respaldo.",
+        title: "Revisión de Originalidad",
+        description: "Revisamos la originalidad de tu trabajo y te apoyamos a fortalecer citas y referencias. Recibe orientación para que tu tesis sea sólida y propia.",
         color: "#10b981",
     },
     {
         icon: <FaRobot />,
-        title: "Escáner Anti-IA",
-        description: "Verificamos que el contenido sea completamente humano. Pasamos los detectores de IA más exigentes del mercado.",
+        title: "Trabajo 100% Tuyo, con Guía",
+        description: "Tu tesis la redactas tú con la asesoría de investigadores humanos: un trabajo original, sin plantillas ni contenido genérico.",
         color: "#8b5cf6",
     },
     {
         icon: <FaCalendarCheck />,
-        title: "Entrega Puntual Garantizada",
-        description: "Entrega desde 3 semanas con seguimiento en tiempo real. Cumplimos plazos sin excepción, tu tranquilidad es nuestra prioridad.",
+        title: "Avances a Tiempo",
+        description: "Primeros avances desde 3 semanas con seguimiento en tiempo real. Respetamos tus tiempos, tu tranquilidad es nuestra prioridad.",
         color: "#f59e0b",
     },
     {
@@ -45,17 +45,17 @@ const services = [
     },
     {
         icon: <FaGraduationCap />,
-        title: "Acompañamiento hasta Titulación",
-        description: "No terminamos con la entrega. Te apoyamos con correcciones, preparación de defensa y todo lo necesario hasta que tengas tu título.",
+        title: "Acompañamiento hasta tu Defensa",
+        description: "No terminamos con la última revisión. Te apoyamos con ajustes, preparación de defensa y todo lo necesario hasta tu examen profesional.",
         color: "#0891b2",
     },
 ];
 
 const processSteps = [
     { step: "01", title: "Contáctanos", desc: "Escríbenos por WhatsApp o chat para contarnos tu proyecto." },
-    { step: "02", title: "Recibe tu plan", desc: "Te damos un plan personalizado con tiempos, costos y alcance." },
-    { step: "03", title: "Desarrollo", desc: "Nuestro equipo trabaja tu tesis con seguimiento constante." },
-    { step: "04", title: "Entrega y titulación", desc: "Recibes tu trabajo listo y te acompañamos hasta la defensa." },
+    { step: "02", title: "Recibe tu plan", desc: "Te damos un plan de asesoría personalizado con tiempos, costos y alcance." },
+    { step: "03", title: "Asesoría y avances", desc: "Avanzas tu tesis con la guía de tu asesor y seguimiento constante." },
+    { step: "04", title: "Defensa y titulación", desc: "Tu tesis queda lista y te acompañamos hasta tu examen profesional." },
 ];
 
 const ServicesSection = ({ onOpenChat }) => {
@@ -64,14 +64,14 @@ const ServicesSection = ({ onOpenChat }) => {
             <Container>
                 {/* ── What we do ── */}
                 <div className="section-header">
-                    <span className="section-subtitle">SERVICIOS DE TESIS PROFESIONAL EN MÉXICO</span>
+                    <span className="section-subtitle">ASESORÍA DE TESIS PROFESIONAL EN MÉXICO</span>
                     <h2 className="section-title">
                         Todo lo que necesitas para{' '}<span className="highlight">hacer tu tesis y titularte</span>
                     </h2>
                     <p className="section-description">
-                        ¿No sabes por dónde empezar tu tesis? Ofrecemos un servicio integral de desarrollo de tesis profesional
-                        para licenciatura, maestría y doctorado. Cada proyecto es único, 100% original y recibe asesoría personalizada.
-                        Incluye antiplagio Turnitin y detección anti-IA.
+                        ¿No sabes por dónde empezar tu tesis? Ofrecemos un servicio integral de asesoría de tesis profesional
+                        para licenciatura, maestría y doctorado. Cada proyecto es único, tu tesis es 100% tuya y recibes asesoría personalizada,
+                        con revisión de originalidad en cada etapa.
                     </p>
                 </div>
 
@@ -98,7 +98,7 @@ const ServicesSection = ({ onOpenChat }) => {
                 <div className="section-header" style={{ marginTop: '5rem' }}>
                     <span className="section-subtitle">PROCESO PASO A PASO</span>
                     <h2 className="section-title">
-                        ¿Cómo funciona el servicio de tesis de{' '}<span className="highlight">Tesipedia</span>?
+                        ¿Cómo funciona la asesoría de tesis de{' '}<span className="highlight">Tesipedia</span>?
                     </h2>
                 </div>
 
@@ -116,30 +116,30 @@ const ServicesSection = ({ onOpenChat }) => {
                 {/* ── SEO Content Section ── */}
                 <div className="seo-content-section" style={{ marginTop: '4rem', textAlign: 'left', maxWidth: '900px', marginLeft: 'auto', marginRight: 'auto' }}>
                     <h2 className="section-title" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                        <span className="highlight">Hacer Tesis en México</span> — El Servicio #1 del País
+                        <span className="highlight">Hacer Tesis en México</span> — La Asesoría #1 del País
                     </h2>
                     <div style={{ color: '#666', lineHeight: '1.8', fontSize: '1rem' }}>
                         <p>
-                            <strong>¿Necesitas hacer tu tesis?</strong> En Tesipedia somos el servicio líder en México para hacer tesis de licenciatura, maestría y doctorado.
-                            Con más de 3,000 estudiantes titulados y un 98% de índice de aprobación, te hacemos tu tesis con la calidad que tu universidad exige.
+                            <strong>¿Necesitas hacer tu tesis?</strong> En Tesipedia somos la asesoría líder en México para hacer tesis de licenciatura, maestría y doctorado.
+                            Con más de 3,000 estudiantes asesorados, te acompañamos para que termines tu tesis con la calidad que tu universidad exige.
                         </p>
                         <p>
                             Nuestro equipo de más de 50 asesores expertos cubre todas las áreas del conocimiento: derecho, administración, ingeniería, psicología,
-                            educación, medicina, contaduría, arquitectura, ciencias sociales, humanidades y más. Hacemos tesis para estudiantes de la UNAM, IPN, ITESM,
+                            educación, medicina, contaduría, arquitectura, ciencias sociales, humanidades y más. Asesoramos a estudiantes de la UNAM, IPN, ITESM,
                             UAM, UVM, UNITEC, La Salle, Anáhuac, Iberoamericana, BUAP, UdeG, UANL y todas las universidades públicas y privadas de México.
                         </p>
                         <p>
-                            <strong>¿Por qué comprar tu tesis con Tesipedia?</strong> A diferencia de otros servicios, cada tesis que hacemos es 100% original,
-                            elaborada por investigadores humanos y verificada con Turnitin y escáner anti-IA. No usamos plantillas ni reciclamos trabajos.
-                            Tu tesis se desarrolla desde cero siguiendo los lineamientos específicos de tu universidad.
+                            <strong>¿Por qué asesorarte con Tesipedia?</strong> A diferencia de otros servicios, tu tesis es 100% tuya:
+                            la redactas con la guía de investigadores humanos y te apoyamos con revisión de originalidad. No usamos plantillas ni reciclamos trabajos.
+                            Tu tesis se construye desde cero siguiendo los lineamientos específicos de tu universidad.
                         </p>
                         <p>
-                            Ofrecemos tres modalidades: <strong>Desarrollo Completo</strong> (te hacemos toda tu tesis de inicio a fin),
-                            <strong> Acompañamiento</strong> (trabajo conjunto con tu asesor asignado) y <strong>Corrección</strong> (revisión profesional de tu trabajo existente).
-                            Todas incluyen escáner antiplagio Turnitin, detección anti-IA y correcciones de tu asesor universitario.
+                            Ofrecemos tres modalidades: <strong>Asesoría Integral</strong> (te guiamos en toda tu tesis de inicio a fin),
+                            <strong> Acompañamiento</strong> (tutoría continua con tu asesor asignado) y <strong>Revisión</strong> (revisión profesional de tu borrador existente).
+                            Todas incluyen revisión de originalidad y la guía de tu asesor especializado.
                         </p>
                         <p>
-                            Los precios para hacer tu tesis van desde $6,300 MXN para artículos científicos hasta $19,800 MXN para tesis de licenciatura completas.
+                            Los precios de la asesoría de tesis van desde $6,300 MXN para artículos científicos hasta $19,800 MXN para tesis de licenciatura completas.
                             Aceptamos tarjetas de crédito, débito, transferencias, PayPal y OXXO. También manejamos pagos en parcialidades para tu comodidad.
                         </p>
                     </div>
@@ -148,7 +148,7 @@ const ServicesSection = ({ onOpenChat }) => {
                 {/* ── CTA ── */}
                 <div className="services-cta">
                     <h3 className="services-cta-title">¿Listo para hacer tu tesis?</h3>
-                    <p className="services-cta-desc">Te hacemos tu tesis con garantía de aprobación. Cotiza gratis hoy.</p>
+                    <p className="services-cta-desc">Te asesoramos en cada etapa para que la termines tú. Cotiza gratis hoy.</p>
                     <div className="services-cta-buttons">
                         <a
                             href="https://wa.me/525670071517?text=Hola%2C%20quiero%20información%20sobre%20el%20servicio%20de%20tesis"

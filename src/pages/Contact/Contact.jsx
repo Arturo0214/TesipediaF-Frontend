@@ -53,10 +53,10 @@ function Contact() {
   return (
     <div className="ct-page">
       <Helmet>
-        <title>Contacto | ¿Necesitas ayuda con tu tesis? Escríbenos | Tesipedia México</title>
-        <meta name="description" content="Contacta a Tesipedia por WhatsApp o chat en línea. Respuesta en menos de 5 minutos. Cotiza tu tesis gratis. Teléfono: +52 56 7007 1517. Atención personalizada en Ciudad de México." />
-        <meta name="keywords" content="contacto Tesipedia, WhatsApp tesis, cotizar tesis México, asesoría tesis CDMX, ayuda con mi tesis teléfono, servicio de tesis contacto" />
-        <meta property="og:title" content="Contacto Tesipedia | Cotiza tu tesis gratis" />
+        <title>Contacto | ¿Necesitas asesoría para tu tesis? Escríbenos | Tesipedia México</title>
+        <meta name="description" content="Contacta a Tesipedia por WhatsApp o chat en línea. Respuesta en menos de 5 minutos. Cotiza tu asesoría de tesis gratis. Teléfono: +52 56 7007 1517. Atención personalizada en Ciudad de México." />
+        <meta name="keywords" content="contacto Tesipedia, WhatsApp tesis, cotizar asesoría de tesis México, asesoría tesis CDMX, asesoría con mi tesis teléfono, asesoría de tesis contacto" />
+        <meta property="og:title" content="Contacto Tesipedia | Cotiza tu asesoría de tesis gratis" />
         <meta property="og:description" content="Escríbenos por WhatsApp o chat. Respuesta en menos de 5 minutos." />
         <meta property="og:url" content="https://tesipedia.com/contacto" />
         <link rel="canonical" href="https://tesipedia.com/contacto" />
@@ -154,7 +154,7 @@ function Contact() {
                 </div>
                 <div className="ct-trust-item">
                   <FaShieldAlt className="ct-trust-icon" />
-                  <span>Anti-Plagio Garantizado</span>
+                  <span>Verificación de Originalidad</span>
                 </div>
                 <div className="ct-trust-item">
                   <FaGraduationCap className="ct-trust-icon" />

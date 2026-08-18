@@ -258,7 +258,7 @@ function CotizarLanding() {
               <FaLaptop /> 100% Online
             </span>
             <span className="booking-badge">
-              <FaShieldAlt /> Nadie sabrá
+              <FaShieldAlt /> Confidencial
             </span>
           </div>
 
@@ -274,7 +274,7 @@ function CotizarLanding() {
 
           <div className="landing-hero-trust">
             <span><FaCheckCircle /> 100% Original — Turnitin</span>
-            <span><FaCheckCircle /> Sin IA detectable</span>
+            <span><FaCheckCircle /> Redacción 100% humana</span>
             <span><FaCheckCircle /> Desde $110/pág</span>
           </div>
         </div>
@@ -472,13 +472,13 @@ function CotizarLanding() {
         <div className="landing-features-grid">
           <div className="landing-feature-card">
             <FaUserGraduate className="feature-icon" />
-            <h3>+3,000 titulados</h3>
-            <p>98% de aprobación. Estudiantes de UNAM, IPN, TEC, UAM, UDG y +200 universidades.</p>
+            <h3>+3,000 estudiantes asesorados</h3>
+            <p>Hemos acompañado a estudiantes de UNAM, IPN, TEC, UAM, UDG y +200 universidades.</p>
           </div>
           <div className="landing-feature-card">
             <FaShieldAlt className="feature-icon" />
-            <h3>Pasa Turnitin y anti-IA</h3>
-            <p>Cada trabajo es elaborado por investigadores humanos. Cero plagio, cero inteligencia artificial detectable.</p>
+            <h3>Trabajo original y humano</h3>
+            <p>Te asesoran investigadores humanos para que tu trabajo sea original, tuyo y sin uso de inteligencia artificial.</p>
           </div>
           <div className="landing-feature-card">
             <FaGraduationCap className="feature-icon" />
