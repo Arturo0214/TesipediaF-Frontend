@@ -38,6 +38,11 @@ export function MiniFooter({ brand = 'Tesipedia — Asesoría y Tutoría Académ
         <a href="https://tesipedia.com/politica-de-privacidad" style={styles.miniFooterLink}>Política de Privacidad</a>
         <a href="https://tesipedia.com/contacto" style={styles.miniFooterLink}>Contacto</a>
       </div>
+      <p style={{ margin: '14px auto 0', maxWidth: 620, fontSize: '0.76rem', opacity: 0.6, lineHeight: 1.5 }}>
+        Tesipedia brinda servicios de <strong>asesoría y acompañamiento académico</strong>. Orientamos al
+        estudiante en metodología, estructura y redacción; el trabajo de investigación es responsabilidad
+        de cada estudiante.
+      </p>
       <p style={{ margin: '12px 0 0', fontSize: '0.78rem', opacity: 0.5 }}>
         © {new Date().getFullYear()} Tesipedia — Todos los derechos reservados
       </p>
