@@ -323,6 +323,22 @@ const AdminWhatsApp = () => {
     const map = new Map();
     newLeads.forEach(l => map.set(l.wa_id, l.updated_at));
     prevLeadsMapRef.current = map;
+    // Un mensaje NUEVO del cliente re-abre la conversación: quitarla de readLeads para que
+    // vuelva a subir hasta arriba (PRIORIDAD 1 del orden). Usa updated_at + preview 👤, que
+    // n8n siempre actualiza — no depende de mensajes_sin_leer, que a veces no llega.
+    if (newMsgs.length > 0) {
+      setReadLeads(prev => {
+        if (prev.size === 0) return prev;
+        let changed = false;
+        const next = new Set(prev);
+        for (const l of newMsgs) {
+          if (next.delete(l.wa_id)) changed = true;
+        }
+        if (!changed) return prev;
+        localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+        return next;
+      });
+    }
     // Notificar
     if (newMsgs.length > 0) {
       playNotifSound();
