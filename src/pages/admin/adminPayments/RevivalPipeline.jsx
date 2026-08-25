@@ -21,35 +21,85 @@ const ESTADO_LABELS = {
     cotizacion_enviada: { label: 'Cotizacion enviada', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
     esperando_aprobacion: { label: 'Esperando aprobacion', color: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },
     calificando: { label: 'Calificando (avanzado)', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+    descartado: { label: 'Descartado', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
 };
 
 const VENDOR_NAMES = {
-    arturo: 'Arturo', sandy: 'Sandy', hugo: 'Hugo', 'adrian nava': 'Adrian',
+    arturo: 'Arturo', sandy: 'Sandy', hugo: 'Hugo', 'adrian nava': 'Adrian', tania: 'Tania',
 };
 
+// Personas asignables en revival (incluye a Tania y Arturo para reactivación manual)
+const ASIGNABLES = [
+    { value: 'tania', label: 'Tania' },
+    { value: 'arturo', label: 'Arturo' },
+    { value: 'sandy', label: 'Sandy' },
+    { value: 'hugo', label: 'Hugo' },
+    { value: 'adrian nava', label: 'Adrian Nava' },
+];
+
+// Pestañas: caliente (en juego) + los 2 buckets de descartados reactivables
+const TABS = [
+    { key: 'activo', label: 'Calientes', icon: <FaFireAlt />, endpoint: '/api/v1/whatsapp/revival-pipeline', live: true },
+    { key: 'con_datos', label: 'Con datos', icon: <FaUserTag />, endpoint: '/api/v1/whatsapp/reactivation-pipeline?bucket=con_datos', live: true },
+    { key: 'solo_hola', label: 'Solo "hola"', icon: <FaEnvelope />, endpoint: '/api/v1/whatsapp/reactivation-pipeline?bucket=solo_hola', live: false },
+];
+
 function RevivalPipeline() {
+    const [tab, setTab] = useState('activo');
     const [leads, setLeads] = useState([]);
+    const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterEstado, setFilterEstado] = useState('all');
     const [filterRevival, setFilterRevival] = useState('all');
+    const [filterAsignado, setFilterAsignado] = useState('all');
     const [expandedLead, setExpandedLead] = useState(null);
     const [modalLead, setModalLead] = useState(null);
     const [editingNotes, setEditingNotes] = useState({});
     const [saving, setSaving] = useState({});
+    const [lastSync, setLastSync] = useState(null);
 
-    const fetchPipeline = async () => {
-        setLoading(true);
+    const tabConfig = TABS.find(t => t.key === tab) || TABS[0];
+
+    // Carga la pestaña actual. silent=true para auto-refresh sin spinner ni perder scroll.
+    const fetchPipeline = async ({ silent = false, offset = 0 } = {}) => {
+        if (!silent) setLoading(true);
         try {
-            const res = await axiosWithAuth.get('/api/v1/whatsapp/revival-pipeline');
-            setLeads(res.data);
+            const url = tabConfig.endpoint + (offset ? (tabConfig.endpoint.includes('?') ? '&' : '?') + `offset=${offset}` : '');
+            const res = await axiosWithAuth.get(url);
+            // /revival-pipeline devuelve array; /reactivation-pipeline devuelve { leads, total }
+            const rows = Array.isArray(res.data) ? res.data : (res.data.leads || []);
+            const tot = Array.isArray(res.data) ? res.data.length : (res.data.total ?? rows.length);
+            setLeads(prev => offset ? [...prev, ...rows] : rows);
+            setTotal(tot);
+            setLastSync(new Date());
         } catch (err) {
-            toast.error('Error cargando pipeline de revivals');
+            if (!silent) toast.error('Error cargando pipeline');
         }
-        setLoading(false);
+        if (!silent) setLoading(false);
     };
 
-    useEffect(() => { fetchPipeline(); }, []);
+    const loadMore = async () => {
+        setLoadingMore(true);
+        await fetchPipeline({ silent: true, offset: leads.length });
+        setLoadingMore(false);
+    };
+
+    // Recargar al cambiar de pestaña
+    useEffect(() => {
+        setLeads([]); setTotal(0); setExpandedLead(null);
+        fetchPipeline();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tab]);
+
+    // Auto-refresh en vivo (solo buckets ligeros) — para que tú y Tania vean el estatus al instante.
+    useEffect(() => {
+        if (!tabConfig.live) return;
+        const id = setInterval(() => fetchPipeline({ silent: true }), 45000);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tab]);
 
     const updateRevival = async (waId, data) => {
         setSaving(prev => ({ ...prev, [waId]: true }));
@@ -82,11 +132,18 @@ function RevivalPipeline() {
     const filtered = useMemo(() => {
         const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
         return leads.filter(l => {
-            // Solo leads con 3+ días sin actividad
-            const lastActivity = new Date(l.updated_at || l.created_at).getTime();
-            if (lastActivity > threeDaysAgo) return false;
+            // La regla "3+ días sin actividad" solo aplica a leads calientes.
+            // Los descartados (reactivación) son viejos por definición: se muestran todos.
+            if (tab === 'activo') {
+                const lastActivity = new Date(l.updated_at || l.created_at).getTime();
+                if (lastActivity > threeDaysAgo) return false;
+            }
             if (filterEstado !== 'all' && l.estado_sofia !== filterEstado) return false;
             if (filterRevival !== 'all' && (l.revival_status || 'pendiente') !== filterRevival) return false;
+            if (filterAsignado !== 'all') {
+                const asig = (l.revival_assigned_to || '').toLowerCase();
+                if (filterAsignado === 'sin' ? asig !== '' : asig !== filterAsignado) return false;
+            }
             if (searchTerm) {
                 const q = searchTerm.toLowerCase();
                 const name = (l.nombre || '').toLowerCase();
@@ -96,7 +153,7 @@ function RevivalPipeline() {
             }
             return true;
         });
-    }, [leads, filterEstado, filterRevival, searchTerm]);
+    }, [leads, filterEstado, filterRevival, filterAsignado, searchTerm, tab]);
 
     // Stats
     const stats = useMemo(() => {
@@ -122,20 +179,51 @@ function RevivalPipeline() {
                         <FaFireAlt style={{ color: '#f59e0b' }} /> Pipeline de Revivals
                     </h3>
                     <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '4px 0 0' }}>
-                        {stats.total} leads con potencial de cierre &middot; {formatMoney(stats.totalPrecio)} en pipeline
+                        {tab === 'activo'
+                            ? <>{stats.total} leads calientes &middot; {formatMoney(stats.totalPrecio)} en pipeline</>
+                            : tab === 'con_datos'
+                                ? <>{total} descartados que SÍ dieron datos &middot; prospectos reales para reactivar</>
+                                : <>{total} descartados que solo mandaron "hola" &middot; baja prioridad / acción masiva</>}
                     </p>
                 </div>
-                <button
-                    onClick={fetchPipeline}
-                    disabled={loading}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                        background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8,
-                        fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
-                    }}
-                >
-                    <FaSync className={loading ? 'spinning' : ''} /> Actualizar
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {tabConfig.live && lastSync && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                            En vivo &middot; {lastSync.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    )}
+                    <button
+                        onClick={() => fetchPipeline()}
+                        disabled={loading}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                            background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8,
+                            fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                        }}
+                    >
+                        <FaSync className={loading ? 'spinning' : ''} /> Actualizar
+                    </button>
+                </div>
+            </div>
+
+            {/* Tabs: Calientes | Con datos | Solo "hola" */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderBottom: '1px solid #1F2937', paddingBottom: 2 }}>
+                {TABS.map(t => (
+                    <button
+                        key={t.key}
+                        onClick={() => setTab(t.key)}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                            background: tab === t.key ? '#f59e0b' : 'transparent',
+                            color: tab === t.key ? '#fff' : '#9ca3af',
+                            border: 'none', borderRadius: '8px 8px 0 0',
+                            fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                    >
+                        {t.icon} {t.label}
+                    </button>
+                ))}
             </div>
 
             {/* Stats Cards */}
@@ -177,18 +265,34 @@ function RevivalPipeline() {
                         }}
                     />
                 </div>
+                {tab === 'activo' && (
+                    <select
+                        value={filterEstado}
+                        onChange={e => setFilterEstado(e.target.value)}
+                        style={{
+                            padding: '8px 12px', border: '1px solid #1F2937', borderRadius: 8,
+                            fontSize: '0.85rem', background: '#111827', color: '#F9FAFB', cursor: 'pointer',
+                        }}
+                    >
+                        <option value="all">Todos los estados</option>
+                        <option value="cotizacion_enviada">Cotizacion enviada</option>
+                        <option value="esperando_aprobacion">Esperando aprobacion</option>
+                        <option value="calificando">Calificando (avanzado)</option>
+                    </select>
+                )}
+                {/* Filtro por persona: cada quien ve su cola (tú y Tania) */}
                 <select
-                    value={filterEstado}
-                    onChange={e => setFilterEstado(e.target.value)}
+                    value={filterAsignado}
+                    onChange={e => setFilterAsignado(e.target.value)}
+                    title="Filtrar por persona asignada"
                     style={{
                         padding: '8px 12px', border: '1px solid #1F2937', borderRadius: 8,
                         fontSize: '0.85rem', background: '#111827', color: '#F9FAFB', cursor: 'pointer',
                     }}
                 >
-                    <option value="all">Todos los estados</option>
-                    <option value="cotizacion_enviada">Cotizacion enviada</option>
-                    <option value="esperando_aprobacion">Esperando aprobacion</option>
-                    <option value="calificando">Calificando (avanzado)</option>
+                    <option value="all">Todas las personas</option>
+                    <option value="sin">Sin asignar</option>
+                    {ASIGNABLES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
             </div>
 
@@ -379,10 +483,7 @@ function RevivalPipeline() {
                                                         }}
                                                     >
                                                         <option value="">Sin asignar</option>
-                                                        <option value="adrian nava">Adrian Nava</option>
-                                                        <option value="arturo">Arturo</option>
-                                                        <option value="sandy">Sandy</option>
-                                                        <option value="hugo">Hugo</option>
+                                                        {ASIGNABLES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                                                     </select>
                                                 </div>
 
@@ -432,6 +533,23 @@ function RevivalPipeline() {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Cargar más (bucket paginado, p.ej. solo "hola") */}
+            {!loading && leads.length < total && (
+                <div style={{ textAlign: 'center', padding: '4px 0 8px' }}>
+                    <button
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        style={{
+                            padding: '8px 20px', background: '#1F2937', color: '#F9FAFB',
+                            border: '1px solid #374151', borderRadius: 8, fontSize: '0.8rem',
+                            fontWeight: 600, cursor: 'pointer',
+                        }}
+                    >
+                        {loadingMore ? 'Cargando...' : `Cargar más (${leads.length} de ${total})`}
+                    </button>
                 </div>
             )}
 
