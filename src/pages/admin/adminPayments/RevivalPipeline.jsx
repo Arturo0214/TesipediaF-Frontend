@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import axiosWithAuth from '../../../utils/axioswithAuth';
+import SalesQuote from '../../SalesQuote/SalesQuote';
 import {
     FaSync, FaPhone, FaWhatsapp, FaEnvelope, FaSearch,
     FaFilter, FaChevronDown, FaChevronUp, FaStickyNote,
     FaUserTag, FaCheckCircle, FaClock, FaTimesCircle,
     FaFireAlt, FaExclamationTriangle, FaCalendarAlt,
-    FaPaperclip, FaFileAlt, FaTrashAlt, FaFileInvoiceDollar, FaDownload
+    FaPaperclip, FaFileAlt, FaTrashAlt, FaFileInvoiceDollar, FaDownload,
+    FaCalculator, FaFilePdf, FaChevronLeft, FaChevronRight, FaTimes, FaPlus
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
@@ -76,6 +79,14 @@ const normalizeMsg = (msg) => {
     return { isUser, who, content, mediaUrl: msg.mediaUrl, timestamp: msg.timestamp };
 };
 
+// Convierte el precio (string "$6,390.00" o número) a número. 0 si no hay.
+const parsePrecio = (val) => {
+    if (val == null || val === '') return 0;
+    if (typeof val === 'number') return val;
+    const n = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+    return isNaN(n) ? 0 : n;
+};
+
 // Hora corta tolerante (unix seg/ms o ISO). '' si no parsea.
 const fmtMsgTime = (ts) => {
     if (!ts) return '';
@@ -96,13 +107,34 @@ function RevivalPipeline() {
     const [filterAsignado, setFilterAsignado] = useState('all');
     const [expandedLead, setExpandedLead] = useState(null);
     const [modalLead, setModalLead] = useState(null);
-    const [editingNotes, setEditingNotes] = useState({});
     const [saving, setSaving] = useState({});
     const [lastSync, setLastSync] = useState(null);
     const [uploadingFile, setUploadingFile] = useState(false);
     const fileInputRef = useRef(null);
     const [conversations, setConversations] = useState({}); // { [waId]: mensajes normalizados[] }
     const [loadingConv, setLoadingConv] = useState(null);   // waId cuya conversación se está cargando
+
+    // Usuario actual (para estampar "atendido por" en las notas)
+    const { user: authUser } = useSelector((s) => s.auth || {});
+    const currentUserName = authUser?.name || authUser?.nombre || authUser?.email || 'Admin';
+
+    // Paginación (client-side, 50 por página)
+    const PAGE_SIZE = 50;
+    const [page, setPage] = useState(1);
+
+    // Filtros extra
+    const [filterCarrera, setFilterCarrera] = useState('all');
+    const [fechaDesde, setFechaDesde] = useState('');
+    const [fechaHasta, setFechaHasta] = useState('');
+    const [precioMin, setPrecioMin] = useState('');
+    const [precioMax, setPrecioMax] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
+
+    // Modales
+    const [pdfViewer, setPdfViewer] = useState(null); // url del PDF a ver inline
+    const [calcLead, setCalcLead] = useState(null);   // lead que se está cotizando
+    const [newNote, setNewNote] = useState({});       // { [waId]: texto en edición }
+    const [savingNote, setSavingNote] = useState({}); // { [waId]: bool }
 
     const tabConfig = TABS.find(t => t.key === tab) || TABS[0];
 
@@ -196,6 +228,24 @@ function RevivalPipeline() {
         }
     };
 
+    // Agrega una nota a la bitácora del lead (revival_notes_log) con texto, usuario y timestamp.
+    const addNote = async (waId, currentLog) => {
+        const text = (newNote[waId] || '').trim();
+        if (!text) return;
+        setSavingNote(prev => ({ ...prev, [waId]: true }));
+        const entry = { text, by: currentUserName, at: new Date().toISOString() };
+        const nextLog = [...(Array.isArray(currentLog) ? currentLog : []), entry];
+        try {
+            await axiosWithAuth.patch(`/api/v1/whatsapp/leads/${waId}/revival`, { revival_notes_log: nextLog });
+            setLeads(prev => prev.map(l => l.wa_id === waId ? { ...l, revival_notes_log: nextLog, revival_last_contact: new Date().toISOString() } : l));
+            setNewNote(prev => ({ ...prev, [waId]: '' }));
+            toast.success('Nota guardada');
+        } catch {
+            toast.error('Error al guardar la nota');
+        }
+        setSavingNote(prev => ({ ...prev, [waId]: false }));
+    };
+
     // Expande/colapsa un lead. Al expandir, carga SU conversación de WhatsApp (una sola vez).
     const toggleExpand = async (waId) => {
         const willExpand = expandedLead !== waId;
@@ -239,11 +289,24 @@ function RevivalPipeline() {
                 const lastActivity = new Date(l.updated_at || l.created_at).getTime();
                 if (lastActivity > threeDaysAgo) return false;
             }
+            // Un lead marcado como DESCARTADO en revival ya no aparece en la lista
+            // (salvo que se esté filtrando explícitamente por ese estado).
+            if ((l.revival_status || 'pendiente') === 'descartado' && filterRevival !== 'descartado') return false;
             if (filterEstado !== 'all' && l.estado_sofia !== filterEstado) return false;
             if (filterRevival !== 'all' && (l.revival_status || 'pendiente') !== filterRevival) return false;
             if (filterAsignado !== 'all') {
                 const asig = (l.revival_assigned_to || '').toLowerCase();
                 if (filterAsignado === 'sin' ? asig !== '' : asig !== filterAsignado) return false;
+            }
+            if (filterCarrera !== 'all' && (l.carrera || '') !== filterCarrera) return false;
+            // Filtro por fecha (primer contacto / created_at)
+            if (fechaDesde && new Date(l.created_at) < new Date(fechaDesde)) return false;
+            if (fechaHasta && new Date(l.created_at) > new Date(fechaHasta + 'T23:59:59')) return false;
+            // Filtro por precio de la cotización
+            if (precioMin !== '' || precioMax !== '') {
+                const p = parsePrecio(l.precio);
+                if (precioMin !== '' && p < parseFloat(precioMin)) return false;
+                if (precioMax !== '' && p > parseFloat(precioMax)) return false;
             }
             if (searchTerm) {
                 const q = searchTerm.toLowerCase();
@@ -254,7 +317,25 @@ function RevivalPipeline() {
             }
             return true;
         });
-    }, [leads, filterEstado, filterRevival, filterAsignado, searchTerm, tab]);
+    }, [leads, filterEstado, filterRevival, filterAsignado, filterCarrera, fechaDesde, fechaHasta, precioMin, precioMax, searchTerm, tab]);
+
+    // Carreras/áreas distintas para el filtro
+    const carreras = useMemo(() => {
+        const set = new Set();
+        for (const l of leads) if (l.carrera) set.add(l.carrera);
+        return [...set].sort((a, b) => a.localeCompare(b));
+    }, [leads]);
+
+    // Paginación: 50 por página sobre la lista ya filtrada
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const pageClamped = Math.min(page, totalPages);
+    const paged = useMemo(
+        () => filtered.slice((pageClamped - 1) * PAGE_SIZE, pageClamped * PAGE_SIZE),
+        [filtered, pageClamped]
+    );
+
+    // Volver a la página 1 cuando cambian filtros/pestaña/búsqueda
+    useEffect(() => { setPage(1); }, [tab, filterEstado, filterRevival, filterAsignado, filterCarrera, fechaDesde, fechaHasta, precioMin, precioMax, searchTerm]);
 
     // Stats
     const stats = useMemo(() => {
@@ -266,7 +347,7 @@ function RevivalPipeline() {
             const rs = l.revival_status || 'pendiente';
             byRevival[rs] = (byRevival[rs] || 0) + 1;
             byEstado[l.estado_sofia] = (byEstado[l.estado_sofia] || 0) + 1;
-            if (l.precio) totalPrecio += l.precio;
+            totalPrecio += parsePrecio(l.precio);
         }
         return { total, byRevival, byEstado, totalPrecio };
     }, [leads]);
@@ -395,7 +476,59 @@ function RevivalPipeline() {
                     <option value="sin">Sin asignar</option>
                     {ASIGNABLES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
+                <button
+                    onClick={() => setShowFilters(v => !v)}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+                        background: showFilters ? '#f59e0b' : '#111827', color: showFilters ? '#fff' : '#9ca3af',
+                        border: '1px solid #1F2937', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                    }}
+                >
+                    <FaFilter /> Filtros
+                </button>
             </div>
+
+            {/* Filtros avanzados: carrera/área, fecha, precio */}
+            {showFilters && (
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', background: '#0B0F1A', border: '1px solid #1F2937', borderRadius: 10, padding: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <label style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>Carrera / Área</label>
+                        <select value={filterCarrera} onChange={e => setFilterCarrera(e.target.value)}
+                            style={{ padding: '7px 10px', border: '1px solid #1F2937', borderRadius: 8, fontSize: '0.82rem', background: '#111827', color: '#F9FAFB', cursor: 'pointer', maxWidth: 260 }}>
+                            <option value="all">Todas</option>
+                            {carreras.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <label style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>Primer contacto desde</label>
+                        <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)}
+                            style={{ padding: '7px 10px', border: '1px solid #1F2937', borderRadius: 8, fontSize: '0.82rem', background: '#111827', color: '#F9FAFB' }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <label style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>Hasta</label>
+                        <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)}
+                            style={{ padding: '7px 10px', border: '1px solid #1F2937', borderRadius: 8, fontSize: '0.82rem', background: '#111827', color: '#F9FAFB' }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <label style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>Precio cotización</label>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <input type="number" placeholder="mín" value={precioMin} onChange={e => setPrecioMin(e.target.value)}
+                                style={{ width: 90, padding: '7px 10px', border: '1px solid #1F2937', borderRadius: 8, fontSize: '0.82rem', background: '#111827', color: '#F9FAFB' }} />
+                            <span style={{ color: '#6b7280' }}>–</span>
+                            <input type="number" placeholder="máx" value={precioMax} onChange={e => setPrecioMax(e.target.value)}
+                                style={{ width: 90, padding: '7px 10px', border: '1px solid #1F2937', borderRadius: 8, fontSize: '0.82rem', background: '#111827', color: '#F9FAFB' }} />
+                        </div>
+                    </div>
+                    {(filterCarrera !== 'all' || fechaDesde || fechaHasta || precioMin !== '' || precioMax !== '') && (
+                        <button
+                            onClick={() => { setFilterCarrera('all'); setFechaDesde(''); setFechaHasta(''); setPrecioMin(''); setPrecioMax(''); }}
+                            style={{ padding: '7px 12px', background: '#1F2937', color: '#F9FAFB', border: '1px solid #374151', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+                        >
+                            <FaTimes /> Limpiar
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Leads List */}
             {loading ? (
@@ -409,7 +542,7 @@ function RevivalPipeline() {
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {filtered.map(lead => {
+                    {paged.map(lead => {
                         const revStatus = lead.revival_status || 'pendiente';
                         const revConfig = REVIVAL_STATUSES[revStatus] || REVIVAL_STATUSES.pendiente;
                         const estadoConfig = ESTADO_LABELS[lead.estado_sofia] || { label: lead.estado_sofia, color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
@@ -517,7 +650,7 @@ function RevivalPipeline() {
                                                 )}
 
                                                 {/* Contact buttons */}
-                                                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                                <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                                                     <a
                                                         href={`https://wa.me/${lead.wa_id}`}
                                                         target="_blank"
@@ -531,20 +664,27 @@ function RevivalPipeline() {
                                                     >
                                                         <FaWhatsapp /> WhatsApp
                                                     </a>
+                                                    <button
+                                                        onClick={() => setCalcLead(lead)}
+                                                        style={{
+                                                            display: 'flex', alignItems: 'center', gap: 4,
+                                                            padding: '6px 12px', background: '#f59e0b', color: '#fff',
+                                                            border: 'none', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        <FaCalculator /> Cotizar
+                                                    </button>
                                                     {lead.pdf_url && (
-                                                        <a
-                                                            href={lead.pdf_url}
-                                                            target="_blank"
-                                                            rel="noreferrer"
+                                                        <button
+                                                            onClick={() => setPdfViewer(lead.pdf_url)}
                                                             style={{
                                                                 display: 'flex', alignItems: 'center', gap: 4,
                                                                 padding: '6px 12px', background: '#6366f1', color: '#fff',
-                                                                borderRadius: 6, fontSize: '0.75rem', fontWeight: 600,
-                                                                textDecoration: 'none',
+                                                                border: 'none', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
                                                             }}
                                                         >
-                                                            Ver Cotizacion
-                                                        </a>
+                                                            <FaFilePdf /> Ver Cotización
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
@@ -588,35 +728,59 @@ function RevivalPipeline() {
                                                     </select>
                                                 </div>
 
-                                                {/* Revival Notes */}
+                                                {/* Bitácora de Notas (con fecha, hora y usuario) */}
                                                 <div>
-                                                    <label style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 600 }}>Notas Revival</label>
+                                                    <label style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 600 }}>Notas de seguimiento</label>
+                                                    {/* Historial de notas */}
+                                                    {(() => {
+                                                        const log = Array.isArray(lead.revival_notes_log) ? lead.revival_notes_log : [];
+                                                        const legacy = (lead.revival_notes || '').trim();
+                                                        if (!log.length && !legacy) return (
+                                                            <div style={{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic', margin: '4px 0' }}>Sin notas todavía.</div>
+                                                        );
+                                                        return (
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '5px 0', maxHeight: 180, overflowY: 'auto' }}>
+                                                                {legacy && !log.length && (
+                                                                    <div style={{ background: '#0B0F1A', border: '1px solid #1F2937', borderRadius: 6, padding: '6px 9px' }}>
+                                                                        <div style={{ fontSize: '0.8rem', color: '#F9FAFB', whiteSpace: 'pre-wrap' }}>{legacy}</div>
+                                                                        <div style={{ fontSize: '0.62rem', color: '#6b7280', marginTop: 3 }}>nota previa (sin autor)</div>
+                                                                    </div>
+                                                                )}
+                                                                {log.map((n, i) => (
+                                                                    <div key={i} style={{ background: '#0B0F1A', border: '1px solid #1F2937', borderRadius: 6, padding: '6px 9px' }}>
+                                                                        <div style={{ fontSize: '0.8rem', color: '#F9FAFB', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{n.text}</div>
+                                                                        <div style={{ fontSize: '0.62rem', color: '#6b7280', marginTop: 3, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                                            <FaUserTag /> {n.by || 'Admin'} &middot; {fmtMsgTime(n.at)}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                    {/* Agregar nota */}
                                                     <textarea
-                                                        value={editingNotes[lead.wa_id] !== undefined ? editingNotes[lead.wa_id] : (lead.revival_notes || '')}
-                                                        onChange={e => setEditingNotes(prev => ({ ...prev, [lead.wa_id]: e.target.value }))}
-                                                        placeholder="Ej: Se contacto por WhatsApp, queda de llamar manana..."
-                                                        rows={3}
+                                                        value={newNote[lead.wa_id] || ''}
+                                                        onChange={e => setNewNote(prev => ({ ...prev, [lead.wa_id]: e.target.value }))}
+                                                        placeholder="Escribe una nota… (se guarda con tu nombre, fecha y hora)"
+                                                        rows={2}
                                                         style={{
                                                             width: '100%', padding: '7px 10px', border: '1px solid #1F2937',
                                                             borderRadius: 6, fontSize: '0.82rem', resize: 'vertical', marginTop: 3,
-                                                            background: '#0B0F1A', color: '#F9FAFB',
-                                                            fontFamily: 'inherit',
+                                                            background: '#0B0F1A', color: '#F9FAFB', fontFamily: 'inherit',
                                                         }}
                                                     />
-                                                    {editingNotes[lead.wa_id] !== undefined && editingNotes[lead.wa_id] !== (lead.revival_notes || '') && (
+                                                    {(newNote[lead.wa_id] || '').trim() && (
                                                         <button
-                                                            onClick={() => {
-                                                                updateRevival(lead.wa_id, { revival_notes: editingNotes[lead.wa_id] });
-                                                                setEditingNotes(prev => { const n = { ...prev }; delete n[lead.wa_id]; return n; });
-                                                            }}
-                                                            disabled={isSaving}
+                                                            onClick={() => addNote(lead.wa_id, lead.revival_notes_log)}
+                                                            disabled={savingNote[lead.wa_id]}
                                                             style={{
                                                                 marginTop: 4, padding: '5px 12px', background: '#10b981',
                                                                 color: '#fff', border: 'none', borderRadius: 6,
                                                                 fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                                                                display: 'flex', alignItems: 'center', gap: 5,
                                                             }}
                                                         >
-                                                            {isSaving ? 'Guardando...' : 'Guardar notas'}
+                                                            <FaPlus size={10} /> {savingNote[lead.wa_id] ? 'Guardando...' : 'Agregar nota'}
                                                         </button>
                                                     )}
                                                 </div>
@@ -660,6 +824,37 @@ function RevivalPipeline() {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Paginación (50 por página) */}
+            {!loading && filtered.length > PAGE_SIZE && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '6px 0' }}>
+                    <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={pageClamped <= 1}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px',
+                            background: '#1F2937', color: '#F9FAFB', border: '1px solid #374151', borderRadius: 8,
+                            fontSize: '0.8rem', fontWeight: 600, cursor: pageClamped <= 1 ? 'not-allowed' : 'pointer', opacity: pageClamped <= 1 ? 0.5 : 1,
+                        }}
+                    >
+                        <FaChevronLeft size={11} /> Anterior
+                    </button>
+                    <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 600 }}>
+                        Página {pageClamped} de {totalPages} &middot; {filtered.length} leads
+                    </span>
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={pageClamped >= totalPages}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px',
+                            background: '#1F2937', color: '#F9FAFB', border: '1px solid #374151', borderRadius: 8,
+                            fontSize: '0.8rem', fontWeight: 600, cursor: pageClamped >= totalPages ? 'not-allowed' : 'pointer', opacity: pageClamped >= totalPages ? 0.5 : 1,
+                        }}
+                    >
+                        Siguiente <FaChevronRight size={11} />
+                    </button>
                 </div>
             )}
 
@@ -783,10 +978,10 @@ function RevivalPipeline() {
                                                 </div>
                                             </div>
                                             {ml.pdf_url && (
-                                                <a href={ml.pdf_url} target="_blank" rel="noreferrer"
-                                                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', background: '#6366f1', color: '#fff', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>
-                                                    <FaDownload /> Ver PDF
-                                                </a>
+                                                <button onClick={() => setPdfViewer(ml.pdf_url)}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>
+                                                    <FaFilePdf /> Ver PDF
+                                                </button>
                                             )}
                                         </div>
                                     ) : (
@@ -855,12 +1050,66 @@ function RevivalPipeline() {
                                         style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: '#25d366', color: '#fff', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
                                         <FaWhatsapp /> WhatsApp
                                     </a>
+                                    <button onClick={() => setCalcLead(ml)}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                                        <FaCalculator /> Cotizar
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 );
             })()}
+
+            {/* ===== VISOR DE PDF (inline, misma página) ===== */}
+            {pdfViewer && (
+                <div
+                    onClick={() => setPdfViewer(null)}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+                >
+                    <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 900, height: '92vh', background: '#111827', borderRadius: 12, border: '1px solid #1F2937', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #1F2937' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#F9FAFB' }}><FaFilePdf style={{ color: '#6366f1' }} /> Cotización</span>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <a href={pdfViewer} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#1F2937', color: '#F9FAFB', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>
+                                    <FaDownload /> Abrir / Descargar
+                                </a>
+                                <button onClick={() => setPdfViewer(null)} style={{ background: 'none', border: 'none', color: '#9CA3AF', fontSize: '1.4rem', cursor: 'pointer', lineHeight: 1 }}>&times;</button>
+                            </div>
+                        </div>
+                        <iframe title="Cotización PDF" src={pdfViewer} style={{ flex: 1, width: '100%', border: 'none', background: '#fff' }} />
+                    </div>
+                </div>
+            )}
+
+            {/* ===== CALCULADORA / COTIZADOR (embebido) ===== */}
+            {calcLead && (
+                <div
+                    onClick={() => setCalcLead(null)}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
+                >
+                    <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 1100, background: '#f8f9fa', borderRadius: 12, overflow: 'hidden', margin: 'auto' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', background: '#111827', borderBottom: '1px solid #1F2937', position: 'sticky', top: 0, zIndex: 2 }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#F9FAFB' }}>
+                                <FaCalculator style={{ color: '#f59e0b' }} /> Cotizar — {calcLead.nombre || calcLead.wa_id}
+                            </span>
+                            <button onClick={() => setCalcLead(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#374151', color: '#fff', border: 'none', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                                <FaTimes /> Cerrar
+                            </button>
+                        </div>
+                        <SalesQuote
+                            embedded
+                            onClose={() => setCalcLead(null)}
+                            initialData={{
+                                clientName: calcLead.nombre || '',
+                                clientPhone: calcLead.wa_id || '',
+                                carrera: calcLead.carrera || '',
+                                extensionEstimada: calcLead.paginas || '',
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

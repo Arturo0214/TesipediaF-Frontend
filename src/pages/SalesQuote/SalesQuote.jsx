@@ -6,7 +6,9 @@ import Swal from 'sweetalert2';
 import { calculateSalesQuotePrice, saveGeneratedQuote } from '../../features/quotes/quoteSlice';
 import './SalesQuote.css';
 
-const SalesQuote = () => {
+// initialData (opcional): precarga campos del formulario cuando se embebe (p.ej. desde Revivals).
+// embedded/onClose: para renderizar dentro de un modal en otra página.
+const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
     const dispatch = useDispatch();
     const [isGenerating, setIsGenerating] = useState(false);
     const priceRequestId = useRef(0);
@@ -16,7 +18,7 @@ const SalesQuote = () => {
     const manualDiscountLocked = useRef(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
     const [metodoPago, setMetodoPago] = useState('tarjeta-nu'); // 'tarjeta-nu', 'tarjeta-bbva', 'efectivo'
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(() => { const _base = {
         clientName: '',
         clientEmail: '',
         clientPhone: '',
@@ -56,6 +58,13 @@ const SalesQuote = () => {
         asesoria: 'Asesoría 1:1 al realizar la entrega de la versión preliminar.',
         notaAcompañamiento: 'el acompañamiento se da hasta dar por concluida la versión final',
         fechasPagos: []
+    };
+        if (!initialData) return _base;
+        // Solo sobrescribe con valores reales (no vacíos) del lead
+        const clean = Object.fromEntries(
+            Object.entries(initialData).filter(([, v]) => v !== undefined && v !== null && v !== '')
+        );
+        return { ..._base, ...clean };
     });
 
     const areas = [
