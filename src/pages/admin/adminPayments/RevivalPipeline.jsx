@@ -45,6 +45,45 @@ const TABS = [
     { key: 'solo_hola', label: 'Solo "hola"', icon: <FaEnvelope />, endpoint: '/api/v1/whatsapp/reactivation-pipeline?bucket=solo_hola', live: false },
 ];
 
+// Parseo tolerante del historial_chat (mismo espíritu que el backend): quita el "=" inicial,
+// intenta JSON.parse; si truena, sanea caracteres de control y reintenta; si no, [].
+const parseHistorialChat = (raw) => {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'string') return [];
+    const s = raw.replace(/^=/, '');
+    if (!s.trim()) return [];
+    try { return JSON.parse(s); } catch { /* recuperar */ }
+    try { return JSON.parse(s.replace(new RegExp('[\u0000-\u001F]', 'g'), '')); } catch { /* irrecuperable */ }
+    return [];
+};
+
+// Normaliza un mensaje del historial a { isUser, who, content, mediaUrl, timestamp }.
+// Limpia prefijos [TEMPLATE:...], [HUMANO]/[HUMANO:nombre] y bloques [STATE:{...}].
+const normalizeMsg = (msg) => {
+    const isUser = msg.role === 'user';
+    let content = msg.content || '';
+    let who = isUser ? 'Cliente' : 'Sofia';
+    if (!isUser) {
+        if (msg.isTemplate || content.startsWith('[TEMPLATE:')) {
+            content = content.replace(/^\[TEMPLATE:[^\]]*\]\s*/, '');
+            who = 'Plantilla';
+        }
+        const h = content.match(/^\[HUMANO:([^\]]+)\]\s*/);
+        if (h) { who = h[1]; content = content.replace(h[0], ''); }
+        else if (content.startsWith('[HUMANO]')) { who = 'Agente'; content = content.replace('[HUMANO] ', ''); }
+        content = content.replace(/\[STATE:[\s\S]*?\]/g, '').trim();
+    }
+    return { isUser, who, content, mediaUrl: msg.mediaUrl, timestamp: msg.timestamp };
+};
+
+// Hora corta tolerante (unix seg/ms o ISO). '' si no parsea.
+const fmtMsgTime = (ts) => {
+    if (!ts) return '';
+    const d = typeof ts === 'number' ? new Date(ts < 1e12 ? ts * 1000 : ts) : new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+};
+
 function RevivalPipeline() {
     const [tab, setTab] = useState('activo');
     const [leads, setLeads] = useState([]);
@@ -62,6 +101,8 @@ function RevivalPipeline() {
     const [lastSync, setLastSync] = useState(null);
     const [uploadingFile, setUploadingFile] = useState(false);
     const fileInputRef = useRef(null);
+    const [conversations, setConversations] = useState({}); // { [waId]: mensajes normalizados[] }
+    const [loadingConv, setLoadingConv] = useState(null);   // waId cuya conversación se está cargando
 
     const tabConfig = TABS.find(t => t.key === tab) || TABS[0];
 
@@ -153,6 +194,24 @@ function RevivalPipeline() {
         } catch {
             toast.error('Error eliminando archivo');
         }
+    };
+
+    // Expande/colapsa un lead. Al expandir, carga SU conversación de WhatsApp (una sola vez).
+    const toggleExpand = async (waId) => {
+        const willExpand = expandedLead !== waId;
+        setExpandedLead(willExpand ? waId : null);
+        if (!willExpand || conversations[waId]) return;
+        setLoadingConv(waId);
+        try {
+            const res = await axiosWithAuth.get(`/api/v1/whatsapp/leads/${waId}`);
+            const msgs = parseHistorialChat(res.data?.historial_chat)
+                .map(normalizeMsg)
+                .filter(m => m.content || m.mediaUrl);
+            setConversations(prev => ({ ...prev, [waId]: msgs }));
+        } catch {
+            setConversations(prev => ({ ...prev, [waId]: [] }));
+        }
+        setLoadingConv(null);
     };
 
     const daysSince = (dateStr) => {
@@ -368,7 +427,7 @@ function RevivalPipeline() {
                             >
                                 {/* Main Row */}
                                 <div
-                                    onClick={() => setExpandedLead(isExpanded ? null : lead.wa_id)}
+                                    onClick={() => toggleExpand(lead.wa_id)}
                                     style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                         padding: '12px 16px', cursor: 'pointer', gap: 12, flexWrap: 'wrap',
@@ -568,6 +627,32 @@ function RevivalPipeline() {
                                                         Ultimo contacto revival: {formatDate(lead.revival_last_contact)}
                                                     </div>
                                                 )}
+                                            </div>
+
+                                            {/* Conversación WhatsApp (solo este lead) */}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 240 }}>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <FaWhatsapp style={{ color: '#25d366' }} /> Conversación WhatsApp
+                                                </div>
+                                                <div style={{ background: '#0B0F1A', border: '1px solid #1F2937', borderRadius: 8, padding: 10, maxHeight: 340, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                    {loadingConv === lead.wa_id ? (
+                                                        <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>Cargando conversación...</div>
+                                                    ) : (conversations[lead.wa_id]?.length ? (
+                                                        conversations[lead.wa_id].slice(-50).map((m, i) => (
+                                                            <div key={i} style={{ alignSelf: m.isUser ? 'flex-start' : 'flex-end', maxWidth: '88%' }}>
+                                                                <div style={{ fontSize: '0.6rem', color: '#6b7280', marginBottom: 2, textAlign: m.isUser ? 'left' : 'right' }}>
+                                                                    {m.who}{fmtMsgTime(m.timestamp) ? ` · ${fmtMsgTime(m.timestamp)}` : ''}
+                                                                </div>
+                                                                <div style={{ background: m.isUser ? '#1F2937' : '#065f46', color: '#F9FAFB', padding: '6px 10px', borderRadius: 8, fontSize: '0.78rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                                    {m.mediaUrl && <a href={m.mediaUrl} target="_blank" rel="noreferrer" style={{ color: '#93C5FD', display: 'block', marginBottom: 4 }}>📎 Archivo adjunto</a>}
+                                                                    {m.content || (m.mediaUrl ? '' : '—')}
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div style={{ fontSize: '0.78rem', color: '#6b7280', fontStyle: 'italic' }}>Sin conversación registrada para este lead.</div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
