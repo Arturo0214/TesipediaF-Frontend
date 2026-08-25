@@ -10,7 +10,7 @@ const LOGO_URL = 'https://res.cloudinary.com/dbowaer8j/image/upload/f_auto,q_aut
  * AISLADOS (sin navbar/footer del sitio) para no enlazar a páginas no-compliant
  * como /comprar-tesis. Google revisa el sitio enlazado: un solo link basta para rechazar.
  */
-export function MiniHeader({ canonical, waLink, onCtaClick, ctaText = 'Consulta Gratis' }) {
+export function MiniHeader({ canonical, waLink, onCtaClick, ctaText = 'Más información' }) {
   return (
     <header style={styles.miniHeader}>
       <a href={canonical}>

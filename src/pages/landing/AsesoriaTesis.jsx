@@ -77,7 +77,7 @@ function AsesoriaTesis() {
     { q: '¿Quiénes son los asesores?', a: 'Profesionales con maestría y doctorado en diversas áreas, con experiencia en investigación y publicaciones. Asignamos un asesor especializado en tu tema.' },
     { q: '¿Cuánto duran las sesiones?', a: 'Cada sesión de asesoría dura aproximadamente 1 hora. Puedes tomar sesiones individuales o contratar paquetes con descuento.' },
     { q: '¿Puedo pagar a meses?', a: 'Sí, ofrecemos planes de pago a meses sin intereses. Consulta por WhatsApp las opciones disponibles para tu programa de asesoría.' },
-    { q: '¿Cómo empiezo?', a: 'Escríbenos por WhatsApp para una consulta gratuita. Evaluamos tu proyecto, te asignamos un asesor y diseñamos un plan personalizado.' },
+    { q: '¿Cómo empiezo?', a: 'Escríbenos por WhatsApp para más información. Evaluamos tu proyecto, te asignamos un asesor y diseñamos un plan personalizado.' },
   ];
 
   const programas = [
@@ -93,7 +93,7 @@ function AsesoriaTesis() {
       <div style={styles.page}>
         <Helmet>
           <title>Asesoría de Tesis Profesional | Acompañamiento Académico — Tesipedia</title>
-          <meta name="description" content="Asesoría y acompañamiento metodológico para tu tesis. Asesores con maestría y doctorado te orientan paso a paso en tu investigación. Consulta gratis." />
+          <meta name="description" content="Asesoría y acompañamiento metodológico para tu tesis. Asesores con maestría y doctorado te orientan paso a paso en tu investigación. Escríbenos por WhatsApp." />
           <meta name="keywords" content="asesoría de tesis, asesor de tesis, acompañamiento tesis, asesoría metodológica, orientación tesis, ayuda con mi tesis, asesoría investigación" />
           <link rel="canonical" href={CANONICAL} />
           <script type="application/ld+json">{JSON.stringify(orgSchema)}</script>
@@ -112,11 +112,11 @@ function AsesoriaTesis() {
             <p style={styles.heroSub}>
               Te orientamos en metodología, estructura y análisis para que desarrolles tu investigación
               con confianza. Acompañamiento personalizado desde el tema hasta tu presentación.
-              <strong> Consulta gratis hoy.</strong>
+              <strong> Escríbenos por WhatsApp hoy.</strong>
             </p>
             <div style={styles.heroCtas}>
               <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick('asesoria_hero_whatsapp')} style={styles.ctaPrimary}>
-                <FaWhatsapp /> Consulta Gratis por WhatsApp
+                <FaWhatsapp /> Más información por WhatsApp
               </a>
               <a href="#como-funciona" style={styles.ctaSecondary}>
                 Conoce el Programa <FaArrowRight />
@@ -211,9 +211,9 @@ function AsesoriaTesis() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <FaGraduationCap style={styles.finalCtaIcon} />
             <h2 style={styles.finalCtaTitle}>Avanza en tu tesis hoy</h2>
-            <p style={styles.finalCtaSub}>Consulta gratis y sin compromiso. Un asesor experto te orientará desde el primer momento.</p>
+            <p style={styles.finalCtaSub}>Sin compromiso. Un asesor experto te orientará desde el primer momento.</p>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick('asesoria_final_cta')} style={{ ...styles.ctaPrimary, fontSize: '1.15rem', padding: '18px 40px' }}>
-              <FaWhatsapp /> Consulta Gratis por WhatsApp
+              <FaWhatsapp /> Más información por WhatsApp
             </a>
           </div>
         </section>
