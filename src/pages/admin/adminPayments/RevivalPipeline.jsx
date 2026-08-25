@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import {
     FaSync, FaPhone, FaWhatsapp, FaEnvelope, FaSearch,
     FaFilter, FaChevronDown, FaChevronUp, FaStickyNote,
     FaUserTag, FaCheckCircle, FaClock, FaTimesCircle,
-    FaFireAlt, FaExclamationTriangle, FaCalendarAlt
+    FaFireAlt, FaExclamationTriangle, FaCalendarAlt,
+    FaPaperclip, FaFileAlt, FaTrashAlt, FaFileInvoiceDollar, FaDownload
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
@@ -59,6 +60,8 @@ function RevivalPipeline() {
     const [editingNotes, setEditingNotes] = useState({});
     const [saving, setSaving] = useState({});
     const [lastSync, setLastSync] = useState(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const fileInputRef = useRef(null);
 
     const tabConfig = TABS.find(t => t.key === tab) || TABS[0];
 
@@ -111,6 +114,45 @@ function RevivalPipeline() {
             toast.error('Error al actualizar');
         }
         setSaving(prev => ({ ...prev, [waId]: false }));
+    };
+
+    // Persiste el array de archivos del lead (Supabase) y refleja en UI (lista + modal abierto).
+    const persistFiles = async (waId, nextFiles) => {
+        await axiosWithAuth.patch(`/api/v1/whatsapp/leads/${waId}/revival`, { revival_files: nextFiles });
+        setLeads(prev => prev.map(l => l.wa_id === waId ? { ...l, revival_files: nextFiles } : l));
+        setModalLead(prev => (prev && prev.wa_id === waId) ? { ...prev, revival_files: nextFiles } : prev);
+    };
+
+    // Sube un archivo a Cloudinary vía backend y lo anexa al lead.
+    const handleUploadFile = async (waId, e) => {
+        const file = e.target.files?.[0];
+        if (e.target) e.target.value = '';
+        if (!file) return;
+        setUploadingFile(true);
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const up = await axiosWithAuth.post('/api/v1/whatsapp/revival-upload', fd, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            const current = Array.isArray(modalLead?.revival_files) ? modalLead.revival_files : [];
+            await persistFiles(waId, [...current, up.data]);
+            toast.success('Archivo adjuntado');
+        } catch {
+            toast.error('Error subiendo archivo');
+        }
+        setUploadingFile(false);
+    };
+
+    const handleDeleteFile = async (waId, publicId) => {
+        const current = Array.isArray(modalLead?.revival_files) ? modalLead.revival_files : [];
+        const next = current.filter(f => f.publicId !== publicId);
+        try {
+            await persistFiles(waId, next);
+            toast.success('Archivo eliminado');
+        } catch {
+            toast.error('Error eliminando archivo');
+        }
     };
 
     const daysSince = (dateStr) => {
@@ -643,6 +685,67 @@ function RevivalPipeline() {
                                     </div>
                                 )}
 
+                                {/* ===== COTIZACIÓN enviada por WhatsApp ===== */}
+                                <div>
+                                    <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>Cotización (WhatsApp)</div>
+                                    {(ml.cotizacion_enviada || ml.pdf_url) ? (
+                                        <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                <FaFileInvoiceDollar style={{ color: '#10b981', fontSize: '1.2rem' }} />
+                                                <div>
+                                                    <div style={{ fontSize: '0.85rem', color: '#F9FAFB', fontWeight: 600 }}>Cotización enviada por WhatsApp</div>
+                                                    {ml.precio && <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 700 }}>{ml.precio}</div>}
+                                                </div>
+                                            </div>
+                                            {ml.pdf_url && (
+                                                <a href={ml.pdf_url} target="_blank" rel="noreferrer"
+                                                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', background: '#6366f1', color: '#fff', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>
+                                                    <FaDownload /> Ver PDF
+                                                </a>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <FaExclamationTriangle style={{ color: '#f59e0b', flexShrink: 0 }} />
+                                            <span style={{ fontSize: '0.82rem', color: '#FCD34D' }}>Aún no se ha enviado cotización a este lead.</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ===== ARCHIVOS adjuntos (CRM) ===== */}
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                                        <div style={{ fontSize: '0.68rem', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase' }}>Archivos adjuntos</div>
+                                        <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={(e) => handleUploadFile(ml.wa_id, e)} />
+                                        <button onClick={() => fileInputRef.current?.click()} disabled={uploadingFile}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#1F2937', color: '#F9FAFB', border: '1px solid #374151', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600, cursor: uploadingFile ? 'wait' : 'pointer' }}>
+                                            <FaPaperclip /> {uploadingFile ? 'Subiendo...' : 'Adjuntar archivo'}
+                                        </button>
+                                    </div>
+                                    {Array.isArray(ml.revival_files) && ml.revival_files.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                            {ml.revival_files.map((f) => (
+                                                <div key={f.publicId || f.url} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: '#0B0F1A', border: '1px solid #1F2937', borderRadius: 8, padding: '8px 12px' }}>
+                                                    <a href={f.url} target="_blank" rel="noreferrer"
+                                                        style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#93C5FD', fontSize: '0.8rem', textDecoration: 'none', overflow: 'hidden' }}>
+                                                        <FaFileAlt style={{ flexShrink: 0 }} />
+                                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name || 'archivo'}</span>
+                                                    </a>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                                                        {f.uploadedAt && <span style={{ fontSize: '0.68rem', color: '#6B7280' }}>{formatDate(f.uploadedAt)}</span>}
+                                                        <button onClick={() => handleDeleteFile(ml.wa_id, f.publicId)} title="Quitar"
+                                                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                                            <FaTrashAlt />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div style={{ fontSize: '0.78rem', color: '#6B7280', fontStyle: 'italic' }}>Sin archivos. Adjunta documentos, comprobantes o material del cliente.</div>
+                                    )}
+                                </div>
+
                                 {/* Ultimo mensaje */}
                                 {ml.ultimo_mensaje_preview && (
                                     <div>
@@ -667,12 +770,6 @@ function RevivalPipeline() {
                                         style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: '#25d366', color: '#fff', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
                                         <FaWhatsapp /> WhatsApp
                                     </a>
-                                    {ml.pdf_url && (
-                                        <a href={ml.pdf_url} target="_blank" rel="noreferrer"
-                                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: '#6366f1', color: '#fff', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
-                                            Ver Cotizacion PDF
-                                        </a>
-                                    )}
                                 </div>
                             </div>
                         </div>
