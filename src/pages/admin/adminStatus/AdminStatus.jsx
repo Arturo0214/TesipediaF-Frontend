@@ -33,6 +33,7 @@ const STATUS_META = {
 
 const SECURITY_META = {
   up: { label: 'Sin amenazas', color: 'var(--st-green)' },
+  contained: { label: 'Amenaza contenida', color: 'var(--st-cyan)' },
   degraded: { label: 'Actividad sospechosa', color: 'var(--st-amber)' },
   down: { label: 'Bajo ataque', color: 'var(--st-red)' },
   unknown: { label: 'Sin datos', color: 'var(--st-muted)' },
@@ -613,7 +614,12 @@ const AdminStatus = () => {
 
                       {security.status === 'down' && (
                         <div className="st-note st-note--warn">
-                          <FaExclamationTriangle /> Ataque en curso detectado: hay IPs bloqueadas automáticamente. Revisa el log de eventos.
+                          <FaExclamationTriangle /> Ataque crítico en curso: hay eventos activos en los últimos 10 min. Revisa el log de eventos.
+                        </div>
+                      )}
+                      {security.status === 'contained' && (
+                        <div className="st-note st-note--ok">
+                          <FaShieldAlt /> Amenaza contenida: se bloqueó automáticamente la(s) IP(s) atacante(s). No se requiere acción.
                         </div>
                       )}
                     </>

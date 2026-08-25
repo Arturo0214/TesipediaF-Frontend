@@ -198,6 +198,7 @@
 .st-dot--up { background: var(--st-green); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); animation: st-pulse 2s ease-out infinite; }
 .st-dot--degraded { background: var(--st-amber); box-shadow: 0 0 8px rgba(251, 191, 36, 0.6); }
 .st-dot--down { background: var(--st-red); box-shadow: 0 0 8px rgba(248, 113, 113, 0.7); animation: st-blink 1s step-end infinite; }
+.st-dot--contained { background: var(--st-cyan); box-shadow: 0 0 8px rgba(56, 189, 248, 0.55); }
 .st-dot--unknown { background: var(--st-muted); }
 
 @keyframes st-pulse {
@@ -222,6 +223,7 @@
 .st-pill--up { color: var(--st-green); border-color: rgba(52, 211, 153, 0.35); background: rgba(52, 211, 153, 0.08); }
 .st-pill--degraded { color: var(--st-amber); border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08); }
 .st-pill--down { color: var(--st-red); border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.09); }
+.st-pill--contained { color: var(--st-cyan); border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.09); }
 .st-pill--unknown { color: var(--st-muted); border-color: var(--st-line); background: var(--st-card-2); }
 
 /* ── KPIs ── */
@@ -538,6 +540,7 @@
 }
 
 .st-note--warn { border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.06); color: var(--st-red); }
+.st-note--ok { border-color: rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.06); color: var(--st-cyan); }
 
 .st-error {
   display: flex;
