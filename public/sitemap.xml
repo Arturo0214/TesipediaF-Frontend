@@ -8,14 +8,6 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Páginas de conversión principales -->
-  <url>
-    <loc>https://tesipedia.com/comprar-tesis</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
   <!-- Páginas de servicios por nivel académico -->
   <url>
     <loc>https://tesipedia.com/tesis-licenciatura</loc>
