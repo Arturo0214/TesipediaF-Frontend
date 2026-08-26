@@ -1,5 +1,11 @@
-# comprar-tesis dado de baja (compliance ads): 301 a la landing de asesoría compliant
+# Páginas/artículos "comprar/hacemos tesis" dados de baja (compliance ads): 301 a asesoría.
+# DEBEN ir antes del wildcard /blog/* y del catch-all.
 /comprar-tesis              /asesoria-tesis 301!
+/ayuda-con-tesis            /asesoria-tesis 301!
+/blog/es-seguro-comprar-tesis-en-mexico-lo-que-debes-saber                    /asesoria-tesis 301!
+/blog/comprar-tesis-en-linea-en-mexico-como-elegir-un-servicio-confiable      /asesoria-tesis 301!
+/blog/comprar-tesis-mexico-2026-guia-completa                                 /asesoria-tesis 301!
+/blog/hacemos-tu-tesis-como-elegir-el-mejor-servicio-de-tesis-en-mexico       /asesoria-tesis 301!
 
 # Landing pages SEO (críticas para indexación)
 /tesis-licenciatura         /index.html 200
@@ -7,7 +13,6 @@
 /tesis-doctoral             /index.html 200
 /tutoria-academica          /index.html 200
 /cuanto-cuesta-una-tesis    /index.html 200
-/ayuda-con-tesis            /index.html 200
 
 # Rutas públicas principales
 /servicios              /index.html 200

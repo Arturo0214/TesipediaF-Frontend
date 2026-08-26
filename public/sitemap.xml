@@ -35,12 +35,6 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  <url>
-    <loc>https://tesipedia.com/ayuda-con-tesis</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
 
   <!-- Páginas de servicio adicionales -->
   <url>
@@ -116,18 +110,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://tesipedia.com/blog/es-seguro-comprar-tesis-en-mexico-lo-que-debes-saber</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tesipedia.com/blog/hacemos-tu-tesis-como-elegir-el-mejor-servicio-de-tesis-en-mexico</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://tesipedia.com/blog/tesis-por-encargo-en-mexico-precios-tiempos-y-todo-lo-que-necesitas-saber</loc>
     <lastmod>2026-03-28</lastmod>
     <changefreq>monthly</changefreq>
@@ -184,12 +166,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://tesipedia.com/blog/comprar-tesis-en-linea-en-mexico-como-elegir-un-servicio-confiable</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://tesipedia.com/blog/opciones-de-titulacion-en-mexico-2026-tesis-egel-tesina-y-mas</loc>
     <lastmod>2026-03-28</lastmod>
     <changefreq>monthly</changefreq>
@@ -211,12 +187,6 @@
   <!-- Nuevos blog posts de alto valor (backlink magnets) -->
   <url>
     <loc>https://tesipedia.com/blog/comparativa-precios-servicios-tesis-mexico-2026</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tesipedia.com/blog/comprar-tesis-mexico-2026-guia-completa</loc>
     <lastmod>2026-03-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
