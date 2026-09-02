@@ -1,55 +1,74 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import {
-  FaSync, FaMagic, FaPlus, FaTrash, FaPlay, FaCheck, FaRocket,
-  FaSave, FaTimes, FaCopy,
+  FaSync, FaMagic, FaPlus, FaTrash, FaCheck, FaRocket,
+  FaSave, FaTimes, FaCopy, FaToggleOn, FaToggleOff,
 } from 'react-icons/fa';
 import svc from '../../../services/videoStudioService';
 import './AdminVideoStudio.css';
 
-const CANALES = [
-  { key: 'spoilers', label: 'Spoilers' },
-  { key: 'libro-vs-pelicula', label: 'Libro vs Película' },
-  { key: 'tiktok', label: 'TikTok' },
-];
-
-const STATUS_LABEL = {
-  idea: 'Idea', guion: 'Guion', render_pending: 'En cola',
-  rendering: 'Renderizando', rendered: 'Renderizado', approved: 'Aprobado',
-  published: 'Publicado', error: 'Error',
+const ESTADO_LABEL = {
+  idea: 'Idea', guion_listo: 'Guion listo', aprobado: 'Aprobado',
+  renderizando: 'Renderizando', render_ok: 'Renderizado',
+  publicado: 'Publicado', error: 'Error',
 };
 
+const canalNombre = (c) => (c ? `${c.marca} · ${c.plataforma} · ${c.idioma}` : '—');
+
 function AdminVideoStudio() {
-  const [canal, setCanal] = useState('spoilers');
-  const [idioma, setIdioma] = useState('es');
-  const [videos, setVideos] = useState([]);
+  const [canales, setCanales] = useState([]);
+  const [filtro, setFiltro] = useState(null);   // canal_id o null = todos
+  const [genCanal, setGenCanal] = useState('');  // canal_id para generar
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tema, setTema] = useState('');
   const [generando, setGenerando] = useState(false);
   const [editId, setEditId] = useState(null);
   const [draft, setDraft] = useState(null);
 
-  const load = useCallback(async () => {
+  const cargarCanales = useCallback(async () => {
+    try {
+      const cs = await svc.getChannels();
+      setCanales(cs);
+      if (cs.length && !genCanal) setGenCanal(String(cs[0].id));
+    } catch {
+      toast.error('No se pudieron cargar los destinos (¿SUPABASE_SERVICE_ROLE_KEY?)');
+    }
+  }, [genCanal]);
+
+  const cargarItems = useCallback(async () => {
     setLoading(true);
     try {
-      setVideos(await svc.getVideos({ canal }));
+      setItems(await svc.getVideos(filtro ? { canal_id: filtro } : {}));
     } catch {
-      toast.error('No se pudieron cargar los videos');
+      toast.error('No se pudo cargar la cola de contenido');
     } finally {
       setLoading(false);
     }
-  }, [canal]);
+  }, [filtro]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { cargarCanales(); }, [cargarCanales]);
+  useEffect(() => { cargarItems(); }, [cargarItems]);
+
+  const toggleCanal = async (c) => {
+    try {
+      const upd = await svc.updateChannel(c.id, { activo: !c.activo });
+      setCanales((prev) => prev.map((x) => (x.id === upd.id ? { ...x, activo: upd.activo } : x)));
+      toast.success(`${canalNombre(c)} ${upd.activo ? 'ENCENDIDO' : 'apagado'}`);
+    } catch {
+      toast.error('No se pudo cambiar el canal');
+    }
+  };
 
   const generar = async () => {
+    if (!genCanal) { toast.warn('Elige un destino'); return; }
     if (!tema.trim()) { toast.warn('Escribe un tema'); return; }
     setGenerando(true);
     try {
-      await svc.generateScript({ canal, idioma, tema: tema.trim() });
+      await svc.generateScript({ canal_id: Number(genCanal), tema: tema.trim() });
       toast.success('Guion generado con IA');
       setTema('');
-      load();
+      cargarItems();
     } catch (e) {
       toast.error(e.response?.data?.message || 'Error al generar (¿ANTHROPIC_API_KEY?)');
     } finally {
@@ -58,10 +77,11 @@ function AdminVideoStudio() {
   };
 
   const crearManual = async () => {
+    if (!genCanal) { toast.warn('Elige un destino'); return; }
     try {
-      const v = await svc.createVideo({ canal, idioma, titulo: 'Nuevo video' });
-      toast.success('Video creado');
-      setVideos((prev) => [v, ...prev]);
+      const v = await svc.createVideo({ canal_id: Number(genCanal) });
+      toast.success('Pieza creada');
+      cargarItems();
       abrirEditor(v);
     } catch {
       toast.error('Error al crear');
@@ -69,90 +89,94 @@ function AdminVideoStudio() {
   };
 
   const abrirEditor = (v) => {
-    setEditId(v._id);
+    setEditId(v.id);
     setDraft({
-      titulo: v.titulo || '',
-      idioma: v.idioma || 'es',
-      formato: v.formato || 'vertical',
-      descripcion: v.descripcion || '',
-      tags: (v.tags || []).join(', '),
-      hashtags: (v.hashtags || []).join(' '),
-      thumbnailPrompt: v.thumbnailPrompt || '',
-      escenas: v.escenas?.length ? v.escenas : [{ narracion: '', imagen: '' }],
+      tema: v.tema || '',
+      guion: v.guion || '',
+      programado_para: v.programado_para ? v.programado_para.slice(0, 16) : '',
     });
   };
 
   const guardar = async () => {
     try {
       const payload = {
-        ...draft,
-        tags: draft.tags.split(',').map((s) => s.trim()).filter(Boolean),
-        hashtags: draft.hashtags.split(/\s+/).map((s) => s.trim()).filter(Boolean),
-        escenas: draft.escenas.filter((e) => e.narracion.trim()),
+        tema: draft.tema,
+        guion: draft.guion,
+        programado_para: draft.programado_para || null,
       };
-      const v = await svc.updateVideo(editId, payload);
+      // si tenía idea y ahora hay guion, súbelo a guion_listo
+      const actual = items.find((x) => x.id === editId);
+      if (actual && actual.estado === 'idea' && draft.guion.trim()) payload.estado = 'guion_listo';
+      await svc.updateVideo(editId, payload);
       toast.success('Guardado');
-      setVideos((prev) => prev.map((x) => (x._id === v._id ? v : x)));
       setEditId(null); setDraft(null);
+      cargarItems();
     } catch {
       toast.error('Error al guardar');
     }
   };
 
   const accion = async (fn, id, okMsg) => {
-    try { await fn(id); toast.success(okMsg); load(); }
+    try { await fn(id); toast.success(okMsg); cargarItems(); }
     catch (e) { toast.error(e.response?.data?.message || 'Error'); }
   };
 
   const eliminar = (id) => {
-    if (!window.confirm('¿Eliminar este video?')) return;
-    accion(svc.deleteVideo, id, 'Eliminado');
+    if (!window.confirm('¿Eliminar esta pieza?')) return;
+    accion(svc.deleteVideo, id, 'Eliminada');
   };
 
-  const marcarPublicado = async (id) => {
-    const url = window.prompt('URL de publicación (YouTube/TikTok), opcional:') || '';
-    accion((i) => svc.publishVideo(i, url), id, 'Marcado como publicado');
+  const copiar = (v) => {
+    navigator.clipboard.writeText(v.guion || '');
+    toast.success('Guion copiado');
   };
 
-  const copiarMeta = (v) => {
-    const txt = `${v.titulo}\n\n${v.descripcion}\n\n${(v.hashtags || []).join(' ')}\n\nTags: ${(v.tags || []).join(', ')}`;
-    navigator.clipboard.writeText(txt);
-    toast.success('Metadata copiada');
-  };
-
-  const setEscena = (i, campo, val) => {
-    setDraft((d) => {
-      const escenas = [...d.escenas];
-      escenas[i] = { ...escenas[i], [campo]: val };
-      return { ...d, escenas };
-    });
-  };
+  const activos = canales.filter((c) => c.activo).length;
 
   return (
     <div className="avs">
       <div className="avs-head">
-        <h2>🎬 Estudio de Video</h2>
-        <div className="avs-canales">
-          {CANALES.map((c) => (
-            <button
-              key={c.key}
-              className={`avs-tab ${canal === c.key ? 'on' : ''}`}
-              onClick={() => setCanal(c.key)}
-            >{c.label}</button>
-          ))}
-        </div>
-        <button className="avs-icon" onClick={load} title="Refrescar">
+        <h2>🎬 Estudio de Contenido</h2>
+        <button className="avs-icon" onClick={() => { cargarCanales(); cargarItems(); }} title="Refrescar">
           <FaSync className={loading ? 'spin' : ''} />
         </button>
       </div>
 
+      {/* ── Destinos (13 canales) ── */}
+      <div className="avs-section-title">
+        Destinos <span className="avs-muted">({activos} de {canales.length} encendidos)</span>
+      </div>
+      <div className="avs-canal-grid">
+        <button
+          className={`avs-canal-chip ${filtro === null ? 'sel' : ''}`}
+          onClick={() => setFiltro(null)}
+        >Todos</button>
+        {canales.map((c) => (
+          <div key={c.id} className={`avs-canal-chip ${filtro === c.id ? 'sel' : ''} ${c.activo ? 'on' : 'off'}`}>
+            <button className="avs-canal-name" onClick={() => setFiltro(c.id)}>
+              <strong>{c.marca}</strong>
+              <span>{c.plataforma} · {c.idioma}</span>
+            </button>
+            <button
+              className={`avs-sw ${c.activo ? 'on' : ''}`}
+              onClick={() => toggleCanal(c)}
+              title={c.activo ? 'Encendido (publica)' : 'Apagado'}
+            >
+              {c.activo ? <FaToggleOn /> : <FaToggleOff />}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Generar / crear ── */}
       <div className="avs-gen">
-        <select value={idioma} onChange={(e) => setIdioma(e.target.value)}>
-          <option value="es">Español</option>
-          <option value="en">Inglés</option>
+        <select value={genCanal} onChange={(e) => setGenCanal(e.target.value)}>
+          {canales.map((c) => (
+            <option key={c.id} value={c.id}>{canalNombre(c)}</option>
+          ))}
         </select>
         <input
-          placeholder="Tema del video (ej. 'el final de Attack on Titan')"
+          placeholder="Tema (ej. 'el final de Attack on Titan')"
           value={tema}
           onChange={(e) => setTema(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && generar()}
@@ -166,103 +190,63 @@ function AdminVideoStudio() {
       </div>
 
       {loading && <p className="avs-muted">Cargando…</p>}
-      {!loading && !videos.length && (
-        <p className="avs-muted">Sin videos en este canal. Genera uno con IA arriba.</p>
+      {!loading && !items.length && (
+        <p className="avs-muted">Sin piezas todavía. Genera una con IA arriba.</p>
       )}
 
+      {/* ── Cola de contenido ── */}
       <div className="avs-list">
-        {videos.map((v) => (
-          <div key={v._id} className={`avs-card st-${v.status}`}>
+        {items.map((v) => (
+          <div key={v.id} className={`avs-card st-${v.estado}`}>
             <div className="avs-card-top">
-              <span className={`avs-badge st-${v.status}`}>{STATUS_LABEL[v.status] || v.status}</span>
-              <span className="avs-meta">{v.idioma.toUpperCase()} · {v.formato} · {v.escenas?.length || 0} escenas</span>
+              <span className={`avs-badge st-${v.estado}`}>{ESTADO_LABEL[v.estado] || v.estado}</span>
+              <span className="avs-meta">{canalNombre(v.canal)}</span>
             </div>
-            <h4>{v.titulo || '(sin título)'}</h4>
+            <h4>{v.tema || '(sin tema)'}</h4>
 
-            {v.videoUrl && (
-              <video className="avs-video" src={v.videoUrl} controls preload="metadata" />
+            {v.guion && editId !== v.id && (
+              <p className="avs-guion">{v.guion.length > 220 ? `${v.guion.slice(0, 220)}…` : v.guion}</p>
             )}
-            {v.status === 'error' && <p className="avs-error">⚠ {v.error}</p>}
+            {v.ruta_mp4 && (
+              <video className="avs-video" src={v.ruta_mp4} controls preload="metadata" />
+            )}
+            {v.estado === 'error' && v.error && <p className="avs-error">⚠ {v.error}</p>}
 
             <div className="avs-actions">
-              {['idea', 'guion', 'error'].includes(v.status) && (
-                <>
-                  <button className="avs-btn sm" onClick={() => abrirEditor(v)}>Editar</button>
-                  <button className="avs-btn sm primary" onClick={() => accion(svc.enqueueRender, v._id, 'Enviado a render')}>
-                    <FaPlay /> Render
-                  </button>
-                </>
+              {['idea', 'guion_listo', 'error'].includes(v.estado) && (
+                <button className="avs-btn sm" onClick={() => abrirEditor(v)}>Editar</button>
               )}
-              {v.status === 'rendered' && (
-                <button className="avs-btn sm ok" onClick={() => accion(svc.approveVideo, v._id, 'Aprobado')}>
+              {['guion_listo', 'error'].includes(v.estado) && v.guion && (
+                <button className="avs-btn sm primary" onClick={() => accion(svc.approveVideo, v.id, 'Aprobado → a la cola de render')}>
                   <FaCheck /> Aprobar
                 </button>
               )}
-              {['rendered', 'approved', 'published'].includes(v.status) && (
-                <button className="avs-btn sm" onClick={() => copiarMeta(v)}><FaCopy /> Metadata</button>
+              {v.estado === 'aprobado' && <span className="avs-hint">⏳ En cola de render</span>}
+              {v.estado === 'renderizando' && <span className="avs-hint">🎞️ Renderizando…</span>}
+              {v.guion && (
+                <button className="avs-btn sm" onClick={() => copiar(v)}><FaCopy /> Guion</button>
               )}
-              {v.status === 'approved' && (
-                <button className="avs-btn sm primary" onClick={() => marcarPublicado(v._id)}>
+              {v.estado === 'render_ok' && (
+                <button className="avs-btn sm primary" onClick={() => accion(svc.publishVideo, v.id, 'Marcado como publicado')}>
                   <FaRocket /> Publicado
                 </button>
               )}
-              {v.publishedUrl && (
-                <a className="avs-btn sm" href={v.publishedUrl} target="_blank" rel="noreferrer">Ver publicado</a>
-              )}
-              <button className="avs-btn sm danger" onClick={() => eliminar(v._id)}><FaTrash /></button>
+              <button className="avs-btn sm danger" onClick={() => eliminar(v.id)}><FaTrash /></button>
             </div>
 
-            {editId === v._id && draft && (
+            {editId === v.id && draft && (
               <div className="avs-editor">
-                <label>Título
-                  <input value={draft.titulo} onChange={(e) => setDraft({ ...draft, titulo: e.target.value })} />
+                <label>Tema
+                  <input value={draft.tema} onChange={(e) => setDraft({ ...draft, tema: e.target.value })} />
                 </label>
-                <div className="avs-row">
-                  <label>Idioma
-                    <select value={draft.idioma} onChange={(e) => setDraft({ ...draft, idioma: e.target.value })}>
-                      <option value="es">ES</option><option value="en">EN</option>
-                    </select>
-                  </label>
-                  <label>Formato
-                    <select value={draft.formato} onChange={(e) => setDraft({ ...draft, formato: e.target.value })}>
-                      <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
-                    </select>
-                  </label>
-                </div>
-                <label>Descripción
-                  <textarea rows={2} value={draft.descripcion} onChange={(e) => setDraft({ ...draft, descripcion: e.target.value })} />
+                <label>Guion (lo que dice la voz)
+                  <textarea rows={8} value={draft.guion}
+                    onChange={(e) => setDraft({ ...draft, guion: e.target.value })} />
                 </label>
-                <div className="avs-row">
-                  <label>Tags (coma)
-                    <input value={draft.tags} onChange={(e) => setDraft({ ...draft, tags: e.target.value })} />
-                  </label>
-                  <label>Hashtags (espacio)
-                    <input value={draft.hashtags} onChange={(e) => setDraft({ ...draft, hashtags: e.target.value })} />
-                  </label>
-                </div>
-                <label>Prompt de miniatura
-                  <input value={draft.thumbnailPrompt} onChange={(e) => setDraft({ ...draft, thumbnailPrompt: e.target.value })} />
+                <label>Programar para (opcional)
+                  <input type="datetime-local" value={draft.programado_para}
+                    onChange={(e) => setDraft({ ...draft, programado_para: e.target.value })} />
                 </label>
-
-                <div className="avs-escenas">
-                  <strong>Escenas</strong>
-                  {draft.escenas.map((es, i) => (
-                    <div key={i} className="avs-escena">
-                      <span className="avs-num">{i + 1}</span>
-                      <textarea rows={2} placeholder="Narración (lo que dice la voz)"
-                        value={es.narracion} onChange={(e) => setEscena(i, 'narracion', e.target.value)} />
-                      <textarea rows={2} placeholder="Prompt de imagen IA (inglés)"
-                        value={es.imagen} onChange={(e) => setEscena(i, 'imagen', e.target.value)} />
-                      <button className="avs-btn sm danger" onClick={() =>
-                        setDraft((d) => ({ ...d, escenas: d.escenas.filter((_, j) => j !== i) }))}>×</button>
-                    </div>
-                  ))}
-                  <button className="avs-btn sm" onClick={() =>
-                    setDraft((d) => ({ ...d, escenas: [...d.escenas, { narracion: '', imagen: '' }] }))}>
-                    <FaPlus /> Escena
-                  </button>
-                </div>
-
                 <div className="avs-editor-actions">
                   <button className="avs-btn primary" onClick={guardar}><FaSave /> Guardar</button>
                   <button className="avs-btn" onClick={() => { setEditId(null); setDraft(null); }}><FaTimes /> Cerrar</button>

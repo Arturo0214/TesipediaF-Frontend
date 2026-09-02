@@ -197,7 +197,7 @@ const AdminPanel = () => {
         { key: 'estado', icon: FaHeartbeat, label: 'Estado', section: 'gestion', path: '/admin/estado', color: '#10B981' },
         { key: 'loops', icon: FaRecycle, label: 'Loops', section: 'finanzas', path: '/admin/loops', color: '#38BDF8' },
         { key: 'contenido', icon: FaBookOpen, label: 'Contenido', section: 'estadisticas', path: '/admin/contenido', color: '#38BDF8' },
-        { key: 'estudiovideo', icon: FaVideo, label: 'Estudio de Video', section: 'estadisticas', path: '/admin/estudio-video', color: '#FF6B35' }
+        { key: 'estudiovideo', icon: FaVideo, label: 'Estudio de Contenido', section: 'estadisticas', path: '/admin/estudio-video', color: '#FF6B35' }
     ];
 
     // Mapeo inverso: sección → tipos de notificación que se marcan como leídos
