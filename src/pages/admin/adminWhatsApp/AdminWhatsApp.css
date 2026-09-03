@@ -1059,14 +1059,21 @@
 
   .wa-chat-col.wa-chat-active {
     display: flex;
-    position: absolute;
+    flex-direction: column;
+    /* fixed + dvh: en iOS el 'dvh' se encoge con el teclado, así el input
+       de mensaje queda SIEMPRE visible (antes usaba absolute+bottom:0 y el
+       teclado lo tapaba). */
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
+    height: 100vh;          /* fallback navegadores viejos */
+    height: 100dvh;
+    max-height: 100dvh;
     z-index: 10;
-    max-height: 100%;
   }
+  /* Los mensajes crecen y hacen scroll; el input queda como pie de la columna */
+  .wa-chat-col.wa-chat-active .wa-messages-container { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 
   /* Hacer el body relative para el chat absolute */
   .wa-body {
