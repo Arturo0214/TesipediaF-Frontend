@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import {
-  FaSync, FaCheck, FaTimes, FaMagic, FaSave, FaChevronLeft, FaChevronRight,
+  FaSync, FaCheck, FaTimes, FaSave, FaChevronLeft, FaChevronRight,
   FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok,
-  FaCloudUploadAlt, FaRegClock,
+  FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
 } from 'react-icons/fa';
 import svc from '../../../services/videoStudioService';
 import './EstudioRedes.css';
@@ -35,6 +35,9 @@ export default function EstudioRedes() {
   const [imgIdx, setImgIdx] = useState(0);
   const [draft, setDraft] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
+  const [publicando, setPublicando] = useState(false);
+  const [sug, setSug] = useState(null);
+  const [cargandoSug, setCargandoSug] = useState(false);
   const fileRef = useRef(null);
 
   const cargar = useCallback(async () => {
@@ -70,10 +73,32 @@ export default function EstudioRedes() {
   const aprobar = async (p) => { try { refrescarPieza(await svc.approveSocial(p.id)); toast.success('Aprobada → programada'); } catch { toast.error('Error'); } };
   const descartar = async (p) => { try { refrescarPieza(await svc.discardSocial(p.id)); toast.success('Enviada a borrador'); } catch { toast.error('Error'); } };
   const guardar = async () => {
-    try { refrescarPieza(await svc.updateSocial(abierta.id, draft)); toast.success('Guardado'); setDraft(null); }
+    try { refrescarPieza(await svc.updateSocial(abierta.id, draft)); toast.success('Cambios guardados'); }
     catch { toast.error('Error al guardar'); }
   };
-  const abrir = (p) => { setAbierta(p); setImgIdx(0); setDraft(null); };
+  const publicar = async () => {
+    if (!window.confirm('¿Publicar esta pieza AHORA en las redes seleccionadas?')) return;
+    setPublicando(true);
+    try { refrescarPieza(await svc.publishSocial(abierta.id)); toast.success('¡Publicada!'); }
+    catch (e) { toast.error(e.response?.data?.message || 'No se pudo publicar'); }
+    finally { setPublicando(false); }
+  };
+  const eliminar = async () => {
+    if (!window.confirm('¿Eliminar esta publicación? Si ya está publicada en Facebook, se intentará borrar también de la página.')) return;
+    try { await svc.deleteSocial(abierta.id); setPosts((prev) => prev.filter((x) => x.id !== abierta.id)); setAbierta(null); toast.success('Eliminada'); }
+    catch { toast.error('Error al eliminar'); }
+  };
+  const sugerir = async () => {
+    setCargandoSug(true);
+    try { setSug(await svc.sugerenciasSocial(abierta.id)); }
+    catch { toast.error('No se pudieron traer sugerencias'); }
+    finally { setCargandoSug(false); }
+  };
+  const addTag = (tag) => setDraft((d) => ({ ...d, hashtags: `${d.hashtags || ''} ${tag}`.trim() }));
+  const abrir = (p) => {
+    setAbierta(p); setImgIdx(0); setSug(null);
+    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '' });
+  };
   const reemplazar = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !abierta) return;
@@ -259,34 +284,46 @@ export default function EstudioRedes() {
               </div>
               <h3>{abierta.tema}</h3>
 
-              {draft ? (
-                <>
-                  <label>Titular (dentro de la imagen)
-                    <textarea rows={3} value={draft.titular} onChange={(e) => setDraft({ ...draft, titular: e.target.value })} />
-                  </label>
-                  <label>Pie de foto
-                    <textarea rows={6} value={draft.copy} onChange={(e) => setDraft({ ...draft, copy: e.target.value })} />
-                  </label>
-                  <label>Hashtags
-                    <input value={draft.hashtags} onChange={(e) => setDraft({ ...draft, hashtags: e.target.value })} />
-                  </label>
-                  <p className="er-hint">El texto DENTRO de la imagen se re-renderiza desde el editor de la Mac; aquí ya puedes reemplazar la imagen y editar la publicación.</p>
-                  <div className="er-panel-actions">
-                    <button className="er-btn primary" onClick={guardar}><FaSave /> Guardar</button>
-                    <button className="er-btn" onClick={() => setDraft(null)}>Cancelar</button>
+              <label>Pie de foto (lo que va en la publicación)
+                <textarea rows={6} value={draft?.copy || ''} onChange={(e) => setDraft({ ...draft, copy: e.target.value })} />
+              </label>
+              <label>Hashtags
+                <textarea rows={2} value={draft?.hashtags || ''} onChange={(e) => setDraft({ ...draft, hashtags: e.target.value })} />
+              </label>
+
+              {/* Sugerencias por tendencia (IA) */}
+              <div className="er-sug">
+                <button className="er-sug-btn" onClick={sugerir} disabled={cargandoSug}>
+                  <FaChartLine /> {cargandoSug ? 'Analizando tendencias…' : 'Sugerencias por tendencia'}
+                </button>
+                {sug && (
+                  <div className="er-sug-out">
+                    {sug.hashtags?.length > 0 && (
+                      <>
+                        <span className="er-sug-lbl">Hashtags de tendencia · toca para agregar</span>
+                        <div className="er-sug-tags">
+                          {sug.hashtags.map((h) => <button key={h} onClick={() => addTag(h)}>{h}</button>)}
+                        </div>
+                      </>
+                    )}
+                    {sug.tips?.length > 0 && (
+                      <>
+                        <span className="er-sug-lbl">Tips para el gancho</span>
+                        <ul className="er-sug-tips">{sug.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>
+                      </>
+                    )}
                   </div>
-                </>
-              ) : (
-                <>
-                  <div className="er-copy-box">{abierta.copy}</div>
-                  {abierta.hashtags && <div className="er-hashtags">{abierta.hashtags}</div>}
-                  <div className="er-panel-actions">
-                    <button className="er-btn" onClick={() => setDraft({ titular: abierta.titular || '', copy: abierta.copy || '', hashtags: abierta.hashtags || '', cta: abierta.cta || '' })}><FaMagic /> Editar texto</button>
-                    {abierta.estado !== 'programado' && <button className="er-btn primary" onClick={() => aprobar(abierta)}><FaCheck /> Aprobar</button>}
-                    {abierta.estado !== 'borrador' && <button className="er-btn danger" onClick={() => descartar(abierta)}><FaTimes /> Descartar</button>}
-                  </div>
-                </>
-              )}
+                )}
+              </div>
+
+              <div className="er-panel-actions">
+                <button className="er-btn primary" onClick={guardar}><FaSave /> Guardar</button>
+                <button className="er-btn er-pub" onClick={publicar} disabled={publicando}><FaPaperPlane /> {publicando ? 'Publicando…' : 'Publicar ahora'}</button>
+                {abierta.estado !== 'programado' && <button className="er-btn" onClick={() => aprobar(abierta)}><FaCheck /> Aprobar</button>}
+                {abierta.estado !== 'borrador' && <button className="er-btn" onClick={() => descartar(abierta)}><FaTimes /> Descartar</button>}
+                <button className="er-btn danger" onClick={eliminar}><FaTrashAlt /> Eliminar</button>
+              </div>
+              <p className="er-hint">El texto DENTRO de la imagen se re-renderiza desde el editor de la Mac; aquí editas la publicación, reemplazas imágenes y publicas.</p>
             </div>
           </div>
         </div>

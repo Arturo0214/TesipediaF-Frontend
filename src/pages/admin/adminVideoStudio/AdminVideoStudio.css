@@ -1,4 +1,4 @@
-.avs { padding: 16px; max-width: 1100px; margin: 0 auto; color: #071B49; }
+.avs { padding: 4px 0 24px; max-width: 100%; width: 100%; margin: 0; color: #E7ECF3; }
 
 .avs-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
 .avs-head h2 { margin: 0; font-size: 1.4rem; }
@@ -77,12 +77,38 @@
 .avs-editor-actions { display: flex; gap: 8px; }
 
 /* ── Tabs Imágenes / Video ── */
-.avs-tabs { display: flex; gap: 6px; margin: 6px 0 14px; border-bottom: 1.5px solid #e3e6ef; }
+.avs-tabs { display: flex; gap: 4px; margin: 4px 0 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
 .avs-tabbtn {
-  background: none; border: none; cursor: pointer; font-weight: 700; font-size: .92rem;
-  color: #6b7280; padding: 10px 14px; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+  background: none; border: none; cursor: pointer; font-weight: 700; font-size: .95rem;
+  color: #6B7688; padding: 11px 16px; border-bottom: 2.5px solid transparent; margin-bottom: -1px;
+  transition: color .15s; font-family: 'Poppins', sans-serif;
 }
-.avs-tabbtn.on { color: #071B49; border-bottom-color: #D4A438; }
+.avs-tabbtn:hover { color: #AEB7C6; }
+.avs-tabbtn.on { color: #fff; border-bottom-color: #E0B23C; }
+
+/* ── Tema oscuro para el tab de Video (armoniza con el admin) ── */
+.avs-head h2 { color: #E7ECF3; }
+.avs-icon { color: #AEB7C6; }
+.avs-section-title { color: #E7ECF3; }
+.avs-muted { color: #6B7688; }
+.avs-canal-chip { background: #0F172A; border-color: rgba(255,255,255,.08); }
+.avs-canal-chip.off { opacity: .5; }
+.avs-canal-name { color: #E7ECF3; }
+.avs-canal-name span { color: #6B7688; }
+.avs-canal-grid > button.avs-canal-chip { color: #E7ECF3; }
+.avs-gen select, .avs-gen input { background: #0F172A; border-color: rgba(255,255,255,.08); color: #E7ECF3; }
+.avs-gen select::placeholder, .avs-gen input::placeholder { color: #6B7688; }
+.avs-btn { background: #0F172A; border-color: rgba(255,255,255,.16); color: #E7ECF3; }
+.avs-btn:hover { border-color: #E0B23C; color: #E0B23C; }
+.avs-btn.primary { background: linear-gradient(135deg, #E0B23C, #f0d78a); color: #0B0F1A; border: none; }
+.avs-btn.primary:hover { filter: brightness(1.08); color: #0B0F1A; }
+.avs-card { background: #0F172A; border-color: rgba(255,255,255,.08); box-shadow: none; }
+.avs-card h4 { color: #E7ECF3; }
+.avs-guion { color: #AEB7C6; }
+.avs-meta { color: #6B7688; }
+.avs-editor { border-top-color: rgba(255,255,255,.1); }
+.avs-editor label { color: #AEB7C6; }
+.avs-editor input, .avs-editor textarea { background: #0B0F1A; border-color: rgba(255,255,255,.12); color: #E7ECF3; }
 
 /* ── Filtros de formato ── */
 .avs-fmt-filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
