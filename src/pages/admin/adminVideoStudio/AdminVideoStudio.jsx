@@ -39,6 +39,7 @@ function AdminVideoStudio() {
   const [social, setSocial] = useState([]);
   const [socialLoad, setSocialLoad] = useState(false);
   const [fmtFiltro, setFmtFiltro] = useState(null);
+  const [estadoFiltro, setEstadoFiltro] = useState(null);
   const [sEditId, setSEditId] = useState(null);
   const [sDraft, setSDraft] = useState(null);
 
@@ -70,8 +71,12 @@ function AdminVideoStudio() {
       setSEditId(null); setSDraft(null); cargarSocial();
     } catch { toast.error('Error al guardar'); }
   };
-  const socialFiltrado = fmtFiltro ? social.filter((p) => p.formato === fmtFiltro) : social;
+  const socialFiltrado = social.filter((p) =>
+    (!fmtFiltro || p.formato === fmtFiltro) && (!estadoFiltro || p.estado === estadoFiltro));
   const formatos = [...new Set(social.map((p) => p.formato))];
+  const resumen = social.reduce((a, p) => { a[p.estado] = (a[p.estado] || 0) + 1; return a; }, {});
+  const hoyISO = new Date().toISOString().slice(0, 10);
+  const proximas = social.filter((p) => p.fecha >= hoyISO && p.estado !== 'publicado').length;
 
   const cargarCanales = useCallback(async () => {
     try {
@@ -201,9 +206,22 @@ function AdminVideoStudio() {
 
       {tab === 'imagenes' && (
         <div className="avs-social">
-          <div className="avs-section-title">
-            Contenido de redes <span className="avs-muted">({social.length} piezas · Instagram · Facebook)</span>
+          {/* KPIs de estatus */}
+          <div className="avs-kpis">
+            <div className="avs-kpi"><b>{social.length}</b><span>Piezas totales</span></div>
+            <div className="avs-kpi k-prog"><b>{resumen.programado || 0}</b><span>Programadas</span></div>
+            <div className="avs-kpi k-pub"><b>{resumen.publicado || 0}</b><span>Publicadas</span></div>
+            <div className="avs-kpi k-bor"><b>{resumen.borrador || 0}</b><span>En borrador</span></div>
+            <div className="avs-kpi k-prox"><b>{proximas}</b><span>Próximas por salir</span></div>
           </div>
+
+          {/* Filtro por estado */}
+          <div className="avs-fmt-filtros">
+            {[['Todos', null], ['Programadas', 'programado'], ['Publicadas', 'publicado'], ['Borradores', 'borrador']].map(([lbl, val]) => (
+              <button key={lbl} className={`avs-estchip ${estadoFiltro === val ? 'sel' : ''}`} onClick={() => setEstadoFiltro(val)}>{lbl}</button>
+            ))}
+          </div>
+
           <div className="avs-fmt-filtros">
             <button className={`avs-fmt ${fmtFiltro === null ? 'sel' : ''}`} onClick={() => setFmtFiltro(null)}>Todos</button>
             {formatos.map((f) => (
@@ -233,9 +251,18 @@ function AdminVideoStudio() {
                   <div className="avs-social-top">
                     <span className="avs-fmt-badge" style={{ background: FORMATO_COLOR[p.formato] || '#123661' }}>{p.formato}</span>
                     <span className={`avs-badge st-${p.estado}`}>{ESTADO_SOCIAL[p.estado] || p.estado}</span>
-                    <span className="avs-social-fecha">{p.fecha} · {p.slot}</span>
+                    <span className="avs-social-fecha">{p.fecha} · {(p.hora || '').slice(0, 5)}</span>
                   </div>
                   <h4>{p.tema}</h4>
+                  <div className="avs-social-plats">
+                    {(p.plataformas || []).map((pl) => (
+                      <span key={pl} className={`avs-plat pl-${pl}`}>{pl.toUpperCase()}</span>
+                    ))}
+                    {p.pilar && <span className="avs-pilar">{p.pilar}</span>}
+                    {p.estado === 'publicado' && p.publicado_en && (
+                      <span className="avs-plat pl-ok">Publicado {p.publicado_en.slice(0, 10)}</span>
+                    )}
+                  </div>
 
                   {sEditId === p.id ? (
                     <div className="avs-editor">

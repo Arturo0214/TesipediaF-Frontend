@@ -115,8 +115,38 @@
 .avs-badge.st-programado { background: #e7f0ff; color: #1d4ed8; }
 .avs-badge.st-borrador   { background: #eef1f7; color: #6b7280; }
 
+/* ── KPIs de estatus ── */
+.avs-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 4px 0 16px; }
+.avs-kpi {
+  background: #fff; border: 1px solid #e3e6ef; border-radius: 14px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 2px; box-shadow: 0 1px 3px rgba(7,27,73,.04);
+}
+.avs-kpi b { font-size: 1.6rem; font-weight: 800; color: #0C2848; line-height: 1; }
+.avs-kpi span { font-size: .74rem; color: #6b7280; font-weight: 600; }
+.avs-kpi.k-prog { border-left: 4px solid #1d4ed8; }
+.avs-kpi.k-pub { border-left: 4px solid #15803d; }
+.avs-kpi.k-bor { border-left: 4px solid #9ca3af; }
+.avs-kpi.k-prox { border-left: 4px solid #D4A438; }
+
+/* ── Chips de estado ── */
+.avs-estchip {
+  background: #fff; border: 1.5px solid #d7dbe6; border-radius: 999px; cursor: pointer;
+  padding: 6px 15px; font-size: .82rem; font-weight: 700; color: #47506b;
+}
+.avs-estchip.sel { background: #0C2848; border-color: #0C2848; color: #fff; }
+
+/* ── Plataformas + pilar en tarjeta ── */
+.avs-social-plats { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0; }
+.avs-plat { font-size: .62rem; font-weight: 800; letter-spacing: .04em; padding: 2px 7px; border-radius: 5px; color: #fff; }
+.avs-plat.pl-ig { background: #C13584; }
+.avs-plat.pl-fb { background: #1877F2; }
+.avs-plat.pl-tiktok { background: #111; }
+.avs-plat.pl-ok { background: #15803d; }
+.avs-pilar { font-size: .66rem; font-weight: 700; color: #6b7280; background: #eef1f7; padding: 2px 8px; border-radius: 5px; }
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
+  .avs-kpis { grid-template-columns: repeat(2, 1fr); }
   .avs { padding: 12px; }
   .avs-head h2 { font-size: 1.2rem; }
   .avs-tabs { overflow-x: auto; }
