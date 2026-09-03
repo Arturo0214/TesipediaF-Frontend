@@ -75,3 +75,58 @@
 .avs-editor label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; font-weight: 600; color: #47506b; }
 .avs-editor input, .avs-editor textarea { padding: 8px 10px; border: 1.5px solid #d7dbe6; border-radius: 8px; font-size: .88rem; font-family: inherit; }
 .avs-editor-actions { display: flex; gap: 8px; }
+
+/* ── Tabs Imágenes / Video ── */
+.avs-tabs { display: flex; gap: 6px; margin: 6px 0 14px; border-bottom: 1.5px solid #e3e6ef; }
+.avs-tabbtn {
+  background: none; border: none; cursor: pointer; font-weight: 700; font-size: .92rem;
+  color: #6b7280; padding: 10px 14px; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+}
+.avs-tabbtn.on { color: #071B49; border-bottom-color: #D4A438; }
+
+/* ── Filtros de formato ── */
+.avs-fmt-filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.avs-fmt {
+  background: #fff; border: 1.5px solid #d7dbe6; border-radius: 999px; cursor: pointer;
+  padding: 5px 13px; font-size: .78rem; font-weight: 700; color: #47506b;
+}
+.avs-fmt.sel { border-color: #071B49; color: #071B49; }
+
+/* ── Grid de contenido de redes (imágenes) ── */
+.avs-social-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.avs-social-card {
+  border: 1px solid #e3e6ef; border-radius: 16px; overflow: hidden; background: #fff;
+  box-shadow: 0 1px 3px rgba(7,27,73,.05); display: flex; flex-direction: column;
+}
+.avs-social-card.st-borrador { opacity: .72; }
+.avs-social-imgs { display: flex; gap: 2px; background: #0C2848; position: relative; }
+.avs-social-imgs img { width: 100%; flex: 1; min-width: 0; aspect-ratio: 4/5; object-fit: cover; display: block; }
+.avs-social-imgs img:nth-child(n+2) { max-width: 26%; }
+.avs-social-more {
+  position: absolute; right: 8px; bottom: 8px; background: rgba(12,40,72,.9); color: #fff;
+  font-size: .74rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+}
+.avs-social-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.avs-social-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.avs-fmt-badge { color: #fff; font-size: .66rem; font-weight: 800; letter-spacing: .04em; padding: 3px 8px; border-radius: 6px; }
+.avs-social-fecha { font-size: .72rem; color: #6b7280; margin-left: auto; }
+.avs-social-body h4 { margin: 2px 0; font-size: .96rem; }
+.avs-social-copy { font-size: .82rem; color: #374151; line-height: 1.45; margin: 2px 0; }
+.avs-badge.st-programado { background: #e7f0ff; color: #1d4ed8; }
+.avs-badge.st-borrador   { background: #eef1f7; color: #6b7280; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .avs { padding: 12px; }
+  .avs-head h2 { font-size: 1.2rem; }
+  .avs-tabs { overflow-x: auto; }
+  .avs-tabbtn { white-space: nowrap; flex: none; }
+  .avs-gen { flex-direction: column; align-items: stretch; }
+  .avs-gen select, .avs-gen input, .avs-gen .avs-btn { width: 100%; min-width: 0; }
+  .avs-list, .avs-social-grid { grid-template-columns: 1fr; }
+  .avs-canal-grid { gap: 6px; }
+  .avs-canal-chip { flex: 1 1 100%; }
+  .avs-social-fecha { margin-left: 0; flex-basis: 100%; }
+  .avs-actions { }
+  .avs-actions .avs-btn { flex: 1; justify-content: center; }
+}

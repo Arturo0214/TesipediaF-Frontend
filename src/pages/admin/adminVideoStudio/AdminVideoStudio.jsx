@@ -15,7 +15,16 @@ const ESTADO_LABEL = {
 
 const canalNombre = (c) => (c ? `${c.marca} · ${c.plataforma} · ${c.idioma}` : '—');
 
+const FORMATO_COLOR = {
+  FRASE: '#123661', DICCIONARIO: '#1B4372', CARRUSEL: '#D4A438', CHECKLIST: '#1F7A5E',
+  COMPARATIVA: '#B23A4E', PRUEBA: '#1B4372', OFERTA: '#D4A438',
+};
+const ESTADO_SOCIAL = {
+  borrador: 'Borrador', programado: 'Programado', publicado: 'Publicado', error: 'Error',
+};
+
 function AdminVideoStudio() {
+  const [tab, setTab] = useState('imagenes');    // 'imagenes' | 'video'
   const [canales, setCanales] = useState([]);
   const [filtro, setFiltro] = useState(null);   // canal_id o null = todos
   const [genCanal, setGenCanal] = useState('');  // canal_id para generar
@@ -25,6 +34,44 @@ function AdminVideoStudio() {
   const [generando, setGenerando] = useState(false);
   const [editId, setEditId] = useState(null);
   const [draft, setDraft] = useState(null);
+
+  // ── contenido de redes (imágenes) ──
+  const [social, setSocial] = useState([]);
+  const [socialLoad, setSocialLoad] = useState(false);
+  const [fmtFiltro, setFmtFiltro] = useState(null);
+  const [sEditId, setSEditId] = useState(null);
+  const [sDraft, setSDraft] = useState(null);
+
+  const cargarSocial = useCallback(async () => {
+    setSocialLoad(true);
+    try {
+      setSocial(await svc.getSocial());
+    } catch {
+      toast.error('No se pudo cargar el contenido de redes (¿SUPABASE_SERVICE_KEY en el backend?)');
+    } finally {
+      setSocialLoad(false);
+    }
+  }, []);
+
+  useEffect(() => { if (tab === 'imagenes') cargarSocial(); }, [tab, cargarSocial]);
+
+  const sAccion = async (fn, id, okMsg) => {
+    try { await fn(id); toast.success(okMsg); cargarSocial(); }
+    catch (e) { toast.error(e.response?.data?.message || 'Error'); }
+  };
+  const abrirSEditor = (p) => {
+    setSEditId(p.id);
+    setSDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '' });
+  };
+  const guardarSocial = async () => {
+    try {
+      await svc.updateSocial(sEditId, sDraft);
+      toast.success('Guardado');
+      setSEditId(null); setSDraft(null); cargarSocial();
+    } catch { toast.error('Error al guardar'); }
+  };
+  const socialFiltrado = fmtFiltro ? social.filter((p) => p.formato === fmtFiltro) : social;
+  const formatos = [...new Set(social.map((p) => p.formato))];
 
   const cargarCanales = useCallback(async () => {
     try {
@@ -136,12 +183,103 @@ function AdminVideoStudio() {
   return (
     <div className="avs">
       <div className="avs-head">
-        <h2>🎬 Estudio de Contenido</h2>
-        <button className="avs-icon" onClick={() => { cargarCanales(); cargarItems(); }} title="Refrescar">
-          <FaSync className={loading ? 'spin' : ''} />
+        <h2>Estudio de Contenido</h2>
+        <button className="avs-icon" onClick={() => { if (tab === 'imagenes') cargarSocial(); else { cargarCanales(); cargarItems(); } }} title="Refrescar">
+          <FaSync className={(loading || socialLoad) ? 'spin' : ''} />
         </button>
       </div>
 
+      {/* ── Tabs: Imágenes / Video ── */}
+      <div className="avs-tabs">
+        <button className={`avs-tabbtn ${tab === 'imagenes' ? 'on' : ''}`} onClick={() => setTab('imagenes')}>
+          Imágenes para redes
+        </button>
+        <button className={`avs-tabbtn ${tab === 'video' ? 'on' : ''}`} onClick={() => setTab('video')}>
+          Video faceless
+        </button>
+      </div>
+
+      {tab === 'imagenes' && (
+        <div className="avs-social">
+          <div className="avs-section-title">
+            Contenido de redes <span className="avs-muted">({social.length} piezas · Instagram · Facebook)</span>
+          </div>
+          <div className="avs-fmt-filtros">
+            <button className={`avs-fmt ${fmtFiltro === null ? 'sel' : ''}`} onClick={() => setFmtFiltro(null)}>Todos</button>
+            {formatos.map((f) => (
+              <button key={f} className={`avs-fmt ${fmtFiltro === f ? 'sel' : ''}`}
+                style={fmtFiltro === f ? { background: FORMATO_COLOR[f] || '#123661', color: '#fff', borderColor: 'transparent' } : {}}
+                onClick={() => setFmtFiltro(f)}>{f}</button>
+            ))}
+          </div>
+
+          {socialLoad && <p className="avs-muted">Cargando contenido…</p>}
+          {!socialLoad && !social.length && (
+            <p className="avs-muted">No hay contenido cargado todavía.</p>
+          )}
+
+          <div className="avs-social-grid">
+            {socialFiltrado.map((p) => (
+              <div key={p.id} className={`avs-social-card st-${p.estado}`}>
+                <div className="avs-social-imgs">
+                  {(p.imagenes || []).slice(0, 3).map((u, i) => (
+                    <img key={i} src={u} alt="" loading="lazy" />
+                  ))}
+                  {(p.imagenes || []).length > 3 && (
+                    <span className="avs-social-more">+{p.imagenes.length - 3}</span>
+                  )}
+                </div>
+                <div className="avs-social-body">
+                  <div className="avs-social-top">
+                    <span className="avs-fmt-badge" style={{ background: FORMATO_COLOR[p.formato] || '#123661' }}>{p.formato}</span>
+                    <span className={`avs-badge st-${p.estado}`}>{ESTADO_SOCIAL[p.estado] || p.estado}</span>
+                    <span className="avs-social-fecha">{p.fecha} · {p.slot}</span>
+                  </div>
+                  <h4>{p.tema}</h4>
+
+                  {sEditId === p.id ? (
+                    <div className="avs-editor">
+                      <label>Titular (dentro de la imagen)
+                        <textarea rows={3} value={sDraft.titular} onChange={(e) => setSDraft({ ...sDraft, titular: e.target.value })} />
+                      </label>
+                      <label>Pie de foto
+                        <textarea rows={5} value={sDraft.copy} onChange={(e) => setSDraft({ ...sDraft, copy: e.target.value })} />
+                      </label>
+                      <label>Hashtags
+                        <input value={sDraft.hashtags} onChange={(e) => setSDraft({ ...sDraft, hashtags: e.target.value })} />
+                      </label>
+                      <div className="avs-editor-actions">
+                        <button className="avs-btn primary" onClick={guardarSocial}><FaSave /> Guardar</button>
+                        <button className="avs-btn" onClick={() => { setSEditId(null); setSDraft(null); }}><FaTimes /> Cerrar</button>
+                      </div>
+                      <p className="avs-hint">El texto que va DENTRO de la imagen se re-renderiza desde tu Mac (bot/editor). Aquí editas el texto de la publicación.</p>
+                    </div>
+                  ) : (
+                    <p className="avs-social-copy">{(p.copy || '').slice(0, 180)}{(p.copy || '').length > 180 ? '…' : ''}</p>
+                  )}
+
+                  <div className="avs-actions">
+                    <button className="avs-btn sm" onClick={() => abrirSEditor(p)}><FaMagic /> Editar</button>
+                    {p.estado !== 'programado' && (
+                      <button className="avs-btn sm primary" onClick={() => sAccion(svc.approveSocial, p.id, 'Aprobado → programado')}>
+                        <FaCheck /> Aprobar
+                      </button>
+                    )}
+                    {p.estado !== 'borrador' && (
+                      <button className="avs-btn sm danger" onClick={() => sAccion(svc.discardSocial, p.id, 'Enviado a borrador')}>
+                        <FaTimes /> Descartar
+                      </button>
+                    )}
+                    {p.estado === 'publicado' && <span className="avs-hint">Publicado ✓</span>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'video' && (<>
       {/* ── Destinos (13 canales) ── */}
       <div className="avs-section-title">
         Destinos <span className="avs-muted">({activos} de {canales.length} encendidos)</span>
@@ -256,6 +394,7 @@ function AdminVideoStudio() {
           </div>
         ))}
       </div>
+      </>)}
     </div>
   );
 }

@@ -95,7 +95,20 @@ const fmtMsgTime = (ts) => {
     return d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
 
+// Hook responsive: true en pantallas de celular (≤640px)
+function useIsMobile() {
+    const [m, setM] = useState(typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches);
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 640px)');
+        const on = () => setM(mq.matches);
+        mq.addEventListener('change', on);
+        return () => mq.removeEventListener('change', on);
+    }, []);
+    return m;
+}
+
 function RevivalPipeline() {
+    const isMobile = useIsMobile();
     const [tab, setTab] = useState('activo');
     const [leads, setLeads] = useState([]);
     const [total, setTotal] = useState(0);
@@ -433,7 +446,7 @@ function RevivalPipeline() {
 
             {/* Filters */}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+                <div style={{ position: 'relative', flex: 1, minWidth: isMobile ? 0 : 200 }}>
                     <FaSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
                     <input
                         type="text"
@@ -566,7 +579,7 @@ function RevivalPipeline() {
                                         padding: '12px 16px', cursor: 'pointer', gap: 12, flexWrap: 'wrap',
                                     }}
                                 >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: isMobile ? 0 : 200 }}>
                                         <div>
                                             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#F9FAFB' }}>
                                                 {lead.nombre || 'Sin nombre'}
@@ -794,7 +807,7 @@ function RevivalPipeline() {
                                             </div>
 
                                             {/* Conversación WhatsApp (solo este lead) */}
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 240 }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: isMobile ? 0 : 240 }}>
                                                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
                                                     <FaWhatsapp style={{ color: '#25d366' }} /> Conversación WhatsApp
                                                 </div>
@@ -929,7 +942,7 @@ function RevivalPipeline() {
                             {/* Body */}
                             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
                                 {/* Datos del lead */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px 20px' }}>
                                     {[
                                         ['Carrera', ml.carrera],
                                         ['Nivel', ml.nivel || datos?.nivel],

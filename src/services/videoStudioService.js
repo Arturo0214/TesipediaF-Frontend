@@ -27,7 +27,18 @@ export const approveVideo = (id) =>
 export const publishVideo = (id) =>
   axiosWithAuth.post(`${BASE}/${id}/publish`).then((r) => r.data);
 
+// Contenido de redes (imágenes, tabla contenido_social)
+export const getSocial = (params = {}) =>
+  axiosWithAuth.get(`${BASE}/social`, { params }).then((r) => r.data);
+export const updateSocial = (id, data) =>
+  axiosWithAuth.patch(`${BASE}/social/${id}`, data).then((r) => r.data);
+export const approveSocial = (id) =>
+  axiosWithAuth.post(`${BASE}/social/${id}/approve`).then((r) => r.data);
+export const discardSocial = (id) =>
+  axiosWithAuth.post(`${BASE}/social/${id}/discard`).then((r) => r.data);
+
 export default {
   getChannels, updateChannel, getVideos, createVideo, generateScript,
   updateVideo, deleteVideo, approveVideo, publishVideo,
+  getSocial, updateSocial, approveSocial, discardSocial,
 };
