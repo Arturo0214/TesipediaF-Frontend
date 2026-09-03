@@ -913,14 +913,15 @@ function RevivalPipeline() {
                         <div
                             onClick={e => e.stopPropagation()}
                             style={{
-                                background: '#111827', borderRadius: 14, width: '100%', maxWidth: 640,
+                                background: '#111827', borderRadius: 14, width: '100%', maxWidth: 640, minWidth: 0,
                                 maxHeight: '90vh', overflow: 'auto', border: '1px solid #1F2937',
                             }}
                         >
                             {/* Header */}
                             <div style={{
                                 padding: '18px 24px', borderBottom: '1px solid #1F2937',
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                                position: 'sticky', top: 0, zIndex: 3, background: '#111827',
                             }}>
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#F9FAFB' }}>
@@ -1101,25 +1102,27 @@ function RevivalPipeline() {
                     onClick={() => setCalcLead(null)}
                     style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
                 >
-                    <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 1100, background: '#f8f9fa', borderRadius: 12, overflow: 'hidden', margin: 'auto' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', background: '#111827', borderBottom: '1px solid #1F2937', position: 'sticky', top: 0, zIndex: 2 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#F9FAFB' }}>
-                                <FaCalculator style={{ color: '#f59e0b' }} /> Cotizar — {calcLead.nombre || calcLead.wa_id}
+                    <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 1100, minWidth: 0, maxHeight: '92vh', background: '#f8f9fa', borderRadius: 12, overflow: 'hidden', margin: 'auto', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 18px', background: '#111827', borderBottom: '1px solid #1F2937', flex: 'none' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#F9FAFB', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <FaCalculator style={{ color: '#f59e0b', flex: 'none' }} /> Cotizar — {calcLead.nombre || calcLead.wa_id}
                             </span>
-                            <button onClick={() => setCalcLead(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#374151', color: '#fff', border: 'none', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                            <button onClick={() => setCalcLead(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#374151', color: '#fff', border: 'none', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flex: 'none' }}>
                                 <FaTimes /> Cerrar
                             </button>
                         </div>
-                        <SalesQuote
-                            embedded
-                            onClose={() => setCalcLead(null)}
-                            initialData={{
-                                clientName: calcLead.nombre || '',
-                                clientPhone: calcLead.wa_id || '',
-                                carrera: calcLead.carrera || '',
-                                extensionEstimada: calcLead.paginas || '',
-                            }}
-                        />
+                        <div style={{ overflow: 'auto', flex: 1, WebkitOverflowScrolling: 'touch' }}>
+                            <SalesQuote
+                                embedded
+                                onClose={() => setCalcLead(null)}
+                                initialData={{
+                                    clientName: calcLead.nombre || '',
+                                    clientPhone: calcLead.wa_id || '',
+                                    carrera: calcLead.carrera || '',
+                                    extensionEstimada: calcLead.paginas || '',
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
             )}

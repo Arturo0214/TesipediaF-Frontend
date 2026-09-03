@@ -184,8 +184,14 @@
 
 /* Responsive */
 @media (max-width: 1000px) {
-  .er-modal { grid-template-columns: 1fr; max-height: 94vh; }
-  .er-visor-main img { max-height: 42vh; }
+  /* Modal scrolleable: el backdrop hace scroll y el modal crece natural (así SIEMPRE se cierra) */
+  .er-modal-bg { padding: 10px; align-items: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .er-modal { grid-template-columns: 1fr; max-height: none; width: 100%; }
+  .er-panel { overflow: visible; }
+  .er-visor-main { min-height: 200px; }
+  .er-visor-main img { max-height: 46vh; }
+  /* Botón de cerrar FIJO en la pantalla: siempre alcanzable sin importar el scroll */
+  .er-modal-x { position: fixed; top: 14px; right: 14px; z-index: 3100; width: 44px; height: 44px; background: rgba(11,15,26,.92); border-color: var(--line-hi); }
 }
 @media (max-width: 720px) {
   .er-head h2 { font-size: 1.4rem; }
