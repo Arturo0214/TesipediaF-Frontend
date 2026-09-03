@@ -5,6 +5,7 @@ import {
   FaSave, FaTimes, FaCopy, FaToggleOn, FaToggleOff,
 } from 'react-icons/fa';
 import svc from '../../../services/videoStudioService';
+import EstudioRedes from './EstudioRedes.jsx';
 import './AdminVideoStudio.css';
 
 const ESTADO_LABEL = {
@@ -14,14 +15,6 @@ const ESTADO_LABEL = {
 };
 
 const canalNombre = (c) => (c ? `${c.marca} · ${c.plataforma} · ${c.idioma}` : '—');
-
-const FORMATO_COLOR = {
-  FRASE: '#123661', DICCIONARIO: '#1B4372', CARRUSEL: '#D4A438', CHECKLIST: '#1F7A5E',
-  COMPARATIVA: '#B23A4E', PRUEBA: '#1B4372', OFERTA: '#D4A438',
-};
-const ESTADO_SOCIAL = {
-  borrador: 'Borrador', programado: 'Programado', publicado: 'Publicado', error: 'Error',
-};
 
 function AdminVideoStudio() {
   const [tab, setTab] = useState('imagenes');    // 'imagenes' | 'video'
@@ -34,49 +27,6 @@ function AdminVideoStudio() {
   const [generando, setGenerando] = useState(false);
   const [editId, setEditId] = useState(null);
   const [draft, setDraft] = useState(null);
-
-  // ── contenido de redes (imágenes) ──
-  const [social, setSocial] = useState([]);
-  const [socialLoad, setSocialLoad] = useState(false);
-  const [fmtFiltro, setFmtFiltro] = useState(null);
-  const [estadoFiltro, setEstadoFiltro] = useState(null);
-  const [sEditId, setSEditId] = useState(null);
-  const [sDraft, setSDraft] = useState(null);
-
-  const cargarSocial = useCallback(async () => {
-    setSocialLoad(true);
-    try {
-      setSocial(await svc.getSocial());
-    } catch {
-      toast.error('No se pudo cargar el contenido de redes (¿SUPABASE_SERVICE_KEY en el backend?)');
-    } finally {
-      setSocialLoad(false);
-    }
-  }, []);
-
-  useEffect(() => { if (tab === 'imagenes') cargarSocial(); }, [tab, cargarSocial]);
-
-  const sAccion = async (fn, id, okMsg) => {
-    try { await fn(id); toast.success(okMsg); cargarSocial(); }
-    catch (e) { toast.error(e.response?.data?.message || 'Error'); }
-  };
-  const abrirSEditor = (p) => {
-    setSEditId(p.id);
-    setSDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '' });
-  };
-  const guardarSocial = async () => {
-    try {
-      await svc.updateSocial(sEditId, sDraft);
-      toast.success('Guardado');
-      setSEditId(null); setSDraft(null); cargarSocial();
-    } catch { toast.error('Error al guardar'); }
-  };
-  const socialFiltrado = social.filter((p) =>
-    (!fmtFiltro || p.formato === fmtFiltro) && (!estadoFiltro || p.estado === estadoFiltro));
-  const formatos = [...new Set(social.map((p) => p.formato))];
-  const resumen = social.reduce((a, p) => { a[p.estado] = (a[p.estado] || 0) + 1; return a; }, {});
-  const hoyISO = new Date().toISOString().slice(0, 10);
-  const proximas = social.filter((p) => p.fecha >= hoyISO && p.estado !== 'publicado').length;
 
   const cargarCanales = useCallback(async () => {
     try {
@@ -187,14 +137,7 @@ function AdminVideoStudio() {
 
   return (
     <div className="avs">
-      <div className="avs-head">
-        <h2>Estudio de Contenido</h2>
-        <button className="avs-icon" onClick={() => { if (tab === 'imagenes') cargarSocial(); else { cargarCanales(); cargarItems(); } }} title="Refrescar">
-          <FaSync className={(loading || socialLoad) ? 'spin' : ''} />
-        </button>
-      </div>
-
-      {/* ── Tabs: Imágenes / Video ── */}
+      {/* Tabs: Imágenes / Video (el header de Imágenes lo pone EstudioRedes) */}
       <div className="avs-tabs">
         <button className={`avs-tabbtn ${tab === 'imagenes' ? 'on' : ''}`} onClick={() => setTab('imagenes')}>
           Imágenes para redes
@@ -204,7 +147,18 @@ function AdminVideoStudio() {
         </button>
       </div>
 
-      {tab === 'imagenes' && (
+      {tab === 'imagenes' && <EstudioRedes />}
+
+      {tab === 'video' && (
+        <div className="avs-head">
+          <h2>Video faceless</h2>
+          <button className="avs-icon" onClick={() => { cargarCanales(); cargarItems(); }} title="Refrescar">
+            <FaSync className={loading ? 'spin' : ''} />
+          </button>
+        </div>
+      )}
+
+      {tab === '__legacy_oculto__' && (
         <div className="avs-social">
           {/* KPIs de estatus */}
           <div className="avs-kpis">

@@ -36,9 +36,17 @@ export const approveSocial = (id) =>
   axiosWithAuth.post(`${BASE}/social/${id}/approve`).then((r) => r.data);
 export const discardSocial = (id) =>
   axiosWithAuth.post(`${BASE}/social/${id}/discard`).then((r) => r.data);
+export const uploadSocialImage = (id, file, index) => {
+  const fd = new FormData();
+  fd.append('imagen', file);
+  fd.append('index', String(index));
+  return axiosWithAuth.post(`${BASE}/social/${id}/imagen`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then((r) => r.data);
+};
 
 export default {
   getChannels, updateChannel, getVideos, createVideo, generateScript,
   updateVideo, deleteVideo, approveVideo, publishVideo,
-  getSocial, updateSocial, approveSocial, discardSocial,
+  getSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
 };
