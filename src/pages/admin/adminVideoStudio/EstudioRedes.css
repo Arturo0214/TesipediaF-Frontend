@@ -35,6 +35,14 @@
 .er-refresh { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; width: 42px; height: 42px; cursor: pointer; color: var(--txt-soft); transition: .18s; }
 .er-refresh:hover { border-color: var(--gold); color: var(--gold); }
 
+/* Marcas (multi-página) */
+.er-marcas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.er-marca { display: inline-flex; align-items: center; gap: 7px; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 15px; font-size: .84rem; font-weight: 700; color: var(--txt-soft); cursor: pointer; transition: .15s; }
+.er-marca:hover { border-color: var(--line-hi); color: var(--txt); }
+.er-marca.on { background: var(--surface-hi); color: #fff; }
+.er-marca i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.er-marca span { font-size: .72rem; font-weight: 800; color: var(--muted); background: rgba(255,255,255,.06); padding: 1px 8px; border-radius: 999px; }
+
 /* KPIs */
 .er-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .er-kpi {

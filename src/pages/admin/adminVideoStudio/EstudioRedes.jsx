@@ -21,6 +21,14 @@ const EST = {
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const PLAT_ICON = { ig: FaInstagram, fb: FaFacebookF, tiktok: FaTiktok };
+const MARCAS = [
+  { id: 'Tesipedia', c: '#E0B23C' },
+  { id: 'Contratado', c: '#3B82F6' },
+  { id: 'FSC', c: '#16A34A' },
+  { id: 'Enlace468', c: '#00A99D' },
+  { id: 'Spoilers', c: '#A855F7' },
+  { id: 'Libro vs Película', c: '#EF4444' },
+];
 
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -28,6 +36,7 @@ export default function EstudioRedes() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [vista, setVista] = useState('calendario');     // calendario | grid | lista
+  const [fMarca, setFMarca] = useState(null);
   const [fEstado, setFEstado] = useState(null);
   const [fFormato, setFFormato] = useState(null);
   const [mesRef, setMesRef] = useState(null);           // Date del mes visible
@@ -55,15 +64,20 @@ export default function EstudioRedes() {
   }, [mesRef]);
   useEffect(() => { cargar(); }, []); // eslint-disable-line
 
-  // ── KPIs ──
-  const kpi = useMemo(() => posts.reduce((a, p) => { a[p.estado] = (a[p.estado] || 0) + 1; return a; }, {}), [posts]);
-  const hoy = ymd(new Date());
-  const proximas = posts.filter((p) => p.fecha >= hoy && p.estado !== 'publicado').length;
-  const avance = posts.length ? Math.round(((kpi.publicado || 0) + (kpi.programado || 0)) / posts.length * 100) : 0;
+  // ── filtro de marca (multi-página) ──
+  const marca = (p) => p.marca || 'Tesipedia';
+  const base = fMarca ? posts.filter((p) => marca(p) === fMarca) : posts;
+  const conteoMarca = useMemo(() => posts.reduce((a, p) => { a[marca(p)] = (a[marca(p)] || 0) + 1; return a; }, {}), [posts]);
 
-  const filtrados = posts.filter((p) =>
+  // ── KPIs (sobre la marca seleccionada) ──
+  const kpi = base.reduce((a, p) => { a[p.estado] = (a[p.estado] || 0) + 1; return a; }, {});
+  const hoy = ymd(new Date());
+  const proximas = base.filter((p) => p.fecha >= hoy && p.estado !== 'publicado').length;
+  const avance = base.length ? Math.round(((kpi.publicado || 0) + (kpi.programado || 0)) / base.length * 100) : 0;
+
+  const filtrados = base.filter((p) =>
     (!fEstado || p.estado === fEstado) && (!fFormato || p.formato === fFormato));
-  const formatos = [...new Set(posts.map((p) => p.formato))];
+  const formatos = [...new Set(base.map((p) => p.formato))];
 
   // ── acciones ──
   const refrescarPieza = (row) => {
@@ -137,6 +151,23 @@ export default function EstudioRedes() {
         <button className="er-refresh" onClick={cargar} title="Refrescar"><FaSync className={loading ? 'er-spin' : ''} /></button>
       </div>
 
+      {/* Marcas (multi-página) */}
+      <div className="er-marcas">
+        <button className={`er-marca ${!fMarca ? 'on' : ''}`} onClick={() => setFMarca(null)}>
+          Todas <span>{posts.length}</span>
+        </button>
+        {MARCAS.map((mk) => (
+          <button
+            key={mk.id}
+            className={`er-marca ${fMarca === mk.id ? 'on' : ''}`}
+            style={fMarca === mk.id ? { borderColor: mk.c, color: mk.c } : {}}
+            onClick={() => setFMarca(mk.id)}
+          >
+            <i style={{ background: mk.c }} /> {mk.id} <span>{conteoMarca[mk.id] || 0}</span>
+          </button>
+        ))}
+      </div>
+
       {/* KPIs + avance */}
       <div className="er-kpis">
         <div className="er-kpi"><span className="er-kpi-n">{posts.length}</span><span className="er-kpi-l">Piezas</span></div>
@@ -171,9 +202,12 @@ export default function EstudioRedes() {
 
       {loading && <p className="er-muted">Cargando contenido…</p>}
       {!loading && !posts.length && <p className="er-muted">No hay contenido cargado todavía.</p>}
+      {!loading && posts.length > 0 && base.length === 0 && (
+        <p className="er-muted">Aún no hay contenido para <b>{fMarca}</b>. Sus canales de Instagram/Facebook se llenarán cuando generes su contenido.</p>
+      )}
 
       {/* ── CALENDARIO ── */}
-      {!loading && vista === 'calendario' && posts.length > 0 && (
+      {!loading && vista === 'calendario' && base.length > 0 && (
         <div className="er-cal">
           <div className="er-cal-nav">
             <button onClick={() => cambiarMes(-1)}><FaChevronLeft /></button>
