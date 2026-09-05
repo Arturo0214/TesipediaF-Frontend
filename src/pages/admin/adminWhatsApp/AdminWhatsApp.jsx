@@ -244,6 +244,7 @@ const AdminWhatsApp = () => {
   const recordingTimerRef = useRef(null);
 
   const messagesContainerRef = useRef(null);
+  const chatColRef = useRef(null); // columna de chat: se sincroniza al visualViewport en móvil
   const pollRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -683,6 +684,43 @@ const AdminWhatsApp = () => {
   }, []);
 
   // Scroll inteligente: al cambiar de lead, al cargar historial completo, o al llegar mensajes nuevos
+  // En móvil, al abrir un chat a pantalla completa se oculta el botón hamburguesa
+  // del panel (que si no tapa la barra de "volver a chats"). El chat tiene su
+  // propio botón para regresar. Se limpia al cerrar el chat o desmontar.
+  useEffect(() => {
+    document.body.classList.toggle('wa-chat-open', Boolean(selectedLead));
+    return () => document.body.classList.remove('wa-chat-open');
+  }, [selectedLead]);
+
+  // Móvil: sincroniza la columna de chat (position:fixed) al visualViewport.
+  // Es la ÚNICA forma fiable en iOS Safari de que el input quede SIEMPRE visible:
+  //  - las barras del navegador (URL/toolbar) reducen visualViewport.height
+  //  - el teclado también reduce visualViewport.height (a diferencia de 100dvh,
+  //    que NO reacciona al teclado). offsetTop cubre el caso de barras arriba.
+  // En desktop / sin soporte se cae al fallback CSS (inset:0).
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const el = chatColRef.current;
+    if (!vv || !el) return;
+    const isMobile = () => window.matchMedia('(max-width: 992px)').matches;
+    const reset = () => { el.style.height = ''; el.style.top = ''; };
+    const sync = () => {
+      if (!selectedLead || !isMobile()) { reset(); return; }
+      el.style.height = vv.height + 'px';
+      el.style.top = vv.offsetTop + 'px';
+    };
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    window.addEventListener('orientationchange', sync);
+    return () => {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+      window.removeEventListener('orientationchange', sync);
+      reset();
+    };
+  }, [selectedLead]);
+
   useEffect(() => {
     if (!selectedLead) {
       prevLeadIdRef.current = null;
@@ -2309,6 +2347,7 @@ const AdminWhatsApp = () => {
 
         {/* Panel de chat */}
         <div
+          ref={chatColRef}
           className={`wa-chat-col ${selectedLead ? 'wa-chat-active' : ''} ${isDragging ? 'wa-dragging' : ''}`}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}

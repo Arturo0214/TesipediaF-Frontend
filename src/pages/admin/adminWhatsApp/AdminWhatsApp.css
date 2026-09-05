@@ -1060,16 +1060,15 @@
   .wa-chat-col.wa-chat-active {
     display: flex;
     flex-direction: column;
-    /* fixed + dvh: en iOS el 'dvh' se encoge con el teclado, así el input
-       de mensaje queda SIEMPRE visible (antes usaba absolute+bottom:0 y el
-       teclado lo tapaba). */
+    /* fixed + inset:0 (anclado ARRIBA y ABAJO). El commit anterior usaba
+       height:100dvh SIN bottom:0, y en iOS el input quedaba por debajo de la
+       barra inferior de Safari (invisible). Con bottom:0 el input SIEMPRE se ve
+       y, al abrir el teclado, Safari empuja el input por encima de él. */
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 100vh;          /* fallback navegadores viejos */
-    height: 100dvh;
-    max-height: 100dvh;
+    bottom: 0;
     z-index: 10;
   }
   /* Los mensajes crecen y hacen scroll; el input queda como pie de la columna */

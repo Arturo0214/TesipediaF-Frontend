@@ -515,6 +515,12 @@
         transform: scale(0.92);
     }
 
+    /* Con un chat de WhatsApp abierto a pantalla completa, ocultar el hamburguesa
+       para que no tape la barra de "volver a chats". El chat tiene su propio botón. */
+    body.wa-chat-open .tesipedia-admin-sidebar-toggle {
+        display: none;
+    }
+
     .tesipedia-admin-sidebar-toggle.active {
         background: rgba(31, 41, 55, 0.95);
         color: #F9FAFB;
