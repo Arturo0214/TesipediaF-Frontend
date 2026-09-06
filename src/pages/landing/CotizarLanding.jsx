@@ -244,7 +244,7 @@ function CotizarLanding() {
             <FaStar className="star-icon" /> +3,000 estudiantes ya se titularon
           </div>
 
-          <h1>¿Atorado con tu tesis?<br /><span className="hero-highlight">Te la hacemos.</span></h1>
+          <h1>¿Atorado con tu tesis?<br /><span className="hero-highlight">Nosotros te ayudamos.</span></h1>
           <p className="landing-hero-sub">
             Cotiza en 2 minutos. Un experto en tu área te contacta hoy mismo con precio y plan de trabajo.
           </p>
@@ -274,8 +274,8 @@ function CotizarLanding() {
 
           <div className="landing-hero-trust">
             <span><FaCheckCircle /> 100% Original — Turnitin</span>
-            <span><FaCheckCircle /> Redacción 100% humana</span>
-            <span><FaCheckCircle /> Desde $110/pág</span>
+            <span><FaCheckCircle /> Acompañamiento 100% humano</span>
+            <span><FaCheckCircle /> Planes a tu medida</span>
           </div>
         </div>
       </section>
