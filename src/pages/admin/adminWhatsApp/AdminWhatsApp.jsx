@@ -692,31 +692,43 @@ const AdminWhatsApp = () => {
     return () => document.body.classList.remove('wa-chat-open');
   }, [selectedLead]);
 
-  // Móvil: sincroniza la columna de chat (position:fixed) al visualViewport.
-  // Es la ÚNICA forma fiable en iOS Safari de que el input quede SIEMPRE visible:
-  //  - las barras del navegador (URL/toolbar) reducen visualViewport.height
-  //  - el teclado también reduce visualViewport.height (a diferencia de 100dvh,
-  //    que NO reacciona al teclado). offsetTop cubre el caso de barras arriba.
-  // En desktop / sin soporte se cae al fallback CSS (inset:0).
+  // Móvil: el chat (position:fixed) queda SIEMPRE anclado arriba y abajo (inset:0
+  // por CSS = cobertura total, la lista NUNCA se asoma por debajo). Cuando el
+  // teclado abre, solo SUBIMOS el borde inferior (bottom) la altura del teclado,
+  // dejando el input por encima. Al cerrar, bottom vuelve a 0 (cobertura total).
+  // Antes se encogía la ALTURA y, si no se restauraba, quedaba un hueco donde se
+  // veía la lista de conversaciones (bug reportado). Con este enfoque el peor caso
+  // posible es cobertura completa, nunca el hueco.
   useEffect(() => {
     const vv = window.visualViewport;
     const el = chatColRef.current;
     if (!vv || !el) return;
     const isMobile = () => window.matchMedia('(max-width: 992px)').matches;
-    const reset = () => { el.style.height = ''; el.style.top = ''; };
+    const reset = () => { el.style.top = ''; el.style.bottom = ''; el.style.height = ''; };
     const sync = () => {
       if (!selectedLead || !isMobile()) { reset(); return; }
-      el.style.height = vv.height + 'px';
-      el.style.top = vv.offsetTop + 'px';
+      // Alto real del teclado = viewport de layout − viewport visible − scroll.
+      // Solo lo tomamos si es grande (>150px): así ignoramos las barras del
+      // navegador y evitamos falsos huecos cuando NO hay teclado.
+      const raw = window.innerHeight - vv.height - vv.offsetTop;
+      const kb = raw > 150 ? Math.round(raw) : 0;
+      el.style.top = Math.round(vv.offsetTop || 0) + 'px';
+      el.style.bottom = kb + 'px';
+      el.style.height = ''; // top+bottom definen el alto; nunca fijamos height
     };
+    // iOS a veces no dispara el resize final al cerrar el teclado: re-sincroniza
+    // en rAF y con un pequeño retardo para garantizar que bottom vuelva a 0.
+    const syncSoon = () => { requestAnimationFrame(sync); setTimeout(sync, 250); };
     sync();
     vv.addEventListener('resize', sync);
     vv.addEventListener('scroll', sync);
-    window.addEventListener('orientationchange', sync);
+    window.addEventListener('orientationchange', syncSoon);
+    el.addEventListener('focusout', syncSoon); // al perder foco el input (teclado cierra)
     return () => {
       vv.removeEventListener('resize', sync);
       vv.removeEventListener('scroll', sync);
-      window.removeEventListener('orientationchange', sync);
+      window.removeEventListener('orientationchange', syncSoon);
+      el.removeEventListener('focusout', syncSoon);
       reset();
     };
   }, [selectedLead]);
