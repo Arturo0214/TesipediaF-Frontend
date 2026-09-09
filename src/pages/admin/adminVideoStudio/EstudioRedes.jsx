@@ -283,19 +283,49 @@ export default function EstudioRedes() {
       )}
 
       {/* ── CUADRÍCULA (feed) ── */}
-      {!loading && vista === 'grid' && (
-        <div className="er-grid">
-          {filtrados.map((p) => (
-            <button key={p.id} className="er-tile" onClick={() => abrir(p)}>
-              <img src={(p.imagenes || [])[0]} alt={p.tema} loading="lazy" />
-              <span className="er-tile-badge" style={{ background: FORMATO_COLOR[p.formato] }}>{p.formato}</span>
-              <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
-              {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
-              <span className="er-tile-info"><b>{p.tema}</b><span>{p.fecha} · {p.slot}</span></span>
-            </button>
-          ))}
-        </div>
-      )}
+      {!loading && vista === 'grid' && (() => {
+        const DOW = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const inMonth = filtrados.filter((p) => { const d = new Date(p.fecha + 'T12:00:00'); return d.getFullYear() === y && d.getMonth() === m; });
+        const byDay = {};
+        inMonth.forEach((p) => { (byDay[p.fecha] = byDay[p.fecha] || []).push(p); });
+        Object.values(byDay).forEach((a) => a.sort((x, z) => (x.slot || '').localeCompare(z.slot || '')));
+        const dias = Object.keys(byDay).sort();
+        return (
+          <div>
+            <div className="er-cal-nav">
+              <button onClick={() => cambiarMes(-1)}><FaChevronLeft /></button>
+              <h3>{MESES[m]} {y}</h3>
+              <button onClick={() => cambiarMes(1)}><FaChevronRight /></button>
+            </div>
+            {dias.length === 0 && <p className="er-muted">Sin contenido en {MESES[m]} {y}. Usa ‹ › para cambiar de mes.</p>}
+            {dias.map((f) => {
+              const dd = new Date(f + 'T12:00:00');
+              return (
+                <div key={f} className="er-day-group">
+                  <div className={`er-day-head ${f === hoy ? 'today' : ''}`}>
+                    <span className="er-day-num">{dd.getDate()}</span>
+                    <span className="er-day-dow">{DOW[dd.getDay()]}</span>
+                    {f === hoy && <span className="er-day-today">HOY</span>}
+                  </div>
+                  <div className="er-grid">
+                    {byDay[f].map((p) => (
+                      <button key={p.id} className="er-tile" onClick={() => abrir(p)}>
+                        {(p.imagenes || [])[0]
+                          ? <img src={(p.imagenes || [])[0]} alt={p.tema} loading="lazy" />
+                          : <div className="er-tile-empty"><FaCloudUploadAlt /><span>Vacío</span></div>}
+                        <span className="er-tile-badge" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
+                        <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
+                        {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
+                        <span className="er-tile-info"><b>{p.tema}</b><span>{(p.hora || '').slice(0, 5)} · slot {p.slot}</span></span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* ── LISTA ── */}
       {!loading && vista === 'lista' && (

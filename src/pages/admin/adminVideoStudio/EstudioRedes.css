@@ -264,3 +264,15 @@
 .er-panel-hora { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: .82rem; color: var(--txt-soft, #c7d2e6); }
 .er-panel-hora b { color: #fff; }
 .er-panel-hora svg { color: var(--gold, #E0B23C); }
+
+/* ── Grid por día (encabezado) ── */
+.er-day-group { margin-bottom: 26px; }
+.er-day-head { display: flex; align-items: baseline; gap: 10px; padding: 6px 2px 12px; border-bottom: 1px solid var(--line, #223); margin-bottom: 14px; }
+.er-day-head .er-day-num { font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; }
+.er-day-head .er-day-dow { font-size: .9rem; font-weight: 600; color: var(--txt-soft, #c7d2e6); text-transform: capitalize; }
+.er-day-head.today { border-color: var(--gold, #E0B23C); }
+.er-day-head.today .er-day-num { color: var(--gold, #E0B23C); }
+.er-day-today { font-size: .64rem; font-weight: 800; letter-spacing: .08em; color: #0b1120; background: var(--gold, #E0B23C); padding: 3px 8px; border-radius: 999px; }
+.er-tile-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; min-height: 180px; color: var(--muted, #7c8aa5); background: repeating-linear-gradient(45deg, #10192b, #10192b 10px, #0d1524 10px, #0d1524 20px); border: 1.5px dashed var(--line, #2a3550); }
+.er-tile-empty svg { font-size: 1.6rem; opacity: .6; }
+.er-tile-empty span { font-size: .74rem; font-weight: 700; letter-spacing: .04em; }
