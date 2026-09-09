@@ -47,10 +47,12 @@ export const uploadSocialImage = (id, file, index) => {
 export const publishSocial = (id) => axiosWithAuth.post(`${BASE}/social/${id}/publish`).then((r) => r.data);
 export const deleteSocial = (id) => axiosWithAuth.delete(`${BASE}/social/${id}`).then((r) => r.data);
 export const sugerenciasSocial = (id) => axiosWithAuth.post(`${BASE}/social/${id}/sugerencias`).then((r) => r.data);
+export const getAutopublish = () => axiosWithAuth.get(`${BASE}/social/autopublish`).then((r) => r.data);
+export const setAutopublish = (enabled) => axiosWithAuth.put(`${BASE}/social/autopublish`, { enabled }).then((r) => r.data);
 
 export default {
   getChannels, updateChannel, getVideos, createVideo, generateScript,
   updateVideo, deleteVideo, approveVideo, publishVideo,
   getSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
-  publishSocial, deleteSocial, sugerenciasSocial,
+  publishSocial, deleteSocial, sugerenciasSocial, getAutopublish, setAutopublish,
 };

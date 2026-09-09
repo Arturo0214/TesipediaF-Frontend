@@ -50,6 +50,19 @@ export default function EstudioRedes() {
   const [sug, setSug] = useState(null);
   const [cargandoSug, setCargandoSug] = useState(false);
   const fileRef = useRef(null);
+  const [dragOver, setDragOver] = useState(false);
+  // Switch de auto-publicación
+  const [autoPub, setAutoPub] = useState(false);
+  const [autoPubBusy, setAutoPubBusy] = useState(false);
+  useEffect(() => { svc.getAutopublish().then((d) => setAutoPub(!!d.enabled)).catch(() => {}); }, []);
+  const toggleAutoPub = async () => {
+    const next = !autoPub;
+    if (next && !window.confirm('¿Encender la publicación automática? Las piezas PROGRAMADAS se publicarán solas en Instagram y Facebook a su hora.')) return;
+    setAutoPubBusy(true);
+    try { const d = await svc.setAutopublish(next); setAutoPub(!!d.enabled); toast.success(d.enabled ? 'Auto-publicación ENCENDIDA' : 'Auto-publicación apagada'); }
+    catch { toast.error('No se pudo cambiar el switch'); }
+    finally { setAutoPubBusy(false); }
+  };
   // Rendimiento (métricas FB/IG — reutiliza /social/*)
   const [rend, setRend] = useState(null);
   const [rendLoad, setRendLoad] = useState(false);
@@ -131,13 +144,20 @@ export default function EstudioRedes() {
     setAbierta(p); setImgIdx(0); setSug(null);
     setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '' });
   };
-  const reemplazar = async (e) => {
-    const file = e.target.files?.[0];
+  const subirImagen = async (file) => {
     if (!file || !abierta) return;
     setSubiendo(true);
     try { refrescarPieza(await svc.uploadSocialImage(abierta.id, file, imgIdx)); toast.success('Imagen reemplazada'); }
     catch { toast.error('No se pudo subir la imagen'); }
     finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; }
+  };
+  const reemplazar = (e) => subirImagen(e.target.files?.[0]);
+  const onDropImagen = (e) => {
+    e.preventDefault(); setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const n = (abierta.imagenes || []).length ? imgIdx + 1 : 1;
+    if (window.confirm(`¿Reemplazar la imagen ${n} con «${file.name}»?`)) subirImagen(file);
   };
 
   // ── Calendario ──
@@ -166,7 +186,14 @@ export default function EstudioRedes() {
           <h2>Estudio de Contenido</h2>
           <p className="er-sub">Planea, revisa y aprueba lo que sale en Instagram, Facebook y TikTok.</p>
         </div>
-        <button className="er-refresh" onClick={cargar} title="Refrescar"><FaSync className={loading ? 'er-spin' : ''} /></button>
+        <div className="er-head-actions">
+          <button className={`er-autopub ${autoPub ? 'on' : ''}`} onClick={toggleAutoPub} disabled={autoPubBusy} title="Publicación automática de las piezas programadas">
+            <span className="er-autopub-label">Auto-publicar</span>
+            <span className="er-switch"><span className="er-switch-knob" /></span>
+            <span className="er-autopub-state">{autoPub ? 'ON' : 'OFF'}</span>
+          </button>
+          <button className="er-refresh" onClick={cargar} title="Refrescar"><FaSync className={loading ? 'er-spin' : ''} /></button>
+        </div>
       </div>
 
       {/* Marcas (multi-página) */}
@@ -368,15 +395,21 @@ export default function EstudioRedes() {
 
             {/* Visor de imágenes */}
             <div className="er-visor">
-              <div className="er-visor-main">
+              <div className={`er-visor-main ${dragOver ? 'er-drag' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); if (!dragOver) setDragOver(true); }}
+                onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false); }}
+                onDrop={onDropImagen}>
                 {(abierta.imagenes || []).length > 1 && (
                   <button className="er-visor-arrow left" onClick={() => setImgIdx((i) => (i - 1 + abierta.imagenes.length) % abierta.imagenes.length)}><FaChevronLeft /></button>
                 )}
-                <img src={(abierta.imagenes || [])[imgIdx]} alt="" />
+                {(abierta.imagenes || [])[imgIdx]
+                  ? <img src={(abierta.imagenes || [])[imgIdx]} alt="" />
+                  : <div className="er-visor-empty"><FaCloudUploadAlt /><span>Slot vacío — arrastra una imagen aquí</span></div>}
                 {(abierta.imagenes || []).length > 1 && (
                   <button className="er-visor-arrow right" onClick={() => setImgIdx((i) => (i + 1) % abierta.imagenes.length)}><FaChevronRight /></button>
                 )}
-                <span className="er-visor-count">{imgIdx + 1} / {(abierta.imagenes || []).length}</span>
+                {(abierta.imagenes || []).length > 0 && <span className="er-visor-count">{imgIdx + 1} / {(abierta.imagenes || []).length}</span>}
+                {dragOver && <div className="er-drop-hint"><FaCloudUploadAlt /> Suelta para reemplazar</div>}
               </div>
               <div className="er-thumbs">
                 {(abierta.imagenes || []).map((u, i) => (
@@ -396,8 +429,9 @@ export default function EstudioRedes() {
               <div className="er-panel-top">
                 <span className="er-chip-fmt" style={{ background: FORMATO_COLOR[abierta.formato] }}>{abierta.formato}</span>
                 <span className="er-chip-est" style={{ color: EST[abierta.estado]?.c, borderColor: EST[abierta.estado]?.c }}>{EST[abierta.estado]?.lbl}</span>
-                <span className="er-panel-fecha">{abierta.fecha} · slot {abierta.slot} · {(abierta.hora || '').slice(0, 5)}</span>
+                <span className="er-panel-fecha">{abierta.fecha} · slot {abierta.slot}</span>
               </div>
+              <div className="er-panel-hora"><FaRegClock /> Se publica a las <b>{(abierta.hora || '10:00').slice(0, 5)} h</b> {autoPub ? '· auto-publicación ON' : '· (auto-publicación apagada)'}</div>
               <div className="er-panel-plats">
                 {(abierta.plataformas || []).map((pl) => { const I = PLAT_ICON[pl]; return I ? <span key={pl} className={`er-plat pl-${pl}`}><I /> {pl.toUpperCase()}</span> : null; })}
                 {abierta.pilar && <span className="er-pilar">{abierta.pilar}</span>}
