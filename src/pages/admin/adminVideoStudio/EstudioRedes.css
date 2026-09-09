@@ -144,6 +144,10 @@
 .er-replace { display: inline-flex; align-items: center; justify-content: center; gap: 9px; background: linear-gradient(135deg, var(--gold), #f0d78a); color: #0B0F1A; border: none; border-radius: 11px; padding: 12px; font-weight: 800; font-size: .85rem; cursor: pointer; transition: .15s; }
 .er-replace:hover { filter: brightness(1.08); }
 .er-replace:disabled { opacity: .55; cursor: default; }
+.er-img-btns { display: flex; gap: 8px; }
+.er-img-btns .er-replace { flex: 1; }
+.er-add-img { background: transparent; color: var(--gold, #E0B23C); border: 1.5px solid var(--gold, #E0B23C); }
+.er-add-img:hover { background: rgba(224,178,60,.12); filter: none; }
 
 .er-panel { padding: 24px; display: flex; flex-direction: column; gap: 11px; overflow-y: auto; background: var(--surface); }
 .er-panel-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

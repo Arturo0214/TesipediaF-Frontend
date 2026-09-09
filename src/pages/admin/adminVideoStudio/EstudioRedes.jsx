@@ -51,6 +51,7 @@ export default function EstudioRedes() {
   const [sug, setSug] = useState(null);
   const [cargandoSug, setCargandoSug] = useState(false);
   const fileRef = useRef(null);
+  const addFileRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   // Switch de auto-publicación
   const [autoPub, setAutoPub] = useState(false);
@@ -169,20 +170,29 @@ export default function EstudioRedes() {
     setAbierta(p); setImgIdx(0); setSug(null);
     setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '' });
   };
-  const subirImagen = async (file) => {
+  const subirImagen = async (file, index = imgIdx) => {
     if (!file || !abierta) return;
     setSubiendo(true);
-    try { refrescarPieza(await svc.uploadSocialImage(abierta.id, file, imgIdx)); toast.success('Imagen reemplazada'); }
+    const total = (abierta.imagenes || []).length;
+    const esAgregar = index >= total;
+    try {
+      const row = await svc.uploadSocialImage(abierta.id, file, index);
+      refrescarPieza(row);
+      if (esAgregar) setImgIdx((row.imagenes || []).length - 1);
+      toast.success(esAgregar ? 'Imagen agregada al carrusel' : 'Imagen reemplazada');
+    }
     catch { toast.error('No se pudo subir la imagen'); }
-    finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; }
+    finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; if (addFileRef.current) addFileRef.current.value = ''; }
   };
-  const reemplazar = (e) => subirImagen(e.target.files?.[0]);
+  const reemplazar = (e) => subirImagen(e.target.files?.[0], imgIdx);
+  const agregarImagen = (e) => subirImagen(e.target.files?.[0], (abierta.imagenes || []).length);
   const onDropImagen = (e) => {
     e.preventDefault(); setDragOver(false);
     const file = e.dataTransfer?.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
-    const n = (abierta.imagenes || []).length ? imgIdx + 1 : 1;
-    if (window.confirm(`¿Reemplazar la imagen ${n} con «${file.name}»?`)) subirImagen(file);
+    const total = (abierta.imagenes || []).length;
+    if (!total) { subirImagen(file, 0); return; }                 // carrusel vacío → primera lámina
+    if (window.confirm(`¿Reemplazar la imagen ${imgIdx + 1} con «${file.name}»?\n\n(Para AGREGAR una lámina nueva usa el botón «Agregar imagen».)`)) subirImagen(file, imgIdx);
   };
 
   // ── Calendario ──
@@ -491,9 +501,17 @@ export default function EstudioRedes() {
                 ))}
               </div>
               <input type="file" accept="image/*" ref={fileRef} style={{ display: 'none' }} onChange={reemplazar} />
-              <button className="er-replace" disabled={subiendo} onClick={() => fileRef.current?.click()}>
-                <FaCloudUploadAlt /> {subiendo ? 'Subiendo…' : `Reemplazar imagen ${imgIdx + 1}`}
-              </button>
+              <input type="file" accept="image/*" ref={addFileRef} style={{ display: 'none' }} onChange={agregarImagen} />
+              <div className="er-img-btns">
+                {(abierta.imagenes || []).length > 0 && (
+                  <button className="er-replace" disabled={subiendo} onClick={() => fileRef.current?.click()}>
+                    <FaCloudUploadAlt /> {subiendo ? 'Subiendo…' : `Reemplazar imagen ${imgIdx + 1}`}
+                  </button>
+                )}
+                <button className="er-replace er-add-img" disabled={subiendo} onClick={() => addFileRef.current?.click()}>
+                  <FaPlus /> {subiendo ? 'Subiendo…' : (abierta.imagenes || []).length ? 'Agregar imagen' : 'Subir primera imagen'}
+                </button>
+              </div>
             </div>
 
             {/* Panel de edición */}
