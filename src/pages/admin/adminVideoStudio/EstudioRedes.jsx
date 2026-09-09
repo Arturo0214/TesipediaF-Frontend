@@ -4,8 +4,10 @@ import {
   FaSync, FaCheck, FaTimes, FaSave, FaChevronLeft, FaChevronRight,
   FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok,
   FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
+  FaChartBar, FaHeart, FaComment, FaShareAlt, FaUsers,
 } from 'react-icons/fa';
 import svc from '../../../services/videoStudioService';
+import axiosWithAuth from '../../../utils/axioswithAuth';
 import './EstudioRedes.css';
 
 const FORMATO_COLOR = {
@@ -48,6 +50,22 @@ export default function EstudioRedes() {
   const [sug, setSug] = useState(null);
   const [cargandoSug, setCargandoSug] = useState(false);
   const fileRef = useRef(null);
+  // Rendimiento (métricas FB/IG — reutiliza /social/*)
+  const [rend, setRend] = useState(null);
+  const [rendLoad, setRendLoad] = useState(false);
+  const cargarRend = useCallback(async () => {
+    setRendLoad(true);
+    try {
+      const [m, ig, fb] = await Promise.all([
+        axiosWithAuth.get('/social/metrics').then((r) => r.data?.data || r.data).catch(() => null),
+        axiosWithAuth.get('/social/posts/instagram').then((r) => r.data?.data || []).catch(() => []),
+        axiosWithAuth.get('/social/posts/facebook').then((r) => r.data?.data || []).catch(() => []),
+      ]);
+      setRend({ metrics: m, ig, fb });
+    } catch { toast.error('No se pudieron cargar las métricas'); }
+    finally { setRendLoad(false); }
+  }, []);
+  useEffect(() => { if (vista === 'rendimiento' && !rend && !rendLoad) cargarRend(); }, [vista]); // eslint-disable-line
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -187,6 +205,7 @@ export default function EstudioRedes() {
           <button className={vista === 'calendario' ? 'on' : ''} onClick={() => setVista('calendario')}><FaCalendarAlt /> Calendario</button>
           <button className={vista === 'grid' ? 'on' : ''} onClick={() => setVista('grid')}><FaThLarge /> Cuadrícula</button>
           <button className={vista === 'lista' ? 'on' : ''} onClick={() => setVista('lista')}><FaListUl /> Lista</button>
+          <button className={vista === 'rendimiento' ? 'on' : ''} onClick={() => setVista('rendimiento')}><FaChartBar /> Rendimiento</button>
         </div>
         <div className="er-filtros">
           <select value={fEstado || ''} onChange={(e) => setFEstado(e.target.value || null)}>
@@ -271,6 +290,73 @@ export default function EstudioRedes() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── RENDIMIENTO ── */}
+      {!loading && vista === 'rendimiento' && (
+        <div className="er-rend">
+          <div className="er-rend-head">
+            <p className="er-muted" style={{ margin: 0 }}>Cuánto han jalado tus publicaciones en Instagram y Facebook.</p>
+            <button className="er-mini-btn" onClick={cargarRend} disabled={rendLoad}>{rendLoad ? <FaSync className="er-spin" /> : <FaSync />} Actualizar</button>
+          </div>
+          {rendLoad && !rend && <p className="er-muted">Cargando métricas de FB/IG…</p>}
+          {rend && (() => {
+            const num = (n) => (n == null ? '—' : Number(n).toLocaleString('es-MX'));
+            const ig = rend.metrics?.instagram; const fb = rend.metrics?.facebook;
+            const all = [
+              ...(rend.ig || []).map((p) => ({ ...p, plat: 'ig' })),
+              ...(rend.fb || []).map((p) => ({ ...p, plat: 'fb' })),
+            ].sort((a, b) => ((b.likes || 0) + (b.comments || 0)) - ((a.likes || 0) + (a.comments || 0))).slice(0, 12);
+            const KPI = (label, value) => (<div className="er-kpi"><span className="er-kpi-n">{value}</span><span className="er-kpi-l">{label}</span></div>);
+            return (
+              <>
+                <div className="er-rend-cards">
+                  <div className="er-rend-card ig">
+                    <div className="er-rend-card-h"><FaInstagram /> Instagram {ig?.profilePic && <img src={ig.profilePic} alt="" />}</div>
+                    {ig ? (
+                      <div className="er-kpis">
+                        {KPI('Seguidores', num(ig.followers))}
+                        {KPI('Engagement', ig.engagement || '—')}
+                        {KPI('Likes/post', num(ig.avgLikes))}
+                        {KPI('Coment./post', num(ig.avgComments))}
+                      </div>
+                    ) : <p className="er-muted">Sin datos de Instagram.</p>}
+                  </div>
+                  <div className="er-rend-card fb">
+                    <div className="er-rend-card-h"><FaFacebookF /> Facebook</div>
+                    {fb ? (
+                      <div className="er-kpis">
+                        {KPI('Seguidores', num(fb.followers))}
+                        {KPI('Interacc./post', num(fb.engagement))}
+                        {KPI('Reacciones', num(fb.totalReactions))}
+                        {KPI('Comentarios', num(fb.totalComments))}
+                      </div>
+                    ) : <p className="er-muted">Sin datos de Facebook.</p>}
+                  </div>
+                </div>
+
+                <h3 className="er-rend-title"><FaChartLine /> Publicaciones que más jalaron</h3>
+                {all.length === 0 && <p className="er-muted">Aún no hay publicaciones con métricas. Publica desde aquí y vuelve en unas horas.</p>}
+                <div className="er-rend-posts">
+                  {all.map((p) => (
+                    <a key={`${p.plat}-${p.id}`} className="er-rend-post" href={p.url || '#'} target="_blank" rel="noopener noreferrer">
+                      {p.mediaUrl ? <img src={p.mediaUrl} alt="" loading="lazy" /> : <div className="er-rend-post-noimg">{p.plat === 'ig' ? <FaInstagram /> : <FaFacebookF />}</div>}
+                      <div className="er-rend-post-body">
+                        <span className="er-rend-post-plat">{p.plat === 'ig' ? <FaInstagram /> : <FaFacebookF />} {new Date(p.date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}</span>
+                        <p>{(p.caption || '(sin texto)').slice(0, 70)}</p>
+                        <div className="er-rend-post-stats">
+                          <span><FaHeart /> {num(p.likes)}</span>
+                          <span><FaComment /> {num(p.comments)}</span>
+                          {p.shares ? <span><FaShareAlt /> {num(p.shares)}</span> : null}
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
