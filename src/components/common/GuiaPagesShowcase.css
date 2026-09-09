@@ -1,6 +1,6 @@
 /* ===== Showcase animado de páginas reales de una guía ===== */
 .gps { position: relative; width: min(360px, 84vw); padding: 20px 0; margin: 0 auto; }
-.gps-blob { position: absolute; inset: -12% -14% -6%; z-index: 0; border-radius: 40px; pointer-events: none;
+.gps-blob { position: absolute; inset: -12% -6% -6%; z-index: 0; border-radius: 40px; pointer-events: none;
   background: radial-gradient(58% 52% at 68% 22%, rgba(37,99,235,.24), transparent 70%),
               radial-gradient(50% 46% at 20% 82%, rgba(245,179,1,.16), transparent 72%); filter: blur(24px); }
 
