@@ -46,6 +46,13 @@ export const uploadSocialImage = (id, file, index) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   }).then((r) => r.data);
 };
+export const uploadSocialVideo = (id, file) => {
+  const fd = new FormData();
+  fd.append('video', file);
+  return axiosWithAuth.post(`${BASE}/social/${id}/video`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then((r) => r.data);
+};
 export const publishSocial = (id) => axiosWithAuth.post(`${BASE}/social/${id}/publish`).then((r) => r.data);
 export const deleteSocial = (id) => axiosWithAuth.delete(`${BASE}/social/${id}`).then((r) => r.data);
 export const sugerenciasSocial = (id) => axiosWithAuth.post(`${BASE}/social/${id}/sugerencias`).then((r) => r.data);
@@ -56,5 +63,5 @@ export default {
   getChannels, updateChannel, getVideos, createVideo, generateScript,
   updateVideo, deleteVideo, approveVideo, publishVideo,
   getSocial, createSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
-  publishSocial, deleteSocial, sugerenciasSocial, getAutopublish, setAutopublish,
+  uploadSocialVideo, publishSocial, deleteSocial, sugerenciasSocial, getAutopublish, setAutopublish,
 };

@@ -13,8 +13,9 @@ import './EstudioRedes.css';
 
 const FORMATO_COLOR = {
   FRASE: '#123661', DICCIONARIO: '#5b6b86', CARRUSEL: '#D4A438', CHECKLIST: '#1F7A5E',
-  COMPARATIVA: '#B23A4E', PRUEBA: '#1B4372', OFERTA: '#c78a12',
+  COMPARATIVA: '#B23A4E', PRUEBA: '#1B4372', OFERTA: '#c78a12', VIDEO: '#7C3AED',
 };
+const FORMATOS = ['FRASE', 'CARRUSEL', 'CHECKLIST', 'COMPARATIVA', 'DICCIONARIO', 'PRUEBA', 'OFERTA', 'VIDEO'];
 const EST = {
   borrador: { lbl: 'Borrador', c: '#9ca3af' },
   programado: { lbl: 'Programado', c: '#1d4ed8' },
@@ -51,6 +52,7 @@ export default function EstudioRedes() {
   const [sug, setSug] = useState(null);
   const [cargandoSug, setCargandoSug] = useState(false);
   const fileRef = useRef(null);
+  const videoRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   // Switch de auto-publicación
   const [autoPub, setAutoPub] = useState(false);
@@ -114,7 +116,7 @@ export default function EstudioRedes() {
   // ── validación de una pieza (para avisos en la cuadrícula) ──
   const avisos = (p) => {
     const out = [];
-    if (!(p.imagenes || []).length) out.push('Falta imagen');
+    if (!(p.imagenes || []).length && !p.video_url) out.push(p.formato === 'VIDEO' ? 'Falta video' : 'Falta imagen');
     if (!(p.copy || '').trim()) out.push('Falta texto');
     if (!(p.hashtags || '').trim()) out.push('Faltan hashtags');
     if (p.estado === 'borrador') out.push('Sin aprobar');
@@ -155,8 +157,8 @@ export default function EstudioRedes() {
   };
   const eliminar = async () => {
     if (!window.confirm('¿Eliminar esta publicación? Si ya está publicada en Facebook, se intentará borrar también de la página.')) return;
-    try { await svc.deleteSocial(abierta.id); setPosts((prev) => prev.filter((x) => x.id !== abierta.id)); setAbierta(null); toast.success('Eliminada'); }
-    catch { toast.error('Error al eliminar'); }
+    try { await svc.deleteSocial(abierta.id); setPosts((prev) => prev.filter((x) => x.id !== abierta.id)); setAbierta(null); setDraft(null); toast.success('Eliminada'); }
+    catch (e) { toast.error(e?.response?.data?.error || e?.message || 'Error al eliminar'); }
   };
   const sugerir = async () => {
     setCargandoSug(true);
@@ -167,7 +169,7 @@ export default function EstudioRedes() {
   const addTag = (tag) => setDraft((d) => ({ ...d, hashtags: `${d.hashtags || ''} ${tag}`.trim() }));
   const abrir = (p) => {
     setAbierta(p); setImgIdx(0); setSug(null);
-    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '' });
+    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '' });
   };
   const subirImagen = async (file, index = imgIdx) => {
     if (!file || !abierta) return;
@@ -184,10 +186,24 @@ export default function EstudioRedes() {
     finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; }
   };
   const reemplazar = (e) => subirImagen(e.target.files?.[0], imgIdx);
+  const subirVideo = async (file) => {
+    if (!file || !abierta) return;
+    if (!file.type.startsWith('video/')) { toast.error('Ese archivo no es un video'); return; }
+    setSubiendo(true);
+    try {
+      const row = await svc.uploadSocialVideo(abierta.id, file);
+      refrescarPieza(row);
+      setDraft((d) => ({ ...(d || {}), formato: 'VIDEO', video_url: row.video_url }));
+      toast.success('Video subido');
+    } catch (e) { toast.error(e?.response?.data?.error || 'No se pudo subir el video'); }
+    finally { setSubiendo(false); if (videoRef.current) videoRef.current.value = ''; }
+  };
   const [dropSlot, setDropSlot] = useState(null);   // índice del slot vacío con drag encima
   const fileFrom = (e) => { const f = e.dataTransfer?.files?.[0]; return f && f.type.startsWith('image/') ? f : null; };
+  const videoFrom = (e) => { const f = e.dataTransfer?.files?.[0]; return f && f.type.startsWith('video/') ? f : null; };
   const onDropImagen = (e) => {                       // soltar sobre el visor = reemplaza la lámina actual (o crea la 1ª)
     e.preventDefault(); setDragOver(false);
+    const vid = videoFrom(e); if (vid) { subirVideo(vid); return; }  // si sueltan un video, se sube como reel
     const file = fileFrom(e); if (!file) return;
     const total = (abierta.imagenes || []).length;
     if (!total) { subirImagen(file, 0); return; }
@@ -493,9 +509,11 @@ export default function EstudioRedes() {
                 {(abierta.imagenes || []).length > 1 && (
                   <button className="er-visor-arrow left" onClick={() => setImgIdx((i) => (i - 1 + abierta.imagenes.length) % abierta.imagenes.length)}><FaChevronLeft /></button>
                 )}
-                {(abierta.imagenes || [])[imgIdx]
-                  ? <img src={(abierta.imagenes || [])[imgIdx]} alt="" />
-                  : <div className="er-visor-empty"><FaCloudUploadAlt /><span>Slot vacío — arrastra una imagen aquí</span></div>}
+                {abierta.video_url
+                  ? <video src={abierta.video_url} controls playsInline className="er-visor-video" />
+                  : (abierta.imagenes || [])[imgIdx]
+                    ? <img src={(abierta.imagenes || [])[imgIdx]} alt="" />
+                    : <div className="er-visor-empty"><FaCloudUploadAlt /><span>{(draft?.formato || abierta.formato) === 'VIDEO' ? 'Sin video — arrastra un video aquí o usa «Subir video»' : 'Slot vacío — arrastra una imagen aquí'}</span></div>}
                 {(abierta.imagenes || []).length > 1 && (
                   <button className="er-visor-arrow right" onClick={() => setImgIdx((i) => (i + 1) % abierta.imagenes.length)}><FaChevronRight /></button>
                 )}
@@ -519,10 +537,16 @@ export default function EstudioRedes() {
                 )}
               </div>
               <input type="file" accept="image/*" ref={fileRef} style={{ display: 'none' }} onChange={reemplazar} />
+              <input type="file" accept="video/*" ref={videoRef} style={{ display: 'none' }} onChange={(e) => subirVideo(e.target.files?.[0])} />
               <div className="er-img-btns">
-                {(abierta.imagenes || []).length > 0 && (
+                {(abierta.imagenes || []).length > 0 && !abierta.video_url && (
                   <button className="er-replace" disabled={subiendo} onClick={() => fileRef.current?.click()}>
                     <FaCloudUploadAlt /> {subiendo ? 'Subiendo…' : `Reemplazar imagen ${imgIdx + 1}`}
+                  </button>
+                )}
+                {(draft?.formato || abierta.formato) === 'VIDEO' && (
+                  <button className="er-replace" disabled={subiendo} onClick={() => videoRef.current?.click()}>
+                    <FaCloudUploadAlt /> {subiendo ? 'Subiendo…' : (abierta.video_url ? 'Reemplazar video' : 'Subir video')}
                   </button>
                 )}
               </div>
@@ -545,6 +569,12 @@ export default function EstudioRedes() {
                 {abierta.pilar && <span className="er-pilar">{abierta.pilar}</span>}
               </div>
               <h3>{abierta.tema}</h3>
+
+              <label className="er-fmt-sel">Formato de la publicación
+                <select value={draft?.formato || abierta.formato || 'CARRUSEL'} onChange={(e) => setDraft({ ...draft, formato: e.target.value })}>
+                  {FORMATOS.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </label>
 
               <label>Pie de foto (lo que va en la publicación)
                 <textarea rows={6} value={draft?.copy || ''} onChange={(e) => setDraft({ ...draft, copy: e.target.value })} />
