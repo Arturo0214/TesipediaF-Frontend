@@ -33,16 +33,16 @@ const PHONE = '+52 56 7007 1517';
 const coreRoutes = [
   {
     path: '/',
-    title: 'Tesipedia — Hacemos Tu Tesis en México | Licenciatura, Maestría y Doctorado',
-    description: '¿Necesitas hacer tu tesis? Tesipedia te hace tu tesis de licenciatura, maestría y doctorado en México. 100% original, libre de plagio e IA. +3,000 titulados. Cotiza gratis.',
-    keywords: 'hacer tesis, tesis por encargo, comprar tesis, tesis México, servicio de tesis, hacemos tu tesis, tesis de licenciatura, tesis de maestría, Tesipedia',
+    title: 'Tesipedia — ¿Comprar Tesis en México? Mejor Asesórate | Asesoría de Tesis de Licenciatura, Maestría y Doctorado',
+    description: '¿Buscas comprar tesis? Mejor te asesoramos para hacer tu tesis de licenciatura, maestría y doctorado en México. Desde $110/página. Te guiamos para que la redactes tú, original y con revisión. +3,000 estudiantes asesorados. Cotiza gratis.',
+    keywords: 'asesoría de tesis, asesoría de tesis México, cómo hacer una tesis, ayuda con tu tesis, asesoría de tesis de licenciatura, asesoría de tesis de maestría, tutoría de tesis, revisión de tesis, Tesipedia',
     schema: {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
       "name": "Tesipedia",
       "url": SITE_URL,
       "logo": DEFAULT_IMAGE,
-      "description": "Servicio profesional de elaboración de tesis en México. +3,000 estudiantes titulados.",
+      "description": "Tesipedia te asesora para hacer tu tesis de licenciatura, maestría y doctorado en México. Te guiamos para que la redactes tú, original y con revisión. +3,000 estudiantes asesorados.",
       "telephone": "+52-56-7007-1517",
       "address": { "@type": "PostalAddress", "addressLocality": "Ciudad de México", "addressRegion": "CDMX", "addressCountry": "MX" },
       "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "3000", "bestRating": "5" },
@@ -179,7 +179,7 @@ const coreRoutes = [
   {
     path: '/contacto',
     title: 'Contacto — Tesipedia | Cotiza Tu Tesis Gratis',
-    description: 'Contáctanos para cotizar tu tesis. WhatsApp +52 56 7007 1517. Respuesta inmediata, cotización gratuita y sin compromiso. Tesipedia — hacemos tu tesis.',
+    description: 'Contáctanos para cotizar tu asesoría de tesis. WhatsApp +52 56 7007 1517. Respuesta inmediata, cotización gratuita y sin compromiso. Tesipedia — te asesoramos para hacer tu tesis.',
     keywords: 'contacto Tesipedia, cotizar tesis, WhatsApp tesis, precio tesis México'
   },
   {
@@ -718,7 +718,7 @@ function generateCrawlerContent(route) {
         <a href="${SITE_URL}/contacto">Contacto</a> |
         <a href="${SITE_URL}/preguntas-frecuentes">Preguntas Frecuentes</a>
       </nav>
-      <p>Tesipedia — Hacemos tu tesis en México. <a href="https://wa.me/525670071517">WhatsApp: ${PHONE}</a></p>
+      <p>Tesipedia — Te asesoramos para hacer tu tesis en México. <a href="https://wa.me/525670071517">WhatsApp: ${PHONE}</a></p>
     </div>`;
   return content;
 }
