@@ -51,7 +51,6 @@ export default function EstudioRedes() {
   const [sug, setSug] = useState(null);
   const [cargandoSug, setCargandoSug] = useState(false);
   const fileRef = useRef(null);
-  const addFileRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   // Switch de auto-publicación
   const [autoPub, setAutoPub] = useState(false);
@@ -182,17 +181,27 @@ export default function EstudioRedes() {
       toast.success(esAgregar ? 'Imagen agregada al carrusel' : 'Imagen reemplazada');
     }
     catch { toast.error('No se pudo subir la imagen'); }
-    finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; if (addFileRef.current) addFileRef.current.value = ''; }
+    finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; }
   };
   const reemplazar = (e) => subirImagen(e.target.files?.[0], imgIdx);
-  const agregarImagen = (e) => subirImagen(e.target.files?.[0], (abierta.imagenes || []).length);
-  const onDropImagen = (e) => {
+  const [dropSlot, setDropSlot] = useState(null);   // índice del slot vacío con drag encima
+  const fileFrom = (e) => { const f = e.dataTransfer?.files?.[0]; return f && f.type.startsWith('image/') ? f : null; };
+  const onDropImagen = (e) => {                       // soltar sobre el visor = reemplaza la lámina actual (o crea la 1ª)
     e.preventDefault(); setDragOver(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+    const file = fileFrom(e); if (!file) return;
     const total = (abierta.imagenes || []).length;
-    if (!total) { subirImagen(file, 0); return; }                 // carrusel vacío → primera lámina
-    if (window.confirm(`¿Reemplazar la imagen ${imgIdx + 1} con «${file.name}»?\n\n(Para AGREGAR una lámina nueva usa el botón «Agregar imagen».)`)) subirImagen(file, imgIdx);
+    if (!total) { subirImagen(file, 0); return; }
+    subirImagen(file, imgIdx);
+  };
+  const onDropSlotVacio = (e) => {                    // soltar sobre un espacio vacío = agrega lámina nueva
+    e.preventDefault(); setDropSlot(null);
+    const file = fileFrom(e); if (!file) return;
+    subirImagen(file, (abierta.imagenes || []).length);
+  };
+  const onDropThumb = (e, i) => {                      // soltar sobre una miniatura existente = reemplaza esa
+    e.preventDefault(); setDropSlot(null);
+    const file = fileFrom(e); if (!file) return;
+    subirImagen(file, i);
   };
 
   // ── Calendario ──
@@ -334,7 +343,7 @@ export default function EstudioRedes() {
               <h3>{MESES[m]} {y}</h3>
               <button onClick={() => cambiarMes(1)}><FaChevronRight /></button>
             </div>
-            <p className="er-muted er-grid-tip">Cada día admite hasta 6 publicaciones. Usa <b>+ Agregar</b> para sumar una y las flechas para llenar cualquier mes/año.</p>
+            <p className="er-muted er-grid-tip">Hasta 3 publicaciones por día (las agregadas salen a las 17:00). Usa <b>+ Agregar</b> junto al día y las flechas para llenar cualquier mes/año.</p>
             {Array.from({ length: totalDias }, (_, i) => i + 1).map((dnum) => {
               const f = ymd(new Date(y, m, dnum));
               const dd = new Date(f + 'T12:00:00');
@@ -345,7 +354,12 @@ export default function EstudioRedes() {
                     <span className="er-day-num">{dnum}</span>
                     <span className="er-day-dow">{DOW[dd.getDay()]}</span>
                     {f === hoy && <span className="er-day-today">HOY</span>}
-                    <span className="er-day-count">{items.length}/6</span>
+                    {items.length < 3 && (
+                      <button className="er-day-add" disabled={agregando === f} onClick={() => agregarPost(f)} title="Agregar publicación a este día">
+                        {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />} Agregar
+                      </button>
+                    )}
+                    <span className="er-day-count">{items.length}/3</span>
                   </div>
                   <div className="er-grid">
                     {items.map((p) => {
@@ -363,14 +377,7 @@ export default function EstudioRedes() {
                         </button>
                       );
                     })}
-                    {items.length < 6 && (
-                      <button className="er-tile er-tile-add" disabled={agregando === f} onClick={() => agregarPost(f)}>
-                        <div className="er-tile-empty er-add-box">
-                          {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />}
-                          <span>{agregando === f ? 'Agregando…' : 'Agregar'}</span>
-                        </div>
-                      </button>
-                    )}
+                    {items.length === 0 && <div className="er-day-vacio">Día sin publicaciones — usa <b>+ Agregar</b></div>}
                   </div>
                 </div>
               );
@@ -495,23 +502,29 @@ export default function EstudioRedes() {
               </div>
               <div className="er-thumbs">
                 {(abierta.imagenes || []).map((u, i) => (
-                  <button key={i} className={i === imgIdx ? 'on' : ''} onClick={() => setImgIdx(i)}>
+                  <button key={i} className={`er-thumb ${i === imgIdx ? 'on' : ''}`} onClick={() => setImgIdx(i)}
+                    onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDropThumb(e, i)} title="Arrastra una imagen para reemplazar esta lámina">
                     <img src={u} alt="" loading="lazy" />
                   </button>
                 ))}
+                {(abierta.imagenes || []).length < 10 && (
+                  <div className={`er-thumb er-thumb-empty ${dropSlot === 'add' ? 'over' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); if (dropSlot !== 'add') setDropSlot('add'); }}
+                    onDragLeave={(e) => { if (e.currentTarget === e.target) setDropSlot(null); }}
+                    onDrop={onDropSlotVacio} title="Arrastra aquí para agregar una lámina">
+                    <FaPlus />
+                  </div>
+                )}
               </div>
               <input type="file" accept="image/*" ref={fileRef} style={{ display: 'none' }} onChange={reemplazar} />
-              <input type="file" accept="image/*" ref={addFileRef} style={{ display: 'none' }} onChange={agregarImagen} />
               <div className="er-img-btns">
                 {(abierta.imagenes || []).length > 0 && (
                   <button className="er-replace" disabled={subiendo} onClick={() => fileRef.current?.click()}>
                     <FaCloudUploadAlt /> {subiendo ? 'Subiendo…' : `Reemplazar imagen ${imgIdx + 1}`}
                   </button>
                 )}
-                <button className="er-replace er-add-img" disabled={subiendo} onClick={() => addFileRef.current?.click()}>
-                  <FaPlus /> {subiendo ? 'Subiendo…' : (abierta.imagenes || []).length ? 'Agregar imagen' : 'Subir primera imagen'}
-                </button>
               </div>
+              <p className="er-drop-tip"><FaPlus /> Arrastra una imagen al cuadro punteado para <b>agregar</b> una lámina nueva al carrusel.</p>
             </div>
 
             {/* Panel de edición */}
