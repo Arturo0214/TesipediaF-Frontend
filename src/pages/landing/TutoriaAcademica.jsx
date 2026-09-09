@@ -52,7 +52,7 @@ const styles = {
   },
   /* MINI FOOTER — limpio para Google Ads */
   miniFooter: {
-    background: '#1a1a2e',
+    background: '#0F172A',
     color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     padding: '32px 24px',
@@ -73,13 +73,13 @@ const styles = {
   },
   page: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    color: '#1a1a2e',
+    color: '#0F172A',
     overflowX: 'hidden',
     background: '#fff',
   },
   /* HERO */
   hero: {
-    background: 'linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    background: 'linear-gradient(160deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
     color: '#fff',
     padding: '100px 24px 80px',
     textAlign: 'center',
@@ -89,7 +89,7 @@ const styles = {
   heroBg: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    background: 'radial-gradient(circle at 20% 50%, rgba(79,70,229,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(37,211,102,0.15) 0%, transparent 40%)',
+    background: 'radial-gradient(circle at 20% 50%, rgba(37,99,235,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(37,211,102,0.15) 0%, transparent 40%)',
     pointerEvents: 'none',
   },
   heroContent: {
@@ -102,9 +102,9 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    background: 'rgba(255,193,7,0.12)',
-    border: '1px solid rgba(255,193,7,0.35)',
-    color: '#ffc107',
+    background: 'rgba(251,191,36,0.12)',
+    border: '1px solid rgba(251,191,36,0.35)',
+    color: '#FBBF24',
     fontSize: '0.88rem',
     fontWeight: 600,
     padding: '8px 20px',
@@ -120,7 +120,7 @@ const styles = {
     letterSpacing: '-0.03em',
   },
   heroGradientText: {
-    background: 'linear-gradient(135deg, #fff 0%, #a5b4fc 100%)',
+    background: 'linear-gradient(135deg, #fff 0%, #93C5FD 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   },
@@ -192,7 +192,7 @@ const styles = {
   },
   sectionAlt: {
     padding: '80px 24px',
-    background: 'linear-gradient(180deg, #f8f9ff 0%, #eef1ff 100%)',
+    background: 'linear-gradient(180deg, #f8f9ff 0%, #EEF2F7 100%)',
   },
   sectionInner: {
     maxWidth: '1140px',
@@ -203,7 +203,7 @@ const styles = {
     fontWeight: 800,
     textAlign: 'center',
     marginBottom: '12px',
-    color: '#1a1a2e',
+    color: '#0F172A',
     letterSpacing: '-0.02em',
   },
   sectionSub: {
@@ -244,7 +244,7 @@ const styles = {
     fontSize: '1.1rem',
     fontWeight: 700,
     marginBottom: '10px',
-    color: '#1a1a2e',
+    color: '#0F172A',
   },
   featureDesc: {
     fontSize: '0.95rem',
@@ -267,7 +267,7 @@ const styles = {
   stepNum: {
     width: '60px',
     height: '60px',
-    background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)',
+    background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
     color: '#fff',
     borderRadius: '20px',
     display: 'flex',
@@ -276,13 +276,13 @@ const styles = {
     fontSize: '1.5rem',
     fontWeight: 800,
     margin: '0 auto 18px',
-    boxShadow: '0 8px 20px rgba(79,70,229,0.25)',
+    boxShadow: '0 8px 20px rgba(37,99,235,0.25)',
   },
   stepTitle: {
     fontSize: '1.08rem',
     fontWeight: 700,
     marginBottom: '10px',
-    color: '#1a1a2e',
+    color: '#0F172A',
   },
   stepDesc: {
     fontSize: '0.92rem',
@@ -309,9 +309,9 @@ const styles = {
     flexDirection: 'column',
   },
   priceCardFeatured: {
-    background: 'linear-gradient(180deg, #fafafe 0%, #f0edff 100%)',
-    borderColor: '#4F46E5',
-    boxShadow: '0 12px 40px rgba(79,70,229,0.15)',
+    background: 'linear-gradient(180deg, #fafafe 0%, #EFF6FF 100%)',
+    borderColor: '#2563EB',
+    boxShadow: '0 12px 40px rgba(37,99,235,0.15)',
     transform: 'scale(1.02)',
   },
   priceBadge: {
@@ -319,7 +319,7 @@ const styles = {
     top: '-14px',
     left: '50%',
     transform: 'translateX(-50%)',
-    background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)',
+    background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
     color: '#fff',
     padding: '6px 22px',
     borderRadius: '50px',
@@ -339,7 +339,7 @@ const styles = {
   priceAmount: {
     fontSize: '2.8rem',
     fontWeight: 800,
-    color: '#1a1a2e',
+    color: '#0F172A',
     lineHeight: 1,
   },
   priceUnit: {
@@ -399,7 +399,7 @@ const styles = {
     position: 'relative',
   },
   testimonialStars: {
-    color: '#ffc107',
+    color: '#FBBF24',
     display: 'flex',
     gap: '2px',
     marginBottom: '14px',
@@ -431,7 +431,7 @@ const styles = {
   authorName: {
     fontSize: '0.95rem',
     fontWeight: 700,
-    color: '#1a1a2e',
+    color: '#0F172A',
   },
   authorRole: {
     fontSize: '0.82rem',
@@ -463,7 +463,7 @@ const styles = {
     justifyContent: 'space-between',
     fontSize: '1rem',
     fontWeight: 600,
-    color: '#1a1a2e',
+    color: '#0F172A',
     textAlign: 'left',
     fontFamily: 'inherit',
   },
@@ -475,13 +475,13 @@ const styles = {
   },
   faqChevron: {
     transition: 'transform 0.3s ease',
-    color: '#4F46E5',
+    color: '#2563EB',
     flexShrink: 0,
     marginLeft: '12px',
   },
   /* FINAL CTA */
   finalCta: {
-    background: 'linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    background: 'linear-gradient(160deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
     color: '#fff',
     textAlign: 'center',
     padding: '80px 24px',
@@ -491,7 +491,7 @@ const styles = {
   finalCtaBg: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    background: 'radial-gradient(circle at 50% 50%, rgba(79,70,229,0.2) 0%, transparent 60%)',
+    background: 'radial-gradient(circle at 50% 50%, rgba(37,99,235,0.2) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   finalCtaIcon: {
@@ -517,7 +517,7 @@ const styles = {
 function FaqItem({ question, answer }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ ...styles.faqItem, ...(open ? { borderColor: '#4F46E5', boxShadow: '0 4px 16px rgba(79,70,229,0.08)' } : {}) }}>
+    <div style={{ ...styles.faqItem, ...(open ? { borderColor: '#2563EB', boxShadow: '0 4px 16px rgba(37,99,235,0.08)' } : {}) }}>
       <button style={styles.faqQuestion} onClick={() => setOpen(!open)} aria-expanded={open}>
         <span>{question}</span>
         <FaChevronDown style={{ ...styles.faqChevron, transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -529,12 +529,12 @@ function FaqItem({ question, answer }) {
 
 /* ─── Feature Card Colors ─── */
 const featureColors = [
-  { bg: '#eef2ff', color: '#4F46E5' },
+  { bg: '#eef2ff', color: '#2563EB' },
   { bg: '#ecfdf5', color: '#059669' },
   { bg: '#fef3c7', color: '#d97706' },
   { bg: '#fce7f3', color: '#db2777' },
   { bg: '#e0f2fe', color: '#0284c7' },
-  { bg: '#f3e8ff', color: '#7c3aed' },
+  { bg: '#f3e8ff', color: '#1E40AF' },
 ];
 
 function TutoriaAcademica() {
@@ -661,7 +661,7 @@ function TutoriaAcademica() {
           <div style={styles.trustRow}>
             <span style={styles.trustItem}><FaCheckCircle style={{ color: '#25d366' }} /> +3,000 estudiantes orientados</span>
             <span style={styles.trustItem}><FaShieldAlt style={{ color: '#25d366' }} /> Mentores certificados</span>
-            <span style={styles.trustItem}><FaStar style={{ color: '#ffc107' }} /> Mentoría 1 a 1</span>
+            <span style={styles.trustItem}><FaStar style={{ color: '#FBBF24' }} /> Mentoría 1 a 1</span>
           </div>
         </div>
       </section>
@@ -725,7 +725,7 @@ function TutoriaAcademica() {
               ))}
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick('tutoria_precio_licenciatura')}
-              style={{ ...styles.priceBtn, background: '#fff', color: '#4F46E5', border: '2px solid #4F46E5' }}
+              style={{ ...styles.priceBtn, background: '#fff', color: '#2563EB', border: '2px solid #2563EB' }}
               data-track-cta="tutoria_precio_licenciatura" data-track-label="Consultar Programa Licenciatura">
               <FaWhatsapp /> Consultar Programa
             </a>
@@ -735,7 +735,7 @@ function TutoriaAcademica() {
           <div style={{ ...styles.priceCard, ...styles.priceCardFeatured }}>
             <div style={styles.priceBadge}>Más Solicitado</div>
             <div style={styles.priceLevel}>Maestría</div>
-            <div style={{ ...styles.priceAmount, color: '#4F46E5' }}>$700</div>
+            <div style={{ ...styles.priceAmount, color: '#2563EB' }}>$700</div>
             <span style={styles.priceUnit}>MXN / hora de tutoría</span>
             <ul style={styles.priceList}>
               {['Mentor con doctorado', 'Diseño metodológico avanzado', 'Análisis de datos', 'Revisión exhaustiva', 'Preparación para defensa', 'Pagos a meses sin intereses'].map((item, i) => (
@@ -745,7 +745,7 @@ function TutoriaAcademica() {
               ))}
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick('tutoria_precio_maestria')}
-              style={{ ...styles.priceBtn, background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)', color: '#fff', border: '2px solid transparent', boxShadow: '0 6px 20px rgba(79,70,229,0.3)' }}
+              style={{ ...styles.priceBtn, background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)', color: '#fff', border: '2px solid transparent', boxShadow: '0 6px 20px rgba(37,99,235,0.3)' }}
               data-track-cta="tutoria_precio_maestria" data-track-label="Consultar Programa Maestria">
               <FaWhatsapp /> Consultar Programa
             </a>
@@ -764,7 +764,7 @@ function TutoriaAcademica() {
               ))}
             </ul>
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick('tutoria_precio_doctorado')}
-              style={{ ...styles.priceBtn, background: '#fff', color: '#4F46E5', border: '2px solid #4F46E5' }}
+              style={{ ...styles.priceBtn, background: '#fff', color: '#2563EB', border: '2px solid #2563EB' }}
               data-track-cta="tutoria_precio_doctorado" data-track-label="Consultar Programa Doctorado">
               <FaWhatsapp /> Consultar Programa
             </a>

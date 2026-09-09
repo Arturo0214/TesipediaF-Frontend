@@ -57,7 +57,7 @@ MiniFooter.propTypes = {
 export function FaqItem({ question, answer }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ ...styles.faqItem, ...(open ? { borderColor: '#4F46E5', boxShadow: '0 4px 16px rgba(79,70,229,0.08)' } : {}) }}>
+    <div style={{ ...styles.faqItem, ...(open ? { borderColor: '#2563EB', boxShadow: '0 4px 16px rgba(37,99,235,0.08)' } : {}) }}>
       <button style={styles.faqQuestion} onClick={() => setOpen(!open)} aria-expanded={open}>
         <span>{question}</span>
         <FaChevronDown style={{ ...styles.faqChevron, transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />

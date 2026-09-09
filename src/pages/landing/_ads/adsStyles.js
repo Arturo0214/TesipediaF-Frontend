@@ -34,7 +34,7 @@ export const styles = {
   },
   /* MINI FOOTER */
   miniFooter: {
-    background: '#1a1a2e',
+    background: '#0F172A',
     color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     padding: '32px 24px',
@@ -45,13 +45,13 @@ export const styles = {
   miniFooterLink: { color: 'rgba(255,255,255,0.6)', textDecoration: 'none', margin: '0 10px', fontSize: '0.82rem' },
   page: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    color: '#1a1a2e',
+    color: '#0F172A',
     overflowX: 'hidden',
     background: '#fff',
   },
   /* HERO */
   hero: {
-    background: 'linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    background: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)',
     color: '#fff',
     padding: '100px 24px 80px',
     textAlign: 'center',
@@ -61,7 +61,7 @@ export const styles = {
   heroBg: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    background: 'radial-gradient(circle at 20% 50%, rgba(79,70,229,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(37,211,102,0.15) 0%, transparent 40%)',
+    background: 'radial-gradient(circle at 20% 50%, rgba(37,99,235,0.28) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(37,211,102,0.15) 0%, transparent 40%)',
     pointerEvents: 'none',
   },
   heroContent: { maxWidth: '820px', margin: '0 auto', position: 'relative', zIndex: 1 },
@@ -69,9 +69,9 @@ export const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    background: 'rgba(255,193,7,0.12)',
-    border: '1px solid rgba(255,193,7,0.35)',
-    color: '#ffc107',
+    background: 'rgba(251,191,36,0.14)',
+    border: '1px solid rgba(251,191,36,0.4)',
+    color: '#FBBF24',
     fontSize: '0.88rem',
     fontWeight: 600,
     padding: '8px 20px',
@@ -87,7 +87,7 @@ export const styles = {
     letterSpacing: '-0.03em',
   },
   heroGradientText: {
-    background: 'linear-gradient(135deg, #fff 0%, #a5b4fc 100%)',
+    background: 'linear-gradient(135deg, #fff 0%, #93C5FD 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   },
@@ -135,14 +135,14 @@ export const styles = {
   trustItem: { display: 'inline-flex', alignItems: 'center', gap: '6px' },
   /* SECTIONS */
   section: { padding: '80px 24px', maxWidth: '1140px', margin: '0 auto' },
-  sectionAlt: { padding: '80px 24px', background: 'linear-gradient(180deg, #f8f9ff 0%, #eef1ff 100%)' },
+  sectionAlt: { padding: '80px 24px', background: 'linear-gradient(180deg, #F8FAFC 0%, #EEF2F7 100%)' },
   sectionInner: { maxWidth: '1140px', margin: '0 auto' },
   sectionTitle: {
     fontSize: 'clamp(1.6rem, 3.5vw, 2.3rem)',
     fontWeight: 800,
     textAlign: 'center',
     marginBottom: '12px',
-    color: '#1a1a2e',
+    color: '#0F172A',
     letterSpacing: '-0.02em',
   },
   sectionSub: { textAlign: 'center', maxWidth: '680px', margin: '0 auto 48px', color: '#64748b', fontSize: '1.08rem', lineHeight: 1.65 },
@@ -168,7 +168,7 @@ export const styles = {
     marginBottom: '18px',
     fontSize: '1.5rem',
   },
-  featureTitle: { fontSize: '1.1rem', fontWeight: 700, marginBottom: '10px', color: '#1a1a2e' },
+  featureTitle: { fontSize: '1.1rem', fontWeight: 700, marginBottom: '10px', color: '#0F172A' },
   featureDesc: { fontSize: '0.95rem', color: '#64748b', lineHeight: 1.6, margin: 0 },
   /* STEPS */
   stepsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '32px', position: 'relative' },
@@ -176,7 +176,7 @@ export const styles = {
   stepNum: {
     width: '60px',
     height: '60px',
-    background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)',
+    background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
     color: '#fff',
     borderRadius: '20px',
     display: 'flex',
@@ -185,9 +185,9 @@ export const styles = {
     fontSize: '1.5rem',
     fontWeight: 800,
     margin: '0 auto 18px',
-    boxShadow: '0 8px 20px rgba(79,70,229,0.25)',
+    boxShadow: '0 8px 20px rgba(37,99,235,0.25)',
   },
-  stepTitle: { fontSize: '1.08rem', fontWeight: 700, marginBottom: '10px', color: '#1a1a2e' },
+  stepTitle: { fontSize: '1.08rem', fontWeight: 700, marginBottom: '10px', color: '#0F172A' },
   stepDesc: { fontSize: '0.92rem', color: '#64748b', lineHeight: 1.6, margin: 0 },
   /* PRICING */
   pricingGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '28px', alignItems: 'stretch' },
@@ -203,9 +203,9 @@ export const styles = {
     flexDirection: 'column',
   },
   priceCardFeatured: {
-    background: 'linear-gradient(180deg, #fafafe 0%, #f0edff 100%)',
-    borderColor: '#4F46E5',
-    boxShadow: '0 12px 40px rgba(79,70,229,0.15)',
+    background: 'linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%)',
+    borderColor: '#2563EB',
+    boxShadow: '0 12px 40px rgba(37,99,235,0.15)',
     transform: 'scale(1.02)',
   },
   priceBadge: {
@@ -213,7 +213,7 @@ export const styles = {
     top: '-14px',
     left: '50%',
     transform: 'translateX(-50%)',
-    background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)',
+    background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
     color: '#fff',
     padding: '6px 22px',
     borderRadius: '50px',
@@ -223,7 +223,7 @@ export const styles = {
     whiteSpace: 'nowrap',
   },
   priceLevel: { fontSize: '1.15rem', fontWeight: 700, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' },
-  priceAmount: { fontSize: '2.8rem', fontWeight: 800, color: '#1a1a2e', lineHeight: 1 },
+  priceAmount: { fontSize: '2.8rem', fontWeight: 800, color: '#0F172A', lineHeight: 1 },
   priceUnit: { fontSize: '0.95rem', color: '#94a3b8', fontWeight: 500, marginBottom: '24px', display: 'block', marginTop: '4px' },
   priceList: { listStyle: 'none', padding: 0, margin: '0 0 28px', textAlign: 'left', flex: 1 },
   priceListItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', fontSize: '0.94rem', color: '#475569', borderBottom: '1px solid #f1f5f9' },
@@ -245,11 +245,11 @@ export const styles = {
   /* TESTIMONIALS */
   testimonialsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' },
   testimonialCard: { background: '#fff', borderRadius: '20px', padding: '28px', border: '1px solid #e2e8f0', position: 'relative' },
-  testimonialStars: { color: '#ffc107', display: 'flex', gap: '2px', marginBottom: '14px', fontSize: '0.95rem' },
+  testimonialStars: { color: '#FBBF24', display: 'flex', gap: '2px', marginBottom: '14px', fontSize: '0.95rem' },
   testimonialText: { fontSize: '0.98rem', lineHeight: 1.65, color: '#475569', marginBottom: '18px', fontStyle: 'italic' },
   testimonialAuthor: { display: 'flex', alignItems: 'center', gap: '12px' },
   authorAvatar: { width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1rem', color: '#fff' },
-  authorName: { fontSize: '0.95rem', fontWeight: 700, color: '#1a1a2e' },
+  authorName: { fontSize: '0.95rem', fontWeight: 700, color: '#0F172A' },
   authorRole: { fontSize: '0.82rem', color: '#94a3b8' },
   /* FAQ */
   faqList: { maxWidth: '780px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px' },
@@ -265,15 +265,15 @@ export const styles = {
     justifyContent: 'space-between',
     fontSize: '1rem',
     fontWeight: 600,
-    color: '#1a1a2e',
+    color: '#0F172A',
     textAlign: 'left',
     fontFamily: 'inherit',
   },
   faqAnswer: { padding: '0 24px 20px', fontSize: '0.95rem', color: '#64748b', lineHeight: 1.65 },
-  faqChevron: { transition: 'transform 0.3s ease', color: '#4F46E5', flexShrink: 0, marginLeft: '12px' },
+  faqChevron: { transition: 'transform 0.3s ease', color: '#2563EB', flexShrink: 0, marginLeft: '12px' },
   /* FINAL CTA */
   finalCta: {
-    background: 'linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    background: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)',
     color: '#fff',
     textAlign: 'center',
     padding: '80px 24px',
@@ -283,7 +283,7 @@ export const styles = {
   finalCtaBg: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    background: 'radial-gradient(circle at 50% 50%, rgba(79,70,229,0.2) 0%, transparent 60%)',
+    background: 'radial-gradient(circle at 50% 50%, rgba(37,99,235,0.22) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   finalCtaIcon: { fontSize: '3rem', marginBottom: '20px', opacity: 0.9 },
@@ -293,10 +293,10 @@ export const styles = {
 
 /* Colores rotativos para tarjetas de beneficios */
 export const featureColors = [
-  { bg: '#eef2ff', color: '#4F46E5' },
+  { bg: '#eef2ff', color: '#2563EB' },
   { bg: '#ecfdf5', color: '#059669' },
   { bg: '#fef3c7', color: '#d97706' },
   { bg: '#fce7f3', color: '#db2777' },
   { bg: '#e0f2fe', color: '#0284c7' },
-  { bg: '#f3e8ff', color: '#7c3aed' },
+  { bg: '#E0E7FF', color: '#4338CA' },
 ];

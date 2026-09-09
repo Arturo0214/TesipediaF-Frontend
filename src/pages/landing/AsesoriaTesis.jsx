@@ -125,7 +125,7 @@ function AsesoriaTesis() {
             <div style={styles.trustRow}>
               <span style={styles.trustItem}><FaCheckCircle style={{ color: '#25d366' }} /> +3,000 estudiantes orientados</span>
               <span style={styles.trustItem}><FaShieldAlt style={{ color: '#25d366' }} /> Asesores certificados</span>
-              <span style={styles.trustItem}><FaStar style={{ color: '#ffc107' }} /> Acompañamiento 1 a 1</span>
+              <span style={styles.trustItem}><FaStar style={{ color: '#FBBF24' }} /> Acompañamiento 1 a 1</span>
             </div>
           </div>
         </section>
@@ -176,7 +176,7 @@ function AsesoriaTesis() {
               <div key={i} style={p.featured ? { ...styles.priceCard, ...styles.priceCardFeatured } : styles.priceCard}>
                 {p.featured && <div style={styles.priceBadge}>Más Solicitado</div>}
                 <div style={styles.priceLevel}>{p.level}</div>
-                <div style={p.featured ? { ...styles.priceAmount, color: '#4F46E5' } : styles.priceAmount}>
+                <div style={p.featured ? { ...styles.priceAmount, color: '#2563EB' } : styles.priceAmount}>
                   <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#94a3b8', verticalAlign: 'middle' }}>desde </span>{p.price}
                 </div>
                 <span style={styles.priceUnit}>MXN / hora de asesoría</span>
@@ -187,8 +187,8 @@ function AsesoriaTesis() {
                 </ul>
                 <a href={WA_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleWAClick(`asesoria_precio_${p.level.toLowerCase()}`)}
                   style={p.featured
-                    ? { ...styles.priceBtn, background: 'linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%)', color: '#fff', border: '2px solid transparent', boxShadow: '0 6px 20px rgba(79,70,229,0.3)' }
-                    : { ...styles.priceBtn, background: '#fff', color: '#4F46E5', border: '2px solid #4F46E5' }}>
+                    ? { ...styles.priceBtn, background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)', color: '#fff', border: '2px solid transparent', boxShadow: '0 6px 20px rgba(37,99,235,0.3)' }
+                    : { ...styles.priceBtn, background: '#fff', color: '#2563EB', border: '2px solid #2563EB' }}>
                   <FaWhatsapp /> Consultar Programa
                 </a>
               </div>
