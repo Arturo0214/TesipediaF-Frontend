@@ -5,8 +5,9 @@ import { GUIAS, PAQUETES, getGuia } from '../../data/guias';
 import { useCart } from '../../context/CartContext';
 import './GuiasIndex.css';
 
-const nucleo = GUIAS.filter((g) => g.tipo !== 'carrera');
+const nucleo = GUIAS.filter((g) => g.tipo !== 'carrera' && g.tipo !== 'universidad');
 const carrera = GUIAS.filter((g) => g.tipo === 'carrera');
+const universidad = GUIAS.filter((g) => g.tipo === 'universidad');
 
 function GuiaCard({ id }) {
   const g = getGuia(id);
@@ -39,13 +40,13 @@ export default function GuiasIndex() {
   return (
     <div className="gi">
       <Helmet>
-        <title>Guías de Tesis en PDF (APA 7, metodología, defensa y por carrera) — Tesipedia</title>
-        <meta name="description" content="Guías-taller en PDF para hacer tu tesis paso a paso: APA 7, planteamiento, marco teórico, metodología, resultados, defensa y guías por carrera. Descarga inmediata, pago seguro." />
+        <title>Guías de Tesis en PDF — APA 7, metodología, por carrera y por universidad | Tesipedia</title>
+        <meta name="description" content="Guías-taller en PDF para hacer tu tesis paso a paso: APA 7, planteamiento, marco teórico, metodología, defensa, guías por carrera y guías de titulación por universidad (UNAM, IPN, UAM y más). Descarga inmediata, pago seguro." />
         <meta name="keywords" content="guías de tesis pdf, guía apa 7, cómo hacer una tesis, metodología tesis, guía por carrera, plantilla tesis" />
         <link rel="canonical" href="https://tesipedia.com/guias" />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'ItemList',
-          itemListElement: [...nucleo, ...carrera].map((g, i) => ({
+          itemListElement: [...nucleo, ...carrera, ...universidad].map((g, i) => ({
             '@type': 'ListItem', position: i + 1, name: g.nombre, url: `https://tesipedia.com/guias/${g.id}`,
           })),
         })}</script>
@@ -82,6 +83,12 @@ export default function GuiasIndex() {
         <h2 className="gi-h2">Guías por carrera</h2>
         <p className="gi-sec-sub">Cada una con 60 temas de tesis del área, con población y diseño sugerido.</p>
         <div className="gi-grid">{carrera.map((g) => <GuiaCard key={g.id} id={g.id} />)}</div>
+      </section>
+
+      <section className="gi-sec">
+        <h2 className="gi-h2">Guías por universidad</h2>
+        <p className="gi-sec-sub">El trámite de titulación de tu institución: documentos, formatos, tiempos y examen profesional.</p>
+        <div className="gi-grid">{universidad.map((g) => <GuiaCard key={g.id} id={g.id} />)}</div>
       </section>
 
       <section className="gi-cta">
