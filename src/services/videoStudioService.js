@@ -30,6 +30,8 @@ export const publishVideo = (id) =>
 // Contenido de redes (imágenes, tabla contenido_social)
 export const getSocial = (params = {}) =>
   axiosWithAuth.get(`${BASE}/social`, { params }).then((r) => r.data);
+export const createSocial = (data) =>
+  axiosWithAuth.post(`${BASE}/social`, data).then((r) => r.data);
 export const updateSocial = (id, data) =>
   axiosWithAuth.patch(`${BASE}/social/${id}`, data).then((r) => r.data);
 export const approveSocial = (id) =>
@@ -53,6 +55,6 @@ export const setAutopublish = (enabled) => axiosWithAuth.put(`${BASE}/social/aut
 export default {
   getChannels, updateChannel, getVideos, createVideo, generateScript,
   updateVideo, deleteVideo, approveVideo, publishVideo,
-  getSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
+  getSocial, createSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
   publishSocial, deleteSocial, sugerenciasSocial, getAutopublish, setAutopublish,
 };

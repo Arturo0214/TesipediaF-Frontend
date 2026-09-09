@@ -276,3 +276,17 @@
 .er-tile-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; min-height: 180px; color: var(--muted, #7c8aa5); background: repeating-linear-gradient(45deg, #10192b, #10192b 10px, #0d1524 10px, #0d1524 20px); border: 1.5px dashed var(--line, #2a3550); }
 .er-tile-empty svg { font-size: 1.6rem; opacity: .6; }
 .er-tile-empty span { font-size: .74rem; font-weight: 700; letter-spacing: .04em; }
+
+/* contador de publicaciones del día + tip */
+.er-day-count { margin-left: auto; font-size: .72rem; font-weight: 700; color: var(--txt-soft, #94a3b8); background: rgba(148,163,184,.12); padding: 3px 9px; border-radius: 999px; align-self: center; }
+.er-grid-tip { margin: -4px 0 16px; font-size: .8rem; }
+
+/* aviso de contenido incompleto (falta imagen/texto/hashtags o sin aprobar) */
+.er-tile-warn { position: absolute; bottom: 46px; left: 9px; background: rgba(192,57,67,.92); color: #fff; font-size: .64rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; backdrop-filter: blur(4px); }
+.er-panel-avisos { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; padding: 8px 12px; border-radius: 10px; background: rgba(192,57,67,.12); border: 1px solid rgba(192,57,67,.4); color: #e88; font-size: .8rem; font-weight: 700; }
+
+/* botón agregar publicación (3ª+) */
+.er-tile-add { border-style: dashed; }
+.er-tile-add:hover .er-add-box { border-color: var(--gold, #E0B23C); color: var(--gold, #E0B23C); }
+.er-add-box { background: transparent; }
+.er-add-box svg { opacity: .8; }

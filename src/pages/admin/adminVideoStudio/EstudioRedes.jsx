@@ -5,6 +5,7 @@ import {
   FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok,
   FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
   FaChartBar, FaHeart, FaComment, FaShareAlt, FaUsers,
+  FaPlus, FaExclamationTriangle,
 } from 'react-icons/fa';
 import svc from '../../../services/videoStudioService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
@@ -109,6 +110,30 @@ export default function EstudioRedes() {
   const filtrados = base.filter((p) =>
     (!fEstado || p.estado === fEstado) && (!fFormato || p.formato === fFormato));
   const formatos = [...new Set(base.map((p) => p.formato))];
+
+  // ── validación de una pieza (para avisos en la cuadrícula) ──
+  const avisos = (p) => {
+    const out = [];
+    if (!(p.imagenes || []).length) out.push('Falta imagen');
+    if (!(p.copy || '').trim()) out.push('Falta texto');
+    if (!(p.hashtags || '').trim()) out.push('Faltan hashtags');
+    if (p.estado === 'borrador') out.push('Sin aprobar');
+    return out;
+  };
+
+  // ── agregar una publicación a un día (3ª, 4ª…) ──
+  const [agregando, setAgregando] = useState(null);   // fecha en curso
+  const agregarPost = async (fecha) => {
+    setAgregando(fecha);
+    try {
+      const row = await svc.createSocial({ fecha, marca: fMarca || 'Tesipedia' });
+      setPosts((prev) => [...prev, row]);
+      toast.success(`Publicación agregada (slot ${row.slot})`);
+      abrir(row);
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'No se pudo agregar');
+    } finally { setAgregando(null); }
+  };
 
   // ── acciones ──
   const refrescarPieza = (row) => {
@@ -282,14 +307,16 @@ export default function EstudioRedes() {
         </div>
       )}
 
-      {/* ── CUADRÍCULA (feed) ── */}
+      {/* ── CUADRÍCULA (feed) — un renglón por día, todos los días del mes ── */}
       {!loading && vista === 'grid' && (() => {
         const DOW = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const inMonth = filtrados.filter((p) => { const d = new Date(p.fecha + 'T12:00:00'); return d.getFullYear() === y && d.getMonth() === m; });
         const byDay = {};
-        inMonth.forEach((p) => { (byDay[p.fecha] = byDay[p.fecha] || []).push(p); });
+        filtrados.forEach((p) => {
+          const d = new Date(p.fecha + 'T12:00:00');
+          if (d.getFullYear() === y && d.getMonth() === m) (byDay[p.fecha] = byDay[p.fecha] || []).push(p);
+        });
         Object.values(byDay).forEach((a) => a.sort((x, z) => (x.slot || '').localeCompare(z.slot || '')));
-        const dias = Object.keys(byDay).sort();
+        const totalDias = new Date(y, m + 1, 0).getDate();
         return (
           <div>
             <div className="er-cal-nav">
@@ -297,28 +324,43 @@ export default function EstudioRedes() {
               <h3>{MESES[m]} {y}</h3>
               <button onClick={() => cambiarMes(1)}><FaChevronRight /></button>
             </div>
-            {dias.length === 0 && <p className="er-muted">Sin contenido en {MESES[m]} {y}. Usa ‹ › para cambiar de mes.</p>}
-            {dias.map((f) => {
+            <p className="er-muted er-grid-tip">Cada día admite hasta 6 publicaciones. Usa <b>+ Agregar</b> para sumar una y las flechas para llenar cualquier mes/año.</p>
+            {Array.from({ length: totalDias }, (_, i) => i + 1).map((dnum) => {
+              const f = ymd(new Date(y, m, dnum));
               const dd = new Date(f + 'T12:00:00');
+              const items = byDay[f] || [];
               return (
                 <div key={f} className="er-day-group">
                   <div className={`er-day-head ${f === hoy ? 'today' : ''}`}>
-                    <span className="er-day-num">{dd.getDate()}</span>
+                    <span className="er-day-num">{dnum}</span>
                     <span className="er-day-dow">{DOW[dd.getDay()]}</span>
                     {f === hoy && <span className="er-day-today">HOY</span>}
+                    <span className="er-day-count">{items.length}/6</span>
                   </div>
                   <div className="er-grid">
-                    {byDay[f].map((p) => (
-                      <button key={p.id} className="er-tile" onClick={() => abrir(p)}>
-                        {(p.imagenes || [])[0]
-                          ? <img src={(p.imagenes || [])[0]} alt={p.tema} loading="lazy" />
-                          : <div className="er-tile-empty"><FaCloudUploadAlt /><span>Vacío</span></div>}
-                        <span className="er-tile-badge" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
-                        <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
-                        {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
-                        <span className="er-tile-info"><b>{p.tema}</b><span>{(p.hora || '').slice(0, 5)} · slot {p.slot}</span></span>
+                    {items.map((p) => {
+                      const avs = avisos(p);
+                      return (
+                        <button key={p.id} className="er-tile" onClick={() => abrir(p)}>
+                          {(p.imagenes || [])[0]
+                            ? <img src={(p.imagenes || [])[0]} alt={p.tema} loading="lazy" />
+                            : <div className="er-tile-empty"><FaCloudUploadAlt /><span>Vacío</span></div>}
+                          <span className="er-tile-badge" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
+                          <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
+                          {avs.length > 0 && <span className="er-tile-warn" title={avs.join(' · ')}><FaExclamationTriangle /> {avs.length}</span>}
+                          {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
+                          <span className="er-tile-info"><b>{p.tema}</b><span>{(p.hora || '').slice(0, 5)} · slot {p.slot}</span></span>
+                        </button>
+                      );
+                    })}
+                    {items.length < 6 && (
+                      <button className="er-tile er-tile-add" disabled={agregando === f} onClick={() => agregarPost(f)}>
+                        <div className="er-tile-empty er-add-box">
+                          {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />}
+                          <span>{agregando === f ? 'Agregando…' : 'Agregar'}</span>
+                        </div>
                       </button>
-                    ))}
+                    )}
                   </div>
                 </div>
               );
@@ -462,6 +504,9 @@ export default function EstudioRedes() {
                 <span className="er-panel-fecha">{abierta.fecha} · slot {abierta.slot}</span>
               </div>
               <div className="er-panel-hora"><FaRegClock /> Se publica a las <b>{(abierta.hora || '10:00').slice(0, 5)} h</b> {autoPub ? '· auto-publicación ON' : '· (auto-publicación apagada)'}</div>
+              {avisos(abierta).length > 0 && (
+                <div className="er-panel-avisos"><FaExclamationTriangle /> <span>{avisos(abierta).join(' · ')}</span></div>
+              )}
               <div className="er-panel-plats">
                 {(abierta.plataformas || []).map((pl) => { const I = PLAT_ICON[pl]; return I ? <span key={pl} className={`er-plat pl-${pl}`}><I /> {pl.toUpperCase()}</span> : null; })}
                 {abierta.pilar && <span className="er-pilar">{abierta.pilar}</span>}
