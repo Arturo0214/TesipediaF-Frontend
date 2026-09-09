@@ -594,6 +594,7 @@ const AdminSocial = () => {
                                                 {showHeader && <div className="social-agenda-day">{item.scheduledFor ? fmtDay(item.scheduledFor) : 'Sin fecha programada'}</div>}
                                                 <div className="social-agenda-row" onClick={() => setViewingContent(item)}>
                                                     <span className="social-agenda-time">{item.scheduledFor ? new Date(item.scheduledFor).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+                                                    {(() => { const thumb = item.imageUrl || item.slides?.[0]?.imageUrl || item.mediaUrls?.[0]; return thumb ? <img src={thumb} alt="" loading="lazy" style={{ width: 38, height: 47, objectFit: 'cover', borderRadius: 6, flexShrink: 0, border: '1px solid #1F2937' }} /> : null; })()}
                                                     <span className="social-agenda-type">{typeInfo?.icon} {typeInfo?.label}</span>
                                                     {platformIcon(item.platform)}
                                                     <span className="social-agenda-caption">{(item.caption || item.reelIdea || '(sin copy)').slice(0, 80)}</span>
@@ -635,6 +636,12 @@ const AdminSocial = () => {
                                                             {item.source === 'radar' && <Badge bg="warning" text="dark" style={{ fontSize: '0.5rem' }}>Radar</Badge>}
                                                             {item.imageUrl && <FaImage style={{ color: '#10B981', fontSize: '0.7rem' }} title="Imagen lista" />}
                                                         </div>
+                                                        {(() => { const thumb = item.imageUrl || item.slides?.[0]?.imageUrl || item.mediaUrls?.[0]; return thumb ? (
+                                                            <div style={{ position: 'relative', margin: '6px 0' }}>
+                                                                <img src={thumb} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '4 / 5', objectFit: 'cover', borderRadius: 8, border: '1px solid #1F2937', display: 'block' }} />
+                                                                {(item.type === 'carousel' && (item.mediaUrls?.length || item.slides?.length)) ? <span style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.65)', color: '#fff', fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>▦ {item.mediaUrls?.length || item.slides?.length}</span> : null}
+                                                            </div>
+                                                        ) : null; })()}
                                                         {(item.caption || item.reelIdea) && <p className="social-kanban-caption">{(item.caption || item.reelIdea).slice(0, 100)}{(item.caption || item.reelIdea).length > 100 ? '...' : ''}</p>}
                                                         {item.hashtags && <p className="social-kanban-hashtags">{item.hashtags.slice(0, 60)}</p>}
                                                         {(item.scheduledFor || item.scheduledDate) && <span className="social-kanban-date"><FaClock /> {new Date(item.scheduledFor || item.scheduledDate).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>}
