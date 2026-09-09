@@ -198,5 +198,13 @@
       "https://res.cloudinary.com/dbowaer8j/image/upload/v1788892968/tesipedia/guias/tesis-arquitectura/page-3.png",
       "https://res.cloudinary.com/dbowaer8j/image/upload/v1788892968/tesipedia/guias/tesis-arquitectura/page-4.png"
     ]
+  },
+  "tesis-unam": {
+    "muestra": "https://res.cloudinary.com/dbowaer8j/raw/upload/v1788962271/tesipedia/guias/tesis-unam/muestra.pdf",
+    "pages": [
+      "https://res.cloudinary.com/dbowaer8j/image/upload/v1788962266/tesipedia/guias/tesis-unam/page-1.png",
+      "https://res.cloudinary.com/dbowaer8j/image/upload/v1788962266/tesipedia/guias/tesis-unam/page-3.png",
+      "https://res.cloudinary.com/dbowaer8j/image/upload/v1788962268/tesipedia/guias/tesis-unam/page-4.png"
+    ]
   }
 }

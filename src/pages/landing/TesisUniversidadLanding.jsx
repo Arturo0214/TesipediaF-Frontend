@@ -5,10 +5,13 @@ import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import { getUniversidadBySlug } from '../../data/seoUniversidades';
+import { getGuiaByUniversity } from '../../data/guias';
+import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
 import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
-  FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaUniversity, FaBolt
+  FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaUniversity, FaBolt,
+  FaBookOpen, FaFilePdf
 } from 'react-icons/fa';
 import './Landing.css';
 
@@ -18,6 +21,8 @@ const SITE = 'https://tesipedia.com';
 function TesisUniversidadLanding({ slug }) {
   const dispatch = useDispatch();
   const u = getUniversidadBySlug(slug);
+  // Guía descargable del trámite de titulación de esta universidad (producto de la tienda).
+  const guiaProd = getGuiaByUniversity(`/${slug}`);
 
   useEffect(() => {
     dispatch(trackVisit({ path: `/${slug}`, referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
@@ -176,6 +181,30 @@ function TesisUniversidadLanding({ slug }) {
           </a>
         </div>
       </section>
+
+      {/* Guía descargable del trámite de titulación de esta universidad (producto) */}
+      {guiaProd && (
+        <section className="landing-section">
+          <div className="car-guia">
+            <div className="car-guia-copy">
+              <span className="car-guia-kicker"><FaBookOpen /> Guía descargable · {guiaProd.kicker}</span>
+              <h2>{guiaProd.nombre}</h2>
+              <p>{guiaProd.resumen}</p>
+              <div className="car-guia-actions">
+                <Link to={`/guias/${guiaProd.id}`} className="landing-cta-primary" onClick={() => handleWAClick(`uni_${u.slug}_guia`)}>
+                  Ver la guía · ${guiaProd.precio} MXN <FaArrowRight />
+                </Link>
+                {guiaProd.muestraUrl && (
+                  <a href={guiaProd.muestraUrl} target="_blank" rel="noopener noreferrer" className="car-guia-sample">
+                    <FaFilePdf /> Muestra gratis
+                  </a>
+                )}
+              </div>
+            </div>
+            <div className="car-guia-art"><GuiaPagesShowcase pages={guiaProd.pages} chip={guiaProd.kicker} /></div>
+          </div>
+        </section>
+      )}
 
       {/* PRECIOS */}
       <section className="landing-section landing-section-alt" id="precios">

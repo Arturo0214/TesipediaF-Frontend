@@ -29,6 +29,9 @@ export const GUIAS = [
   { id: 'tesis-trabajo-social', sku: 'C10', tipo: 'carrera', precio: 79, nombre: 'La tesis del trabajo social', kicker: 'Tesis de Trabajo Social', resumen: 'Guía de tesis para Trabajo Social: 60 temas comunitarios, con diseño cualitativo e intervención.', careerLanding: '/tesis-de-trabajo-social' },
   { id: 'tesis-comunicacion', sku: 'C11', tipo: 'carrera', precio: 79, nombre: 'La tesis del comunicólogo', kicker: 'Tesis de Comunicación', resumen: 'Guía de tesis para Comunicación: 60 temas de medios y discurso, con análisis de contenido.', careerLanding: '/tesis-de-comunicacion' },
   { id: 'tesis-arquitectura', sku: 'C12', tipo: 'carrera', precio: 79, nombre: 'La tesis del arquitecto', kicker: 'Tesis de Arquitectura', resumen: 'Guía de tesis para Arquitectura: 60 temas de proyecto y ciudad, con metodología proyectual.', careerLanding: '/tesis-de-arquitectura' },
+
+  // Serie por universidad (trámite de titulación)
+  { id: 'tesis-unam', sku: 'U1', tipo: 'universidad', precio: 79, nombre: 'Titularte en la UNAM', kicker: 'Titulación UNAM', resumen: 'El trámite de titulación de la UNAM entendido de una vez: del registro del tema a la firma del acta, con formatos, plazos y las diferencias que cambian de una facultad a otra. 10 módulos + 4 anexos de consulta.', universityLanding: '/tesis-unam' },
 ];
 
 export const PAQUETES = [
@@ -46,6 +49,7 @@ const FALLBACK_PAGES = ASSETS['apa-7']?.pages || [];
 function incluyeDe(g) {
   if (g.tipo === 'carrera') return ['Guía completa en PDF (49 págs)', '60 temas de tesis con población y diseño sugerido', 'Checklist de 30 puntos', 'Plantillas y anexos'];
   if (g.tipo === 'citacion') return ['Guía completa en PDF (49 págs)', '50-60 pares «así no / así sí» con ejemplos', 'Fichas modelo y checklist de 30 puntos', 'Plantillas y anexos'];
+  if (g.tipo === 'universidad') return ['Guía completa del trámite en PDF', '10 módulos + 4 anexos de consulta permanente', 'Tabla de documentos y diferencias por facultad', 'Checklist de 30 puntos'];
   if (g.tipo === 'paquete') return g.incluyeIds.map((id) => GUIAS.find((x) => x.id === id)?.nombre || id);
   return ['Guía completa en PDF (49 págs)', 'Ejercicios resueltos sobre la página', 'Checklist de 30 puntos', 'Plantillas y anexos'];
 }
@@ -67,6 +71,7 @@ function withAssets(g) {
 export const getGuia = (id) => withAssets(GUIAS.find((x) => x.id === id));
 export const getGuiaByBlog = (slug) => withAssets(GUIAS.find((x) => x.blogSlug === slug));
 export const getGuiaByCareer = (landing) => withAssets(GUIAS.find((x) => x.careerLanding === landing));
+export const getGuiaByUniversity = (landing) => withAssets(GUIAS.find((x) => x.universityLanding === landing));
 export const getPaquete = (id) => withAssets(PAQUETES.find((x) => x.id === id));
 export const getProducto = (id) => getGuia(id) || getPaquete(id);
 export const ALL_PRODUCTOS = [...GUIAS, ...PAQUETES].map(withAssets);
