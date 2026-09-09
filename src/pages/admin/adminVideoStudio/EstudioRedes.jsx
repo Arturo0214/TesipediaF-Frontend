@@ -343,25 +343,26 @@ export default function EstudioRedes() {
               <h3>{MESES[m]} {y}</h3>
               <button onClick={() => cambiarMes(1)}><FaChevronRight /></button>
             </div>
-            <p className="er-muted er-grid-tip">Hasta 3 publicaciones por día (las agregadas salen a las 17:00). Usa <b>+ Agregar</b> junto al día y las flechas para llenar cualquier mes/año.</p>
+            <p className="er-muted er-grid-tip">Hasta 3 publicaciones por día (las agregadas salen a las 17:00). Toca <b>+</b> para agregar y las flechas para cambiar de mes/año.</p>
+            <div className="er-days-grid">
             {Array.from({ length: totalDias }, (_, i) => i + 1).map((dnum) => {
               const f = ymd(new Date(y, m, dnum));
               const dd = new Date(f + 'T12:00:00');
               const items = byDay[f] || [];
               return (
-                <div key={f} className="er-day-group">
-                  <div className={`er-day-head ${f === hoy ? 'today' : ''}`}>
+                <div key={f} className={`er-day-col ${f === hoy ? 'today' : ''}`}>
+                  <div className="er-day-head">
                     <span className="er-day-num">{dnum}</span>
                     <span className="er-day-dow">{DOW[dd.getDay()]}</span>
                     {f === hoy && <span className="er-day-today">HOY</span>}
+                    <span className="er-day-count">{items.length}/3</span>
                     {items.length < 3 && (
                       <button className="er-day-add" disabled={agregando === f} onClick={() => agregarPost(f)} title="Agregar publicación a este día">
-                        {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />} Agregar
+                        {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />}
                       </button>
                     )}
-                    <span className="er-day-count">{items.length}/3</span>
                   </div>
-                  <div className="er-grid">
+                  <div className="er-day-posts">
                     {items.map((p) => {
                       const avs = avisos(p);
                       return (
@@ -373,15 +374,16 @@ export default function EstudioRedes() {
                           <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
                           {avs.length > 0 && <span className="er-tile-warn" title={avs.join(' · ')}><FaExclamationTriangle /> {avs.length}</span>}
                           {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
-                          <span className="er-tile-info"><b>{p.tema}</b><span>{(p.hora || '').slice(0, 5)} · slot {p.slot}</span></span>
+                          <span className="er-tile-info"><b>{p.tema}</b><span>{(p.hora || '').slice(0, 5)} · {p.slot}</span></span>
                         </button>
                       );
                     })}
-                    {items.length === 0 && <div className="er-day-vacio">Día sin publicaciones — usa <b>+ Agregar</b></div>}
+                    {items.length === 0 && <div className="er-day-vacio">Sin publicaciones</div>}
                   </div>
                 </div>
               );
             })}
+            </div>
           </div>
         );
       })()}

@@ -213,7 +213,11 @@
   .er-cal-tema { display: none; }
   .er-cal-chip { justify-content: center; padding: 3px; }
   .er-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .er-days-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .er-cal-dow { font-size: .58rem; }
+}
+@media (min-width: 721px) and (max-width: 1200px) {
+  .er-days-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ── Rendimiento (métricas FB/IG) ── */
@@ -274,24 +278,26 @@
 .er-panel-hora svg { color: var(--gold, #E0B23C); }
 
 /* ── Grid por día (encabezado) ── */
-.er-day-group { margin-bottom: 14px; }
-.er-day-head { display: flex; align-items: center; gap: 9px; padding: 4px 2px 7px; border-bottom: 1px solid var(--line, #223); margin-bottom: 9px; }
-.er-day-head .er-day-num { font-size: 1.2rem; font-weight: 800; color: #fff; line-height: 1; }
-.er-day-head .er-day-dow { font-size: .9rem; font-weight: 600; color: var(--txt-soft, #c7d2e6); text-transform: capitalize; }
-.er-day-head.today { border-color: var(--gold, #E0B23C); }
-.er-day-head.today .er-day-num { color: var(--gold, #E0B23C); }
-.er-day-today { font-size: .64rem; font-weight: 800; letter-spacing: .08em; color: #0b1120; background: var(--gold, #E0B23C); padding: 3px 8px; border-radius: 999px; }
+/* Cuadrícula de días: hasta 5 columnas por fila, cada día una tarjeta compacta */
+.er-days-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.er-day-col { border: 1px solid var(--line, #223); border-radius: 12px; padding: 8px; background: var(--surface-2, #0d1524); min-width: 0; }
+.er-day-col.today { border-color: var(--gold, #E0B23C); box-shadow: 0 0 0 1px var(--gold, #E0B23C) inset; }
+.er-day-head { display: flex; align-items: center; gap: 6px; padding: 2px 2px 7px; border-bottom: 1px solid var(--line, #223); margin-bottom: 8px; }
+.er-day-head .er-day-num { font-size: 1.05rem; font-weight: 800; color: #fff; line-height: 1; }
+.er-day-head .er-day-dow { font-size: .74rem; font-weight: 600; color: var(--txt-soft, #c7d2e6); text-transform: capitalize; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.er-day-col.today .er-day-num { color: var(--gold, #E0B23C); }
+.er-day-today { font-size: .56rem; font-weight: 800; letter-spacing: .06em; color: #0b1120; background: var(--gold, #E0B23C); padding: 2px 6px; border-radius: 999px; }
+.er-day-posts { display: flex; flex-direction: column; gap: 8px; }
 .er-tile-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; min-height: 180px; color: var(--muted, #7c8aa5); background: repeating-linear-gradient(45deg, #10192b, #10192b 10px, #0d1524 10px, #0d1524 20px); border: 1.5px dashed var(--line, #2a3550); }
 .er-tile-empty svg { font-size: 1.6rem; opacity: .6; }
 .er-tile-empty span { font-size: .74rem; font-weight: 700; letter-spacing: .04em; }
 
 /* contador de publicaciones del día + tip */
-.er-day-count { font-size: .72rem; font-weight: 700; color: var(--txt-soft, #94a3b8); background: rgba(148,163,184,.12); padding: 3px 9px; border-radius: 999px; align-self: center; }
-.er-day-add { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 800; color: var(--gold, #E0B23C); background: rgba(224,178,60,.1); border: 1px solid rgba(224,178,60,.4); padding: 4px 11px; border-radius: 999px; cursor: pointer; align-self: center; transition: .15s; }
+.er-day-count { margin-left: auto; font-size: .64rem; font-weight: 700; color: var(--txt-soft, #94a3b8); background: rgba(148,163,184,.12); padding: 2px 6px; border-radius: 999px; align-self: center; }
+.er-day-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; font-size: .8rem; color: var(--gold, #E0B23C); background: rgba(224,178,60,.1); border: 1px solid rgba(224,178,60,.4); border-radius: 6px; cursor: pointer; align-self: center; transition: .15s; }
 .er-day-add:hover { background: rgba(224,178,60,.2); }
 .er-day-add:disabled { opacity: .5; cursor: default; }
-.er-day-add + .er-day-count { margin-left: 8px; }
-.er-day-vacio { grid-column: 1 / -1; padding: 14px; font-size: .78rem; color: var(--muted, #7c8aa5); border: 1.5px dashed var(--line, #2a3550); border-radius: 12px; text-align: center; }
+.er-day-vacio { padding: 12px 6px; font-size: .7rem; color: var(--muted, #7c8aa5); border: 1.5px dashed var(--line, #2a3550); border-radius: 10px; text-align: center; }
 .er-grid-tip { margin: -4px 0 16px; font-size: .8rem; }
 
 /* aviso de contenido incompleto (falta imagen/texto/hashtags o sin aprobar) */
