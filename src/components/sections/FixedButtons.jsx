@@ -5,6 +5,8 @@ import './FixedButtons.css';
 
 // Lazy load chatbot — only loads when visitor clicks
 const TesipediaBot = lazy(() => import('../chat/TesipediaBot'));
+// Botón + formulario flotante de cotización
+const QuoteFab = lazy(() => import('./QuoteFab'));
 
 const FixedButtons = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -126,6 +128,12 @@ const FixedButtons = () => {
             isOpen={isChatOpen}
             onClose={() => setIsChatOpen(false)}
           />
+        </Suspense>
+      )}
+
+      {!isAuthenticated && (
+        <Suspense fallback={null}>
+          <QuoteFab />
         </Suspense>
       )}
     </>

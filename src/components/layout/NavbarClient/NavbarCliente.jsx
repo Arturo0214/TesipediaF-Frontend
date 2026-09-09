@@ -8,6 +8,7 @@ import { FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import './NavbarCliente.css';
 import Notifications from '../../../pages/Client/Notifications/Notifications';
+import CartButton from '../../cart/CartButton';
 
 function NavbarCliente() {
     const dispatch = useDispatch();
@@ -95,6 +96,7 @@ function NavbarCliente() {
                             </motion.div>
                         </Nav>
                         <Nav className="align-items-center">
+                            <CartButton className="me-2" />
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                 <Button as={Link} to="/dashboard" className="btn-cotizar me-2" onClick={closeNavbar}>
                                     Ir a Mi Panel

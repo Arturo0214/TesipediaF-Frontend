@@ -5,10 +5,13 @@ import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import { getCarreraBySlug } from '../../data/seoCarreras';
+import { getGuiaByCareer } from '../../data/guias';
+import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
 import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
-  FaGraduationCap, FaClock, FaFlask, FaArrowRight, FaLightbulb, FaBolt
+  FaGraduationCap, FaClock, FaFlask, FaArrowRight, FaLightbulb, FaBolt,
+  FaBookOpen, FaFilePdf
 } from 'react-icons/fa';
 import './Landing.css';
 
@@ -18,6 +21,8 @@ const SITE = 'https://tesipedia.com';
 function TesisCarreraLanding({ slug }) {
   const dispatch = useDispatch();
   const c = getCarreraBySlug(slug);
+  // Guía descargable de pago para esta carrera (producto de la tienda).
+  const guiaProd = getGuiaByCareer(`/${slug}`);
   // Loop de contenido/SEO: guía publicada (generada del trabajo vendido de esta carrera)
   const [guia, setGuia] = useState(null);
 
@@ -217,6 +222,30 @@ function TesisCarreraLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      {/* Guía descargable de esta carrera (producto) */}
+      {guiaProd && (
+        <section className="landing-section">
+          <div className="car-guia">
+            <div className="car-guia-copy">
+              <span className="car-guia-kicker"><FaBookOpen /> Guía descargable · {guiaProd.kicker}</span>
+              <h2>{guiaProd.nombre}</h2>
+              <p>{guiaProd.resumen}</p>
+              <div className="car-guia-actions">
+                <Link to={`/guias/${guiaProd.id}`} className="landing-cta-primary" onClick={() => handleWAClick(`car_${c.slug}_guia`)}>
+                  Ver la guía · ${guiaProd.precio} MXN <FaArrowRight />
+                </Link>
+                {guiaProd.muestraUrl && (
+                  <a href={guiaProd.muestraUrl} target="_blank" rel="noopener noreferrer" className="car-guia-sample">
+                    <FaFilePdf /> Muestra gratis
+                  </a>
+                )}
+              </div>
+            </div>
+            <div className="car-guia-art"><GuiaPagesShowcase pages={guiaProd.pages} chip={guiaProd.kicker} /></div>
+          </div>
+        </section>
+      )}
 
       {/* Guía SEO generada del trabajo real de esta carrera (loop de contenido) */}
       {guia && (

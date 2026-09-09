@@ -5,6 +5,7 @@ import { logout } from '../../../features/auth/authSlice';
 import { FaUser } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import CartButton from '../../cart/CartButton';
 import './Navbar.css';
 
 function MainNavbar() {
@@ -111,10 +112,17 @@ function MainNavbar() {
                                 <Nav.Link as={NavLink} to="/blog" onClick={closeNavbar}>Blog</Nav.Link>
                             </motion.div>
                             <motion.div variants={linkVariants} whileHover="hover">
+                                <Nav.Link as={NavLink} to="/guias" onClick={closeNavbar}>Guías</Nav.Link>
+                            </motion.div>
+                            <motion.div variants={linkVariants} whileHover="hover">
+                                <Nav.Link as={NavLink} to="/detector-ia-tesis" className="nav-link-cotizar" onClick={closeNavbar}>Detector IA</Nav.Link>
+                            </motion.div>
+                            <motion.div variants={linkVariants} whileHover="hover">
                                 <Nav.Link as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</Nav.Link>
                             </motion.div>
                         </Nav>
                         <Nav className="align-items-center">
+                            <CartButton className="me-2" />
                             <AnimatePresence>
                                 {isAuthenticated ? (
                                     <motion.div

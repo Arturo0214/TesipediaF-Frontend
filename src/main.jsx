@@ -11,6 +11,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/styles/main.scss';
 import './App.css';
+import './assets/styles/design-system.css';
 // NOTA: chart.js NO se registra aquí (sacaba ~chart.js a TODAS las páginas, incl. home).
 // El único consumidor (VentasPorVendedor) registra sus propios componentes de Chart.js.
 import { ToastContainer } from 'react-toastify';

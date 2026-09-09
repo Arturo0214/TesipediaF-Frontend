@@ -900,3 +900,79 @@
   .cp-project-header { flex-direction: column; }
   .cp-chat-msg { max-width: 90%; }
 }
+
+/* ── Mis guías (productos digitales) ── */
+.cp-guias-empty { text-align: center; padding: 48px 20px; color: #64748b; }
+.cp-guias-empty > svg { font-size: 2.4rem; color: #cbd5e1; margin-bottom: 12px; }
+.cp-guias-empty h3 { color: #0f172a; font-size: 1.2rem; margin: 0 0 6px; }
+.cp-guias-empty p { margin: 0 0 18px; }
+.cp-guias-cta, .cp-guias-more { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700; color: #fff; background: #1D4ED8; padding: 12px 22px; border-radius: 10px; }
+.cp-guias-more { background: none; color: #1D4ED8; padding: 6px 0; }
+.cp-guias-list { display: flex; flex-direction: column; gap: 14px; }
+.cp-guia-card { background: #fff; border: 1px solid #e6ecf3; border-radius: 14px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(9,24,64,.05); }
+.cp-guia-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cp-guia-head strong { display: block; font-size: 1.05rem; color: #0B2150; line-height: 1.25; }
+.cp-guia-date { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+.cp-guia-ico { color: #F5B301; font-size: 1.3rem; flex-shrink: 0; }
+.cp-guia-files { display: flex; flex-wrap: wrap; gap: 10px; }
+.cp-guia-dl { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem; color: #1D4ED8; background: #EAF1FE; border: 1px solid #CFE0FB; padding: 9px 14px; border-radius: 9px; transition: background .16s ease, transform .16s ease; }
+.cp-guia-dl:hover { background: #DCE8FB; transform: translateY(-1px); }
+
+/* ── Carrito en el topbar ── */
+.cp-topbar-cart.cart-btn { width: 36px; height: 36px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); color: #fff; font-size: 0.95rem; flex-shrink: 0; }
+.cp-topbar-cart.cart-btn:hover { background: rgba(255,255,255,.26); }
+
+/* ── Badge de carrito en el nav ── */
+.cp-nav-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #F5B301; color: #3A2A00; font-size: 0.7rem; font-weight: 800; }
+
+/* ── Herramientas (detector) ── */
+.cp-tool-sub { color: #64748b; font-size: 0.95rem; line-height: 1.6; margin: -6px 0 20px; max-width: 62ch; }
+.cp-tool-sub b { color: #0B2150; }
+.cp-tool-panel { background: #fff; border: 1px solid #e6ecf3; border-radius: 18px; padding: 24px; box-shadow: 0 8px 24px rgba(9,24,64,.06); max-width: 640px; }
+.cp-tool-note { display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; padding: 14px 16px; background: #f7faff; border: 1px solid #e2ecfb; border-radius: 12px; color: #475569; font-size: 0.88rem; line-height: 1.55; max-width: 640px; }
+.cp-tool-note svg { color: #2563eb; flex-shrink: 0; margin-top: 2px; }
+.cp-inline-link { color: #1D4ED8; cursor: pointer; text-decoration: underline; }
+
+/* ── Tienda dentro del panel ── */
+.cp-shop-h3 { display: flex; align-items: center; gap: 9px; font-size: 1.18rem; font-weight: 700; color: #0B2150; margin: 30px 0 16px; }
+.cp-shop-h3 svg { color: #F5B301; }
+
+.cp-shop-sug { display: flex; gap: 12px; align-items: flex-start; background: linear-gradient(135deg, #FFF6E0, #FFF0CB); border: 1px solid #F6DCA0; border-radius: 14px; padding: 16px 18px; margin-bottom: 6px; }
+.cp-shop-sug > svg { color: #B4770A; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.cp-shop-sug p { margin: 0 0 10px; color: #6B4E12; font-size: 0.92rem; line-height: 1.5; }
+.cp-shop-sug b { color: #5A3E00; }
+.cp-shop-sug button { font-weight: 800; font-size: 0.86rem; color: #14202E; background: linear-gradient(135deg, #FBBF24, #F5B301); border: none; cursor: pointer; padding: 9px 16px; border-radius: 9px; box-shadow: 0 6px 14px rgba(245,179,1,.4); }
+
+/* paquetes */
+.cp-shop-paks { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.cp-shop-pak { position: relative; display: flex; flex-direction: column; background: #fff; border: 1.5px solid #e6ecf3; border-radius: 16px; padding: 20px; }
+.cp-shop-pak.is-top { background: linear-gradient(165deg, #0A1E44, #12386F); border-color: rgba(120,160,255,.3); }
+.cp-shop-pak.is-top h4, .cp-shop-pak.is-top p { color: #fff; }
+.cp-shop-pak.is-top .cp-shop-pak-foot b { color: #FBBF24; }
+.cp-shop-flag { position: absolute; top: -11px; left: 20px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.66rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #14202E; background: linear-gradient(135deg, #FBBF24, #F5B301); padding: 5px 11px; border-radius: 999px; }
+.cp-shop-pak h4 { font-size: 1.1rem; font-weight: 700; color: #0B2150; margin: 0 0 8px; }
+.cp-shop-pak p { font-size: 0.9rem; color: #64748b; line-height: 1.5; margin: 0 0 16px; flex: 1; }
+.cp-shop-pak-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cp-shop-pak-foot b { font-size: 1.25rem; font-weight: 700; color: #0B2150; }
+
+/* grid de guías */
+.cp-shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+.cp-shop-card { display: flex; flex-direction: column; background: #fff; border: 1px solid #e6ecf3; border-radius: 14px; overflow: hidden; box-shadow: 0 5px 16px rgba(9,24,64,.05); transition: transform .18s ease, box-shadow .18s ease; }
+.cp-shop-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(9,24,64,.13); }
+.cp-shop-cover { position: relative; aspect-ratio: 1 / 1.16; overflow: hidden; background: linear-gradient(160deg, #0A1E44, #1D4ED8); display: flex; align-items: center; justify-content: center; text-decoration: none; }
+.cp-shop-cover img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.cp-shop-cover > svg { font-size: 2rem; color: rgba(255,255,255,.85); }
+.cp-shop-price { position: absolute; top: 9px; right: 9px; font-weight: 800; font-size: 0.82rem; color: #14202E; background: linear-gradient(135deg, #FBBF24, #F5B301); padding: 4px 10px; border-radius: 999px; box-shadow: 0 5px 12px rgba(245,179,1,.4); }
+.cp-shop-body { padding: 13px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.cp-shop-kicker { font-size: 0.65rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #B4770A; }
+.cp-shop-body h4 { font-size: 0.95rem; font-weight: 700; color: #0B2150; line-height: 1.22; margin: 0; flex: 1; }
+.cp-shop-add { display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin-top: 6px; font-weight: 700; font-size: 0.84rem; color: #1D4ED8; background: #EAF1FE; border: 1.5px solid #CFE0FB; cursor: pointer; padding: 9px 12px; border-radius: 9px; transition: background .16s ease, transform .16s ease; }
+.cp-shop-add:hover { background: #DCE8FB; transform: translateY(-1px); }
+.cp-shop-add.is-in { background: #EAF7EF; border-color: rgba(31,168,85,.4); color: #1FA855; }
+.cp-shop-pak-foot .cp-shop-add { margin-top: 0; }
+.cp-shop-pak.is-top .cp-shop-add { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.3); color: #fff; }
+
+@media (max-width: 640px) {
+  .cp-shop-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .cp-tool-panel { padding: 16px; }
+}

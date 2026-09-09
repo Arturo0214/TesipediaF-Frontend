@@ -8,11 +8,16 @@ import {
   FaMoneyBillWave, FaComments, FaDownload, FaPaperPlane,
   FaCalendarAlt, FaUser, FaBook, FaSearch,
   FaCheckCircle, FaExclamationCircle, FaSignOutAlt,
-  FaBars, FaHome
+  FaBars, FaHome, FaRobot, FaStore, FaShoppingCart,
+  FaArrowRight, FaLayerGroup, FaStar, FaBookOpen
 } from 'react-icons/fa';
 import { logout } from '../../features/auth/authSlice';
 import axiosWithAuth from '../../utils/axioswithAuth';
 import Profile from '../dashboard/Profile';
+import ScannerWidget from '../../components/tools/ScannerWidget';
+import CartButton from '../../components/cart/CartButton';
+import { useCart } from '../../context/CartContext';
+import { GUIAS, PAQUETES, getGuia } from '../../data/guias';
 import './ClientPanel.css';
 
 /* ── Status helpers ── */
@@ -42,11 +47,40 @@ const fmtMoney = (n) => {
   return `$${Number(n).toLocaleString('es-MX')}`;
 };
 
+/* ── Tarjeta de guía para la tienda dentro del panel ── */
+const TiendaGuiaCard = ({ id }) => {
+  const g = getGuia(id);
+  const cart = useCart();
+  if (!g) return null;
+  const cover = g.pages?.[0]?.src;
+  const inCart = cart?.has(g.id);
+  return (
+    <div className="cp-shop-card">
+      <a href={`/guias/${g.id}`} className="cp-shop-cover" target="_blank" rel="noopener noreferrer">
+        {cover ? <img src={cover} alt={g.nombre} loading="lazy" /> : <FaBookOpen />}
+        <span className="cp-shop-price">${g.precio}</span>
+      </a>
+      <div className="cp-shop-body">
+        <span className="cp-shop-kicker">{g.kicker}</span>
+        <h4>{g.nombre}</h4>
+        <button
+          type="button"
+          className={`cp-shop-add ${inCart ? 'is-in' : ''}`}
+          onClick={() => (inCart ? cart.setOpen(true) : cart?.add(g.id))}
+        >
+          {inCart ? <><FaCheck /> En el carrito</> : <><FaShoppingCart /> Añadir</>}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 /* ── Componente principal ── */
 const ClientPanel = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const cart = useCart();
 
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,18 +90,38 @@ const ClientPanel = () => {
   const [commentText, setCommentText] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [misGuias, setMisGuias] = useState([]);
+  const [guiasLoading, setGuiasLoading] = useState(true);
   const chatEndRef = useRef(null);
 
   const TesipediaLogo = 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png';
 
-  /* ── Nav items ── */
-  const navItems = [
-    { key: 'proyecto',   icon: FaClipboardList,     label: 'Mi Proyecto' },
-    { key: 'timeline',   icon: FaClock,             label: 'Línea de tiempo' },
-    { key: 'pagos',      icon: FaMoneyBillWave,     label: 'Pagos' },
-    { key: 'documentos', icon: FaFileAlt,           label: 'Documentos' },
-    { key: 'mensajes',   icon: FaComments,          label: 'Mensajes' },
-    { key: 'perfil',     icon: FaUser,              label: 'Mi Perfil' },
+  /* ── Nav (agrupado) ── */
+  const navGroups = [
+    {
+      title: 'Mi proyecto',
+      items: [
+        { key: 'proyecto',   icon: FaClipboardList, label: 'Mi Proyecto' },
+        { key: 'timeline',   icon: FaClock,         label: 'Línea de tiempo' },
+        { key: 'pagos',      icon: FaMoneyBillWave, label: 'Pagos' },
+        { key: 'documentos', icon: FaFileAlt,       label: 'Documentos' },
+        { key: 'mensajes',   icon: FaComments,      label: 'Mensajes' },
+      ],
+    },
+    {
+      title: 'Herramientas',
+      items: [
+        { key: 'detector', icon: FaRobot,  label: 'Detector de IA' },
+        { key: 'tienda',   icon: FaStore,  label: 'Comprar guías' },
+        { key: 'guias',    icon: FaBook,   label: 'Mis guías' },
+      ],
+    },
+    {
+      title: 'Cuenta',
+      items: [
+        { key: 'perfil', icon: FaUser, label: 'Mi Perfil' },
+      ],
+    },
   ];
 
   /* ── Fetch projects ── */
@@ -90,6 +144,16 @@ const ClientPanel = () => {
       }
     };
     fetchData();
+  }, []);
+
+  /* ── Fetch guías compradas ── */
+  useEffect(() => {
+    let alive = true;
+    axiosWithAuth.get('/guias/mis-compras')
+      .then(({ data }) => { if (alive) setMisGuias(Array.isArray(data) ? data : []); })
+      .catch(() => { if (alive) setMisGuias([]); })
+      .finally(() => { if (alive) setGuiasLoading(false); });
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -706,6 +770,114 @@ const ClientPanel = () => {
     </div>
   );
 
+  /* ── Mis guías (productos digitales comprados) ── */
+  const renderGuiasSection = () => (
+    <div className="cp-content-inner">
+      <h2 className="cp-section-heading"><FaBook style={{ marginRight: 8 }} /> Mis guías descargables</h2>
+      {guiasLoading ? (
+        <div className="cp-loading"><FaSpinner className="cp-loading-spinner" /> Cargando…</div>
+      ) : misGuias.length === 0 ? (
+        <div className="cp-guias-empty">
+          <FaBook />
+          <h3>Aún no has comprado guías</h3>
+          <p>Nuestras guías-taller en PDF te llevan paso a paso por cada parte de la tesis.</p>
+          <a href="/guias" className="cp-guias-cta">Ver guías disponibles</a>
+        </div>
+      ) : (
+        <div className="cp-guias-list">
+          {misGuias.map((g, i) => (
+            <div className="cp-guia-card" key={`${g.productId}-${i}`}>
+              <div className="cp-guia-head">
+                <div>
+                  <strong>{g.productName}</strong>
+                  <span className="cp-guia-date">Comprada el {fmtDate(g.fecha)}</span>
+                </div>
+                <FaBook className="cp-guia-ico" />
+              </div>
+              <div className="cp-guia-files">
+                {g.archivos.map((a) => (
+                  <a key={a.url} href={a.url} target="_blank" rel="noopener noreferrer" className="cp-guia-dl">
+                    <FaDownload /> {a.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+          <a href="/guias" className="cp-guias-more">Ver más guías →</a>
+        </div>
+      )}
+    </div>
+  );
+
+  /* ── Detector de IA (escáner dentro de la cuenta) ── */
+  const renderDetectorSection = () => (
+    <div className="cp-content-inner">
+      <h2 className="cp-section-heading"><FaRobot style={{ marginRight: 8 }} /> Detector de IA</h2>
+      <p className="cp-tool-sub">
+        Sube tu borrador en Word y mide qué tan “humano” suena antes de entregarlo a tu sínodo.
+        Confidencial y calibrado para escritura académica en español.
+      </p>
+      <div className="cp-tool-panel">
+        <ScannerWidget />
+      </div>
+      <div className="cp-tool-note">
+        <FaSearch />
+        <span>¿Marcó indicios de IA? En la sección <b onClick={() => handleTabSelect('tienda')} className="cp-inline-link">Comprar guías</b> tienes la guía para reescribir con tu propia voz, o escríbele a tu asesor en <b onClick={() => handleTabSelect('mensajes')} className="cp-inline-link">Mensajes</b>.</span>
+      </div>
+    </div>
+  );
+
+  /* ── Tienda de guías (comprar desde la cuenta) ── */
+  const renderTiendaSection = () => {
+    const nucleo = GUIAS.filter((g) => g.tipo !== 'carrera');
+    const carrera = GUIAS.filter((g) => g.tipo === 'carrera');
+    return (
+      <div className="cp-content-inner">
+        <h2 className="cp-section-heading"><FaStore style={{ marginRight: 8 }} /> Comprar guías</h2>
+        <p className="cp-tool-sub">
+          Guías-taller en PDF que te llevan paso a paso por cada parte de la tesis. Añádelas al carrito
+          {cart?.count ? ` (tienes ${cart.count} en el carrito)` : ''} y págalas seguro con MercadoPago; quedan en <b>Mis guías</b>.
+        </p>
+
+        {cart?.suggestion && (
+          <div className="cp-shop-sug">
+            <FaLayerGroup />
+            <div>
+              <p>Te falta <b>{cart.suggestion.missingNombre}</b> para el <b>{cart.suggestion.paq.nombre}</b>. Añádelo y ahorra <b>${cart.suggestion.ahorro}</b> (pagas ${cart.suggestion.paq.precio} en vez de ${cart.suggestion.sumNeed}).</p>
+              <button type="button" onClick={() => { cart.applyBundle(cart.suggestion); cart.setOpen(true); }}>Añadir y ahorrar</button>
+            </div>
+          </div>
+        )}
+
+        <h3 className="cp-shop-h3"><FaStar /> Paquetes (ahorra más)</h3>
+        <div className="cp-shop-paks">
+          {PAQUETES.map((pk) => {
+            const inCart = cart?.has(pk.id);
+            return (
+              <div key={pk.id} className={`cp-shop-pak ${pk.destacado ? 'is-top' : ''}`}>
+                {pk.destacado && <span className="cp-shop-flag"><FaStar /> Mejor valor</span>}
+                <h4>{pk.nombre}</h4>
+                <p>{pk.resumen}</p>
+                <div className="cp-shop-pak-foot">
+                  <b>${pk.precio}</b>
+                  <button type="button" className={`cp-shop-add ${inCart ? 'is-in' : ''}`} onClick={() => (inCart ? cart.setOpen(true) : cart?.add(pk.id))}>
+                    {inCart ? <><FaCheck /> En el carrito</> : <><FaShoppingCart /> Añadir</>}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <h3 className="cp-shop-h3">Taller de tesis · por sección</h3>
+        <div className="cp-shop-grid">{nucleo.map((g) => <TiendaGuiaCard key={g.id} id={g.id} />)}</div>
+
+        <h3 className="cp-shop-h3">Guías por carrera</h3>
+        <div className="cp-shop-grid">{carrera.map((g) => <TiendaGuiaCard key={g.id} id={g.id} />)}</div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (loading) {
       return <div className="cp-loading"><FaSpinner className="cp-loading-spinner" /> Cargando...</div>;
@@ -715,6 +887,9 @@ const ClientPanel = () => {
       case 'timeline':    return renderTimelineSection();
       case 'pagos':       return renderPaymentsSection();
       case 'documentos':  return renderDocumentsSection();
+      case 'detector':    return renderDetectorSection();
+      case 'tienda':      return renderTiendaSection();
+      case 'guias':       return renderGuiasSection();
       case 'mensajes':    return renderMessagesSection();
       case 'perfil':      return <div className="cp-content-inner"><Profile /></div>;
       default:            return renderProjectSection();
@@ -742,6 +917,7 @@ const ClientPanel = () => {
         <img src={TesipediaLogo} alt="Tesipedia" className="cp-topbar-logo" loading="lazy" />
         <span className="cp-topbar-label">Panel de Cliente</span>
         <span className="cp-topbar-user"><FaUser /> {user?.name}</span>
+        <CartButton className="cp-topbar-cart" />
       </div>
 
       {/* Container */}
@@ -749,20 +925,25 @@ const ClientPanel = () => {
         {/* Sidebar */}
         <aside className={`cp-sidebar ${isSidebarOpen ? 'active' : ''}`}>
           <nav className="cp-nav">
-            <div className="cp-nav-section">
-              <div className="cp-nav-section-title">Mi cuenta</div>
-              {navItems.map(({ key, icon: Icon, label }) => (
-                <Nav.Link
-                  key={key}
-                  active={activeTab === key}
-                  onClick={() => handleTabSelect(key)}
-                  className="cp-nav-link"
-                >
-                  <Icon />
-                  <span>{label}</span>
-                </Nav.Link>
-              ))}
-            </div>
+            {navGroups.map((group) => (
+              <div className="cp-nav-section" key={group.title}>
+                <div className="cp-nav-section-title">{group.title}</div>
+                {group.items.map(({ key, icon: Icon, label }) => (
+                  <Nav.Link
+                    key={key}
+                    active={activeTab === key}
+                    onClick={() => handleTabSelect(key)}
+                    className="cp-nav-link"
+                  >
+                    <Icon />
+                    <span>{label}</span>
+                    {key === 'tienda' && cart?.count > 0 && (
+                      <span className="cp-nav-badge">{cart.count}</span>
+                    )}
+                  </Nav.Link>
+                ))}
+              </div>
+            ))}
 
             <button className="cp-logout" onClick={handleLogout}>
               <FaSignOutAlt />

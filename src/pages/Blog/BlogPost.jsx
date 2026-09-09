@@ -2,9 +2,13 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import { Container } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
-import { FaCalendarAlt, FaClock, FaUser, FaArrowLeft, FaWhatsapp } from 'react-icons/fa';
+import { FaCalendarAlt, FaClock, FaUser, FaArrowLeft, FaWhatsapp, FaBookOpen, FaArrowRight, FaFilePdf, FaRobot, FaChevronRight } from 'react-icons/fa';
 import { getPostBySlug, blogPosts } from './blogData';
+import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
+import { getGuiaByBlog, getGuia } from '../../data/guias';
 import './BlogPost.css';
+
+const BP_WA = 'https://wa.me/525670071517?text=Hola%2C%20quiero%20asesor%C3%ADa%20para%20mi%20tesis';
 
 const gradientFallbacks = [
   'linear-gradient(135deg, #1E3A5F 0%, #3B82F6 100%)',
@@ -153,6 +157,10 @@ function BlogPost() {
     relatedPosts.push(...morePosts);
   }
 
+  // Guía que empalma con este artículo (data-driven). El rail siempre muestra una guía.
+  const guia = getGuiaByBlog(post.slug);
+  const railGuia = guia || getGuia('apa-7');
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -257,79 +265,174 @@ function BlogPost() {
           </Container>
         </div>
 
-        {/* ── Featured Image ── */}
+        {/* ── Visual destacado: showcase de la guía (posts con guía) o imagen ── */}
         <Container>
-          <div className="bp-featured-image">
-            <BlogPostImage src={post.image} alt={post.title} index={post.id} className="bp-img" />
-          </div>
+          {guia ? (
+            <div className="bp-featured-showcase">
+              <div className="bp-fs-copy">
+                <span className="bp-fs-kicker"><FaBookOpen /> Guía basada en este artículo</span>
+                <h2 className="bp-fs-title">{guia.nombre}</h2>
+                <p className="bp-fs-desc">{guia.resumen}</p>
+                <div className="bp-fs-actions">
+                  <Link to={`/guias/${guia.id}`} className="bp-guia-buy" data-track-cta={`blog_featured_${guia.id}`}>
+                    Ver la guía · ${guia.precio} MXN <FaArrowRight />
+                  </Link>
+                  {guia.muestraUrl && (
+                    <a href={guia.muestraUrl} target="_blank" rel="noopener noreferrer" className="bp-guia-sample">
+                      <FaFilePdf /> Muestra gratis
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="bp-fs-art"><GuiaPagesShowcase pages={guia.pages} chip={guia.kicker} /></div>
+            </div>
+          ) : (
+            <div className="bp-featured-image">
+              <BlogPostImage src={post.image} alt={post.title} index={post.id} className="bp-img" />
+            </div>
+          )}
         </Container>
 
-        {/* ── Article Body ── */}
+        {/* ── Cuerpo estilo noticia: artículo + sidebar de secciones Tesipedia ── */}
         <Container>
-          <div className="bp-content-wrapper">
-            <div className="bp-body">
-              {formatContent(post.content)}
-            </div>
-
-            {/* ── CTA Banner ── */}
-            <div className="bp-cta-banner">
-              <div className="bp-cta-banner-content">
-                <h3>¿Necesitas ayuda con tu tesis?</h3>
-                <p>En Tesipedia te asesoramos para que termines tu tesis. Más de 3,000 estudiantes asesorados en México.</p>
+          <div className="bp-layout">
+            {/* ===== Columna principal ===== */}
+            <div className="bp-main">
+              <div className="bp-body">
+                {formatContent(post.content)}
               </div>
-              <div className="bp-cta-banner-actions">
-                <a href="https://wa.me/525670071517" target="_blank" rel="noopener noreferrer" className="bp-cta-wa">
-                  <FaWhatsapp /> Cotiza Gratis
-                </a>
-                <Link to="/preguntas-frecuentes" className="bp-cta-faq">Preguntas Frecuentes</Link>
-              </div>
-            </div>
 
-            {/* ── FAQ (preguntas frecuentes del artículo) ── */}
-            {post.faq && post.faq.length > 0 && (
-              <section className="bp-faq">
-                <h2 className="bp-faq-title">Preguntas frecuentes</h2>
-                <div className="bp-faq-list">
-                  {post.faq.map((f, i) => (
-                    <details key={i} className="bp-faq-item">
-                      <summary className="bp-faq-q">{f.q}</summary>
-                      <p className="bp-faq-a">{f.a}</p>
-                    </details>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* ── Related Posts ── */}
-            {relatedPosts.length > 0 && (
-              <section className="bp-related">
-                <h2 className="bp-related-title">Artículos relacionados</h2>
-                <div className="bp-related-grid">
-                  {relatedPosts.map(rp => (
-                    <Link key={rp.id} to={`/blog/${rp.slug}`} className="bp-related-card">
-                      <div className="bp-related-card-img">
-                        <BlogPostImage src={rp.image} alt={rp.title} index={rp.id} className="bp-related-img" />
-                      </div>
-                      <div className="bp-related-card-body">
-                        <span
-                          className="bp-tag bp-tag-sm"
-                          style={{ color: getCategoryColor(rp.category), backgroundColor: getCategoryBg(rp.category) }}
-                        >
-                          {rp.category}
-                        </span>
-                        <h3>{rp.title}</h3>
-                        <span className="bp-related-card-meta">{formatDate(rp.date)} · {rp.readTime}</span>
-                      </div>
+              {/* ── Preview dinámico de la muestra (antes del CTA) ── */}
+              {guia?.muestraUrl && (
+                <section className="bp-preview">
+                  <div className="bp-preview-head">
+                    <span className="bp-preview-kicker"><FaFilePdf /> Vista previa · muestra gratis</span>
+                    <h2>Hojéala antes de comprar</h2>
+                    <p>Estas son las primeras páginas de <strong>{guia.nombre}</strong>. Descárgala o llévate la guía completa.</p>
+                  </div>
+                  <div className="bp-preview-doc">
+                    <iframe
+                      title={`Muestra — ${guia.nombre}`}
+                      src={`${guia.muestraUrl}#toolbar=0&navpanes=0&view=FitH`}
+                      className="bp-preview-frame" loading="lazy"
+                    />
+                    <div className="bp-preview-fade" />
+                    <div className="bp-preview-badge"><FaFilePdf /> PDF · muestra</div>
+                  </div>
+                  <div className="bp-preview-actions">
+                    <Link to={`/guias/${guia.id}`} className="bp-guia-buy" data-track-cta={`blog_preview_${guia.id}`}>
+                      Ver guía completa · ${guia.precio} MXN <FaArrowRight />
                     </Link>
-                  ))}
-                </div>
-              </section>
-            )}
+                    <a href={guia.muestraUrl} target="_blank" rel="noopener noreferrer" className="bp-guia-sample">
+                      <FaFilePdf /> Descargar muestra
+                    </a>
+                  </div>
+                </section>
+              )}
 
-            {/* ── Back ── */}
-            <div className="bp-back">
-              <Link to="/blog" className="bp-back-btn"><FaArrowLeft /> Volver al blog</Link>
+              {/* ── CTA Banner ── */}
+              <div className="bp-cta-banner">
+                <div className="bp-cta-banner-content">
+                  <h3>¿Necesitas ayuda con tu tesis?</h3>
+                  <p>En Tesipedia te asesoramos para que termines tu tesis. Más de 3,000 estudiantes asesorados en México.</p>
+                </div>
+                <div className="bp-cta-banner-actions">
+                  <a href={BP_WA} target="_blank" rel="noopener noreferrer" className="bp-cta-wa">
+                    <FaWhatsapp /> Cotiza Gratis
+                  </a>
+                  <Link to="/preguntas-frecuentes" className="bp-cta-faq">Preguntas Frecuentes</Link>
+                </div>
+              </div>
+
+              {/* ── FAQ (preguntas frecuentes del artículo) ── */}
+              {post.faq && post.faq.length > 0 && (
+                <section className="bp-faq">
+                  <h2 className="bp-faq-title">Preguntas frecuentes</h2>
+                  <div className="bp-faq-list">
+                    {post.faq.map((f, i) => (
+                      <details key={i} className="bp-faq-item">
+                        <summary className="bp-faq-q">{f.q}</summary>
+                        <p className="bp-faq-a">{f.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ── Related Posts ── */}
+              {relatedPosts.length > 0 && (
+                <section className="bp-related">
+                  <h2 className="bp-related-title">Artículos relacionados</h2>
+                  <div className="bp-related-grid">
+                    {relatedPosts.map(rp => (
+                      <Link key={rp.id} to={`/blog/${rp.slug}`} className="bp-related-card">
+                        <div className="bp-related-card-img">
+                          <BlogPostImage src={rp.image} alt={rp.title} index={rp.id} className="bp-related-img" />
+                        </div>
+                        <div className="bp-related-card-body">
+                          <span
+                            className="bp-tag bp-tag-sm"
+                            style={{ color: getCategoryColor(rp.category), backgroundColor: getCategoryBg(rp.category) }}
+                          >
+                            {rp.category}
+                          </span>
+                          <h3>{rp.title}</h3>
+                          <span className="bp-related-card-meta">{formatDate(rp.date)} · {rp.readTime}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ── Back ── */}
+              <div className="bp-back">
+                <Link to="/blog" className="bp-back-btn"><FaArrowLeft /> Volver al blog</Link>
+              </div>
             </div>
+
+            {/* ===== Sidebar: secciones de Tesipedia ===== */}
+            <aside className="bp-rail" aria-label="Recursos de Tesipedia">
+              <div className="bp-rail-sticky">
+                <div className="bp-rail-card bp-rail-scan">
+                  <span className="bp-rail-ico"><FaRobot /></span>
+                  <h3>Detector de IA</h3>
+                  <p>Mide cuánta IA se detecta en tu tesis y cómo reducirla, oración por oración.</p>
+                  <Link to="/detector-ia-tesis" className="bp-rail-btn">Probar el detector <FaChevronRight /></Link>
+                </div>
+
+                <div className="bp-rail-card bp-rail-guia">
+                  <span className="bp-rail-tag"><FaBookOpen /> Guía · PDF</span>
+                  <h3>{railGuia.kicker}</h3>
+                  <p>{railGuia.resumen}</p>
+                  <Link to={`/guias/${railGuia.id}`} className="bp-rail-btn bp-rail-btn-amber">Ver la guía · ${railGuia.precio} <FaChevronRight /></Link>
+                </div>
+
+                {relatedPosts.length > 0 && (
+                  <div className="bp-rail-block">
+                    <h3 className="bp-rail-title">Sigue leyendo</h3>
+                    <div className="bp-rail-list">
+                      {relatedPosts.slice(0, 4).map(rp => (
+                        <Link key={rp.id} to={`/blog/${rp.slug}`} className="bp-rail-item">
+                          <span className="bp-rail-thumb">
+                            <BlogPostImage src={rp.image} alt={rp.title} index={rp.id} className="bp-rail-thumb-img" />
+                          </span>
+                          <span className="bp-rail-item-txt">
+                            <span className="bp-rail-cat" style={{ color: getCategoryColor(rp.category) }}>{rp.category}</span>
+                            <span className="bp-rail-h">{rp.title}</span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <a href={BP_WA} target="_blank" rel="noopener noreferrer" className="bp-rail-cta">
+                  <b>Asesoría de tesis</b>
+                  <span>Habla con un especialista por WhatsApp <FaWhatsapp /></span>
+                </a>
+              </div>
+            </aside>
           </div>
         </Container>
       </article>

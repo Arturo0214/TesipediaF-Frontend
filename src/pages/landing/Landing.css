@@ -686,3 +686,22 @@
 .landing-guide-block { margin-bottom: 1.4rem; }
 .landing-guide-block h3 { font-size: 1.12rem; margin-bottom: 0.4rem; }
 .landing-guide-block p { line-height: 1.7; color: inherit; }
+
+/* ── Guía descargable de la carrera (producto) ── */
+.car-guia { display: grid; grid-template-columns: 1fr 340px; gap: 44px; align-items: center;
+  background: linear-gradient(135deg, #0A1E44 0%, #10357F 60%, #1D4ED8 100%);
+  border-radius: 20px; padding: 40px 44px; color: #fff; box-shadow: 0 26px 60px rgba(9,24,64,.3); }
+.car-guia-kicker { display: inline-flex; align-items: center; gap: 8px; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #FBBF24; }
+.car-guia-copy h2 { color: #fff; font-size: clamp(1.5rem, 2.6vw, 2rem); line-height: 1.12; margin: 12px 0 12px; }
+.car-guia-copy p { color: rgba(255,255,255,.85); font-size: 1.02rem; line-height: 1.55; margin: 0 0 22px; max-width: 46ch; }
+.car-guia-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.car-guia-sample { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700; color: #fff; }
+.car-guia-sample svg { color: #FBBF24; }
+.car-guia-art { display: flex; justify-content: center; }
+.car-guia-art .gps { width: 300px; }
+@media (max-width: 900px) {
+  .car-guia { grid-template-columns: 1fr; gap: 24px; padding: 30px 22px; text-align: center; }
+  .car-guia-copy p { margin-left: auto; margin-right: auto; }
+  .car-guia-actions { justify-content: center; }
+  .car-guia-art { order: -1; }
+}

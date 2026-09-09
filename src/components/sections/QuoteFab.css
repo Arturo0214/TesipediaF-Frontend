@@ -1,0 +1,65 @@
+/* ============ FAB "Cotizar mi tesis" + formulario flotante ============ */
+.qf-launch {
+  position: fixed; right: 22px; bottom: 154px; z-index: 1400;
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--font-sans); font-weight: 700; font-size: 0.94rem; color: #fff;
+  padding: 13px 20px; border: none; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(135deg, #2F6BFF, #1D4ED8);
+  box-shadow: 0 12px 30px rgba(29,78,216,0.42), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease;
+}
+.qf-launch:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 16px 38px rgba(29,78,216,0.5); }
+.qf-launch svg { font-size: 1rem; }
+.qf-launch-pulse { position: absolute; top: 9px; right: 12px; width: 9px; height: 9px; border-radius: 50%; background: #F6CE5B; box-shadow: 0 0 0 0 rgba(246,206,91,.7); animation: qfPulse 1.8s infinite; }
+@keyframes qfPulse { 0%{box-shadow:0 0 0 0 rgba(246,206,91,.6);} 70%{box-shadow:0 0 0 9px rgba(246,206,91,0);} 100%{box-shadow:0 0 0 0 rgba(246,206,91,0);} }
+
+/* overlay + panel */
+.qf-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(7,20,45,0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.qf-panel {
+  position: relative; width: 100%; max-width: 430px; background: #fff; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 40px 90px rgba(7,20,45,0.4); font-family: var(--font-sans);
+}
+.qf-close { position: absolute; top: 14px; right: 14px; z-index: 2; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,0.16); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+.qf-close:hover { background: rgba(255,255,255,0.28); }
+
+.qf-head { background: linear-gradient(150deg, var(--navy-900), var(--navy-700)); color: #fff; padding: 26px 26px 20px; }
+.qf-kicker { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #F6CE5B; margin-bottom: 8px; }
+.qf-head h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.5rem; margin: 0 0 14px; color: #fff; letter-spacing: -0.01em; }
+.qf-steps { height: 5px; border-radius: 999px; background: rgba(255,255,255,0.16); overflow: hidden; }
+.qf-steps-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #F6CE5B, #E0A62A); transition: width .35s cubic-bezier(.22,1,.36,1); }
+.qf-step-n { display: block; margin-top: 8px; font-size: 0.74rem; color: rgba(255,255,255,0.7); font-weight: 600; }
+
+.qf-body { padding: 22px 26px 8px; display: flex; flex-direction: column; gap: 12px; }
+.qf-field { display: flex; align-items: center; gap: 11px; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 14px; background: #FBFCFE; transition: border-color .2s, box-shadow .2s; }
+.qf-field:focus-within { border-color: var(--gold-500); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); background: #fff; }
+.qf-field > svg { color: var(--gold-500); flex-shrink: 0; font-size: 0.95rem; }
+.qf-field input, .qf-field select { flex: 1; border: none; outline: none; background: none; padding: 13px 0; font-family: var(--font-sans); font-size: 0.96rem; color: var(--ink); }
+.qf-field select { cursor: pointer; }
+.qf-field-lbl { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+.qf-hint { font-size: 0.8rem; color: var(--muted); margin: 2px 0 0; line-height: 1.4; }
+.qf-err { font-size: 0.85rem; color: var(--danger); font-weight: 600; margin: 0; }
+
+.qf-actions { display: flex; gap: 10px; padding: 8px 26px 24px; }
+.qf-back { flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--line); background: #fff; color: var(--ink-2); font-weight: 600; font-size: 0.92rem; padding: 13px 18px; border-radius: 12px; cursor: pointer; transition: border-color .2s; }
+.qf-back:hover { border-color: var(--navy-700); }
+.qf-next { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: none; border-radius: 12px; cursor: pointer; font-family: var(--font-sans); font-weight: 700; font-size: 1rem; color: #fff; padding: 14px; background: var(--wa); box-shadow: 0 8px 20px rgba(31,168,85,0.32); transition: background .18s, transform .16s; }
+.qf-next:hover:not(:disabled) { background: var(--wa-dark); transform: translateY(-1px); }
+.qf-next:disabled { opacity: .7; cursor: default; }
+
+/* éxito */
+.qf-success { text-align: center; padding: 40px 30px 34px; }
+.qf-success-ico { font-size: 3rem; color: #2FBF6E; margin-bottom: 14px; animation: qfPop .5s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes qfPop { from { transform: scale(0); } to { transform: scale(1); } }
+.qf-success h3 { font-family: var(--font-display); font-weight: 700; color: var(--navy-900); font-size: 1.5rem; margin: 0 0 10px; }
+.qf-success p { color: var(--muted); font-size: 0.98rem; line-height: 1.55; margin: 0 0 20px; }
+.qf-success strong { color: var(--navy-900); }
+.qf-wa { display: inline-flex; align-items: center; gap: 9px; background: var(--wa); color: #fff; text-decoration: none; font-weight: 700; padding: 13px 24px; border-radius: 12px; box-shadow: 0 8px 20px rgba(31,168,85,0.32); transition: background .18s; }
+.qf-wa:hover { background: var(--wa-dark); color: #fff; }
+
+@media (max-width: 560px) {
+  .qf-launch { bottom: 148px; right: 16px; padding: 12px 16px; font-size: 0.88rem; }
+  .qf-launch span:not(.qf-launch-pulse) { display: inline; }
+  .qf-overlay { align-items: flex-end; padding: 0; }
+  .qf-panel { max-width: 100%; border-radius: 22px 22px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) { .qf-launch:hover { transform: none; } .qf-launch-pulse { animation: none; } }

@@ -39,6 +39,10 @@ const AsesoriaTesis = lazy(() => import('./pages/landing/AsesoriaTesis'));
 const CotizarLanding = lazy(() => import('./pages/landing/CotizarLanding'));
 const CuantoCuestaUnaTesis = lazy(() => import('./pages/landing/CuantoCuestaUnaTesis'));
 const AyudaConTesis = lazy(() => import('./pages/landing/AyudaConTesis'));
+const DetectorIA = lazy(() => import('./pages/landing/DetectorIA'));
+const GuiaProducto = lazy(() => import('./pages/guias/GuiaProducto'));
+const GuiaGracias = lazy(() => import('./pages/guias/GuiaGracias'));
+const GuiasIndex = lazy(() => import('./pages/guias/GuiasIndex'));
 
 // SEO Landing Pages programáticas (por universidad y por carrera)
 const TesisUniversidadLanding = lazy(() => import('./pages/landing/TesisUniversidadLanding'));
@@ -95,6 +99,10 @@ const router = createBrowserRouter(
         { path: 'cotizar', element: <LazyPage><CotizarLanding /></LazyPage> },
         { path: 'cuanto-cuesta-una-tesis', element: <LazyPage><CuantoCuestaUnaTesis /></LazyPage> },
         { path: 'ayuda-con-tesis', element: <LazyPage><AyudaConTesis /></LazyPage> },
+        { path: 'detector-ia-tesis', element: <LazyPage><DetectorIA /></LazyPage> },
+        { path: 'guias', element: <LazyPage><GuiasIndex /></LazyPage> },
+        { path: 'guias/gracias', element: <LazyPage><GuiaGracias /></LazyPage> },
+        { path: 'guias/:id', element: <LazyPage><GuiaProducto /></LazyPage> },
         // Landings programáticas por universidad (/tesis-unam, /tesis-ipn, ...)
         ...universidades.map((u) => ({
           path: u.slug,

@@ -1,0 +1,220 @@
+/* =====================================================================
+   TESIPEDIA — Sistema de diseño "Autoridad Editorial"
+   Paleta navy + dorado sobre marfil, titulares serif.
+   Tokens + base tipográfica + utilidades reutilizables en TODO el sitio.
+   ===================================================================== */
+
+:root {
+  /* --- Marca: AZULES DE EXCELENCIA (tinta profunda + royal + eléctrico) --- */
+  --navy-900: #071A3A;   /* tinta azul profunda (texto/oscuro) */
+  --navy-800: #0C2551;
+  --navy-700: #123168;
+  --navy-600: #1B4290;
+  --navy-050: #EDF2FB;
+
+  /* Acento azul (los tokens conservan el nombre --gold-* para no reescribir todo el sitio) */
+  --gold-600: #1D4ED8;   /* royal profundo (hover/enlaces) */
+  --gold-500: #2563EB;   /* PRIMARIO royal blue */
+  --gold-400: #3B82F6;   /* azul claro */
+  --gold-200: #BBD1FF;   /* borde claro */
+  --gold-100: #DBE7FF;
+  --gold-050: #EEF3FF;   /* tinte de fondo */
+  --accent-cyan: #06B6D4; /* pop eléctrico puntual */
+
+  /* Acento CÁLIDO (ámbar) para contraste — rompe el monocromo azul.
+     Uso: kickers de sección, estrellas de rating, comillas, descuentos. NO en CTA. */
+  --amber-600: #B4770A;
+  --amber-500: #F5B301;
+  --amber-400: #FBBF24;
+  --amber-200: #FBE29A;
+  --amber-050: #FFF6E0;
+
+  /* Superficies frías (antes marfil) */
+  --ivory:   #F5F8FD;
+  --ivory-2: #EBF1FA;
+  --ivory-3: #DDE7F5;
+
+  --ink:    #0C1B33;     /* texto principal sobre claro */
+  --ink-2:  #2A3A55;
+  --muted:  #5A6B85;     /* texto secundario */
+  --muted-2:#8494AC;
+  --line:   #E1E8F3;     /* bordes fríos */
+  --line-2: #EBF0F8;
+  --white:  #ffffff;
+
+  --wa:      #1FA855;    /* verde WhatsApp (CTA) */
+  --wa-dark: #178a45;
+  --success: #1E8E4E;
+  --danger:  #B4232A;
+
+  /* --- Tipografía moderna --- */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif; /* titulares */
+  --font-serif:   'Schibsted Grotesk', system-ui, sans-serif;   /* leads (mismo palo, sin serif) */
+  --font-sans:    'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* --- Radios / sombras / rejilla --- */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --sh-sm: 0 1px 2px rgba(11,31,58,0.06);
+  --sh-md: 0 8px 24px rgba(11,31,58,0.10);
+  --sh-lg: 0 24px 56px rgba(11,31,58,0.16), 0 4px 12px rgba(11,31,58,0.06);
+  --sh-gold: 0 10px 26px rgba(37,99,235,0.30);
+
+  --container: 1160px;
+  --container-narrow: 820px;
+}
+
+/* ===================== BASE TIPOGRÁFICA (global) ===================== */
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background-color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6,
+.ds-serif {
+  font-family: var(--font-display);
+  color: var(--navy-900);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+h1, .ds-display { font-optical-sizing: auto; }
+
+/* Small-caps label editorial (kicker de sección) — ÁMBAR para contraste */
+.ds-label {
+  font-family: var(--font-sans);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--amber-600);
+}
+/* Numeral grande */
+.ds-numeral { font-family: var(--font-display); font-weight: 700; line-height: 1; color: var(--gold-500); }
+/* Hairline (regla fina editorial) */
+.ds-hair { border: 0; border-top: 1px solid var(--line); }
+.ds-hair--navy { border-top: 1px solid rgba(11,31,58,0.16); }
+.ds-hair--gold { border-top: 2px solid var(--gold-500); }
+
+/* ===================== UTILIDADES ===================== */
+.ds-container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 24px; }
+.ds-container--narrow { max-width: var(--container-narrow); }
+
+.ds-section { padding: clamp(56px, 8vw, 104px) 0; }
+.ds-section--ivory { background: var(--ivory); }
+.ds-section--navy { background: var(--navy-900); color: #E9EEF5; }
+.ds-section--navy h2, .ds-section--navy h3 { color: #fff; }
+
+/* Kicker / eyebrow — etiqueta pequeña dorada */
+.ds-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.74rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--amber-600);
+}
+.ds-kicker::before {
+  content: ""; width: 26px; height: 2px; background: var(--amber-500); display: inline-block;
+}
+
+.ds-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--white); border: 1px solid var(--gold-200);
+  color: var(--gold-600); font-weight: 700; font-size: 0.8rem;
+  padding: 7px 15px; border-radius: var(--r-pill); box-shadow: var(--sh-sm);
+}
+.ds-eyebrow svg { color: var(--gold-500); }
+
+/* Títulos de sección */
+.ds-h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); margin: 14px 0 14px; }
+.ds-lead { font-size: clamp(1.02rem, 1.5vw, 1.18rem); line-height: 1.7; color: var(--muted); max-width: 640px; }
+
+/* Botones */
+.ds-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-family: var(--font-sans); font-weight: 700; font-size: 1rem;
+  padding: 15px 28px; border-radius: var(--r-md); text-decoration: none;
+  border: 1.5px solid transparent; cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease, color .16s ease;
+}
+.ds-btn:hover { transform: translateY(-2px); }
+.ds-btn--primary { background: var(--gold-500); color: #fff; box-shadow: var(--sh-gold); }
+.ds-btn--primary:hover { background: var(--gold-600); color: #fff; }
+.ds-btn--navy { background: var(--navy-900); color: #fff; }
+.ds-btn--navy:hover { background: var(--navy-800); color: #fff; box-shadow: var(--sh-md); }
+.ds-btn--wa { background: var(--wa); color: #fff; box-shadow: 0 8px 20px rgba(31,168,85,.26); }
+.ds-btn--wa:hover { background: var(--wa-dark); color: #fff; }
+.ds-btn--ghost { background: transparent; border-color: var(--line); color: var(--navy-900); }
+.ds-btn--ghost:hover { border-color: var(--gold-400); background: var(--gold-050); color: var(--navy-900); }
+.ds-btn--ghost-light { background: transparent; border-color: rgba(255,255,255,.28); color: #fff; }
+.ds-btn--ghost-light:hover { border-color: var(--gold-400); color: #fff; background: rgba(255,255,255,.06); }
+
+/* Tarjeta */
+.ds-card {
+  background: var(--white); border: 1px solid var(--line-2); border-radius: var(--r-lg);
+  padding: 26px; box-shadow: var(--sh-sm);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.ds-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); border-color: var(--gold-200); }
+
+/* Regla decorativa */
+.ds-rule { width: 64px; height: 3px; background: var(--gold-500); border: 0; border-radius: 2px; }
+
+/* ===================== CTA DE CONVERSIÓN (WhatsApp, sólido) ===================== */
+.ds-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-sans); font-weight: 700; font-size: 1.02rem; letter-spacing: 0.005em;
+  color: #fff; text-decoration: none; cursor: pointer;
+  padding: 16px 30px; border: none; border-radius: 12px;
+  background: var(--wa);
+  box-shadow: 0 8px 22px rgba(31,168,85,0.32);
+  transition: transform .16s cubic-bezier(.22,1,.36,1), box-shadow .16s ease, background .16s ease;
+}
+.ds-cta:hover { background: var(--wa-dark); color: #fff; transform: translateY(-2px); box-shadow: 0 12px 28px rgba(31,168,85,0.42); }
+.ds-cta svg { transition: transform .2s ease; }
+.ds-cta:hover svg { transform: scale(1.08); }
+@media (prefers-reduced-motion: reduce) { .ds-cta:hover { transform: none; } }
+
+/* Texto con acento serif dorado dentro de titulares */
+.ds-accent { color: var(--gold-600); font-style: italic; }
+
+/* Fondo con textura sutil de "papel" para secciones marfil */
+.ds-paper {
+  background-color: var(--ivory);
+  background-image: radial-gradient(rgba(200,150,30,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-btn:hover, .ds-card:hover { transform: none; }
+}
+
+/* ===================== FOOTER (global, navy editorial) ===================== */
+.ds-footer {
+  background: var(--navy-900);
+  color: #C9D3E0;
+  border-top: 3px solid var(--gold-500);
+}
+.ds-footer h5 {
+  font-family: var(--font-serif);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ds-footer p, .ds-footer li, .ds-footer a { color: #C9D3E0 !important; }
+.ds-footer a { text-decoration: none; transition: color .18s ease; }
+.ds-footer a:hover { color: var(--gold-400) !important; }
+.ds-footer .social-links a {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+}
+.ds-footer .social-links a:hover { background: var(--gold-500); border-color: var(--gold-500); }
+.ds-footer .social-links a:hover svg { color: var(--navy-900); }
+.ds-footer hr { border-color: rgba(255,255,255,0.12); opacity: 1; }
+.ds-footer strong { color: #fff; }

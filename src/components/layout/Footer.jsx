@@ -6,14 +6,14 @@ import { carreras } from '../../data/seoCarreras';
 
 export function Footer() {
     return (
-        <footer className="bg-dark text-light py-5">
+        <footer className="ds-footer text-light py-5">
             <Container>
                 <Row className="g-4">
                     <Col md={4}>
                         <h5 className="mb-3">Tesipedia</h5>
                         <p className="mb-3">
-                            Desarrollamos tesis profesionales con metodología y asesoría personalizada.
-                            Más de 3,000 estudiantes titulados confían en nosotros.
+                            Asesoría y acompañamiento profesional para que redactes tu propia tesis, con
+                            metodología y guía personalizada. Más de 3,000 estudiantes asesorados confían en nosotros.
                         </p>
                         <div className="social-links" role="navigation" aria-label="Redes sociales">
                             <a href="https://www.facebook.com/tesipedia" target="_blank" rel="noopener noreferrer" className="me-3 text-light" aria-label="Síguenos en Facebook">

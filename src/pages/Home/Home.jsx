@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet-async';
 // Critical above-the-fold component loaded eagerly
 import HeroSection from '../../components/HomeComponents/HeroSection/HeroSection';
 import {
-  TrustBar, HowItWorks, RealTimeTracking, WhyTesipedia, LevelsPricing,
+  TrustBar, ScannerTeaser, HowItWorks, RealTimeTracking, WhyTesipedia, LevelsPricing,
   SuccessStories, SpecialOffer, ExploreLinks, SeoBlock, HomeFAQ, FinalCTA,
 } from '../../components/HomeComponents/HomeSections';
 
@@ -223,10 +223,11 @@ function Home() {
 
       <HeroSection onOpenChat={handleOpenChat} />
       <TrustBar />
+      <ScannerTeaser />
+      <LevelsPricing />
       <HowItWorks />
       <RealTimeTracking />
       <WhyTesipedia />
-      <LevelsPricing />
       <SuccessStories />
       <SpecialOffer />
       <ExploreLinks />
