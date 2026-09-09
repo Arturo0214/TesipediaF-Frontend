@@ -47,8 +47,10 @@ const GuiasIndex = lazy(() => import('./pages/guias/GuiasIndex'));
 // SEO Landing Pages programáticas (por universidad y por carrera)
 const TesisUniversidadLanding = lazy(() => import('./pages/landing/TesisUniversidadLanding'));
 const TesisCarreraLanding = lazy(() => import('./pages/landing/TesisCarreraLanding'));
+const LineamientosUniversidad = lazy(() => import('./pages/lineamientos/LineamientosUniversidad'));
 import { universidades } from './data/seoUniversidades';
 import { carreras } from './data/seoCarreras';
+import { LINEAMIENTOS } from './data/lineamientos';
 
 // Lazy load protected layouts and pages (not needed on initial load)
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
@@ -112,6 +114,11 @@ const router = createBrowserRouter(
         ...carreras.map((c) => ({
           path: c.slug,
           element: <LazyPage><TesisCarreraLanding slug={c.slug} /></LazyPage>,
+        })),
+        // Fichas gratuitas de lineamientos de titulación por universidad (/titulacion-unam, ...)
+        ...LINEAMIENTOS.map((l) => ({
+          path: l.lineSlug,
+          element: <LazyPage><LineamientosUniversidad slug={l.lineSlug} /></LazyPage>,
         })),
         { path: 'payment/success', element: <LazyPage><PaymentSuccess /></LazyPage> },
         { path: 'payment/cancel', element: <LazyPage><PaymentCancel /></LazyPage> },

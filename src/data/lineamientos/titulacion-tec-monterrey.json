@@ -1,0 +1,80 @@
+{
+  "lineSlug": "titulacion-tec-monterrey",
+  "landingSlug": "tesis-tec-monterrey",
+  "guiaId": "tesis-tec",
+  "sigla": "Tec de Monterrey",
+  "nombre": "Tecnológico de Monterrey",
+  "ciudad": "Monterrey",
+  "titulo": "Titulación en la Tec de Monterrey: opciones, requisitos y documentos",
+  "intro": "En el Tec de Monterrey la titulación por tesis pertenece al posgrado: en licenciatura el título se obtiene al cumplir requisitos de graduación, sin trabajo recepcional ni réplica.",
+  "resumen": "El Reglamento Académico para Estudiantes de Carreras Profesionales no contempla la tesis como opción de titulación en licenciatura, donde el título se logra cumpliendo requisitos acumulativos del modelo Tec21. La tesis existe en posgrado: es la vía central de maestría y doctorado, con defensa previa ante comité y examen de grado ante jurado. El repositorio institucional es RITEC.",
+  "opciones": [
+    {"nombre": "Licenciatura por requisitos de graduación", "detalle": "El artículo 6.1 fija siete requisitos acumulativos, sin menú de opciones ni tesis ni réplica."},
+    {"nombre": "Examen externo o de egreso", "detalle": "En licenciatura es requisito obligatorio para todos, autorizado por la Vicerrectoría, no una opción entre varias."},
+    {"nombre": "Tesis de posgrado", "detalle": "Vía central de maestría y doctorado: proyecto de investigación o tesis presentado y aprobado en examen de grado ante jurado (art. 6.1 y 5.9 del reglamento de posgrado)."}
+  ],
+  "requisitos": [
+    "Licenciatura: cubrir todas las unidades de formación del plan, incluidas las Semanas Tec, con al menos 144 Unidades de Carga Académica.",
+    "Licenciatura: haber cursado y aprobado en el Tec por lo menos el 50 por ciento de los créditos académicos.",
+    "Licenciatura: cumplir el servicio social (480 horas) y demostrar el nivel de inglés del programa, B2 o C1.",
+    "Licenciatura: presentar el examen externo autorizado por la Vicerrectoría, con el taller de preparación en octavo semestre.",
+    "Posgrado: promedio de calificaciones finales igual o superior a 80 (art. 6.1, fracción 4).",
+    "Posgrado: elaborar una tesis o proyecto de investigación presentado y aprobado en examen de grado ante jurado (art. 6.1, fracción 5).",
+    "Posgrado: entregar el reporte de originalidad generado por la herramienta tecnológica institucional (art. 6.1, fracción 5.a).",
+    "Posgrado: firmar la declaración de integridad académica (art. 6.1, fracción 5.b)."
+  ],
+  "documentos": [
+    "Posgrado: reporte de originalidad del proyecto o tesis generado por la herramienta tecnológica (art. 6.1, fracción 5.a).",
+    "Posgrado: declaración firmada de integridad académica (art. 6.1, fracción 5.b).",
+    "Doctorado: carta de compromiso ético, nombre que usa el Doctorado en Estudios Humanísticos.",
+    "Posgrado y doctorado: Formato de declaración de acuerdo para enviar el archivo a RITEC.",
+    "Licenciatura: certificación de inglés validada por el centro de idiomas, B2 o C1 según el programa.",
+    "Licenciatura: constancia de servicio social de 480 horas.",
+    "Licenciatura: resultado del examen externo o de egreso autorizado por la Vicerrectoría."
+  ],
+  "proceso": [
+    "Posgrado: cursar y aprobar las unidades de formación del programa con promedio igual o superior a 80.",
+    "Posgrado: desarrollar la tesis o el proyecto de investigación bajo la conducción del programa.",
+    "Posgrado: integrar el comité de tesis de tres o cinco personas, con al menos dos profesores del Tec cuando sea de tres.",
+    "Posgrado: generar el reporte de originalidad con la herramienta tecnológica institucional.",
+    "Posgrado: firmar la declaración de integridad académica.",
+    "Posgrado: presentar la defensa previa de tesis ante el comité, con hasta dos intentos.",
+    "Posgrado: concluir la última unidad de formación del programa.",
+    "Posgrado: presentar el examen de grado ante jurado académico, en sesión pública o privada.",
+    "Posgrado: depositar la versión final en RITEC con el Formato de declaración de acuerdo, validado por Biblioteca y Servicios Escolares.",
+    "Posgrado: realizar el trámite de grado ante Servicios Escolares del campus."
+  ],
+  "tiempos": "En posgrado el plazo máximo para graduarse lo define cada programa, sin exceder el doble de su duración (art. 6.1, fracción 9), y la defensa previa de tesis admite un máximo de dos intentos (art. 5.9). En licenciatura el examen de egreso se presenta en octavo semestre y se cursan hasta tres Semanas Tec por semestre.",
+  "notas": [
+    "Hallazgo central: el reglamento de profesional no contempla la tesis como requisito ni como opción de titulación en licenciatura; el título se obtiene al cumplir requisitos de graduación.",
+    "El posgrado sí requiere tesis o proyecto de investigación con defensa previa ante comité y examen de grado ante jurado.",
+    "RITEC conserva una colección de Tesis de Licenciatura que acredita que hubo trabajos de ese tipo, pero conviene tratarla como acervo histórico hasta confirmarlo con Servicios Escolares.",
+    "El Doctorado en Estudios Humanísticos añade la publicación de al menos un resultado de investigación en medios de alto impacto y nombra Ithenticate como herramienta antiplagio.",
+    "El detalle documental del trámite de titulación no está publicado en abierto: se gestiona en el portal de alumnos y en Servicios Escolares del campus.",
+    "La norma es institucional y única; la ventanilla del trámite es local en cada campus."
+  ],
+  "fuentes": [
+    {"label": "Reglamento Académico para Estudiantes de Carreras Profesionales, Edición 2025", "url": "https://tec.mx/sites/default/files/2025-07/reg-academico-profesional.pdf"},
+    {"label": "Reglamento Académico para los Alumnos de Programas de Posgrado, edición junio de 2024", "url": "https://sitios.itesm.mx/va/reglamentos/reglamento_academico_posgrado.pdf"},
+    {"label": "Requisitos de graduación Tec 21, campus Monterrey", "url": "https://ladmty.tec.mx/es/requisitos-de-graduacion-tec-21"},
+    {"label": "Requisitos de graduación, Doctorado en Estudios Humanísticos", "url": "https://doctoradoestudioshumanisticosccm.tec.mx/es/requisitos-de-graduacion"},
+    {"label": "Biblioteca te informa, tesis en RITEC", "url": "https://biblioteca.tec.mx/bibliotecateinforma/blog/TesisRITEC22"},
+    {"label": "Repositorio Institucional RITEC", "url": "https://repositorio.tec.mx/"},
+    {"label": "Duplicado del Título, Grado o Diploma Impreso", "url": "https://market.tec.mx/duplicado-del-titulo-grado-o-diploma-42/p"}
+  ],
+  "sinConfirmar": [
+    "Edición vigente del reglamento de posgrado: existe un PDF de febrero de 2026 que no se pudo abrir; los artículos 5.9, 5.10 y 6.1 podrían haber cambiado de numeración o contenido.",
+    "Si algún programa de licenciatura conserva la tesis: el reglamento no la menciona y RITEC conserva una colección de tesis de licenciatura; hay que aclarar si es acervo histórico.",
+    "Nombre y alcance del examen externo o de egreso: falta el nombre comercial y el instrumento aplicado.",
+    "Expediente documental del trámite de título: no está publicado en abierto.",
+    "Costos de titulación y de expedición de título: no están publicados en abierto; el único costo relacionado hallado es el duplicado de título en 1,100 pesos.",
+    "Guía de formato de tesis: no se localizó plantilla institucional pública; cada programa fija sus lineamientos editoriales.",
+    "Herramienta antiplagio institucional: el reglamento habla de la herramienta tecnológica sin nombrarla, y un doctorado nombra Ithenticate.",
+    "Pasos exactos del depósito en RITEC: la página de instrucciones devolvió error de acceso.",
+    "Variación por campus de las cifras Tec21: las 21 Semanas Tec, las 144 Unidades de Carga Académica y las 480 horas provienen del sitio del campus Monterrey."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación Tec de Monterrey 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "En el Tec de Monterrey la tesis es de posgrado, no de licenciatura. Requisitos de graduación Tec21, tesis de maestría y doctorado, proceso y documentos oficiales.",
+  "keywords": "titulación tec de monterrey, tesis tec de monterrey, tesis posgrado tec, requisitos graduación tec21, examen de grado tec, RITEC tesis"
+}

@@ -1,0 +1,87 @@
+{
+  "lineSlug": "titulacion-uaemex",
+  "landingSlug": "tesis-uaemex",
+  "guiaId": "tesis-uaemex",
+  "sigla": "UAEMéx",
+  "nombre": "Universidad Autónoma del Estado de México",
+  "ciudad": "Toluca",
+  "titulo": "Titulación en la UAEMéx: opciones, requisitos y documentos",
+  "intro": "En la UAEMéx el trámite se llama Evaluación Profesional y se rige por el Reglamento de Evaluación Profesional, que reconoce la tesis como una de sus trece opciones.",
+  "resumen": "El Reglamento de Evaluación Profesional de la UAEMéx enumera trece opciones de titulación, entre ellas la tesis (artículos 76 a 82). La tesis culmina en una sustentación pública con réplica ante un jurado de tres propietarios y un suplente, y exige un reporte de similitud con máximo de 20 por ciento. El Reglamento define el marco y cada espacio académico opera el trámite mediante su Departamento de Evaluación Profesional.",
+  "opciones": [
+    {"nombre": "Tesis", "detalle": "Trabajo escrito sobre una investigación documental, experimental, empírica o teórica, con sustentación ante jurado (art. 76)."},
+    {"nombre": "Tesina", "detalle": "Modalidad escrita regulada en el artículo 70."},
+    {"nombre": "Aprovechamiento académico", "detalle": "Titulación por promedio; exige 9.0 general, u 8.5 en ingeniería y tecnología y en ciencias naturales y exactas, con trayectoria ininterrumpida (art. 13 y 14)."},
+    {"nombre": "Ensayo", "detalle": "Opción escrita regulada en el artículo 23."},
+    {"nombre": "Examen General de Egreso", "detalle": "EGEL como vía de titulación (art. 29)."},
+    {"nombre": "Memoria de experiencia laboral", "detalle": "Reguladas también obra artística, reportes de aplicación de conocimientos, autoempleo, residencia de investigación y servicio social en salud (art. 31 y siguientes)."},
+    {"nombre": "Artículo especializado", "detalle": "Para publicar en revista indizada (art. 15)."},
+    {"nombre": "Créditos en Estudios Avanzados", "detalle": "Acreditación mediante estudios de posgrado (art. 21)."}
+  ],
+  "requisitos": [
+    "Haber aprobado la totalidad de las unidades de aprendizaje del plan de estudios.",
+    "Contar con el certificado que libera el servicio social (art. 6, fracción IX).",
+    "Acreditar prácticas profesionales cuando el plan las contemple.",
+    "Presentar la evaluación profesional dentro del doble de la duración total del plan, desde la primera inscripción (art. 5).",
+    "Registrar el tema mediante protocolo, que otorga exclusividad por dos años, renovable hasta dos años más (art. 86).",
+    "Reunir el voto aprobatorio del asesor y de dos revisores (art. 79).",
+    "Presentar un reporte de similitud no mayor al 20 por ciento (art. 79).",
+    "Cumplir la extensión mínima: 60 cuartillas en tesis individual y 80 en colectiva, con interlineado máximo de 1.5 (art. 82)."
+  ],
+  "documentos": [
+    "Solicitud y Registro de Evaluación Profesional (formato 8.1 en la FCA).",
+    "Dictamen de Revisión de protocolo (formato 8.3 en la FCA).",
+    "Voto Aprobatorio del asesor y de los dos revisores (formato 8.5 en la FCA).",
+    "Documentación para la Evaluación Profesional (formato 8.7 en la FCA).",
+    "Carta de Cesión de Derechos de Autor (formato 8.11 en la FCA).",
+    "Certificado de liberación de servicio social y, en su caso, de prácticas profesionales, original y copia.",
+    "Certificados de licenciatura y de bachillerato, acta de nacimiento y CURP certificada.",
+    "Constancia de no adeudo de la UAEM y del espacio académico, y comprobante de pago.",
+    "Cuatro ejemplares del trabajo escrito y fotografías según el formato que pida el espacio académico.",
+    "Carta de autorización para la incorporación al Repositorio Institucional (ri.uaemex.mx)."
+  ],
+  "proceso": [
+    "Elegir la modalidad y verificar la elegibilidad; la subdirección académica confirma la liberación del servicio social y la acreditación del plan (art. 86).",
+    "Registrar el tema con un protocolo que muestre la planeación y el alcance, con propuesta de asesor (art. 86).",
+    "Designar al asesor, personal académico ordinario con experiencia en el área (art. 88 a 92).",
+    "Dictaminar el protocolo; los revisores emiten observaciones en 10 días hábiles y el pasante corrige hasta obtener la aprobación escrita.",
+    "Desarrollar la investigación con asesoría.",
+    "Solicitar la revisión del trabajo concluido, anexando copia digital y el reporte de similitud (art. 93 a 98).",
+    "Reunir los votos aprobatorios por escrito del asesor y de los dos revisores.",
+    "Solicitar la sustentación con votos, cuatro copias digitales, constancia de no adeudos y comprobante de pago (art. 100).",
+    "Integrar el jurado de tres propietarios y un suplente, con notificación de al menos 10 días hábiles (art. 101 a 104).",
+    "Presentar la sustentación y réplica, firmar el acta de evaluación profesional y tramitar el título ante control escolar (art. 105 a 116)."
+  ],
+  "tiempos": "Cada revisor cuenta con 10 días hábiles inaplazables; la fecha de sustentación se comunica en un máximo de 10 días hábiles y el jurado se notifica con 10 días hábiles de antelación. La exclusividad del tema dura 2 años, renovable hasta 2 más. Tras un resultado aplazado hay que esperar mínimo 6 meses (art. 118). El Centro Universitario Teotihuacán publica examen con trabajo escrito en 3,024 pesos y expedición de título en 1,187 pesos, cifras que no son tarifa universitaria única.",
+  "notas": [
+    "El Reglamento es único para toda la universidad, pero cada espacio académico ofrece un subconjunto de las trece opciones: la FCA publica diez y la Facultad de Derecho organiza tres rutas principales.",
+    "Los formatos numerados 8.x cambian de contenido entre facultades: la FCA usa 8.1 a 8.11, la FMVZ usa 8.1 a 8.5 y Ecatepec publica su propio juego de ocho formatos.",
+    "La titulación por promedio se llama aprovechamiento académico y no es lo mismo que la tesis, que no exige promedio mínimo.",
+    "El formato editorial de la tesis lo fija cada espacio académico: la FMVZ pide Times New Roman 12 a doble espacio sin justificar, la Facultad de Derecho pide Arial 12 a 1.5.",
+    "Las fotografías varían por campus: Teotihuacán pide dos semititulo y seis óvalo, Ecatepec pide cuatro tamaño pasaporte con fondo gris.",
+    "El título puede anularse dentro de los cinco años posteriores a la sustentación si se comprueba fraude o plagio total (art. 123 a 131)."
+  ],
+  "fuentes": [
+    {"label": "Reglamento de Evaluación Profesional, Facultad de Ciencias Jurídicas", "url": "https://cj.uaemex.mx/images/normatividad/phpoffice/pdf/reglamento/25.pdf"},
+    {"label": "Reglamento de Evaluación Profesional, copia del CU Zumpango", "url": "https://cuzumpango.uaemex.mx/images/2023/titulacion/REGLAMENTO-DE-EVALUACION%20PROFESIONAL.pdf"},
+    {"label": "Tipo de Evaluación Profesional, portal Cercanía Egresados", "url": "https://alumniversitario.uaemex.mx/otitulacion.php"},
+    {"label": "Facultad de Contaduría y Administración, Titulación", "url": "https://fca.uaemex.mx/vida-universitaria/estudiantes/titulaci%C3%B3n.html"},
+    {"label": "Facultad de Medicina Veterinaria y Zootecnia, Manual de Procedimientos de Titulación", "url": "https://veterinariayzootecnia.uaemex.mx/images/ev-profesional/manual_titulacioin_16.12.2022.pdf"},
+    {"label": "Centro Universitario Teotihuacán, Proceso de titulación", "url": "https://cuteotihuacan.uaemex.mx/tramites/egresados/titulacion/proceso-de-titulaci%C3%B3n.html"},
+    {"label": "Manual para depósito en el Repositorio Institucional", "url": "http://ri.uaemex.mx/bitstream/handle/20.500.11799/22463/Manual%20para%20deposito%20en%20el%20RI%20250225.pdf?sequence=5"}
+  ],
+  "sinConfirmar": [
+    "Numeración de artículos contra la copia vigente: la reforma del 31 de octubre de 2024 circula en copias de distintos espacios académicos; conviene contrastar los artículos 8, 76 a 82, 86, 93 a 118 y 123 a 131 con la Oficina del Abogado General y la Gaceta Universitaria.",
+    "Catálogo real de opciones por espacio académico: la lista de trece es la del Reglamento, pero cada facultad define cuáles ofrece.",
+    "Nombre exacto y versión de cada formato: los formatos 8.x cambian de contenido entre facultades.",
+    "Costos vigentes 2026: la tabla de Teotihuacán no equivale a una tarifa universitaria general; se pregunta a la Secretaría de Finanzas.",
+    "Carácter obligatorio del depósito en el Repositorio Institucional: el manual no declara de forma explícita que condicione la expedición del título.",
+    "Herramienta antiplagio aceptada y quién genera el reporte: el artículo 79 fija el 20 por ciento sin nombrar la herramienta.",
+    "Requisito de idioma: no se localizó un requisito general de certificación de lengua extranjera para titularse.",
+    "Formato editorial oficial por facultad: el Reglamento no publica una plantilla única."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UAEMéx 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de Evaluación Profesional en la UAEMéx: tesis y sus 13 opciones, requisitos, documentos, proceso y tiempos según el Reglamento oficial. Fuentes verificadas.",
+  "keywords": "titulación uaemex, tesis uaemex, evaluación profesional uaemex, reglamento evaluación profesional uaemex, requisitos titulación uaemex, opciones de titulación uaemex"
+}

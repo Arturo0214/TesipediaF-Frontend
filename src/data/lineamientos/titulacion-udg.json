@@ -1,0 +1,84 @@
+{
+  "lineSlug": "titulacion-udg",
+  "landingSlug": "tesis-udg",
+  "guiaId": "tesis-udg",
+  "sigla": "UdeG",
+  "nombre": "Universidad de Guadalajara",
+  "ciudad": "Guadalajara",
+  "titulo": "Titulación en la UdeG: opciones, requisitos y documentos",
+  "intro": "La titulación en la UdeG se rige por el Reglamento General de Titulación (RGT) vigente de abril de 2023, pero cada Centro Universitario expide su reglamento particular. Por eso los requisitos concretos cambian según CUCEI, CUCSH, CUCEA u otro centro.",
+  "resumen": "El RGT define seis áreas de modalidades y el marco del procedimiento, mientras cada Centro Universitario fija extensión, número de sustentantes, plazos y formatos. La tesis es un trabajo de investigación inédito con réplica ante jurado. El trámite final del título se realiza de forma centralizada en el portal titulacion.udg.mx y en Control Escolar.",
+  "opciones": [
+    { "nombre": "Tesis, tesina e informes (art. 14)", "detalle": "Tesis, tesina, informe de prácticas profesionales o informe de servicio social." },
+    { "nombre": "Desempeño académico sobresaliente (art. 9)", "detalle": "Excelencia académica con promedio mínimo de 95 o titulación por promedio con mínimo de 90." },
+    { "nombre": "Exámenes (art. 10)", "detalle": "Examen global teórico-práctico, teórico, general de certificación profesional, de capacitación profesional o réplica verbal o escrita." },
+    { "nombre": "Producción de materiales educativos (art. 11)", "detalle": "Guías comentadas o ilustradas, paquete didáctico o propuesta pedagógica." },
+    { "nombre": "Investigación y estudios de posgrado (art. 12)", "detalle": "Créditos de maestría o doctorado, trabajo monográfico de actualización, seminarios o diseño de equipo." },
+    { "nombre": "Demostración de habilidades (art. 13)", "detalle": "Música mediante recital, artes escénicas, artes visuales o manifestaciones interdisciplinarias." }
+  ],
+  "requisitos": [
+    "Aprobar la totalidad de las materias o cubrir el 100 por ciento de los créditos del plan de estudios (arts. 15 y 28).",
+    "Acreditar la realización del servicio social.",
+    "Presentar solicitud escrita dirigida al presidente del Comité de Titulación (art. 28).",
+    "Contar con constancia de no adeudo y pagar el arancel correspondiente (art. 28).",
+    "Registrar el tema y la modalidad ante el Comité de Titulación de tu Centro (art. 26).",
+    "Elaborar la tesis bajo la dirección de un director designado por el Comité (art. 23).",
+    "Replicar ante el jurado a las observaciones de sus miembros (art. 14).",
+    "El RGT no fija promedio mínimo para titularse por tesis; solo aplica a las modalidades automáticas del artículo 9."
+  ],
+  "documentos": [
+    "Carta de pasante original (vigencia de 1 año en CUCSH).",
+    "Kardex certificado original.",
+    "Constancia de no adeudo exigida por el art. 28 del RGT.",
+    "Constancia de servicio social.",
+    "Solicitud de acceso a la modalidad dirigida al presidente del Comité.",
+    "Registro del tema de tesis ante el Comité de Titulación.",
+    "Protocolo de investigación con los apartados que exija el Centro.",
+    "Carta responsiva de veracidad, autoría y originalidad (exigida en CUCEI).",
+    "Comprobante de pago de aranceles.",
+    "Para el título central: acta de nacimiento, CURP verificada, certificado de estudios previos, acta de titulación y fotografías tamaño título."
+  ],
+  "proceso": [
+    "Cubrir el 100 por ciento de créditos o aprobar todas las materias obligatorias y liberar el servicio social (arts. 15 y 28).",
+    "Obtener la carta de pasante y la constancia de no adeudo en Control Escolar del Centro.",
+    "Solicitar por escrito al Comité de Titulación el registro del tema y de la modalidad (art. 26).",
+    "El Comité dictamina el tema y registra la modalidad y el director (arts. 23 y 27).",
+    "Elaborar la tesis bajo la dirección asignada, dentro del plazo del reglamento particular del Centro.",
+    "El director notifica al Comité la conclusión del trabajo y el Comité valida el documento final.",
+    "El Comité designa al jurado (art. 29).",
+    "Presentar la defensa; el jurado resuelve y asigna calificación en escala centesimal.",
+    "Se levanta el acta de titulación con la calificación y la toma de protesta (art. 30).",
+    "Solicitar el certificado de graduado en Control Escolar del Centro.",
+    "Registrar la solicitud de expedición del título en el sistema central en titulacion.udg.mx y escolar.udg.mx."
+  ],
+  "tiempos": "En CUCEI el plazo para elaborar la tesis es de 1 año desde la autorización, prorrogable 12 meses más; una nueva defensa tras no aprobar se realiza 6 meses después. En CUCSH (Abogado semiescolarizado) el grado por tesis se obtiene en máximo 2 años con prórroga posible, y la fecha del examen se fija en no más de 30 días naturales tras el oficio del jurado. Tras una suspensión, la nueva evaluación espera 6 meses (RGT art. 31). El comprobante de pago del título vale por el año calendario en que se realiza.",
+  "notas": [
+    "El nivel de descentralización es alto: el RGT fija el marco y cada Centro Universitario expide su reglamento particular (art. 27).",
+    "En CUCEI la tesis admite hasta 3 sustentantes, incluso de distintas carreras, con documento único y defensa colectiva.",
+    "En CUCSH (Abogado semiescolarizado) la tesis es individual o colectiva con máximo 2 personas, con extensión mínima de 60 cuartillas individual y 80 colectiva, tipografía Arial 12 e interlineado 1.5.",
+    "El RGT no publica una plantilla editorial única; para la tesina fija de 45 a 60 cuartillas (art. 14).",
+    "El repositorio institucional es RIUdeG y requiere entregar la tesis más una Carta de Autorización firmada por el autor.",
+    "El CUCEA remite a su propio Reglamento de Titulación alojado en su Coordinación de Control Escolar."
+  ],
+  "fuentes": [
+    { "label": "Reglamento General de Titulación, abril 2023", "url": "https://titulacion.udg.mx/sites/default/files/RGT-Abril-2023.pdf" },
+    { "label": "Portal Titulación UDG", "url": "https://titulacion.udg.mx/" },
+    { "label": "Requisitos del trámite de título", "url": "https://titulacion.udg.mx/requisitos" },
+    { "label": "Reglamento de Titulación del CUCEI", "url": "https://www.cucei.udg.mx/sites/default/files/adjuntos/reglamento_de_titulacion.pdf" },
+    { "label": "Manual de titulación, Abogado semiescolarizado CUCSH", "url": "https://www.cucsh.udg.mx/sites/default/files/2023-08/MANUALDE%20TITULACI%C3%93N%20ABOGADO%20SEMIESCOLARIZADO.pdf" },
+    { "label": "Publicación de tesis, Biblioteca Digital UdeG", "url": "https://wdg.biblio.udg.mx/index.php/publicacion-tesis" },
+    { "label": "Repositorio Institucional RIUdeG", "url": "https://www.riudg.udg.mx/" }
+  ],
+  "sinConfirmar": [
+    "El Reglamento de Titulación del CUCEA no pudo abrirse; falta verificar extensión, número de sustentantes y plazos de ese centro.",
+    "Falta el detalle de CUCS, CUAAD, CUCBA, CUCEA y los centros regionales, cada uno con reglamento particular por mandato del art. 27.",
+    "Los requisitos de CUCSH documentados corresponden a la carrera de Abogado semiescolarizado; no se verificó si otras carreras usan las mismas extensiones y plazos.",
+    "El costo de los aranceles de titulación y de expedición de título no aparece publicado en las páginas consultadas.",
+    "No se localizó una plantilla institucional única de formato de tesis para toda la Red.",
+    "El artículo 30 reformado reduce a cuatro los firmantes del acta; falta confirmar quiénes firman en cada supuesto."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UdeG 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la UdeG: opciones del RGT 2023, requisitos de tesis, documentos y proceso paso a paso. Diferencias por Centro Universitario (CUCEI, CUCSH).",
+  "keywords": "titulación udeg, tesis udeg, RGT UdeG, modalidades de titulación UdeG, requisitos titulación CUCEI, titulación CUCSH, proceso de titulación Universidad de Guadalajara"
+}

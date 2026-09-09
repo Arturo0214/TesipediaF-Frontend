@@ -14,7 +14,7 @@
 
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } from 'fs';
 import { blogPosts } from '../src/pages/Blog/blogData.js';
 import { universidades } from '../src/data/seoUniversidades.js';
 import { carreras } from '../src/data/seoCarreras.js';
@@ -22,6 +22,13 @@ import { carreras } from '../src/data/seoCarreras.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
 const distDir = resolve(rootDir, 'dist');
+
+// Fichas de lineamientos (JSON en src/data/lineamientos). Se leen con fs para
+// evitar las import assertions de JSON en Node.
+const linDir = resolve(rootDir, 'src', 'data', 'lineamientos');
+const LINEAMIENTOS = existsSync(linDir)
+  ? readdirSync(linDir).filter((f) => f.endsWith('.json')).map((f) => JSON.parse(readFileSync(resolve(linDir, f), 'utf8')))
+  : [];
 
 // ─── SEO metadata for each route ───────────────────────────────────────
 
@@ -653,7 +660,24 @@ const carreraRoutes = carreras.map((c) => ({
   }
 }));
 
-const routesMeta = [...coreRoutes, ...uniRoutes, ...carreraRoutes, ...blogRoutes];
+// ─── Fichas de lineamientos por universidad (gratuitas, /titulacion-<uni>) ──
+const lineamientosRoutes = LINEAMIENTOS.map((l) => ({
+  path: `/${l.lineSlug}`,
+  title: l.metaTitle,
+  description: l.metaDescription,
+  keywords: l.keywords,
+  schema: {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: l.titulo,
+    description: l.metaDescription,
+    author: { '@type': 'Organization', name: 'Tesipedia' },
+    publisher: { '@type': 'Organization', name: 'Tesipedia', logo: { '@type': 'ImageObject', url: DEFAULT_IMAGE } },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/${l.lineSlug}` },
+  },
+}));
+
+const routesMeta = [...coreRoutes, ...uniRoutes, ...carreraRoutes, ...lineamientosRoutes, ...blogRoutes];
 
 // ─── HTML generation ─────────────────────────────────────────────────────
 
@@ -728,6 +752,7 @@ const LANDING_PATHS = new Set([
   '/ayuda-con-tesis', '/cuanto-cuesta-una-tesis', '/asesoria-tesis', '/tutoria-academica',
   ...universidades.map((u) => `/${u.slug}`),
   ...carreras.map((c) => `/${c.slug}`),
+  ...LINEAMIENTOS.map((l) => `/${l.lineSlug}`),
 ]);
 
 function generateSitemap(routes) {

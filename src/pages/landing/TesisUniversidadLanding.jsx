@@ -6,6 +6,7 @@ import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
 import { getUniversidadBySlug } from '../../data/seoUniversidades';
 import { getGuiaByUniversity } from '../../data/guias';
+import { getLineamientoByLanding } from '../../data/lineamientos';
 import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
 import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
@@ -23,6 +24,8 @@ function TesisUniversidadLanding({ slug }) {
   const u = getUniversidadBySlug(slug);
   // Guía descargable del trámite de titulación de esta universidad (producto de la tienda).
   const guiaProd = getGuiaByUniversity(`/${slug}`);
+  // Ficha gratuita de lineamientos de titulación (imán SEO).
+  const lin = getLineamientoByLanding(`/${slug}`);
 
   useEffect(() => {
     dispatch(trackVisit({ path: `/${slug}`, referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
@@ -286,6 +289,7 @@ function TesisUniversidadLanding({ slug }) {
         <div style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center' }}>
           <h3 style={{ fontSize: '1.1rem', color: '#1e3a5f', marginBottom: '1rem' }}>Servicios relacionados</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
+            {lin && <Link to={`/${lin.lineSlug}`} className="landing-textlink">Requisitos de titulación {u.sigla} (gratis)</Link>}
             <Link to="/comprar-tesis" className="landing-textlink">Asesoría de Tesis en México</Link>
             <Link to="/tesis-licenciatura" className="landing-textlink">Asesoría de Tesis de Licenciatura</Link>
             <Link to="/tesis-maestria" className="landing-textlink">Asesoría de Tesis de Maestría</Link>

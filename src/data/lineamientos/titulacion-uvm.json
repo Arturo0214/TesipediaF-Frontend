@@ -1,0 +1,88 @@
+{
+  "lineSlug": "titulacion-uvm",
+  "landingSlug": "tesis-uvm",
+  "guiaId": "tesis-uvm",
+  "sigla": "UVM",
+  "nombre": "Universidad del Valle de México",
+  "ciudad": "Ciudad de México",
+  "titulo": "Titulación en la UVM: opciones, requisitos y documentos",
+  "intro": "El Reglamento de Titulación de la UVM vive en el Anexo L de su compendio y no es de lectura pública, por lo que esta guía separa lo verificado en fuente oficial de lo que solo la UVM comunica en canales no reglamentarios.",
+  "resumen": "La UVM regula la titulación en el Anexo L, Reglamento de Titulación, código REG-UVM-REC-ESTU-ST-002-6, cuyo texto no fue accesible en abierto. El sitio institucional destaca tres rutas comerciales (Titulación por Posgrado, Titulación UVM y Examen EGEL) y el blog nombra la tesis entre las opciones. El Acuerdo 17/11/17 de la SEP, artículo 46 fracción VIII, obliga a que requisitos y opciones de titulación consten en el reglamento escolar, lo que da fundamento al egresado para solicitar el documento a su campus.",
+  "opciones": [
+    { "nombre": "Titulación UVM", "detalle": "Ruta que la página institucional destaca como botón, sin publicar requisitos ni documentos por opción." },
+    { "nombre": "Titulación por Posgrado", "detalle": "Obtener el título profesional mientras se cursa un posgrado, comunicada en el sitio institucional." },
+    { "nombre": "Examen EGEL", "detalle": "El blog señala que la mayoría de los programas ofrecen esta opción, con niveles Satisfactorio, Sobresaliente o No Satisfactorio y costo del examen a cuenta del egresado." },
+    { "nombre": "Tesis", "detalle": "El blog institucional de 2021 la nombra entre las opciones con formulación enunciativa; el reglamento accesible no la define y su detalle vive en el Anexo L." },
+    { "nombre": "Portafolio de experiencia profesional", "detalle": "Nombrado en el blog institucional entre las opciones, sin requisitos publicados." },
+    { "nombre": "Opción cero", "detalle": "Vía nombrada en el Boletín de Cuotas 2025 con cobro por inscripción y parcialidades; su contenido académico no está publicado y no debe inferirse del nombre." }
+  ],
+  "requisitos": [
+    "Acreditar la totalidad de asignaturas y créditos del programa, incluidas las no curriculares como idiomas (definición de Egreso, artículo 4, fracción XXIV).",
+    "Cumplir el servicio social, requisito de titulación nombrado expresamente y con reglamento propio (Anexo K).",
+    "Cumplir las prácticas profesionales, requisito de titulación nombrado en el artículo 4, fracción XXVII, inciso f).",
+    "En su caso, la acreditación de la asignatura vinculada al EGEL o EGEP.",
+    "Cubrir las cuotas que señale el Boletín de Cuotas para la expedición del título (Reglamento de Pagos, artículo 51).",
+    "Requisitos de la modalidad de tesis (créditos, promedio, asesor, jurado, votos, réplica y plazos): no verificados, viven en el Anexo L."
+  ],
+  "documentos": [
+    "Solicitud de titulación, publicada como \"SOLICITUD DE TITULACIÓN UVM 2024.pdf\" (verificado a nivel campus).",
+    "Formato de revisión de estudios, publicado como \"REVISIÓN DE ESTUDIOS_5 SELLOS.pdf\" (verificado a nivel campus).",
+    "Instructivo por nivel: \"INSTRUCCIONES LICENCIATURA\", \"INSTRUCCIONES POSGRADO\" o \"INSTRUCCIONES TSU\" (existencia verificada, contenido no accesible).",
+    "Autorización y comprobante de pago ante Caja (obligación general, Reglamento de Pagos, artículo 51).",
+    "Documentos originales de inscripción, con devolución sin costo tras egreso (Reglamento de Pagos, artículo 52).",
+    "Constancia de servicio social, constancia de prácticas profesionales y constancia de idioma: no publicadas, viven en los anexos no accesibles.",
+    "Voto aprobatorio, acta de examen, carta de cesión de derechos y reporte de similitud: no publicados, viven en el Anexo L."
+  ],
+  "proceso": [
+    "Egreso: acreditar la totalidad de asignaturas y créditos del programa, incluidas las no curriculares (artículo 4, fracción XXIV).",
+    "Cumplir el 100 por ciento de los requisitos de titulación (servicio social, prácticas profesionales y, en su caso, la asignatura vinculada al EGEL o EGEP) para alcanzar el estatus de Egresado elegible para titulación.",
+    "Iniciar el trámite y cambiar al estatus de Egresado en proceso de titulación.",
+    "Autorizar primero el pago del concepto correspondiente según el nivel de estudios.",
+    "Descargar el instructivo del nivel (Licenciatura o Ingeniería, Posgrado, o TSU).",
+    "Llenar la Solicitud de Titulación y el Formato de Revisión de Estudios.",
+    "Enviar la documentación por correo electrónico a la dirección de titulación del campus.",
+    "Dar seguimiento con el área de Administración Escolar del campus, dentro del plazo de un año para concluir el trámite (Reglamento de Pagos, artículo 54).",
+    "Expedición del título físico o electrónico, con estatus de Egresado titulado."
+  ],
+  "tiempos": "El único plazo verificado es de un año para concluir el trámite de titulación (Reglamento de Pagos, artículo 54). La vigencia del registro de un tema de tesis, los plazos de revisión del jurado y el tiempo de expedición del título no están publicados.",
+  "notas": [
+    "El Reglamento de Titulación de la UVM (Anexo L, páginas 289 a 317) no es de lectura pública; el PDF del compendio se corta alrededor de la página 14. Esta guía se apoya en el marco legal de la SEP (Acuerdo 17/11/17, artículo 46, fracción VIII) como base para solicitar el documento al campus.",
+    "El artículo 4 del reglamento define titulación, egreso, servicio social y EGEL, pero no define la modalidad de tesis; eso no prueba que la tesis no exista, solo que no puede confirmarse desde el cuerpo del reglamento.",
+    "No se usaron fuentes secundarias como Scribd, Studocu, Prezi ni nanopdf, aunque circulan copias del reglamento en esos sitios.",
+    "El dominio uvm.mx aloja documentos normativos de la Universidad Villa Rica bajo un encabezado propio; antes de citar cualquier PDF de uvm.mx hay que leer su portada.",
+    "Aparecieron los dominios serviciosescolaresuvm.mx y validacion-uvm.com.mx, no enlazados desde uvm.mx y sin verificación de que sean institucionales; no se tomó dato de ellos. Todo trámite debe confirmarse con la Dirección de Administración Escolar del campus.",
+    "El promedio mínimo de 6.0 del reglamento pertenece al capítulo de admisión y se refiere al nivel anterior; no es requisito de titulación.",
+    "La diferencia entre campus no está en la norma sino en la ventanilla: cada campus publica, o no, su propio instructivo, formatos y costos. Tamaulipas se rige por un reglamento distinto (REG-UVM-REC-ESTU-ST-005-1).",
+    "No se localizó repositorio institucional de tesis ni norma pública de depósito digital; la Biblioteca Digital de la UVM es un servicio de consulta, no un repositorio."
+  ],
+  "fuentes": [
+    { "label": "Trámite de titulación en UVM, página institucional", "url": "https://uvm.mx/titulacion" },
+    { "label": "Doble titulación UVM, blog institucional", "url": "https://blog.uvm.mx/doble-titulacion-esto-es-lo-que-tienes-que-saber" },
+    { "label": "¿Qué es el examen EGEL del Ceneval y para qué sirve?, blog institucional", "url": "https://blog.uvm.mx/examen-ceneval-egel" },
+    { "label": "Reglamentos para estudiantes de tipo superior y anexos, julio de 2026", "url": "https://uvm.mx/storage/app/uploads/public/6a6/d13/eb9/6a6d13eb93573153046456.pdf" },
+    { "label": "Reglamento de Pagos, noviembre de 2024", "url": "https://uvm.mx/storage/app/uploads/public/673/66a/4d6/67366a4d6209d769105476.pdf" },
+    { "label": "Boletín de Cuotas 2025", "url": "https://uvm.mx/storage/app/uploads/public/675/114/454/675114454c796163175950.pdf" },
+    { "label": "Micrositio de Titulación, Campus Hispano", "url": "https://sites.google.com/view/uvm-hispano-campus-virtual/p%C3%A1gina-principal/titulaci%C3%B3n" },
+    { "label": "Acuerdo 17/11/17, SEP, Diario Oficial de la Federación", "url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5504348" }
+  ],
+  "sinConfirmar": [
+    "El catálogo completo y oficial de opciones de titulación: solo existe una enumeración de blog de 2021 redactada como \"opciones como\" y tres botones comerciales. El catálogo vive en el Anexo L. Se pide a la Dirección de Administración Escolar del campus o a la Secretaría Técnica y Cumplimiento Normativo.",
+    "Si la tesis existe como opción reglamentaria, con qué nombre exacto y en qué niveles: el blog la nombra, el reglamento no la define, y no se pudo confirmar si aplica en licenciatura, posgrado o ambos.",
+    "Qué es la \"opción cero\": los códigos T687, T688 y T689 la nombran y la estructuran como inscripción más parcialidades, sin descripción académica. Se pregunta a la Dirección de Administración Escolar y a Caja.",
+    "Requisitos por modalidad: promedio mínimo, créditos para registrar un tema, afinidad y créditos de posgrado para Titulación por Posgrado, años de experiencia para el portafolio. Nada de esto está publicado.",
+    "Papel exacto del EGEL y del EGEP: el requisito redactado es la acreditación de la asignatura vinculada, y solo en su caso. Falta saber si aprobar el examen es además opción por sí mismo. El texto que lo resuelve es el Anexo H.",
+    "La lista completa de documentos del expediente con nombre de formato: solo se conocen \"SOLICITUD DE TITULACIÓN\" y \"FORMATO DE REVISIÓN DE ESTUDIOS\", provenientes de un campus, no de la norma.",
+    "Formato del documento escrito: no existe guía pública; tipografía, márgenes, extensión, portada, estructura y estilo de citación se piden a la coordinación académica y al asesor.",
+    "Verificación de similitud o antiplagio: no se pudo confirmar ni descartar; el Capítulo de Integridad Académica y el Decálogo Ético no fueron accesibles.",
+    "Depósito digital: no hay repositorio institucional de tesis ni norma pública de depósito. Se pregunta a la Biblioteca y a la Dirección de Administración Escolar.",
+    "Tiempos reales: solo está verificado el plazo de un año para concluir el trámite; vigencia del registro del tema, prórrogas, plazos de revisión del jurado y tiempo de expedición no están publicados.",
+    "Costos vigentes: el boletín localizado es el de 2025, consultado en septiembre de 2026; se pide el vigente a Caja. El costo por nivel está en los instructivos de campus, no accesibles.",
+    "Diferencias entre campus: no se pudo confirmar diferencias normativas; sí quedó confirmado que Tamaulipas se rige por un reglamento distinto y que la operación se publica campus por campus.",
+    "Programas de licenciatura de la UVM incorporados a la UNAM: no se pudo confirmar si existen; los reglamentos de incorporación alojados en uvm.mx pertenecen a la Universidad Villa Rica.",
+    "Titularidad de cualquier PDF alojado en uvm.mx: al menos dos documentos normativos de ese dominio pertenecen a otra institución de la red; antes de citar hay que leer la portada."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UVM 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la UVM 2026: opciones que comunica la universidad, requisitos verificados, documentos, proceso y por qué pedir el reglamento a tu campus.",
+  "keywords": "titulación uvm, tesis uvm, opciones de titulación uvm, requisitos titulación uvm, egel uvm, titulación por posgrado uvm, opción cero uvm"
+}

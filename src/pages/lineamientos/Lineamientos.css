@@ -1,0 +1,136 @@
+/* Lineamientos de titulación (fichas gratuitas) — sobre el sistema editorial de Landing.css */
+
+.lin-resumen {
+  max-width: 820px;
+  margin: 0 auto 20px;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #334155;
+  text-align: center;
+}
+.lin-aviso {
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #92400E;
+}
+.lin-aviso svg { color: #D97706; flex-shrink: 0; margin-top: 2px; }
+
+.lin-inner { max-width: 900px; margin: 0 auto; }
+
+/* Opciones en tarjetas */
+.lin-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+.lin-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 22px 20px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.lin-card:hover { box-shadow: 0 12px 30px rgba(15,23,42,0.08); transform: translateY(-3px); }
+.lin-card h3 { font-size: 1.02rem; font-weight: 700; color: #0F172A; margin: 0 0 8px; }
+.lin-card p { font-size: 0.92rem; color: #475569; line-height: 1.55; margin: 0; }
+
+/* Dos columnas requisitos/documentos */
+.lin-two {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+.lin-two h2 { text-align: left !important; display: flex; align-items: center; gap: 10px; font-size: 1.3rem; }
+.lin-two h2 svg { color: #2563EB; }
+
+/* Listas */
+.lin-list { list-style: none; padding: 0; margin: 16px 0 0; max-width: 900px; }
+.lin-list.lin-list-center { margin-left: auto; margin-right: auto; }
+.lin-list li {
+  position: relative;
+  padding: 8px 0 8px 26px;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  color: #334155;
+  border-bottom: 1px solid #F1F5F9;
+}
+.lin-list li::before {
+  content: '';
+  position: absolute;
+  left: 6px; top: 15px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #2563EB;
+}
+
+.lin-h3 { text-align: center; font-size: 1.1rem; font-weight: 700; color: #0F172A; margin: 30px 0 4px; }
+
+/* Proceso numerado */
+.lin-steps {
+  counter-reset: lin;
+  list-style: none;
+  padding: 0;
+  margin: 24px auto 0;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lin-steps li {
+  counter-increment: lin;
+  position: relative;
+  padding: 14px 18px 14px 56px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  color: #334155;
+}
+.lin-steps li::before {
+  content: counter(lin);
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  color: #fff;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+/* Fuentes */
+.lin-fuentes { list-style: none; padding: 0; margin: 18px 0 0; }
+.lin-fuentes li { padding: 8px 0; border-bottom: 1px solid #E2E8F0; }
+.lin-fuentes a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2563EB;
+  text-decoration: none;
+  font-size: 0.94rem;
+  font-weight: 500;
+  word-break: break-word;
+}
+.lin-fuentes a:hover { text-decoration: underline; }
+.lin-fuentes svg { font-size: 0.72rem; flex-shrink: 0; opacity: 0.7; }
+
+@media (max-width: 720px) {
+  .lin-two { grid-template-columns: 1fr; gap: 24px; }
+}

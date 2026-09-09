@@ -1,0 +1,81 @@
+{
+  "lineSlug": "titulacion-uv",
+  "landingSlug": "tesis-uv",
+  "guiaId": "tesis-uv",
+  "sigla": "UV",
+  "nombre": "Universidad Veracruzana",
+  "ciudad": "Xalapa",
+  "titulo": "Titulación en la UV: opciones, requisitos y documentos",
+  "intro": "La Universidad Veracruzana engancha la titulación a la Experiencia Recepcional, una experiencia educativa con créditos dentro del plan de estudios donde el estudiante produce su trabajo recepcional.",
+  "resumen": "El Estatuto de los Alumnos 2008 regula la titulación de la UV y distingue entre planes rígidos y planes flexibles. La tesis es una de las modalidades de trabajo recepcional escrito, que se acredita mediante la Experiencia Recepcional y culmina en un examen profesional con réplica. Cada facultad y región publica su propio reglamento y guía de formato.",
+  "opciones": [
+    {"nombre": "Trabajo recepcional escrito", "detalle": "Tesis, tesina, monografía, reporte o memoria, presentado en formato electrónico, individual o colectivo (art. 87 y 89)."},
+    {"nombre": "Trabajo práctico", "detalle": "Científico, educativo, artístico o técnico, individual o colectivo (art. 89)."},
+    {"nombre": "Promedio", "detalle": "Promedio mínimo de 9.00 en evaluación ordinaria y primera inscripción, con todas las experiencias acreditadas; exime del examen profesional (art. 90)."},
+    {"nombre": "Estudios de posgrado", "detalle": "60 créditos o más de una especialización, o 50 por ciento o más de una maestría o doctorado, con aprobación del Consejo Técnico (art. 91)."},
+    {"nombre": "Examen general de conocimientos", "detalle": "Si se reprueba, puede repetirse dentro de seis meses o elegirse otra opción (art. 92)."},
+    {"nombre": "EGEL de CENEVAL", "detalle": "1,000 o más puntos del Índice CENEVAL Global, o testimonio de Desempeño Satisfactorio o Sobresaliente (art. 94)."}
+  ],
+  "requisitos": [
+    "Haber cubierto al menos el 70 por ciento de los créditos del programa para cursar la Experiencia Recepcional en planes flexibles (art. 80).",
+    "Cumplir los prerrequisitos del Área de Formación Básica General y del área disciplinar obligatoria que fije cada plan.",
+    "En planes rígidos, aprobar todas las experiencias educativas y cumplir el servicio social (art. 84).",
+    "En planes flexibles, cubrir el número de créditos que señale el plan de estudios (art. 85).",
+    "Aprobar o exentar el examen profesional, que consiste en la disertación oral del trabajo escrito con réplica (art. 95 y 96).",
+    "La tesis no exige promedio mínimo; el promedio de 9.00 es la vía alterna del artículo 90.",
+    "Obtener los votos aprobatorios de directores y sinodales según el reglamento de cada entidad."
+  ],
+  "documentos": [
+    "Solicitud AE-E-F-37 en original y copia, firmada en tinta azul.",
+    "Comprobante de pago del trámite de expedición.",
+    "Acta de nacimiento original o copia certificada.",
+    "Certificado de estudios previos y certificado del nivel a comprobar, original legalizado.",
+    "CURP actualizada y certificada.",
+    "Constancia de no adeudo de bibliotecas universitarias.",
+    "Fotografía digital 5 x 7 cm y fotografía física 6 x 9 cm, ovaladas, blanco y negro, según especificación del portal.",
+    "Formulario de Autorización DB-AB-F-01 para el depósito en el repositorio, con el archivo del trabajo en PDF de menos de 5 MB."
+  ],
+  "proceso": [
+    "Alcanzar el 70 por ciento de créditos del programa y los prerrequisitos del área básica y disciplinar (art. 80).",
+    "Inscribir la Experiencia Recepcional y elegir la vía de acreditación: documento recepcional, promedio o examen general de conocimientos.",
+    "Definir modalidad y tema y recibir la designación del director o directora del trabajo.",
+    "Desarrollar el trabajo; los lectores o jurados revisan cuando el avance llega al mínimo que declara la entidad.",
+    "Obtener los votos aprobatorios del asesor y del prejurado o sinodales, según el reglamento de la facultad.",
+    "Designar el jurado con presidente, secretario y vocales.",
+    "Entregar el trabajo en formato electrónico a directores, sinodales, coordinación y biblioteca.",
+    "Presentar el examen profesional: exposición ante el jurado, interrogación de los sinodales y deliberación privada, con el acta oficial.",
+    "Depositar el trabajo en el repositorio institucional cdigital.uv.mx con el formulario de autorización.",
+    "Tramitar la expedición del título ante la Dirección General de Administración Escolar con la solicitud AE-E-F-37."
+  ],
+  "tiempos": "La expedición del título en formato electrónico tarda 15 días hábiles (1,000 pesos) y en formato físico o ambos 25 días hábiles (1,500 o 2,500 pesos). Tras reprobar el examen, la repetición no debe exceder seis meses (art. 101); tras dos reprobaciones, el nuevo trabajo se elabora en un plazo máximo de dos años (art. 102).",
+  "notas": [
+    "La titulación está ligada a la Experiencia Recepcional dentro del plan; el estudiante no se titula después de egresar, produce el trabajo mientras cursa.",
+    "El Estatuto distingue planes rígidos (art. 84 a 87) de planes flexibles (art. 78 a 85), con reglas distintas.",
+    "Cada facultad de cada región publica su propio reglamento de titulación y su guía de formato; por ejemplo, Historia fija tesis de 80 a 200 cuartillas en Arial 12, y QFB usa Times New Roman con Gill Sans en títulos.",
+    "El depósito en cdigital.uv.mx exige el Formulario DB-AB-F-01 enviado a adminriuv@uv.mx, con PDF de menos de 5 MB.",
+    "La mención honorífica se otorga con promedio mínimo de 9.0 y contribución relevante, según publica la Facultad de Psicología."
+  ],
+  "fuentes": [
+    {"label": "Estatuto de los Alumnos 2008, versión del 9 de junio de 2017", "url": "https://www.uv.mx/legislacion/files/2017/06/Estatuto-de-los-Alumnos-2008-09JUN2017.pdf"},
+    {"label": "Expedición de Título, Diploma y grado académico, portal de estudiantes UV", "url": "https://www.uv.mx/estudiantes/tramites-escolares/expedicion-de-titulo-diploma-y-grado-academico/"},
+    {"label": "Modos de titulación, Facultad de Ingeniería Eléctrica y Electrónica", "url": "https://www.uv.mx/veracruz/fiee/estudiantes/experiencia-recepcional/modos-de-titulacion/"},
+    {"label": "Reglamento de Titulación de la Facultad de Historia", "url": "https://www.uv.mx/historia/files/2017/08/Reglamento-de-Titulacion.pdf"},
+    {"label": "Guía para la elaboración del Trabajo Recepcional, QFB Xalapa", "url": "https://www.uv.mx/qfb/files/2022/05/Guia-para-la-elaboracion-del-Trabajo-Recepcional-QFB-Xalapa.pdf"},
+    {"label": "Experiencia recepcional, Facultad de Psicología", "url": "https://www.uv.mx/psicologia/experiencia-recepcional/"},
+    {"label": "Repositorio Institucional UV", "url": "https://cdigital.uv.mx/"}
+  ],
+  "sinConfirmar": [
+    "La versión vigente del Estatuto de los Alumnos: el sitio aloja versiones de 2012, 2017 y 2018, con referencias a reformas de 2021; hay que verificar cuál rige y si cambia la numeración de los artículos 78 a 102.",
+    "La numeración citada por la región Poza Rica (artículos 73 y 74) no coincide con el articulado 87 a 94 verificado en la versión de 2017; conviene cotejar.",
+    "La página de trámites de la Dirección General de Administración Escolar bloqueó el acceso automatizado; falta confirmar ahí la lista canónica de documentos y su vigencia.",
+    "No se localizó una definición de tesis dentro del Estatuto; la reproducida proviene de un documento de la Facultad de Nutrición.",
+    "La extensión de la tesis no está fijada institucionalmente; solo se verificó el rango de 80 a 200 cuartillas en la Facultad de Historia.",
+    "Falta verificar si el depósito en cdigital.uv.mx es obligatorio para todos los trabajos recepcionales de licenciatura o solo para los que la entidad decida enviar.",
+    "El formulario AE-E-F-37 no se descargó; solo se verificó su clave y su exigencia de firma en tinta azul.",
+    "Falta revisar entidades de las regiones Orizaba-Córdoba y Coatzacoalcos-Minatitlán para ampliar el cuadro de diferencias internas."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UV 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la Universidad Veracruzana: Experiencia Recepcional, tesis y demás opciones, requisitos, documentos, proceso y tiempos. Fuentes oficiales.",
+  "keywords": "titulación uv, tesis uv, experiencia recepcional uv, universidad veracruzana titulación, examen profesional uv, requisitos titulación uv"
+}

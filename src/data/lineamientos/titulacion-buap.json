@@ -1,0 +1,86 @@
+{
+  "lineSlug": "titulacion-buap",
+  "landingSlug": "tesis-buap",
+  "guiaId": "tesis-buap",
+  "sigla": "BUAP",
+  "nombre": "Benemérita Universidad Autónoma de Puebla",
+  "ciudad": "Puebla",
+  "titulo": "Titulación en la BUAP: opciones, requisitos y documentos",
+  "intro": "La titulación en la BUAP se rige por el Reglamento General de Titulación aprobado el 23 de noviembre de 2015, con articulado detallado sobre la tesis. La modalidad se llama oficialmente Examen Profesional por Tesis y culmina con réplica ante jurado.",
+  "resumen": "La BUAP tiene un reglamento general único que enumera ocho opciones de titulación y un portal central que publica requisitos y costos. El Examen Profesional por Tesis es un trabajo de investigación bajo dirección que se defiende oralmente ante jurado. Las unidades académicas agregan procedimientos internos dentro del mismo marco, y el trámite del título corre por la Dirección de Administración Escolar.",
+  "opciones": [
+    { "nombre": "Examen Profesional por Tesis (art. 7, I)", "detalle": "Trabajo de investigación bajo dirección que se presenta en exposición oral ante jurado." },
+    { "nombre": "Titulación Automática (art. 7, II)", "detalle": "Promedio mínimo de 8.5 sin asignaturas recursadas (art. 15)." },
+    { "nombre": "Memoria de Experiencia Profesional o Reporte Técnico (art. 7, III)", "detalle": "Informe escrito con mínimo un año de experiencia, aprobado por la unidad académica (art. 16)." },
+    { "nombre": "Titulación por CENEVAL-EGEL (art. 7, IV y V)", "detalle": "Asignatura obligatoria vinculada al EGEL o examen CENEVAL-EGEL." },
+    { "nombre": "Seminario de Titulación (art. 7, VI)", "detalle": "Curso de mínimo 150 horas, con calificación no menor a 8 y 90 por ciento de asistencia (art. 19)." },
+    { "nombre": "Asignatura optativa (art. 7, VII)", "detalle": "Se acredita con tesina de 60 a 80 cuartillas, portafolio, muestra de obra o prototipos (art. 20)." },
+    { "nombre": "Diplomado de Educación Continua (art. 7, VIII)", "detalle": "Opción de titulación vía diplomado." }
+  ],
+  "requisitos": [
+    "Concluir y aprobar la totalidad de créditos del plan de estudios (art. 4).",
+    "Obtener el certificado de servicio social (art. 4).",
+    "Acreditar alguna de las opciones de titulación previstas.",
+    "Cumplir el procedimiento administrativo ante la Dirección de Administración Escolar.",
+    "Solicitar por escrito a la unidad académica el registro de la opción de titulación (art. 24).",
+    "Elegir director, registrado por la Secretaría Académica; si es externo, se designa codirector (arts. 29 y 31).",
+    "Cubrir requisitos metodológicos, citas bibliográficas y reconocimiento de derechos de autor (art. 14).",
+    "La tesis no exige promedio mínimo; el promedio aplica a las distinciones Ad Honorem (9.0) y Cum Laude (9.5)."
+  ],
+  "documentos": [
+    "Certificado de estudios del nivel anterior original legalizado.",
+    "Certificado de estudios del nivel a titularse original.",
+    "Oficio de modalidad de titulación expedido por la unidad académica, máximo 6 meses de antigüedad.",
+    "Certificado de liberación de bibliotecas vigente, no mayor a 3 meses.",
+    "Certificado de liberación del servicio social.",
+    "Dos fotografías blanco y negro, tamaño óvalo mignon, papel mate, máximo un año.",
+    "Voucher de pago original.",
+    "Para el título: identificación oficial, constancia CURP, acta de nacimiento, certificado de bachillerato legalizado y comprobante de encuesta de egresados.",
+    "Ejemplares de la tesis entregados a la Secretaría Académica (art. 43).",
+    "Carta Autorización de Difusión de Obra para el depósito digital, firmada con tinta azul y escaneada."
+  ],
+  "proceso": [
+    "Solicitar por escrito a la unidad académica el registro de la opción de titulación (art. 24).",
+    "Elegir el director; la Secretaría Académica formaliza el registro y designa codirector si el director es externo (arts. 29 y 31).",
+    "Autorizar el tema; desde esa fecha corre el plazo de un año del artículo 32.",
+    "Elaborar la tesis bajo la asesoría del director.",
+    "Entregar los ejemplares a la Secretaría Académica diez días hábiles antes del examen (art. 43).",
+    "La unidad académica designa el jurado (art. 36).",
+    "Presentar el examen profesional en acto solemne; el jurado interroga, delibera y emite dictamen firmado (arts. 44 y 45).",
+    "Dentro de los cinco días hábiles siguientes al fallo favorable, la Secretaría Académica turna el expediente a la DAE para el acta de examen (art. 47).",
+    "Presentar ante el Departamento de Titulación de la DAE los documentos para el trámite del título (art. 49).",
+    "Agendar cita en autoservicios.buap.mx; el trámite es presencial y personal.",
+    "Tramitar la cédula profesional en línea ante la Dirección General de Profesiones."
+  ],
+  "tiempos": "La tesis debe concluirse en no más de un año desde la autorización del tema, con prórroga de hasta seis meses por causa justificada (art. 32). Los ejemplares se entregan 10 días hábiles antes del examen (art. 43) y el acta de examen se emite dentro de los 5 días hábiles siguientes al fallo favorable (art. 47). Un reexamen tras no aprobar se realiza en no más de 60 días (art. 46), con máximo 3 oportunidades (art. 25). El certificado de liberación de bibliotecas vale 3 meses y el título se entrega en 15 días hábiles.",
+  "notas": [
+    "El reglamento es único y sobre él cada unidad académica construye su procedimiento.",
+    "El artículo 9 permite tesis individual o colectiva de 2 a 5 pasantes, incluidas configuraciones interdisciplinaria y multidisciplinaria.",
+    "Costos del acta: 350.00 pesos para egresados BUAP y 1,345.50 para escuelas incorporadas; del título: 500.00 pesos y 2,382.50 respectivamente.",
+    "El depósito digital es obligatorio porque el certificado de liberación de bibliotecas es documento requerido; Turnitin no debe superar el 40 por ciento para el depósito, y cada facultad puede exigir menos.",
+    "Medicina exige dos directores (experto y metodológico) y formatos nombrados (A, B, del Comité de Investigación); la FCFM excluye al director interno del jurado.",
+    "Los Complejos Regionales Mixteca y Nororiental tienen su propia normativa y coordinación de titulación."
+  ],
+  "fuentes": [
+    { "label": "Reglamento General de Titulación de la BUAP", "url": "https://repositorio.buap.mx/rdocencia/public/inf_public/2019/0/197-Reglamento-General-Titulaci%C3%B3n-Gaceta.pdf" },
+    { "label": "Proceso de Titulación 2023, Dirección de Administración Escolar", "url": "https://titulacion.buap.mx/sites/default/files/2023/PROCESO%20DE%20TITULACION%202023.pdf" },
+    { "label": "Requisitos para Acta de Examen o Acta de Titulación Automática", "url": "https://titulacion.buap.mx/?q=Acta+de+Examen+o+Acta+de+Titulaci%C3%B3n+Autom%C3%A1tica" },
+    { "label": "Requisitos para Trámite de Título, licenciatura y TSU", "url": "https://titulacion.buap.mx/?q=Requisitos+licenciatura" },
+    { "label": "Requisitos de certificado de bibliotecas y depósito digital, Innovación Tecnológica", "url": "https://bdigital.buap.mx/user_services/certificates/requirements" },
+    { "label": "Repositorio Institucional BUAP", "url": "https://repositorioinstitucional.buap.mx/" },
+    { "label": "Licenciatura en Medicina, titulación por tesis", "url": "https://medicina.buap.mx/?q=content/licenciatura-en-medicina-titulaci%C3%B3n-por-tesis" }
+  ],
+  "sinConfirmar": [
+    "Si el Reglamento General de Titulación de 2015 ha tenido reformas posteriores; conviene revisar la Gaceta Universitaria reciente.",
+    "La extensión mínima y máxima de la tesis: el reglamento la fija para tesina (60 a 80 cuartillas) y no para tesis; hay que preguntar en cada unidad académica.",
+    "El tope de similitud aplicable a la tesis: Innovación Tecnológica declara 40 por ciento para el depósito, sin un tope institucional para la evaluación académica.",
+    "Los criterios de titulación por CENEVAL están en un documento aparte que no se abrió en esta consulta.",
+    "Los formatos A y B de la Facultad de Medicina no se descargaron; solo se verificó su nombre y función.",
+    "Falta comparar el Reglamento de Titulación del Complejo Regional Mixteca contra el general.",
+    "El plazo total de vigencia del derecho a titularse contado desde el egreso no aparece en el reglamento."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación BUAP 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la BUAP: Examen Profesional por Tesis, las 8 opciones del reglamento, requisitos, documentos, costos y proceso paso a paso ante la DAE.",
+  "keywords": "titulación buap, tesis buap, examen profesional por tesis BUAP, opciones de titulación BUAP, requisitos titulación BUAP, costo titulación BUAP, proceso de titulación BUAP"
+}

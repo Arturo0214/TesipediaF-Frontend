@@ -1,0 +1,88 @@
+{
+  "lineSlug": "titulacion-unitec",
+  "landingSlug": "tesis-unitec",
+  "guiaId": "tesis-unitec",
+  "sigla": "UNITEC",
+  "nombre": "Universidad Tecnológica de México",
+  "ciudad": "Ciudad de México",
+  "titulo": "Titulación en la UNITEC: opciones, requisitos y documentos",
+  "intro": "La UNITEC publica su reglamento de titulación en abierto y concentra la operación del trámite en la Coordinación de Servicio Social y Titulación de cada campus.",
+  "resumen": "El Reglamento de Estudiantes de Licenciatura de julio de 2026 regula la titulación en sus artículos 127 a 136. El artículo 128 enumera nueve opciones para FACS, Arquitectura, Diseño e Ingeniería, con una tabla distinta por carrera en Ciencias de la Salud. La tesis existe como opción del artículo 129, con examen recepcional público ante tres sinodales.",
+  "opciones": [
+    { "nombre": "Tesis", "detalle": "Trabajo escrito con propuesta original, individual o colectivo hasta tres integrantes, con examen recepcional ante jurado de tres sinodales (artículo 129)." },
+    { "nombre": "Estudios de Posgrado", "detalle": "Mínimo 42 créditos de maestría, o 47.25 en maestrías de ciencias de la salud, con calificaciones mínimas de 8.0 y afinidad directa con la licenciatura (artículo 130)." },
+    { "nombre": "Seminario de Titulación", "detalle": "Cursar y acreditar un seminario autorizado afín a la carrera (artículo 133)." },
+    { "nombre": "EGEL", "detalle": "Examen del CENEVAL con dictamen Sobresaliente y promedio general mínimo de 8.0 (artículo 134)." },
+    { "nombre": "Proyecto en Incubadora de Negocios", "detalle": "Presentar el plan de negocios al Comité de Evaluación de la Incubadora y obtener dictamen satisfactorio." },
+    { "nombre": "Segunda Carrera", "detalle": "Acreditar el 100 por ciento de los créditos de la segunda licenciatura." },
+    { "nombre": "Acreditación de Idioma", "detalle": "En modalidades Ejecutiva y Línea, con promedio general de 9.0 y excepciones en carreras de corte internacional." },
+    { "nombre": "Certificación en lenguas", "detalle": "Opción exclusiva para Lenguas Extranjeras." },
+    { "nombre": "Experiencia Profesional", "detalle": "Mínimo cinco años desde la última materia acreditada y portafolio evaluado como satisfactorio." }
+  ],
+  "requisitos": [
+    "Acreditar los cinco niveles de inglés o comprobar suficiencia con nivel mínimo B1 (niveles adicionales en turismo, negocios internacionales y medicina).",
+    "Cumplir el servicio social y presentar la constancia de liberación.",
+    "Contar con el certificado total de estudios de licenciatura.",
+    "Presentar el EGEL cuando aplique.",
+    "Para Lenguas Extranjeras, certificación en inglés y francés en nivel B2.",
+    "Presentar la constancia de no adeudo de colegiatura o de cualquier gasto administrativo.",
+    "Realizar el pago de titulación.",
+    "Entregar la solicitud con fotografías y documentos.",
+    "Requisitos propios de la tesis: trabajo con propuesta original, individual o colectivo hasta tres integrantes, y examen recepcional ante tres sinodales."
+  ],
+  "documentos": [
+    "Constancia de liberación de servicio social (artículo 127, fracción III).",
+    "Certificado total de estudios de licenciatura (artículo 127, fracción IV).",
+    "Comprobante de acreditación de inglés: cinco niveles o suficiencia con nivel mínimo B1 (artículo 127, fracciones I y II).",
+    "Certificación en inglés y francés nivel B2, solo para Lenguas Extranjeras (artículo 127, fracción VI).",
+    "Constancia de no adeudo de colegiatura o de cualquier gasto administrativo (artículo 127, fracción VII).",
+    "Comprobante de pago de titulación (artículo 127, fracción VIII).",
+    "Solicitud de titulación con fotografías y documentos (artículo 127, fracción IX).",
+    "Resultado EGEL con dictamen Sobresaliente, para la opción EGEL (artículo 134).",
+    "Certificado de créditos de maestría, para la opción Estudios de Posgrado (artículo 130)."
+  ],
+  "proceso": [
+    "Cumplir los prerrequisitos: acreditar el 100 por ciento de las asignaturas, liberar el servicio social, obtener el certificado total de estudios, acreditar el requisito de inglés y quedar sin adeudos en cajas y biblioteca.",
+    "Elegir la opción de titulación entre las que ofrece la carrera; las de Ciencias de la Salud tienen su propia tabla.",
+    "Solicitar el registro de la tesis ante la Coordinación de Servicio Social y Titulación del campus.",
+    "Desarrollar la tesis con asesoría de un profesor; el material institucional estima seis meses.",
+    "Revisión y autorización del trabajo por parte de la universidad.",
+    "Integración del jurado con tres sinodales.",
+    "Presentar el examen recepcional, público y abierto, en lugar y hora determinados.",
+    "Recibir el fallo: aprobado por mayoría, aprobado por unanimidad o no aprobado (seis meses de espera para nueva fecha si no se aprueba).",
+    "Realizar el pago de titulación y entregar la solicitud con fotografías y documentos.",
+    "Dar seguimiento a la gestión del título en sus tres fases: Gestión en Campus, Secretaría Técnica y Concluido."
+  ],
+  "tiempos": "La tesis toma aproximadamente seis meses de asesoría según el material institucional. Tras un examen recepcional no aprobado deben pasar seis meses para solicitar nueva fecha. El reglamento no fija plazo máximo desde el egreso para titularse ni vigencia del registro del tema.",
+  "notas": [
+    "La UNITEC no tiene titulación por promedio general; el promedio funciona como condición de acceso a otras opciones (8.0 para EGEL, 9.0 para Acreditación de Idioma).",
+    "El EGEL aparece a la vez como opción de titulación y como requisito general cuando aplica; cuál función tiene en una carrera depende del plan de estudios.",
+    "El reglamento no publica el nombre de los formatos internos ni cuántas fotografías o documentos personales acompañan la solicitud.",
+    "No se localizó guía pública de formato de la tesis (tipografía, márgenes, extensión, portada); se solicita a la coordinación académica.",
+    "No se localizó repositorio institucional público ni norma que obligue al depósito digital como condición para titularse.",
+    "La UNITEC no publica tabulador abierto del trámite de titulación; los costos se consultan con la Coordinación de Servicio Social y Titulación y con Caja del campus.",
+    "La norma es única para toda la universidad; la variación es por área académica y por carrera, no por campus."
+  ],
+  "fuentes": [
+    { "label": "Reglamento de Estudiantes de Licenciatura, julio de 2026", "url": "https://www.unitec.mx/hubfs/reglamento-de-estudiantes-licenciatura-julio-2026.pdf" },
+    { "label": "Titulación, página institucional", "url": "https://www.unitec.mx/titulacion/" },
+    { "label": "Seguimiento de titulación", "url": "https://www.unitec.mx/seguimiento-titulacion/" },
+    { "label": "Reglamento Académico de Licenciaturas", "url": "https://www.unitec.mx/hubfs/01.UNITEC/pdfs/documentos/reglamento-licenciaturas.pdf" },
+    { "label": "Titularse en la UNITEC, blog institucional", "url": "https://blogs.unitec.mx/vida-universitaria/la-unitec/sin-pretextos-para-titularte/" }
+  ],
+  "sinConfirmar": [
+    "Tabla de opciones de Ciencias de la Salud: el artículo 128 remite a una tabla por carrera que no se pudo transcribir completa; decide si una carrera de salud admite tesis. Se pregunta a la Coordinación de Servicio Social y Titulación del campus.",
+    "Vigencia real del Reglamento Académico de Licenciaturas: se identifica a sí mismo como propuesta sin fecha de vigencia; sus artículos deben verificarse contra el articulado de julio de 2026. Se pregunta a la Secretaría Técnica y Cumplimiento Normativo.",
+    "Formatos internos del trámite: el reglamento habla de solicitud, fotografías y documentos, sin nombres ni especificaciones. Se pregunta a la Coordinación de Servicio Social y Titulación.",
+    "Plazo máximo para titularse desde el egreso y vigencia del registro del tema: el reglamento no los publica. Se pregunta a la Coordinación de Servicio Social y Titulación.",
+    "Lineamientos de formato de la tesis: no hay guía pública. Se pregunta a la coordinación académica de la carrera.",
+    "Depósito digital y repositorio: no se localizó repositorio institucional público ni norma de depósito. Se pregunta a la Biblioteca del campus.",
+    "Costos de titulación 2026: no hay tabulador público. Se pregunta a Caja y a la Coordinación de Servicio Social y Titulación.",
+    "Estatus del EGEL: aparece como opción y como requisito general; el blog menciona un Examen Integrador que lo sustituyó temporalmente. Se pregunta cuál instrumento opera hoy y en qué carreras.",
+    "Herramienta antiplagio: el reglamento remite al Reglamento General de Estudiantes y no nombra herramienta ni umbral de similitud. Se pregunta a la coordinación académica."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UNITEC 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la UNITEC 2026: nueve opciones incluida la tesis, requisitos del artículo 127, documentos, proceso y tiempos verificados en el reglamento.",
+  "keywords": "titulación unitec, tesis unitec, opciones de titulación unitec, requisitos titulación unitec, egel unitec, examen recepcional unitec"
+}

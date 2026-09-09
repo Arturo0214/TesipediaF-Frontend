@@ -1,0 +1,92 @@
+{
+  "lineSlug": "titulacion-unam",
+  "landingSlug": "tesis-unam",
+  "guiaId": "tesis-unam",
+  "sigla": "UNAM",
+  "nombre": "Universidad Nacional Autónoma de México",
+  "ciudad": "Ciudad de México",
+  "titulo": "Titulación en la UNAM: opciones, requisitos y documentos",
+  "intro": "La titulación en la UNAM se rige por el Reglamento General de Exámenes, que ofrece varias opciones y deja a cada consejo técnico definir cuáles aplica su facultad o escuela.",
+  "resumen": "El título requiere acreditar todo el plan de estudios, realizar el servicio social y cumplir una de las opciones de titulación del artículo 20. La tesis es una de esas opciones e incluye réplica oral ante un jurado. Los créditos mínimos, la vigencia del registro y los votos aprobatorios cambian entre planteles.",
+  "opciones": [
+    { "nombre": "Tesis o tesina y examen profesional", "detalle": "Trabajo escrito individual o grupal, más réplica oral que se evalúa de manera individual." },
+    { "nombre": "Actividad de investigación", "detalle": "Titulación con base en una actividad de investigación reconocida por la entidad." },
+    { "nombre": "Seminario de tesis o tesina", "detalle": "Elaboración del trabajo dentro de un seminario dirigido." },
+    { "nombre": "Examen general de conocimientos", "detalle": "Evaluación general de la carrera como vía de titulación." },
+    { "nombre": "Totalidad de créditos y alto nivel académico", "detalle": "Titulación por haber cubierto los créditos con alto promedio." },
+    { "nombre": "Actividad de apoyo a la docencia", "detalle": "Titulación mediante actividades de apoyo docente." },
+    { "nombre": "Trabajo profesional", "detalle": "Titulación con base en el ejercicio profesional del egresado." },
+    { "nombre": "Estudios en posgrado", "detalle": "Titulación mediante estudios de posgrado cursados." },
+    { "nombre": "Ampliación y profundización de conocimientos", "detalle": "Titulación por cursos de ampliación y profundización." },
+    { "nombre": "Servicio social", "detalle": "Titulación por servicio social conforme a la reglamentación de la entidad." }
+  ],
+  "requisitos": [
+    "Acreditar en su totalidad el plan de estudios.",
+    "Haber realizado el servicio social.",
+    "Cumplir una de las opciones de titulación del artículo 20 del RGE.",
+    "En la modalidad de tesis, elaborar una tesis individual o grupal, o una tesina individual, y presentar la réplica oral.",
+    "Alcanzar el porcentaje de créditos que fije la facultad para registrar el tema, que va del 70 al 100 por ciento según la entidad.",
+    "Cumplir el requisito de idioma cuando el plan de estudios lo exija.",
+    "En facultades como Ciencias y FES Cuautitlán, aprobar la verificación de similitud o análisis de coincidencias."
+  ],
+  "documentos": [
+    "Formato de Registro de Opción de Titulación, en versión por carrera.",
+    "Solicitud de Asignación de Jurado.",
+    "Declaración de Integridad y Honestidad Académica y Profesional.",
+    "Constancia de Término de Servicio Social o Carta Única de Liberación del Servicio Social.",
+    "Votos aprobatorios firmados por el jurado, con firma autógrafa en tinta negra.",
+    "Certificado de licenciatura y antecedentes académicos, como acta de nacimiento y certificados de secundaria y bachillerato.",
+    "Copia legible de la CURP ampliada al 200 por ciento.",
+    "Constancia de no adeudo de bibliotecas, con vigencia de 12 meses, tramitada en SIICANA.",
+    "Autorización de Transferencia de Información DGPE y Solicitud de Expedición de Título o Grado.",
+    "Comprobante del Cuestionario para Egresados y fichas de pago del sistema SIGEREL."
+  ],
+  "proceso": [
+    "Actualizar los datos personales en el portal de la entidad y en www.escolar.unam.mx.",
+    "Registrar la opción de titulación con el porcentaje de créditos que exija la facultad y entregar el formato de registro con sus anexos.",
+    "Desarrollar el trabajo dentro del plazo que fije la entidad y notificar por escrito su conclusión.",
+    "Solicitar la asignación de jurado y entregar la constancia de servicio social y la declaración de integridad académica.",
+    "Recibir la designación de tres sinodales titulares y dos suplentes y atender las revisiones del trabajo.",
+    "Realizar la verificación de integridad académica enviando la copia digital del trabajo.",
+    "Preparar los documentos de la DGAE y descargar los votos aprobatorios una vez liberada la liga.",
+    "Obtener la constancia de no adeudo de bibliotecas y depositar el PDF en el sistema SIICANA, que alimenta TESIUNAM.",
+    "Verificar la revisión documental en ingreso.dgae.unam.mx y ratificar los votos para agendar el examen.",
+    "Presentar el examen profesional ante al menos tres miembros del jurado y entregar los originales y el acta al concluir."
+  ],
+  "tiempos": "En la Facultad de Ciencias el desarrollo del trabajo se recomienda en un plazo no mayor de un año, la primera revisión de sinodales es de 30 días hábiles y la segunda de 10, el arbitraje por dictamen negativo es de 20 días hábiles, tras suspensión la nueva presentación ocurre en un mínimo de seis meses y el título se recibe alrededor de 30 días hábiles después del examen. En la FES Acatlán la realización de la tesis es de máximo dos años y la de la tesina de un año. La ENTS otorga 12 meses con dos prórrogas de tres meses. La constancia de no adeudo de bibliotecas tiene vigencia de 12 meses y la constancia de servicio social en FES Cuautitlán, 10 años.",
+  "notas": [
+    "Cada consejo técnico define qué opciones ofrece; la Facultad de Ciencias reconoce diecisiete opciones y otras entidades se apegan al catálogo del artículo 20.",
+    "Los créditos para registrar el tema van del 70 al 100 por ciento según la facultad.",
+    "Los votos aprobatorios varían: la ENTS exige cinco y la FES Acatlán cancela el trabajo con dos o más votos negativos.",
+    "La verificación de similitud ya se pide en la Facultad de Ciencias y en la FES Cuautitlán, y otras entidades pueden no exigirla todavía.",
+    "El ejemplar impreso varía: la FES Cuautitlán pide seis ejemplares de 16 por 22 cm, mientras otras facultades tienen trámites totalmente digitales.",
+    "El depósito digital se hace en SIICANA con un PDF sin protección, un solo archivo, de máximo 100 MB, y alimenta el catálogo TESIUNAM."
+  ],
+  "fuentes": [
+    { "label": "Reglamento General de Exámenes de la UNAM", "url": "https://www.abogadogeneral.unam.mx/sites/default/files/archivos/49-ReglamentoGeneralExamenes_rem38_021220.pdf" },
+    { "label": "Opciones de Titulación en la UNAM, DGAE", "url": "https://www.dgae.unam.mx/pdfs/opcionestitu2011.pdf" },
+    { "label": "Para obtener Título y Cédula Profesional, folleto DGAE", "url": "https://www.dgae.unam.mx/pdfs/titulacion_folleto.pdf" },
+    { "label": "Reglamento de opciones de titulación, Facultad de Ingeniería", "url": "https://www.ingenieria.unam.mx/pdf/reglamentos/Reglamento_Opciones_Titulacion.pdf" },
+    { "label": "Reglamento Interno de Opciones de Titulación 2023, Facultad de Ciencias", "url": "https://www.fciencias.unam.mx/sites/default/files/2023-09/Reglamento-Interno-de-Opciones-de-Titulacion-Aprobado-2023.pdf" },
+    { "label": "Guía de Titulación, Facultad de Ciencias", "url": "https://www.fciencias.unam.mx/servicios-y-tramites/titulacion/guia" },
+    { "label": "Guía de requisitos para el trámite de titulación, FES Cuautitlán", "url": "https://www.cuautitlan.unam.mx/titulacion/descargas/Guia_requisitos.pdf" },
+    { "label": "Reglamento Interno de Titulación y Exámenes Profesionales, ENTS", "url": "https://www.trabajosocial.unam.mx/reglamentos/Reglamento_Titulacion_Examenes_profesionales.pdf" },
+    { "label": "Visión general del trámite de Constancia de No Adeudo, SIICANA, DGB", "url": "https://siicana.dgb.unam.mx/doc/1_VISION_GENERAL_DEL_TRAMITE.pdf" }
+  ],
+  "sinConfirmar": [
+    "El catálogo de opciones vigente en tu facultad, ya que cada consejo técnico puede añadir opciones propias.",
+    "El porcentaje de créditos para registrar el tema, que va de 70 a 100 por ciento según la entidad.",
+    "La vigencia del registro del tema y las prórrogas, que van de un año a dos años.",
+    "Cuántos votos aprobatorios necesitas y qué pasa con un voto negativo.",
+    "El estilo de citación exigido, que define el plan de estudios o el director de tesis.",
+    "Si tu facultad exige verificación de similitud y con qué herramienta.",
+    "Número de ejemplares impresos y sus medidas, ya que algunas entidades ya no piden impresos.",
+    "Montos de los pagos y presentación del título, que se actualizan con frecuencia.",
+    "Especificaciones exactas de las fotografías, que cambian entre planteles.",
+    "El requisito de idioma, que depende del plan de estudios."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UNAM 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la UNAM con datos verificados a septiembre de 2026: opciones del artículo 20, requisitos, documentos, tiempos y depósito en TESIUNAM.",
+  "keywords": "titulación UNAM, requisitos titulación UNAM, cómo titularse UNAM, opciones de titulación UNAM, tesis UNAM, examen profesional UNAM, TESIUNAM"
+}

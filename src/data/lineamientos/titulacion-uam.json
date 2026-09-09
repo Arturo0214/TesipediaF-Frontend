@@ -1,0 +1,87 @@
+{
+  "lineSlug": "titulacion-uam",
+  "landingSlug": "tesis-uam",
+  "guiaId": "tesis-uam",
+  "sigla": "UAM",
+  "nombre": "Universidad Autónoma Metropolitana",
+  "ciudad": "Ciudad de México",
+  "titulo": "Titulación en la UAM: opciones, requisitos y documentos",
+  "intro": "En la UAM el título de licenciatura no se obtiene por tesis. El Reglamento de Estudios Superiores no exige tesis ni trabajo terminal para titularse, y el trabajo escrito equivalente es el proyecto terminal, una unidad de enseñanza aprendizaje del plan de estudios.",
+  "resumen": "El título de licenciatura se obtiene al cubrir la totalidad de los créditos del plan de estudios y prestar el servicio social. Muchos planes incluyen una o varias UEA de proyecto terminal, que se acreditan como cualquier otra materia, con créditos. El trámite de título es vía web y cada unidad publica su propio instructivo.",
+  "opciones": [
+    { "nombre": "Proyecto terminal como UEA", "detalle": "Unidad de enseñanza aprendizaje del plan de estudios que se acredita con créditos y es el trabajo escrito equivalente a la tesis en otras universidades." },
+    { "nombre": "Conclusión del plan de estudios", "detalle": "El título se obtiene al cubrir la totalidad de los créditos y prestar el servicio social, sin examen profesional institucional." },
+    { "nombre": "Titulación por promedio", "detalle": "Modalidad divisional publicada por algunas divisiones, como la DCSH de Azcapotzalco; el detalle debe leerse en el sitio de la división." },
+    { "nombre": "Titulación por experiencia laboral", "detalle": "Modalidad divisional publicada por algunas divisiones, como la DCSH de Azcapotzalco; el detalle debe leerse en el sitio de la división." }
+  ],
+  "requisitos": [
+    "Cubrir la totalidad de los créditos del plan de estudios, en un plazo que no excederá de diez años.",
+    "Prestar el servicio social cuando el plan lo señale.",
+    "Cuando el plan lo incluya, acreditar la UEA de proyecto terminal con la calificación correspondiente.",
+    "Cumplir el requisito de créditos previos para inscribir el proyecto terminal, por ejemplo el 75 por ciento equivalente a 380 créditos en Ingeniería Ambiental de Azcapotzalco.",
+    "Contar con al menos un asesor interno cuyo perfil corresponda a la temática.",
+    "Obtener la firma del director o directora en la portada del proyecto, requisito explícito en Cuajimalpa.",
+    "Cumplir el requisito de idioma según el plan de estudios."
+  ],
+  "documentos": [
+    "Carta de autorización del proyecto terminal, Anexo 1 en Cuajimalpa.",
+    "Declaración de autoría con firmas, Anexo 2 en Cuajimalpa.",
+    "Comprobante de entrega del PDF en el módulo de biblioteca.",
+    "Proyecto terminal en PDF con firma del director en la portada y nombre de archivo según la convención de la licenciatura.",
+    "Formato de resumen del proyecto en una hoja, PT-01 en Azcapotzalco, para inscribir la UEA.",
+    "Constancia de no adeudo de material CCD, CNI o CSH según la división.",
+    "Documento de requisitos de idioma según el plan de estudios.",
+    "Comprobante de pago según el documento de cuotas de titulación.",
+    "Constancia de liberación del servicio social.",
+    "Solicitud de Título, Diploma o Grado vía web."
+  ],
+  "proceso": [
+    "Cumplir el requisito de créditos o de UEA previa que fije el plan; en Ingeniería Ambiental de Azcapotzalco son 380 créditos o el Seminario de Proyecto Terminal.",
+    "Conseguir asesor o director cuyo perfil corresponda al tema.",
+    "Presentar la propuesta o protocolo con la estructura que pida la división, acompañada del formato que aplique.",
+    "Inscribir la UEA de proyecto terminal.",
+    "Desarrollar el trabajo durante los trimestres que marque el plan; en el caso verificado son dos trimestres consecutivos.",
+    "Entregar el reporte al comité o al asesor para dictamen, que resuelve en uno de cuatro sentidos.",
+    "Obtener la firma del director o directora en la portada.",
+    "Entregar el PDF en biblioteca y en la coordinación, con la carta de autorización y la declaración de autoría.",
+    "Acreditar la UEA con la calificación correspondiente.",
+    "Iniciar vía web el trámite administrativo de título, con los créditos cubiertos y el servicio social liberado, siguiendo el instructivo de la unidad."
+  ],
+  "tiempos": "El plazo máximo para cubrir la totalidad de los créditos de licenciatura es de diez años, según el Reglamento de Estudios Superiores. En Ingeniería Ambiental de Azcapotzalco el proyecto terminal dura dos trimestres consecutivos, con 22 semanas de trabajo, y requiere el 75 por ciento del plan, equivalente a 380 créditos, para inscribirse. No se localizaron en fuente oficial legible plazos institucionales para la revisión del trabajo, la emisión del título ni la vigencia de las constancias; esos datos están en los instructivos de cada unidad.",
+  "notas": [
+    "En la UAM no hay un catálogo institucional de opciones de titulación con examen profesional, porque el título se obtiene al concluir el plan de estudios.",
+    "El proyecto terminal no existe en todos los planes; es una UEA que unas licenciaturas incluyen y otras no.",
+    "Los créditos previos para inscribir el proyecto terminal cambian por licenciatura.",
+    "Las divisiones de ciencias sociales suelen publicar modalidades adicionales como titulación por promedio o por experiencia laboral.",
+    "El estilo de citación cambia por división; solo se verificó el sistema autor fecha estilo Harvard en Ingeniería Ambiental de Azcapotzalco.",
+    "El trámite de título es por unidad; la Dirección de Sistemas Escolares remite a cada Coordinación de Sistemas Escolares.",
+    "El repositorio es por unidad, como Zaloamati en Azcapotzalco o el repositorio propio de Xochimilco, sin un repositorio único institucional.",
+    "La numeración de artículos del RES no coincide entre ediciones, por lo que hay que verificar el número vigente en el portal de legislación."
+  ],
+  "fuentes": [
+    { "label": "Legislación Universitaria de la UAM, marzo de 2026, Reglamento de Estudios Superiores", "url": "https://www.uam.mx/legislacion/legislacion-uam-marzo-16-2026/UAM-LEGISLACION-UNIVERSITARIA-VERSION-DPL_MARZO-2026-160326-res.pdf" },
+    { "label": "Reglamento de Estudios Superiores, versión Unidad Iztapalapa", "url": "https://www.izt.uam.mx/uami/legislacion/reglamento_estudios_superiores.pdf" },
+    { "label": "Solicitud de Título, Diploma o Grado vía web, Dirección de Sistemas Escolares", "url": "https://dse.uam.mx/solicitud-titulo-diploma-o-grado-via-web/" },
+    { "label": "Instructivos para la Titulación, Sistemas Escolares, UAM Cuajimalpa", "url": "https://www.cua.uam.mx/servicios/sistemas-escolares/instructivos-para-la-titulacion" },
+    { "label": "Proyecto terminal, DCSH UAM Cuajimalpa", "url": "https://dcsh.cua.uam.mx/proyecto-terminal/" },
+    { "label": "Lineamientos de proyecto terminal, Ingeniería Ambiental, DCBI UAM Azcapotzalco", "url": "https://dcbi.azc.uam.mx/media/Licenciaturas/Formatos/amb_lineamientos_proyecto_terminal.pdf" },
+    { "label": "Repositorio Institucional Zaloamati, UAM Azcapotzalco", "url": "https://zaloamati.azc.uam.mx/" },
+    { "label": "Repositorios de la UAM, Biblioteca Digital", "url": "https://bidi.uam.mx/repositorio.php" }
+  ],
+  "sinConfirmar": [
+    "Si tu plan de estudios incluye proyecto terminal o trabajo terminal, y en qué trimestres.",
+    "El número de artículo vigente del Reglamento de Estudios Superiores, ya que las ediciones consultadas numeran distinto el mismo contenido.",
+    "Los créditos previos exigidos para inscribir el proyecto terminal en tu licenciatura.",
+    "El estilo de citación que exige tu división; solo se verificó Harvard en un caso.",
+    "Tipografía, márgenes e interlineado, pues no hay norma institucional publicada.",
+    "Si tu licenciatura exige presentación pública o defensa; los lineamientos verificados no la exigen.",
+    "La lista exacta de documentos del trámite de título en tu unidad, con fotografías y montos.",
+    "El requisito de idioma de tu plan de estudios.",
+    "Los requisitos de depósito en el repositorio de tu unidad, que cambian entre Zaloamati, Xochimilco y los demás.",
+    "Si tu división publica modalidades adicionales como titulación por promedio o por experiencia laboral, y qué requisitos tienen."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UAM 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "Guía de titulación en la UAM con datos verificados a septiembre de 2026: el título se obtiene por proyecto terminal y conclusión del plan, no por tesis. Requisitos y trámite.",
+  "keywords": "titulación UAM, requisitos titulación UAM, cómo titularse UAM, proyecto terminal UAM, trabajo terminal UAM, trámite de título UAM"
+}

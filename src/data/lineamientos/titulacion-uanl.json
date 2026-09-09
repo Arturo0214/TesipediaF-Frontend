@@ -1,0 +1,86 @@
+{
+  "lineSlug": "titulacion-uanl",
+  "landingSlug": "tesis-uanl",
+  "guiaId": "tesis-uanl",
+  "sigla": "UANL",
+  "nombre": "Universidad Autónoma de Nuevo León",
+  "ciudad": "Monterrey",
+  "titulo": "Titulación en la UANL: opciones, requisitos y documentos",
+  "intro": "La UANL no tiene un reglamento general de titulación: el reglamento general solo fija los requisitos de egreso y el trámite del título, y deja a cada Escuela o Facultad la definición de las opciones de titulación. Quien busque las reglas de la tesis debe ir al sitio de su facultad.",
+  "resumen": "El Reglamento para la Admisión, Permanencia y Egreso (2019) marca los requisitos de titulación en su Título Séptimo, pero las modalidades varían facultad por facultad. La tesis, cuando existe, culmina en un protocolo de titulación con jurado. El trámite central se realiza en SIASE ante la Dirección del Departamento Escolar y de Archivo.",
+  "opciones": [
+    { "nombre": "Tesis (FIME)", "detalle": "Investigación científica según la carrera, disponible para egresados de agosto 2008 en adelante, con revisión antiplagio Turnitin de máximo 20 por ciento de similitud." },
+    { "nombre": "Proyecto de titulación (FIME)", "detalle": "Alternativa a la tesis para egresados de agosto 2008 en adelante." },
+    { "nombre": "Tesis, titulación directa, cursos o competencia laboral (FASPyN)", "detalle": "Cuatro alternativas; la titulación directa aplica a egresados desde diciembre de 2008." },
+    { "nombre": "Protocolo o certificado de titulación (Medicina, QCB)", "detalle": "Opciones publicadas para la carrera de Químico Clínico Biólogo." },
+    { "nombre": "Curso de preparación o competencia laboral (FIME, planes antiguos)", "detalle": "Para egresados de enero 1995 a junio 2008 y anteriores, según el plan." },
+    { "nombre": "Jornada de Titulación Generacional", "detalle": "Convocatoria para egresados de 2010 a 2020 sin titular, con todo acreditado y servicio social cumplido." }
+  ],
+  "requisitos": [
+    "Ser egresado de un programa educativo de la Universidad (art. 153).",
+    "Haber acreditado todas las unidades de aprendizaje del plan de estudios.",
+    "Haber cumplido el servicio social cuando sea requisito.",
+    "No tener adeudo alguno con la Universidad (art. 153, fracción IV).",
+    "Cumplir los requisitos específicos que establezca cada Escuela o Facultad en su reglamento interno.",
+    "Presentar el examen de egreso donde se exija (encuesta de egresados en FIME, EXENS en Trabajo Social, examen de egreso en Ciencias Políticas).",
+    "Acreditar segundo idioma según la facultad (EXCI 50, TOEFL 460 o 6 niveles del Centro de Idiomas en FIME; TOEFL-ITP mínimo 550 en Ciencias Políticas).",
+    "En la vía de tesis: registrar el tema ante la coordinación de titulación de la facultad y trabajar con un asesor."
+  ],
+  "documentos": [
+    "Acta de nacimiento original, máximo un año de antigüedad.",
+    "Kardex certificado completo de carrera, expedición máximo 6 meses.",
+    "Kardex de preparatoria certificado.",
+    "Certificado de servicio social original, si el servicio no fue unidad de aprendizaje.",
+    "CURP impreso, máximo un mes de vigencia.",
+    "Identificación oficial vigente.",
+    "Archivos digitales en PDF a color, máximo 600 KB por archivo.",
+    "Fotografía tomada en el módulo de la Torre de Rectoría, con ropa formal.",
+    "Liberación de servicio social y de prácticas profesionales según la facultad.",
+    "Comprobantes internos por facultad: segundo idioma, examen de egreso o EXENS, recibos de pago y comprobante de aprobación de la alternativa de titulación."
+  ],
+  "proceso": [
+    "Ingresar a uanl.mx/enlinea con las credenciales del SIASE y elegir Titulación nivel licenciatura en Trámites DEyA para generar la pre-solicitud.",
+    "Cargar los documentos digitalizados con las especificaciones técnicas exigidas.",
+    "La facultad valida el kardex y verifica el cumplimiento reglamentario.",
+    "Imprimir el recibo y pagar en la institución bancaria autorizada.",
+    "Confirmado el pago, la facultad programa la fecha del protocolo y asigna el jurado.",
+    "Acudir al módulo fotográfico en la planta baja de la Torre de Rectoría.",
+    "Presentar el protocolo de titulación (presencial o en línea según la facultad; por Teams en FIME).",
+    "La facultad recopila las actas y las envía al Departamento Escolar para su llenado oficial.",
+    "El Departamento Escolar coordina las firmas de las autoridades y lo inscribe ante la Dirección General de Profesiones.",
+    "Un correo notifica que el título está disponible para recogerse.",
+    "Tramitar por separado la cédula profesional electrónica en siurp.sep.gob.mx."
+  ],
+  "tiempos": "El kardex certificado no debe superar 6 meses de expedición y el acta de nacimiento un año. Una vez abierto el expediente, la Facultad de Psicología da 1 año para cerrar el trámite. Ciencias Políticas estima alrededor de 6 meses desde el inicio hasta la entrega del título, con espera de 6 meses tras la ceremonia. En la Jornada Generacional el título se entrega 20 días hábiles después de elaborada el acta, y la convocatoria vence un año después del 3 de noviembre de 2025.",
+  "notas": [
+    "La variación es la característica principal del sistema UANL: cada facultad publica sus propias opciones, plazos y requisitos, y no existe un reglamento general de titulación.",
+    "FIME ofrece tesis para egresados de agosto 2008 en adelante; FASPyN la incluye como una de cuatro alternativas; Psicología y Ciencias Políticas no la publican como vía separada.",
+    "FASPyN advierte que los pasantes con más de un año de egreso pasan a consideración de la Comisión Académica.",
+    "No existe una definición institucional única de tesis ni formato editorial institucional; hay guías por dependencia (QCB Medicina, Trabajo Social, Ingeniería Civil).",
+    "El único tope antiplagio verificado con alcance a licenciatura es el 20 por ciento de similitud en Turnitin de FIME.",
+    "El depósito de la tesis de licenciatura en repositorio no está confirmado como obligatorio."
+  ],
+  "fuentes": [
+    { "label": "Titulación para nivel licenciatura, UANL", "url": "https://www.uanl.mx/tramites/titulacion-para-nivel-licenciatura/" },
+    { "label": "Jornada de Titulación Generacional", "url": "https://www.uanl.mx/jornada-de-titulacion-generacional/" },
+    { "label": "Reglamento para la Admisión, Permanencia y Egreso de los Alumnos", "url": "http://transparencia.uanl.mx/secciones/normatividad_vigente/archivos/LyR09/06admision.pdf" },
+    { "label": "Titulación de Licenciatura, FIME", "url": "https://www.fime.uanl.mx/tramites/titulacion-de-licenciatura/" },
+    { "label": "Registro de tesis de licenciatura para titulación, FIME", "url": "https://www.fime.uanl.mx/avisos/registro-tesis-licenciatura-titulacion/" },
+    { "label": "Titulación de nivel licenciatura, FASPyN", "url": "https://faspyn.uanl.mx/tramites/titulacion-de-nivel-licenciatura/" },
+    { "label": "Titulación QCB, Facultad de Medicina", "url": "https://www.medicina.uanl.mx/alumnos/qcb/titulacion/" },
+    { "label": "Repositorio Institucional UANL", "url": "http://eprints.uanl.mx/" }
+  ],
+  "sinConfirmar": [
+    "La numeración del Título Séptimo: el portal de transparencia sitúa la titulación en los artículos 152 a 155 y Arquitectura publica un Título Noveno con artículos 133 a 136; falta cotejar cuál corresponde al reglamento general.",
+    "El Reglamento General de Exámenes de la UANL bloqueó el acceso automatizado; falta confirmar si sigue vigente tras la reforma de 2019.",
+    "El artículo 169 que cita FASPyN para pasantes con más de un año de egreso no se pudo ubicar en el reglamento consultado.",
+    "No se localizó una definición institucional de tesis, ni extensión, ni número máximo de sustentantes, ni composición del jurado con alcance para toda la Universidad.",
+    "El depósito de la tesis de licenciatura en repositorio no está confirmado como obligatorio.",
+    "Los costos del trámite no aparecen publicados en la página central; Medicina sí publica montos para QCB (3,500.00 pesos en caja y 1,183.00 por pago SIREP), pero son de una carrera.",
+    "Los lineamientos de tesis de licenciatura QCB están en un PDF que devolvió contenido no legible."
+  ],
+  "fechaConsulta": "septiembre de 2026",
+  "metaTitle": "Titulación UANL 2026: Requisitos, Opciones y Documentos | Tesipedia",
+  "metaDescription": "En la UANL la titulación varía facultad por facultad: no hay reglamento general. Conoce requisitos de egreso, opciones de tesis y el trámite del título en SIASE.",
+  "keywords": "titulación uanl, tesis uanl, opciones de titulación UANL, requisitos titulación UANL, titulación FIME, titulación FASPyN, protocolo de titulación UANL, SIASE titulación"
+}
