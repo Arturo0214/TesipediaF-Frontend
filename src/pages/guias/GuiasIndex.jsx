@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import { trackStoreView } from '../../services/eventService';
 import { FaBookOpen, FaArrowRight, FaFilePdf, FaStar, FaLayerGroup, FaShoppingCart, FaCheck } from 'react-icons/fa';
 import { GUIAS, PAQUETES, getGuia } from '../../data/guias';
 import { useCart } from '../../context/CartContext';
@@ -37,6 +39,7 @@ function GuiaCard({ id }) {
 }
 
 export default function GuiasIndex() {
+  useEffect(() => { trackStoreView('/guias'); }, []);
   return (
     <div className="gi">
       <Helmet>

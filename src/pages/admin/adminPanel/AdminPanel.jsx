@@ -37,6 +37,7 @@ import {
     FaBookOpen,
     FaVideo,
     FaUserClock,
+    FaStore,
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
@@ -81,6 +82,7 @@ const AdminContent = lazy(() => import('../adminContent/AdminContent.jsx'));
 const ManageSeguimientos = lazy(() => import('../adminSeguimientos/ManageSeguimientos.jsx'));
 const LeadsDiario = lazy(() => import('../adminLeadsDiario/LeadsDiario.jsx'));
 const AdminVideoStudio = lazy(() => import('../adminVideoStudio/AdminVideoStudio.jsx'));
+const AdminMercadoPago = lazy(() => import('../adminMercadoPago/AdminMercadoPago.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -150,6 +152,7 @@ const AdminPanel = () => {
         if (path.includes('/proyectos')) return 'proyectos';
         if (path.includes('/seguimientos')) return 'seguimientos';
         if (path.includes('/leads-diario')) return 'leadsdiario';
+        if (path.includes('/mercadopago')) return 'mercadopago';
         if (path.includes('/pagos')) return 'pagos';
         if (path.includes('/visitas')) return 'visitas';
         if (path.includes('/hubspot')) return 'hubspot';
@@ -191,6 +194,7 @@ const AdminPanel = () => {
         { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue', color: '#34D399' },
         { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes', color: '#60A5FA' },
         { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns', color: '#1877F2' },
+        { key: 'mercadopago', icon: FaStore, label: 'Mercado Pago', section: 'finanzas', path: '/admin/mercadopago', color: '#00B1EA' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas', color: '#F472B6' },
         { key: 'redes', icon: FaShareAlt, label: 'Redes Sociales', section: 'estadisticas', path: '/admin/redes', color: '#E4405F' },
         { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' },
@@ -330,6 +334,7 @@ const AdminPanel = () => {
         cotizaciones: ManageQuotes,
         proyectos: ManageProjects,
         pagos: ManagePayments,
+        mercadopago: AdminMercadoPago,
         seguimientos: ManageSeguimientos,
         leadsdiario: LeadsDiario,
         visitas: ManageVisits,

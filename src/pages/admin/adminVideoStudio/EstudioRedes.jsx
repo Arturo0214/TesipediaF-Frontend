@@ -34,6 +34,17 @@ const MARCAS = [
   { id: 'Libro vs Película', c: '#EF4444' },
 ];
 
+// Fuerza mp4/h264 en URLs de video de Cloudinary para que el navegador SIEMPRE pueda
+// reproducirlas (los .mov/HEVC de iPhone/Mac no cargan en Chrome). También arregla videos
+// ya subidos con la URL original, sin tener que resubirlos.
+const playableVideo = (url) => {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/video/upload/')) return url;
+  if (url.includes('/upload/f_') || url.includes('/upload/vc_')) return url; // ya transformada
+  return url
+    .replace('/video/upload/', '/video/upload/f_mp4,vc_h264,ac_aac/')
+    .replace(/\.(mov|m4v|avi|mkv|webm|mpeg|mpg|3gp|hevc)$/i, '.mp4');
+};
+
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function EstudioRedes() {
@@ -510,7 +521,7 @@ export default function EstudioRedes() {
                   <button className="er-visor-arrow left" onClick={() => setImgIdx((i) => (i - 1 + abierta.imagenes.length) % abierta.imagenes.length)}><FaChevronLeft /></button>
                 )}
                 {abierta.video_url
-                  ? <video src={abierta.video_url} controls playsInline className="er-visor-video" />
+                  ? <video src={playableVideo(abierta.video_url)} controls playsInline preload="metadata" className="er-visor-video" />
                   : (abierta.imagenes || [])[imgIdx]
                     ? <img src={(abierta.imagenes || [])[imgIdx]} alt="" />
                     : <div className="er-visor-empty"><FaCloudUploadAlt /><span>{(draft?.formato || abierta.formato) === 'VIDEO' ? 'Sin video — arrastra un video aquí o usa «Subir video»' : 'Slot vacío — arrastra una imagen aquí'}</span></div>}

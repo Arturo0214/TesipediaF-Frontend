@@ -5,6 +5,7 @@ import {
   FaTimes, FaTrashAlt, FaShoppingCart, FaLock, FaArrowRight, FaGift, FaShieldAlt,
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
+import { trackInitiateCheckout } from '../../services/eventService';
 import './CartDrawer.css';
 
 const API = (import.meta.env.VITE_SOCKET_URL || import.meta.env.API_URL || '').replace(/\/$/, '') || window.location.origin;
@@ -24,6 +25,7 @@ export default function CartDrawer() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('Escribe un correo válido para enviarte las guías.'); return; }
     setPaying(true);
     try {
+      trackInitiateCheckout('carrito', total, { items: cart.ids, count });
       const res = await fetch(`${API}/guias/checkout-cart`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: cart.ids, email: email.trim().toLowerCase(), metodo: 'mercadopago' }),

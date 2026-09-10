@@ -1,4 +1,5 @@
 import axiosWithAuth from '../utils/axioswithAuth';
+import { getVisitorId, getAttribution } from '../utils/visitor';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-service-production.up.railway.app';
 const TRACK_URL = BASE_URL.endsWith('/') ? `${BASE_URL}events/track` : `${BASE_URL}/events/track`;
@@ -51,8 +52,12 @@ if (typeof window !== 'undefined') {
 
 // ─── API Pública: trackear un evento ───
 export const trackEvent = (type, action, options = {}) => {
+  const attribution = getAttribution();
   const event = {
     sessionId: getSessionId(),
+    visitorId: getVisitorId(),
+    source: attribution.source,
+    attribution, // { visitorId, source, utm, referrer, landing }
     type,
     category: options.category || 'general',
     action,
@@ -90,6 +95,16 @@ export const trackChat = (action, label = '') =>
 export const trackForm = (action, label = '') =>
   trackEvent('form', action, { category: 'conversion', label });
 
+// ─── Tienda (embudo Mercado Pago: vistas → checkout → compra) ───
+export const trackStoreView = (label = '') =>
+  trackEvent('pageview', 'view_store', { category: 'store', label });
+
+export const trackProductView = (productId, nombre = '') =>
+  trackEvent('pageview', 'view_product', { category: 'store', label: productId, metadata: { nombre } });
+
+export const trackInitiateCheckout = (label = '', value = null, metadata = {}) =>
+  trackEvent('cta', 'initiate_checkout', { category: 'store', label, value, metadata });
+
 // ─── Google Ads Conversion Tracking ───
 export const trackGoogleAdsConversion = () => {
   if (typeof window.gtag === 'function') {
@@ -113,5 +128,16 @@ export const getEventStats = async (hours = 24) => {
 
 export const getRealtimeData = async () => {
   const res = await axiosWithAuth.get(`/events/realtime`);
+  return res.data;
+};
+
+export const getVisitors = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const res = await axiosWithAuth.get(`/events/visitors?${query}`);
+  return res.data;
+};
+
+export const getVisitorJourney = async (visitorId) => {
+  const res = await axiosWithAuth.get(`/events/visitor/${encodeURIComponent(visitorId)}`);
   return res.data;
 };

@@ -162,6 +162,7 @@ const router = createBrowserRouter(
             { path: 'admin/cotizaciones', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/proyectos', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/pagos', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/mercadopago', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/seguimientos', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/leads-diario', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/pedidos', element: <LazyPage><AdminPanel /></LazyPage> },

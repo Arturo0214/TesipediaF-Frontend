@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getVisits, clearError } from '../../../features/visits/visitsSlice';
-import { getEventStats, getEventFeed, getRealtimeData } from '../../../services/eventService';
+import { getEventStats, getEventFeed, getRealtimeData, getVisitors, getVisitorJourney } from '../../../services/eventService';
 import { getGADashboard, getGARealtime } from '../../../services/gaService';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -57,6 +57,13 @@ const ManageVisits = () => {
   const [gaPeriod, setGaPeriod] = useState(7);
   const [gaRealtime, setGaRealtime] = useState(null);
   const gaRealtimeInterval = useRef(null);
+  // Visitantes (trazabilidad por persona) state
+  const [visitorsData, setVisitorsData] = useState(null);
+  const [visitorsLoading, setVisitorsLoading] = useState(false);
+  const [visitorDays, setVisitorDays] = useState(30);
+  const [visitorSource, setVisitorSource] = useState('');
+  const [journey, setJourney] = useState(null);
+  const [journeyLoading, setJourneyLoading] = useState(false);
   // Dashboard expandable sections
   const [expandedSections, setExpandedSections] = useState({
     funnel: true, pages: true, acquisition: true, geo: true, events: true, sources: true, search: true,
@@ -124,6 +131,29 @@ const ManageVisits = () => {
     setRealtimeLoading(false);
   }, []);
 
+  const loadVisitors = useCallback(async () => {
+    setVisitorsLoading(true);
+    try {
+      const data = await getVisitors({ days: visitorDays, source: visitorSource || undefined, limit: 200 });
+      setVisitorsData(data);
+    } catch (err) {
+      console.error('Error loading visitors:', err);
+    }
+    setVisitorsLoading(false);
+  }, [visitorDays, visitorSource]);
+
+  const openJourney = useCallback(async (visitorId) => {
+    setJourneyLoading(true);
+    setJourney({ visitorId, eventos: [], resumen: null });
+    try {
+      const data = await getVisitorJourney(visitorId);
+      setJourney(data);
+    } catch (err) {
+      console.error('Error loading journey:', err);
+    }
+    setJourneyLoading(false);
+  }, []);
+
   const loadGAData = useCallback(async () => {
     setGaLoading(true);
     setGaError(null);
@@ -143,6 +173,7 @@ const ManageVisits = () => {
 
   useEffect(() => { loadGAData(); }, [gaPeriod]);
   useEffect(() => { loadEventData(); }, [eventPeriod, eventFeedPage, eventTypeFilter]);
+  useEffect(() => { if (activeTab === 'visitantes') loadVisitors(); }, [activeTab, loadVisitors]);
 
   // ── Time helpers ──
   const now = new Date();
@@ -422,6 +453,7 @@ const ManageVisits = () => {
         {[
           { key: 'dashboard', icon: <FaChartLine />, label: 'Dashboard' },
           { key: 'eventos', icon: <FaMousePointer />, label: 'Eventos' },
+          { key: 'visitantes', icon: <FaRoute />, label: 'Visitantes' },
           { key: 'realtime', icon: <FaBolt />, label: 'Tiempo Real' },
           { key: 'geografia', icon: <FaGlobe />, label: 'Geografia' },
           { key: 'registro', icon: <FaEye />, label: `Registro (${stats.total})` },
@@ -1191,6 +1223,124 @@ const ManageVisits = () => {
               </div>
             )}
           </div>
+        </>
+      )}
+
+      {/* ═══ VISITANTES TAB (trazabilidad por persona) ═══ */}
+      {activeTab === 'visitantes' && (
+        <>
+          <div className="vs-toolbar">
+            <select className="vs-period-select" value={visitorDays} onChange={e => setVisitorDays(Number(e.target.value))}>
+              <option value={1}>Hoy</option>
+              <option value={7}>7 dias</option>
+              <option value={30}>30 dias</option>
+              <option value={90}>90 dias</option>
+            </select>
+            <select className="vs-period-select" value={visitorSource} onChange={e => setVisitorSource(e.target.value)}>
+              <option value="">Todos los origenes</option>
+              {(eventStats?.bySource || []).map(s => (
+                <option key={s.source} value={s.source === 'directo' ? '' : s.source}>{s.source}</option>
+              ))}
+            </select>
+            {visitorsLoading && <span className="vs-loading-inline"><div className="vs-spinner-sm" /> Cargando...</span>}
+          </div>
+
+          {/* Origen: de donde viene cada visitante (atribucion propia) */}
+          {eventStats?.bySource?.length > 0 && (
+            <div className="vs-chart-card" style={{ marginBottom: 16 }}>
+              <h4 className="vs-chart-title"><FaLink /> Origen de los visitantes (atribucion propia)</h4>
+              <div className="vs-rank-list">
+                {eventStats.bySource.map((s, i) => {
+                  const totalV = eventStats.bySource.reduce((acc, x) => acc + x.visitantes, 0) || 1;
+                  const pct = Math.round((s.visitantes / totalV) * 100);
+                  return (
+                    <div key={s.source} className="vs-rank-item">
+                      <span className="vs-rank-pos">{i + 1}</span>
+                      <span className="vs-rank-name">{s.source}</span>
+                      <div className="vs-rank-bar-bg"><div className="vs-rank-bar" style={{ width: `${pct}%` }} /></div>
+                      <span className="vs-rank-count">{s.visitantes}</span>
+                      <span className="vs-rank-pct">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="vs-chart-card">
+            <h4 className="vs-chart-title"><FaUsers /> Visitantes ({visitorsData?.total || 0}) · ultimos {visitorsData?.days || visitorDays} dias</h4>
+            <div className="vs-visitors-table">
+              <div className="vs-vt-head">
+                <span className="vs-vt-src">Origen</span>
+                <span className="vs-vt-land">Aterrizaje</span>
+                <span className="vs-vt-dev">Disp.</span>
+                <span className="vs-vt-num">Eventos</span>
+                <span className="vs-vt-num">Pags</span>
+                <span className="vs-vt-num">CTAs</span>
+                <span className="vs-vt-last">Ultima vez</span>
+              </div>
+              {(visitorsData?.visitors || []).map((v) => (
+                <button key={v.visitorId} className="vs-vt-row" onClick={() => openJourney(v.visitorId)} title="Ver recorrido completo">
+                  <span className="vs-vt-src"><span className={`vs-src-chip ${v.checkouts > 0 ? 'hot' : ''}`}>{v.source}</span></span>
+                  <span className="vs-vt-land mono" title={v.landing}>{v.landing || '—'}</span>
+                  <span className="vs-vt-dev">{v.device === 'mobile' ? <FaMobile /> : v.device === 'tablet' ? <FaTabletAlt /> : <FaLaptop />}</span>
+                  <span className="vs-vt-num">{v.eventos}</span>
+                  <span className="vs-vt-num">{v.paginas}</span>
+                  <span className="vs-vt-num">{v.ctas > 0 ? <strong className="vs-vt-cta">{v.ctas}</strong> : v.ctas}</span>
+                  <span className="vs-vt-last">{fmtDate(v.lastSeen)} {fmtTime(v.lastSeen)}</span>
+                </button>
+              ))}
+              {(!visitorsData?.visitors || visitorsData.visitors.length === 0) && !visitorsLoading && (
+                <div className="vs-empty-text" style={{ padding: 24 }}>Aun no hay visitantes con trazabilidad en este periodo. Empezaran a aparecer cuando el sitio con el tracking nuevo este publicado.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Drawer del recorrido del visitante */}
+          {journey && (
+            <div className="vs-drawer-overlay" onClick={() => setJourney(null)}>
+              <div className="vs-drawer" onClick={e => e.stopPropagation()}>
+                <div className="vs-drawer-header">
+                  <h3>Recorrido del visitante</h3>
+                  <button className="vs-drawer-close" onClick={() => setJourney(null)}><FaTimes /></button>
+                </div>
+                <div className="vs-drawer-body">
+                  {journeyLoading && <div className="vs-loading-inline"><div className="vs-spinner-sm" /> Cargando recorrido...</div>}
+                  {journey.resumen && (
+                    <div className="vs-drawer-section">
+                      <h4>Resumen</h4>
+                      <div className="vs-drawer-fields">
+                        <div className="vs-drawer-field"><FaLink className="vs-field-icon" /><div><span className="vs-field-label">Origen</span><span className="vs-field-value">{journey.resumen.source}</span></div></div>
+                        <div className="vs-drawer-field"><FaRoute className="vs-field-icon" /><div><span className="vs-field-label">Aterrizaje</span><span className="vs-field-value mono">{journey.resumen.landing || '—'}</span></div></div>
+                        {journey.resumen.referrer && <div className="vs-drawer-field"><FaExternalLinkAlt className="vs-field-icon" /><div><span className="vs-field-label">Referrer</span><span className="vs-field-value small">{journey.resumen.referrer}</span></div></div>}
+                        {journey.resumen.utm?.campaign && <div className="vs-drawer-field"><FaAd className="vs-field-icon" /><div><span className="vs-field-label">Campana</span><span className="vs-field-value">{journey.resumen.utm.campaign}</span></div></div>}
+                        <div className="vs-drawer-field"><FaCalendarAlt className="vs-field-icon" /><div><span className="vs-field-label">Primera vez</span><span className="vs-field-value">{fmtFull(journey.resumen.firstSeen)}</span></div></div>
+                        <div className="vs-drawer-field"><FaClock className="vs-field-icon" /><div><span className="vs-field-label">Ultima vez</span><span className="vs-field-value">{fmtFull(journey.resumen.lastSeen)}</span></div></div>
+                        <div className="vs-drawer-field"><FaBolt className="vs-field-icon" /><div><span className="vs-field-label">Actividad</span><span className="vs-field-value">{journey.resumen.totalEventos} eventos · {journey.resumen.sesiones} sesiones</span></div></div>
+                      </div>
+                    </div>
+                  )}
+                  {journey.eventos?.length > 0 && (
+                    <div className="vs-drawer-section">
+                      <h4>Linea de tiempo</h4>
+                      <div className="vs-timeline">
+                        {journey.eventos.map((e, i) => (
+                          <div key={i} className="vs-timeline-item">
+                            <span className="vs-timeline-dot" />
+                            <div className="vs-timeline-body">
+                              <span className="vs-timeline-action">{e.label || e.action}</span>
+                              <span className="vs-timeline-page mono">{e.page}</span>
+                              <span className="vs-timeline-time">{fmtTime(e.createdAt)} · {fmtDate(e.createdAt)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 

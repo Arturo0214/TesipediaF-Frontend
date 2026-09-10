@@ -486,3 +486,56 @@
   .vs-google-kpi-row { grid-template-columns: repeat(2, 1fr); }
   .vs-google-total-number { font-size: 1.5rem; }
 }
+
+/* ── Visitantes (trazabilidad por persona) ── */
+.vs-visitors-table { font-size: 13px; }
+.vs-vt-head, .vs-vt-row {
+  display: grid;
+  grid-template-columns: 130px 1.4fr 48px 70px 56px 56px 130px;
+  gap: 10px; align-items: center; text-align: left;
+}
+.vs-vt-head {
+  color: #94a3b8; font-weight: 700; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.03em; padding: 8px 8px; border-bottom: 1px solid #f1f5f9;
+}
+.vs-vt-row {
+  width: 100%; padding: 10px 8px; border: none; background: transparent;
+  border-bottom: 1px solid #f8fafc; cursor: pointer; transition: background 0.12s;
+}
+.vs-vt-row:hover { background: #f8fafc; }
+.vs-vt-num { text-align: center; color: #475569; }
+.vs-vt-cta { color: #7c3aed; }
+.vs-vt-land { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #64748b; }
+.vs-vt-dev { text-align: center; color: #94a3b8; }
+.vs-vt-last { color: #94a3b8; font-size: 12px; }
+.vs-src-chip {
+  display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px;
+  font-weight: 700; background: #eff6ff; color: #2563eb; max-width: 120px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vs-src-chip.hot { background: #f5f3ff; color: #7c3aed; }
+
+/* Timeline del recorrido */
+.vs-timeline { display: flex; flex-direction: column; gap: 2px; position: relative; }
+.vs-timeline-item { display: flex; gap: 12px; padding: 8px 0; position: relative; }
+.vs-timeline-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #2563eb; margin-top: 4px;
+  flex-shrink: 0; box-shadow: 0 0 0 3px #dbeafe;
+}
+.vs-timeline-item:not(:last-child)::before {
+  content: ''; position: absolute; left: 4px; top: 18px; bottom: -8px;
+  width: 2px; background: #e2e8f0;
+}
+.vs-timeline-body { display: flex; flex-direction: column; gap: 1px; }
+.vs-timeline-action { font-weight: 600; color: #1e293b; font-size: 13px; }
+.vs-timeline-page { font-size: 12px; color: #64748b; }
+.vs-timeline-time { font-size: 11px; color: #94a3b8; }
+
+@media (max-width: 760px) {
+  .vs-vt-head { display: none; }
+  .vs-vt-row {
+    grid-template-columns: 1fr 1fr; grid-auto-rows: auto; row-gap: 4px; padding: 12px 8px;
+  }
+  .vs-vt-land { grid-column: 1 / -1; }
+  .vs-vt-num, .vs-vt-dev, .vs-vt-last { text-align: left; }
+}

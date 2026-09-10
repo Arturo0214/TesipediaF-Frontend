@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { trackProductView, trackInitiateCheckout } from '../../services/eventService';
 import { useParams, Link } from 'react-router-dom';
 import {
   FaBookOpen, FaFilePdf, FaCheckCircle, FaLock, FaArrowRight,
@@ -33,12 +34,18 @@ export default function GuiaProducto() {
   const [paying, setPaying] = useState(false);
   const [payErr, setPayErr] = useState('');
 
+  // Trazabilidad: vista de producto (embudo de la tienda)
+  useEffect(() => {
+    if (producto) trackProductView(productId, producto.nombre);
+  }, [productId, producto]);
+
   const comprar = useCallback(async (e) => {
     e.preventDefault();
     setPayErr('');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setPayErr('Escribe un correo válido para enviarte la guía.'); return; }
     setPaying(true);
     try {
+      trackInitiateCheckout(productId, producto?.precio || null, { nombre: producto?.nombre });
       const res = await fetch(`${API}/guias/checkout`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, email: email.trim().toLowerCase(), metodo: 'mercadopago' }),

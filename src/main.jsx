@@ -6,6 +6,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { RouterProvider } from 'react-router-dom';
 import Router from './Router';
 import { initGA } from './utils/analytics';
+import { captureAttribution } from './utils/visitor';
 import { HelmetProvider } from 'react-helmet-async';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -19,6 +20,9 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Inicializar Google Analytics
 initGA();
+
+// Identidad persistente del visitante + captura de origen (first-touch) para la trazabilidad
+captureAttribution();
 
 const rootElement = document.getElementById('root');
 const app = (
