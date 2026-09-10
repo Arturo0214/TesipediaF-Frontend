@@ -47,6 +47,35 @@ const playableVideo = (url) => {
 
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+// ── Guías de recorte para redes ─────────────────────────────
+// IG/TikTok llenan (cover) la imagen al lienzo del formato destino y recortan el excedente.
+// Con esto avisamos ANTES de publicar qué parte se pierde y mostramos las zonas seguras.
+const RATIOS = {
+  '9:16': { w: 9, h: 16, lbl: 'Reel / Historia / TikTok' },
+  '4:5': { w: 4, h: 5, lbl: 'Feed vertical' },
+  '1:1': { w: 1, h: 1, lbl: 'Cuadrado' },
+};
+// Zonas que IG tapa con su interfaz en Historias/Reels (arriba: barra+usuario; abajo: caption+acciones).
+const SAFE = { top: 0.14, bottom: 0.20 };
+// A qué lienzo publica cada plataforma una imagen estática (para avisar de recortes al publicar).
+const PLAT_FMT = { ig: '4:5', fb: '4:5', linkedin: '4:5', tiktok: '9:16' };
+const medirImagen = (url) => new Promise((res) => {
+  const im = new Image();
+  im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+  im.onerror = () => res(null);
+  im.src = url;
+});
+
+function analizarRecorte(natW, natH, key) {
+  if (!natW || !natH) return null;
+  const t = RATIOS[key]; const rt = t.w / t.h; const r = natW / natH;
+  let cropX = 0, cropY = 0;                    // fracción recortada por CADA lado (0–0.5)
+  if (r > rt + 0.002) cropX = (1 - rt / r) / 2;      // imagen más ancha → corta izq/der
+  else if (r < rt - 0.002) cropY = (1 - r / rt) / 2; // imagen más alta → corta arriba/abajo
+  const perdida = 1 - (1 - 2 * cropX) * (1 - 2 * cropY);
+  return { rt, r, cropX, cropY, perdida, corta: perdida > 0.01 };
+}
+
 export default function EstudioRedes() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +86,9 @@ export default function EstudioRedes() {
   const [mesRef, setMesRef] = useState(null);           // Date del mes visible
   const [abierta, setAbierta] = useState(null);         // pieza en el composer
   const [imgIdx, setImgIdx] = useState(0);
+  const [imgDims, setImgDims] = useState(null);       // { w, h } naturales de la imagen visible
+  const [guiaFmt, setGuiaFmt] = useState('9:16');     // formato destino para las guías de recorte
+  const [guiasOn, setGuiasOn] = useState(true);       // mostrar/ocultar guías sobre la imagen
   const [draft, setDraft] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
   const [publicando, setPublicando] = useState(false);
@@ -159,8 +191,30 @@ export default function EstudioRedes() {
     try { refrescarPieza(await svc.updateSocial(abierta.id, draft)); toast.success('Cambios guardados'); }
     catch { toast.error('Error al guardar'); }
   };
+  // Revisa cada imagen contra el lienzo de cada plataforma destino y devuelve los recortes fuertes.
+  const revisarRecortes = async () => {
+    if (abierta.video_url) return [];                       // los reels/videos ya son 9:16
+    const plats = abierta.plataformas || [];
+    const fmts = [...new Set(plats.map((p) => PLAT_FMT[p]).filter(Boolean))];
+    const imgs = abierta.imagenes || [];
+    if (!fmts.length || !imgs.length) return [];
+    const warns = [];
+    for (let i = 0; i < imgs.length; i++) {
+      const dim = await medirImagen(imgs[i]);
+      if (!dim) continue;
+      for (const f of fmts) {
+        const a = analizarRecorte(dim.w, dim.h, f);
+        if (a?.corta) warns.push({ idx: i + 1, fmt: f, perdida: Math.round(a.perdida * 100), plats: plats.filter((p) => PLAT_FMT[p] === f) });
+      }
+    }
+    return warns;
+  };
   const publicar = async () => {
-    if (!window.confirm('¿Publicar esta pieza AHORA en las redes seleccionadas?')) return;
+    const warns = await revisarRecortes();
+    if (warns.length) {
+      const detalle = warns.map((w) => `• Imagen ${w.idx} se recorta ~${w.perdida}% en ${w.fmt} (${w.plats.map((p) => p.toUpperCase()).join(', ')})`).join('\n');
+      if (!window.confirm(`⚠️ Ojo: algunas imágenes se RECORTARÁN al publicar:\n\n${detalle}\n\nRevisa las guías de recorte en el visor. ¿Publicar de todos modos?`)) return;
+    } else if (!window.confirm('¿Publicar esta pieza AHORA en las redes seleccionadas?')) return;
     setPublicando(true);
     try { refrescarPieza(await svc.publishSocial(abierta.id)); toast.success('¡Publicada!'); }
     catch (e) { toast.error(e.response?.data?.message || 'No se pudo publicar'); }
@@ -230,6 +284,10 @@ export default function EstudioRedes() {
     const file = fileFrom(e); if (!file) return;
     subirImagen(file, i);
   };
+
+  // Al cambiar la lámina visible (o la pieza), olvidamos las medidas para no analizar con datos viejos.
+  useEffect(() => { setImgDims(null); }, [imgIdx, abierta?.id]);
+  const recorte = useMemo(() => analizarRecorte(imgDims?.w, imgDims?.h, guiaFmt), [imgDims, guiaFmt]);
 
   // ── Calendario ──
   const calRef = mesRef || new Date();
@@ -370,7 +428,7 @@ export default function EstudioRedes() {
               <h3>{MESES[m]} {y}</h3>
               <button onClick={() => cambiarMes(1)}><FaChevronRight /></button>
             </div>
-            <p className="er-muted er-grid-tip">Hasta 3 publicaciones por día (las agregadas salen a las 17:00). Toca <b>+</b> para agregar y las flechas para cambiar de mes/año.</p>
+            <p className="er-muted er-grid-tip">Hasta 4 publicaciones por día (las agregadas salen a las 17:00). Toca <b>+</b> para agregar y las flechas para cambiar de mes/año.</p>
             <div className="er-days-grid">
             {Array.from({ length: totalDias }, (_, i) => i + 1).map((dnum) => {
               const f = ymd(new Date(y, m, dnum));
@@ -382,8 +440,8 @@ export default function EstudioRedes() {
                     <span className="er-day-num">{dnum}</span>
                     <span className="er-day-dow">{DOW[dd.getDay()]}</span>
                     {f === hoy && <span className="er-day-today">HOY</span>}
-                    <span className="er-day-count">{items.length}/3</span>
-                    {items.length < 3 && (
+                    <span className="er-day-count">{items.length}/4</span>
+                    {items.length < 4 && (
                       <button className="er-day-add" disabled={agregando === f} onClick={() => agregarPost(f)} title="Agregar publicación a este día">
                         {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />}
                       </button>
@@ -523,7 +581,26 @@ export default function EstudioRedes() {
                 {abierta.video_url
                   ? <video src={playableVideo(abierta.video_url)} controls playsInline preload="metadata" className="er-visor-video" />
                   : (abierta.imagenes || [])[imgIdx]
-                    ? <img src={(abierta.imagenes || [])[imgIdx]} alt="" />
+                    ? (
+                      <div className="er-visor-frame">
+                        <img src={(abierta.imagenes || [])[imgIdx]} alt=""
+                          onLoad={(e) => setImgDims({ w: e.target.naturalWidth, h: e.target.naturalHeight })} />
+                        {guiasOn && recorte && (
+                          <div className="er-guias" aria-hidden>
+                            {/* Franjas que IG recorta (cover al formato destino) */}
+                            {recorte.cropX > 0 && <><span className="er-cut" style={{ left: 0, top: 0, bottom: 0, width: `${recorte.cropX * 100}%` }} /><span className="er-cut" style={{ right: 0, top: 0, bottom: 0, width: `${recorte.cropX * 100}%` }} /></>}
+                            {recorte.cropY > 0 && <><span className="er-cut" style={{ left: 0, right: 0, top: 0, height: `${recorte.cropY * 100}%` }} /><span className="er-cut" style={{ left: 0, right: 0, bottom: 0, height: `${recorte.cropY * 100}%` }} /></>}
+                            {/* Marco visible (lo que SÍ se ve en el formato destino) */}
+                            <span className="er-keep" style={{ left: `${recorte.cropX * 100}%`, right: `${recorte.cropX * 100}%`, top: `${recorte.cropY * 100}%`, bottom: `${recorte.cropY * 100}%` }}>
+                              {guiaFmt === '9:16' && <>
+                                <span className="er-safe" style={{ top: `${SAFE.top * 100}%` }}><i>zona segura ↑ (usuario/barra)</i></span>
+                                <span className="er-safe er-safe-b" style={{ bottom: `${SAFE.bottom * 100}%` }}><i>zona segura ↓ (caption/acciones)</i></span>
+                              </>}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )
                     : <div className="er-visor-empty"><FaCloudUploadAlt /><span>{(draft?.formato || abierta.formato) === 'VIDEO' ? 'Sin video — arrastra un video aquí o usa «Subir video»' : 'Slot vacío — arrastra una imagen aquí'}</span></div>}
                 {(abierta.imagenes || []).length > 1 && (
                   <button className="er-visor-arrow right" onClick={() => setImgIdx((i) => (i + 1) % abierta.imagenes.length)}><FaChevronRight /></button>
@@ -531,6 +608,26 @@ export default function EstudioRedes() {
                 {(abierta.imagenes || []).length > 0 && <span className="er-visor-count">{imgIdx + 1} / {(abierta.imagenes || []).length}</span>}
                 {dragOver && <div className="er-drop-hint"><FaCloudUploadAlt /> Suelta para reemplazar</div>}
               </div>
+
+              {/* Guías de recorte para redes: dice si la imagen se corta y muestra las zonas seguras */}
+              {!abierta.video_url && (abierta.imagenes || [])[imgIdx] && (
+                <div className="er-guias-bar">
+                  <div className="er-guias-fmts">
+                    {Object.keys(RATIOS).map((k) => (
+                      <button key={k} className={guiaFmt === k ? 'on' : ''} onClick={() => setGuiaFmt(k)} title={RATIOS[k].lbl}>{k}</button>
+                    ))}
+                    <button className={`er-guias-toggle ${guiasOn ? 'on' : ''}`} onClick={() => setGuiasOn((v) => !v)}>
+                      {guiasOn ? 'Ocultar guías' : 'Ver guías'}
+                    </button>
+                  </div>
+                  {recorte && (
+                    recorte.corta
+                      ? <div className="er-guias-verdict cut"><FaExclamationTriangle /> <span>En <b>{guiaFmt}</b> ({RATIOS[guiaFmt].lbl}) esta imagen <b>se recorta</b>: pierde ~{Math.round(recorte.perdida * 100)}% {recorte.cropX > 0 ? 'por los lados' : 'arriba y abajo'}. Lo rojo es lo que IG corta.</span></div>
+                      : <div className="er-guias-verdict ok"><FaCheck /> <span>Encaja en <b>{guiaFmt}</b> ({RATIOS[guiaFmt].lbl}) sin recorte.</span></div>
+                  )}
+                </div>
+              )}
+
               <div className="er-thumbs">
                 {(abierta.imagenes || []).map((u, i) => (
                   <button key={i} className={`er-thumb ${i === imgIdx ? 'on' : ''}`} onClick={() => setImgIdx(i)}
