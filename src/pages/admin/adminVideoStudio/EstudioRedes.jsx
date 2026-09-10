@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import {
   FaSync, FaCheck, FaTimes, FaSave, FaChevronLeft, FaChevronRight,
-  FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok,
+  FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok, FaLinkedin,
   FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
   FaChartBar, FaHeart, FaComment, FaShareAlt, FaUsers,
   FaPlus, FaExclamationTriangle,
@@ -24,7 +24,7 @@ const EST = {
 };
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-const PLAT_ICON = { ig: FaInstagram, fb: FaFacebookF, tiktok: FaTiktok };
+const PLAT_ICON = { ig: FaInstagram, fb: FaFacebookF, tiktok: FaTiktok, linkedin: FaLinkedin };
 const MARCAS = [
   { id: 'Tesipedia', c: '#E0B23C' },
   { id: 'Contratado', c: '#3B82F6' },
