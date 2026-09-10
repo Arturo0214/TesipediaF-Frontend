@@ -14,9 +14,9 @@ const money = (n) => `$${Number(n || 0).toLocaleString('es-MX')}`;
 const fmtDate = (d) => new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 const STATUS_META = {
-  paid: { lbl: 'Pagado', c: '#15803d', bg: '#dcfce7', icon: <FaCheckCircle /> },
-  pending: { lbl: 'Pendiente', c: '#b45309', bg: '#fef3c7', icon: <FaClock /> },
-  failed: { lbl: 'Fallido', c: '#b91c1c', bg: '#fee2e2', icon: <FaTimesCircle /> },
+  paid: { lbl: 'Pagado', c: '#4ADE80', bg: 'rgba(34,197,94,0.15)', icon: <FaCheckCircle /> },
+  pending: { lbl: 'Pendiente', c: '#FBBF24', bg: 'rgba(245,179,1,0.15)', icon: <FaClock /> },
+  failed: { lbl: 'Fallido', c: '#FCA5A5', bg: 'rgba(239,68,68,0.15)', icon: <FaTimesCircle /> },
 };
 
 export default function AdminMercadoPago() {
