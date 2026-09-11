@@ -5,7 +5,7 @@ import {
   FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok, FaLinkedin,
   FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
   FaChartBar, FaHeart, FaComment, FaShareAlt, FaUsers,
-  FaPlus, FaExclamationTriangle, FaNewspaper, FaEye,
+  FaPlus, FaExclamationTriangle, FaNewspaper, FaEye, FaPlay, FaGripVertical,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import svc from '../../../services/videoStudioService';
@@ -69,6 +69,17 @@ const playableVideo = (url) => {
 };
 
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Portada (frame) de un video de Cloudinary para usar como preview en tiles/tarjetas.
+const videoPoster = (url) => {
+  if (!url || !url.includes('/video/upload/')) return null;
+  const [base, afterRaw] = url.split('/video/upload/');
+  const after = afterRaw.split('?')[0];
+  const segs = after.split('/');
+  if (segs.length > 1 && /(,|^(f_|vc_|ac_|so_|q_|w_|h_|c_))/.test(segs[0])) segs.shift();
+  const path = segs.join('/').replace(/\.[a-z0-9]+$/i, '') + '.jpg';
+  return `${base}/video/upload/so_auto/${path}`;   // so_auto = frame representativo (mejor portada)
+};
 
 // Las URLs del CDN de Instagram/Facebook expiran y bloquean hotlink en <img>. Las servimos por el
 // proxy del backend (/social/img). Las de Cloudinary y demás pasan sin cambios.
@@ -292,6 +303,30 @@ export default function EstudioRedes() {
   const refrescarPieza = (row) => {
     setPosts((prev) => prev.map((x) => (x.id === row.id ? row : x)));
     if (abierta && abierta.id === row.id) setAbierta(row);
+  };
+  // preview de una pieza (imagen o portada del video)
+  const previewDe = (p) => (p.imagenes || [])[0] || (p.video_url ? videoPoster(p.video_url) : null);
+  // eliminar una pieza directamente desde la cuadrícula (con confirmación)
+  const eliminarPieza = async (p, e) => {
+    if (e) { e.stopPropagation(); }
+    if (!window.confirm(`¿Eliminar esta publicación (${p.tema || p.formato})? Si ya está publicada en Facebook, se intentará borrar también.`)) return;
+    try {
+      await svc.deleteSocial(p.id);
+      setPosts((prev) => prev.filter((x) => x.id !== p.id));
+      toast.success('Eliminada');
+    } catch (err) { toast.error(err?.response?.data?.error || 'No se pudo eliminar'); }
+  };
+  // drag & drop de piezas entre días (cuadrícula)
+  const [dragId, setDragId] = useState(null);
+  const [dropDia, setDropDia] = useState(null);
+  const moverPieza = async (id, fecha) => {
+    const p = posts.find((x) => x.id === id);
+    if (!p || p.fecha === fecha) return;
+    try {
+      const row = await svc.moverSocial(id, fecha);
+      refrescarPieza(row);
+      toast.success(`Movida a ${fecha}`);
+    } catch (err) { toast.error(err?.response?.data?.message || err?.response?.data?.error || 'No se pudo mover'); }
   };
   const aprobar = async (p) => { try { refrescarPieza(await svc.approveSocial(p.id)); toast.success('Aprobada → programada'); } catch { toast.error('Error'); } };
   const descartar = async (p) => { try { refrescarPieza(await svc.discardSocial(p.id)); toast.success('Enviada a borrador'); } catch { toast.error('Error'); } };
@@ -567,14 +602,17 @@ export default function EstudioRedes() {
               <h3>{MESES[m]} {y}</h3>
               <button onClick={() => cambiarMes(1)}><FaChevronRight /></button>
             </div>
-            <p className="er-muted er-grid-tip">Hasta 4 publicaciones por día (las agregadas salen a las 17:00). Toca <b>+</b> para agregar y las flechas para cambiar de mes/año.</p>
+            <p className="er-muted er-grid-tip">Hasta 4 publicaciones por día. <b>Arrastra</b> una pieza a otro día para reprogramarla, toca <b>+</b> para agregar y el <b>bote</b> para eliminar.</p>
             <div className="er-days-grid">
             {Array.from({ length: totalDias }, (_, i) => i + 1).map((dnum) => {
               const f = ymd(new Date(y, m, dnum));
               const dd = new Date(f + 'T12:00:00');
               const items = byDay[f] || [];
+              const lleno = items.length >= 4;
               return (
-                <div key={f} className={`er-day-col ${f === hoy ? 'today' : ''}`}>
+                <div key={f} className={`er-day-col ${f === hoy ? 'today' : ''} ${dropDia === f ? 'drop' : ''} ${dropDia === f && lleno ? 'drop-full' : ''}`}
+                  onDragOver={(e) => { if (dragId) { e.preventDefault(); if (dropDia !== f) setDropDia(f); } }}
+                  onDrop={(e) => { e.preventDefault(); if (dragId) moverPieza(dragId, f); setDragId(null); setDropDia(null); }}>
                   <div className="er-day-head">
                     <span className="er-day-num">{dnum}</span>
                     <span className="er-day-dow">{DOW[dd.getDay()]}</span>
@@ -589,21 +627,28 @@ export default function EstudioRedes() {
                   <div className="er-day-posts">
                     {items.map((p) => {
                       const avs = avisos(p);
+                      const prev = previewDe(p);
                       return (
-                        <button key={p.id} className="er-tile" onClick={() => abrir(p)}>
-                          {(p.imagenes || [])[0]
-                            ? <img src={(p.imagenes || [])[0]} alt={p.tema} loading="lazy" />
+                        <div key={p.id} role="button" tabIndex={0} className={`er-tile ${dragId === p.id ? 'dragging' : ''}`}
+                          draggable onDragStart={(e) => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move'; }}
+                          onDragEnd={() => { setDragId(null); setDropDia(null); }}
+                          onClick={() => abrir(p)}>
+                          {prev
+                            ? <img src={proxImg(prev)} alt={p.tema} loading="lazy" />
                             : <div className="er-tile-empty"><FaCloudUploadAlt /><span>Vacío</span></div>}
+                          {p.formato === 'VIDEO' && p.video_url && <span className="er-tile-play"><FaPlay /></span>}
+                          <span className="er-tile-grip" title="Arrastra para mover de día"><FaGripVertical /></span>
                           <span className="er-tile-badge" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
                           {!fMarca && <span className="er-tile-marca" style={{ background: MARCAS.find((x) => x.id === marca(p))?.c || '#64748b' }}>{marca(p)}</span>}
                           <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
+                          <button className="er-tile-del" title="Eliminar publicación" onClick={(e) => eliminarPieza(p, e)}><FaTrashAlt /></button>
                           {avs.length > 0 && <span className="er-tile-warn" title={avs.join(' · ')}><FaExclamationTriangle /> {avs.length}</span>}
                           {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
                           <span className="er-tile-info"><b>{p.tema}</b><span>{(p.hora || '').slice(0, 5)} · {p.slot}</span></span>
-                        </button>
+                        </div>
                       );
                     })}
-                    {items.length === 0 && <div className="er-day-vacio">Sin publicaciones</div>}
+                    {items.length === 0 && <div className="er-day-vacio">{dropDia === f ? 'Suelta aquí' : 'Sin publicaciones'}</div>}
                   </div>
                 </div>
               );

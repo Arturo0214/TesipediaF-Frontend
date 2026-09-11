@@ -120,8 +120,18 @@
 
 /* ── Cuadrícula (feed) ── */
 .er-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.er-tile { position: relative; aspect-ratio: 4/5; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer; background: var(--surface-2); padding: 0; }
+.er-tile { position: relative; aspect-ratio: 4/5; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: grab; background: var(--surface-2); padding: 0; }
+.er-tile:active { cursor: grabbing; }
 .er-tile:hover { border-color: var(--gold); }
+.er-tile.dragging { opacity: .45; outline: 2px dashed var(--gold); }
+.er-tile-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(11,15,26,.6); color: #fff; display: grid; place-items: center; font-size: .95rem; backdrop-filter: blur(3px); pointer-events: none; }
+.er-tile-grip { position: absolute; bottom: 46px; left: 9px; color: rgba(255,255,255,.55); font-size: .72rem; opacity: 0; transition: .15s; pointer-events: none; }
+.er-tile:hover .er-tile-grip { opacity: 1; }
+.er-tile-del { position: absolute; top: 9px; right: 30px; width: 24px; height: 24px; border-radius: 7px; border: none; background: rgba(11,15,26,.72); color: #fca5a5; display: grid; place-items: center; font-size: .68rem; cursor: pointer; opacity: 0; transition: .15s; backdrop-filter: blur(4px); }
+.er-tile:hover .er-tile-del { opacity: 1; }
+.er-tile-del:hover { background: var(--red); color: #fff; }
+.er-day-col.drop { outline: 2px dashed var(--gold); outline-offset: -2px; background: rgba(224,178,60,.06); border-radius: 12px; }
+.er-day-col.drop-full { outline-color: var(--red); background: rgba(248,113,113,.07); }
 .er-tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
 .er-tile:hover img { transform: scale(1.05); }
 .er-tile-badge { position: absolute; top: 9px; left: 9px; color: #0B0F1A; font-size: .58rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; letter-spacing: .02em; }

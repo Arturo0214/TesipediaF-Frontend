@@ -38,6 +38,8 @@ export const createSocial = (data) =>
   axiosWithAuth.post(`${BASE}/social`, data).then((r) => r.data);
 export const updateSocial = (id, data) =>
   axiosWithAuth.patch(`${BASE}/social/${id}`, data).then((r) => r.data);
+export const moverSocial = (id, fecha) =>
+  axiosWithAuth.patch(`${BASE}/social/${id}/mover`, { fecha }).then((r) => r.data);
 export const approveSocial = (id) =>
   axiosWithAuth.post(`${BASE}/social/${id}/approve`).then((r) => r.data);
 export const discardSocial = (id) =>
@@ -70,7 +72,7 @@ export const setAutopublish = (enabled) => axiosWithAuth.put(`${BASE}/social/aut
 export default {
   getChannels, updateChannel, getVideos, createVideo, generateScript,
   updateVideo, deleteVideo, approveVideo, publishVideo,
-  getSocial, createSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
+  getSocial, createSocial, updateSocial, moverSocial, approveSocial, discardSocial, uploadSocialImage,
   uploadSocialVideo, publishSocial, deleteSocial, sugerenciasSocial, getAutopublish, setAutopublish,
   getRendimientoPiezas, diagnosticoIA,
 };
