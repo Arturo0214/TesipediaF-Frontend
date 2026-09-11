@@ -990,7 +990,7 @@ export default function EstudioRedes() {
               <h3>{abierta.tema}</h3>
 
               <label className="er-fmt-sel">Formato de la publicación
-                <select value={draft?.formato || abierta.formato || 'CARRUSEL'} onChange={(e) => setDraft({ ...draft, formato: e.target.value })}>
+                <select value={draft?.formato || abierta.formato || 'CARRUSEL'} onChange={(e) => setDraft({ ...draft, formato: e.target.value, historia: e.target.value !== 'CARRUSEL' })}>
                   {FORMATOS.map((f) => <option key={f} value={f}>{f}</option>)}
                 </select>
               </label>
