@@ -25,6 +25,19 @@ const EST = {
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const PLAT_ICON = { ig: FaInstagram, fb: FaFacebookF, tiktok: FaTiktok, linkedin: FaLinkedin };
+// Horas recomendadas (hora CDMX) por tipo de contenido, según cuándo hay más alcance.
+// Reels/video: tarde-noche (scroll de ocio). Publicaciones (carrusel/frase/imagen): mañana, comida y noche.
+const HORAS_RECO = {
+  reel: [
+    { h: '14:00', t: 'sobremesa' }, { h: '19:00', t: 'pico tarde' },
+    { h: '20:00', t: 'prime time' }, { h: '21:00', t: 'scroll noche' }, { h: '22:00', t: 'noche' },
+  ],
+  post: [
+    { h: '08:00', t: 'camino/mañana' }, { h: '12:00', t: 'mediodía' },
+    { h: '14:00', t: 'comida' }, { h: '19:00', t: 'tarde' }, { h: '20:00', t: 'prime time' },
+  ],
+};
+const esReel = (fmt) => fmt === 'VIDEO';
 const MARCAS = [
   { id: 'Tesipedia', c: '#E0B23C' },
   { id: 'Contratado', c: '#3B82F6' },
@@ -80,7 +93,7 @@ export default function EstudioRedes() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [vista, setVista] = useState('calendario');     // calendario | grid | lista
-  const [fMarca, setFMarca] = useState(null);
+  const [fMarca, setFMarca] = useState('Tesipedia');   // abre por marca (no mezcla); "Todas" es opt-in
   const [fEstado, setFEstado] = useState(null);
   const [fFormato, setFFormato] = useState(null);
   const [mesRef, setMesRef] = useState(null);           // Date del mes visible
@@ -234,7 +247,7 @@ export default function EstudioRedes() {
   const addTag = (tag) => setDraft((d) => ({ ...d, hashtags: `${d.hashtags || ''} ${tag}`.trim() }));
   const abrir = (p) => {
     setAbierta(p); setImgIdx(0); setSug(null);
-    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '' });
+    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '', hora: (p.hora || '10:00').slice(0, 5) });
   };
   const subirImagen = async (file, index = imgIdx) => {
     if (!file || !abierta) return;
@@ -325,11 +338,8 @@ export default function EstudioRedes() {
         </div>
       </div>
 
-      {/* Marcas (multi-página) */}
+      {/* Marcas (multi-página) — siempre UNA marca activa; cada marca ve solo su contenido */}
       <div className="er-marcas">
-        <button className={`er-marca ${!fMarca ? 'on' : ''}`} onClick={() => setFMarca(null)}>
-          Todas <span>{posts.length}</span>
-        </button>
         {MARCAS.map((mk) => (
           <button
             key={mk.id}
@@ -440,8 +450,8 @@ export default function EstudioRedes() {
                     <span className="er-day-num">{dnum}</span>
                     <span className="er-day-dow">{DOW[dd.getDay()]}</span>
                     {f === hoy && <span className="er-day-today">HOY</span>}
-                    <span className="er-day-count">{items.length}/4</span>
-                    {items.length < 4 && (
+                    <span className="er-day-count">{items.length}{fMarca ? '/4' : ''}</span>
+                    {fMarca && items.length < 4 && (
                       <button className="er-day-add" disabled={agregando === f} onClick={() => agregarPost(f)} title="Agregar publicación a este día">
                         {agregando === f ? <FaSync className="er-spin" /> : <FaPlus />}
                       </button>
@@ -456,6 +466,7 @@ export default function EstudioRedes() {
                             ? <img src={(p.imagenes || [])[0]} alt={p.tema} loading="lazy" />
                             : <div className="er-tile-empty"><FaCloudUploadAlt /><span>Vacío</span></div>}
                           <span className="er-tile-badge" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
+                          {!fMarca && <span className="er-tile-marca" style={{ background: MARCAS.find((x) => x.id === marca(p))?.c || '#64748b' }}>{marca(p)}</span>}
                           <span className="er-tile-est" style={{ background: EST[p.estado]?.c }} />
                           {avs.length > 0 && <span className="er-tile-warn" title={avs.join(' · ')}><FaExclamationTriangle /> {avs.length}</span>}
                           {(p.imagenes || []).length > 1 && <span className="er-tile-multi"><FaImage /> {p.imagenes.length}</span>}
@@ -668,7 +679,33 @@ export default function EstudioRedes() {
                 <span className="er-chip-est" style={{ color: EST[abierta.estado]?.c, borderColor: EST[abierta.estado]?.c }}>{EST[abierta.estado]?.lbl}</span>
                 <span className="er-panel-fecha">{abierta.fecha} · slot {abierta.slot}</span>
               </div>
-              <div className="er-panel-hora"><FaRegClock /> Se publica a las <b>{(abierta.hora || '10:00').slice(0, 5)} h</b> {autoPub ? '· auto-publicación ON' : '· (auto-publicación apagada)'}</div>
+              <div className="er-hora-edit">
+                <div className="er-hora-row">
+                  <FaRegClock />
+                  <span>Se publica a las</span>
+                  <input type="time" className="er-hora-input" value={draft?.hora || '10:00'}
+                    onChange={(e) => setDraft({ ...draft, hora: e.target.value })} />
+                  <span className="er-hora-tz">CDMX · {autoPub ? 'auto-publicación ON' : 'auto-publicación apagada'}</span>
+                </div>
+                {(() => {
+                  const tipo = esReel(draft?.formato || abierta.formato) ? 'reel' : 'post';
+                  return (
+                    <div className="er-hora-reco">
+                      <span className="er-hora-reco-lbl">Mejores horas para {tipo === 'reel' ? 'reels/video' : 'publicaciones'}:</span>
+                      <div className="er-hora-chips">
+                        {HORAS_RECO[tipo].map((r) => (
+                          <button key={r.h} type="button"
+                            className={`er-hora-chip ${draft?.hora === r.h ? 'on' : ''}`}
+                            onClick={() => setDraft({ ...draft, hora: r.h })}
+                            title={`${r.h} · ${r.t}`}>
+                            {r.h} <i>{r.t}</i>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
               {avisos(abierta).length > 0 && (
                 <div className="er-panel-avisos"><FaExclamationTriangle /> <span>{avisos(abierta).join(' · ')}</span></div>
               )}

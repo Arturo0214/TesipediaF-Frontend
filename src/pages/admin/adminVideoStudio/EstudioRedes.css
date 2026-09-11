@@ -101,6 +101,7 @@
 .er-tile:hover img { transform: scale(1.05); }
 .er-tile-badge { position: absolute; top: 9px; left: 9px; color: #0B0F1A; font-size: .58rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; letter-spacing: .02em; }
 .er-tile-est { position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(11,15,26,.8); box-shadow: 0 0 8px rgba(0,0,0,.5); }
+.er-tile-marca { position: absolute; top: 32px; left: 9px; color: #fff; font-size: .55rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .03em; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
 .er-tile-multi { position: absolute; bottom: 46px; right: 9px; background: rgba(11,15,26,.82); color: #fff; font-size: .64rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; backdrop-filter: blur(4px); }
 .er-tile-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 9px 8px; background: linear-gradient(transparent, rgba(6,9,16,.95)); color: #fff; display: flex; flex-direction: column; gap: 1px; text-align: left; }
 .er-tile-info b { font-size: .74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -303,6 +304,22 @@
 .er-panel-hora { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: .82rem; color: var(--txt-soft, #c7d2e6); }
 .er-panel-hora b { color: #fff; }
 .er-panel-hora svg { color: var(--gold, #E0B23C); }
+
+/* Editar hora + horas recomendadas */
+.er-hora-edit { margin: 10px 0 6px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line, rgba(255,255,255,.08)); }
+.er-hora-row { display: flex; align-items: center; gap: 9px; font-size: .82rem; color: var(--txt-soft, #c7d2e6); flex-wrap: wrap; }
+.er-hora-row > svg { color: var(--gold, #E0B23C); }
+.er-hora-input { background: #0e1424; border: 1.5px solid var(--line-hi, rgba(255,255,255,.16)); color: #fff; font-weight: 800; font-size: .9rem; padding: 5px 10px; border-radius: 9px; cursor: pointer; color-scheme: dark; }
+.er-hora-input:focus { outline: none; border-color: var(--gold, #E0B23C); }
+.er-hora-tz { font-size: .72rem; color: var(--txt-soft, #8fa0bd); opacity: .8; }
+.er-hora-reco { margin-top: 11px; }
+.er-hora-reco-lbl { display: block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--txt-soft, #8fa0bd); margin-bottom: 7px; }
+.er-hora-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+.er-hora-chip { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; background: var(--surface-2, #131b2c); border: 1.5px solid var(--line, rgba(255,255,255,.08)); color: #e6edfa; font-size: .82rem; font-weight: 800; padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: .15s; line-height: 1.15; }
+.er-hora-chip i { font-style: normal; font-size: .58rem; font-weight: 600; color: var(--txt-soft, #8fa0bd); text-transform: uppercase; letter-spacing: .02em; }
+.er-hora-chip:hover { border-color: var(--line-hi, rgba(255,255,255,.28)); transform: translateY(-1px); }
+.er-hora-chip.on { background: var(--gold-soft, rgba(224,178,60,.14)); border-color: var(--gold, #E0B23C); color: var(--gold, #E0B23C); }
+.er-hora-chip.on i { color: var(--gold, #E0B23C); opacity: .85; }
 
 /* ── Grid por día (encabezado) ── */
 /* Cuadrícula de días: hasta 5 columnas por fila, cada día una tarjeta compacta */
