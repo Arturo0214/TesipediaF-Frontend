@@ -332,6 +332,13 @@ export default function EstudioRedes() {
     try { refrescarPieza(await svc.updateSocial(abierta.id, draft)); toast.success('Cambios guardados'); }
     catch { toast.error('Error al guardar'); }
   };
+  // Fija el FORMATO DE PUBLICACIÓN de la pieza (9:16 / 4:5 / 1:1). Se guarda y se usa al publicar.
+  const elegirFormato = async (k) => {
+    setGuiaFmt(k);
+    if (!abierta) return;
+    try { refrescarPieza(await svc.updateSocial(abierta.id, { aspecto: k })); toast.success(`Se publicará en ${k}`); }
+    catch { toast.error('No se pudo fijar el formato'); }
+  };
   // Revisa cada imagen contra el lienzo de cada plataforma destino y devuelve los recortes fuertes.
   const revisarRecortes = async () => {
     if (abierta.video_url) return [];                       // los reels/videos ya son 9:16
@@ -379,6 +386,7 @@ export default function EstudioRedes() {
   });
   const abrir = (p) => {
     setAbierta(p); setImgIdx(0); setSug(null);
+    setGuiaFmt(p.aspecto || (p.formato === 'CARRUSEL' ? '4:5' : '9:16')); // formato de publicación de la pieza
     setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '', hora: (p.hora || '10:00').slice(0, 5), plataformas: p.plataformas || ['ig', 'fb'], historia: !!p.historia });
   };
   const subirImagen = async (file, index = imgIdx) => {
@@ -874,8 +882,9 @@ export default function EstudioRedes() {
               {!abierta.video_url && (abierta.imagenes || [])[imgIdx] && (
                 <div className="er-guias-bar">
                   <div className="er-guias-fmts">
+                    <span className="er-guias-lbl">Se publica en:</span>
                     {Object.keys(RATIOS).map((k) => (
-                      <button key={k} className={guiaFmt === k ? 'on' : ''} onClick={() => setGuiaFmt(k)} title={RATIOS[k].lbl}>{k}</button>
+                      <button key={k} className={guiaFmt === k ? 'on' : ''} onClick={() => elegirFormato(k)} title={`Publicar en ${k} · ${RATIOS[k].lbl}`}>{k}</button>
                     ))}
                     <button className={`er-guias-toggle ${guiasOn ? 'on' : ''}`} onClick={() => setGuiasOn((v) => !v)}>
                       {guiasOn ? 'Ocultar guías' : 'Ver guías'}
