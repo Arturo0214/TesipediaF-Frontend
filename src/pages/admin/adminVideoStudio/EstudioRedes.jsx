@@ -5,8 +5,9 @@ import {
   FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok, FaLinkedin,
   FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
   FaChartBar, FaHeart, FaComment, FaShareAlt, FaUsers,
-  FaPlus, FaExclamationTriangle,
+  FaPlus, FaExclamationTriangle, FaNewspaper, FaEye,
 } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import svc from '../../../services/videoStudioService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import './EstudioRedes.css';
@@ -24,7 +25,16 @@ const EST = {
 };
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-const PLAT_ICON = { ig: FaInstagram, fb: FaFacebookF, tiktok: FaTiktok, linkedin: FaLinkedin };
+const PLAT_ICON = { ig: FaInstagram, fb: FaFacebookF, tiktok: FaTiktok, linkedin: FaLinkedin, x: FaXTwitter };
+// Canales de la barra (multi-select). fb/ig/linkedin publican de verdad; tiktok/x = filtro/planeación.
+const CANALES = [
+  { id: 'fb', lbl: 'Facebook', c: '#1877F2', Icon: FaFacebookF, publica: true },
+  { id: 'ig', lbl: 'Instagram', c: '#DD2A7B', Icon: FaInstagram, publica: true },
+  { id: 'linkedin', lbl: 'LinkedIn', c: '#0A66C2', Icon: FaLinkedin, publica: true },
+  { id: 'tiktok', lbl: 'TikTok', c: '#e5e7eb', Icon: FaTiktok, publica: false },
+  { id: 'x', lbl: 'X', c: '#e5e7eb', Icon: FaXTwitter, publica: false },
+];
+const CANAL_IDS = CANALES.map((c) => c.id);
 // Horas recomendadas (hora CDMX) por tipo de contenido, según cuándo hay más alcance.
 // Reels/video: tarde-noche (scroll de ocio). Publicaciones (carrusel/frase/imagen): mañana, comida y noche.
 const HORAS_RECO = {
@@ -79,6 +89,54 @@ const medirImagen = (url) => new Promise((res) => {
   im.src = url;
 });
 
+// ── Diagnóstico de desempeño: qué se hace bien / mal, a partir de las métricas REALES ──
+function analizarDesempeno(piezas, metrics) {
+  const eng = (p) => (p.reacciones || 0) + (p.comentarios || 0);
+  const con = (piezas || []).filter((p) => p.reacciones != null || p.vistas != null);
+  if (!con.length) return null;
+  const followers = metrics?.instagram?.followers || 0;
+  const avgEng = con.reduce((s, p) => s + eng(p), 0) / con.length;
+  const engRate = followers ? (avgEng / followers) * 100 : null;
+
+  const grupo = (key) => {
+    const m = {};
+    con.forEach((p) => { const k = key(p); if (k == null) return; (m[k] = m[k] || []).push(eng(p)); });
+    return Object.entries(m).map(([k, arr]) => ({ k, n: arr.length, avg: arr.reduce((a, b) => a + b, 0) / arr.length })).sort((a, b) => b.avg - a.avg);
+  };
+  const porFormato = grupo((p) => p.formato);
+  const porHora = grupo((p) => (p.fecha ? new Date(p.fecha).getHours() : null));
+  const mejorFmt = porFormato[0];
+  const peorFmt = porFormato.length > 1 ? porFormato[porFormato.length - 1] : null;
+  const mejorHora = porHora[0];
+
+  const reels = con.filter((p) => p.formato === 'VIDEO');
+  const estat = con.filter((p) => p.formato !== 'VIDEO');
+  const prom = (arr) => (arr.length ? arr.reduce((s, p) => s + eng(p), 0) / arr.length : null);
+  const avgReels = prom(reels); const avgEstat = prom(estat);
+
+  const ahora = Date.now();
+  const ult14 = con.filter((p) => p.fecha && (ahora - new Date(p.fecha).getTime()) < 14 * 864e5).length;
+  const orden = [...con].sort((a, b) => eng(b) - eng(a));
+  const top = orden[0]; const flop = orden[orden.length - 1];
+
+  const aciertos = []; const mejoras = []; const recomendaciones = [];
+  if (engRate != null) {
+    if (engRate >= 2) aciertos.push(`Interacción sana: ~${engRate.toFixed(1)}% de tus seguidores reacciona (bueno ≥2%).`);
+    else if (engRate < 1) mejoras.push(`Interacción baja (~${engRate.toFixed(1)}%, meta ≥2%): mejora el gancho y agrega un CTA claro.`);
+  }
+  if (mejorFmt) aciertos.push(`Formato estrella: ${mejorFmt.k} (${Math.round(mejorFmt.avg)} interacciones/post en promedio).`);
+  if (peorFmt && peorFmt.k !== mejorFmt?.k) mejoras.push(`${peorFmt.k} rinde poco (${Math.round(peorFmt.avg)}/post): publícalo menos o reinvéntalo.`);
+  if (mejorHora) recomendaciones.push(`Tu mejor hora hasta ahora ≈ ${String(mejorHora.k).padStart(2, '0')}:00 h — concentra ahí.`);
+  if (avgReels != null && avgEstat != null) {
+    if (avgReels > avgEstat * 1.3) aciertos.push(`Los reels jalan más que los estáticos (${Math.round(avgReels)} vs ${Math.round(avgEstat)}): sube más video.`);
+    else if (avgEstat > avgReels * 1.3) recomendaciones.push(`Tus estáticos rinden más que los reels; equilibra el mix.`);
+  }
+  if (ult14 < 3) mejoras.push(`Poca frecuencia: ${ult14} publicaciones en 14 días. Apunta a 3–4/semana para crecer alcance.`);
+  else aciertos.push(`Buena constancia: ${ult14} publicaciones en las últimas 2 semanas.`);
+
+  return { n: con.length, avgEng: Math.round(avgEng), engRate, followers, mejorFmt, peorFmt, mejorHora, avgReels, avgEstat, ult14, top, flop, porFormato, aciertos, mejoras, recomendaciones };
+}
+
 function analizarRecorte(natW, natH, key) {
   if (!natW || !natH) return null;
   const t = RATIOS[key]; const rt = t.w / t.h; const r = natW / natH;
@@ -96,6 +154,8 @@ export default function EstudioRedes() {
   const [fMarca, setFMarca] = useState('Tesipedia');   // abre por marca (no mezcla); "Todas" es opt-in
   const [fEstado, setFEstado] = useState(null);
   const [fFormato, setFFormato] = useState(null);
+  const [fCanales, setFCanales] = useState(CANAL_IDS);   // redes seleccionadas (multi); default todas
+  const [modoNoticias, setModoNoticias] = useState(false); // vista Noticias/Artículos
   const [mesRef, setMesRef] = useState(null);           // Date del mes visible
   const [abierta, setAbierta] = useState(null);         // pieza en el composer
   const [imgIdx, setImgIdx] = useState(0);
@@ -138,6 +198,27 @@ export default function EstudioRedes() {
     finally { setRendLoad(false); }
   }, []);
   useEffect(() => { if (vista === 'rendimiento' && !rend && !rendLoad) cargarRend(); }, [vista]); // eslint-disable-line
+  // Rendimiento de NUESTRAS piezas publicadas (preview + vistas + reacciones reales)
+  const [rendPiezas, setRendPiezas] = useState(null);
+  const [rendPiezasLoad, setRendPiezasLoad] = useState(false);
+  const cargarRendPiezas = useCallback(async (mk) => {
+    setRendPiezasLoad(true);
+    try { setRendPiezas(await svc.getRendimientoPiezas(mk)); }
+    catch { setRendPiezas({ piezas: [] }); }
+    finally { setRendPiezasLoad(false); }
+  }, []);
+  useEffect(() => { if (vista === 'rendimiento' && !modoNoticias) cargarRendPiezas(fMarca); }, [vista, fMarca]); // eslint-disable-line
+  const diag = useMemo(() => analizarDesempeno(rendPiezas?.piezas, rend?.metrics), [rendPiezas, rend]);
+  // Análisis con IA (opt-in, económico)
+  const [diagIA, setDiagIA] = useState(null);
+  const [diagIALoad, setDiagIALoad] = useState(false);
+  useEffect(() => { setDiagIA(null); }, [fMarca]);
+  const analizarIA = async () => {
+    setDiagIALoad(true);
+    try { setDiagIA(await svc.diagnosticoIA(fMarca)); }
+    catch { toast.error('No se pudo generar el análisis con IA'); }
+    finally { setDiagIALoad(false); }
+  };
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -165,8 +246,13 @@ export default function EstudioRedes() {
   const proximas = base.filter((p) => p.fecha >= hoy && p.estado !== 'publicado').length;
   const avance = base.length ? Math.round(((kpi.publicado || 0) + (kpi.programado || 0)) / base.length * 100) : 0;
 
+  // redes de una pieza (por defecto ig+fb si no trae plataformas)
+  const platsDe = (p) => (p.plataformas && p.plataformas.length ? p.plataformas : ['ig', 'fb']);
+  const enCanal = (p) => fCanales.length === CANAL_IDS.length || platsDe(p).some((pl) => fCanales.includes(pl));
+  const toggleCanal = (id) => setFCanales((cur) =>
+    cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((x) => x !== id)) : [...cur, id]);
   const filtrados = base.filter((p) =>
-    (!fEstado || p.estado === fEstado) && (!fFormato || p.formato === fFormato));
+    (!fEstado || p.estado === fEstado) && (!fFormato || p.formato === fFormato) && enCanal(p));
   const formatos = [...new Set(base.map((p) => p.formato))];
 
   // ── validación de una pieza (para avisos en la cuadrícula) ──
@@ -184,7 +270,8 @@ export default function EstudioRedes() {
   const agregarPost = async (fecha) => {
     setAgregando(fecha);
     try {
-      const row = await svc.createSocial({ fecha, marca: fMarca || 'Tesipedia' });
+      const platsDefault = fCanales.filter((id) => CANALES.find((c) => c.id === id)?.publica);
+      const row = await svc.createSocial({ fecha, marca: fMarca || 'Tesipedia', plataformas: platsDefault });
       setPosts((prev) => [...prev, row]);
       toast.success(`Publicación agregada (slot ${row.slot})`);
       abrir(row);
@@ -245,9 +332,13 @@ export default function EstudioRedes() {
     finally { setCargandoSug(false); }
   };
   const addTag = (tag) => setDraft((d) => ({ ...d, hashtags: `${d.hashtags || ''} ${tag}`.trim() }));
+  const togglePlat = (pl) => setDraft((d) => {
+    const cur = d?.plataformas || [];
+    return { ...d, plataformas: cur.includes(pl) ? cur.filter((x) => x !== pl) : [...cur, pl] };
+  });
   const abrir = (p) => {
     setAbierta(p); setImgIdx(0); setSug(null);
-    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '', hora: (p.hora || '10:00').slice(0, 5) });
+    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '', hora: (p.hora || '10:00').slice(0, 5), plataformas: p.plataformas || ['ig', 'fb'] });
   };
   const subirImagen = async (file, index = imgIdx) => {
     if (!file || !abierta) return;
@@ -352,8 +443,38 @@ export default function EstudioRedes() {
         ))}
       </div>
 
+      {/* Barra de canales (multi-select) + Noticias */}
+      <div className="er-canales">
+        <span className="er-canales-lbl">Canales:</span>
+        {CANALES.map((cn) => {
+          const on = fCanales.includes(cn.id);
+          return (
+            <button key={cn.id} type="button" className={`er-canal pl-${cn.id} ${on ? 'on' : 'off'} ${modoNoticias ? 'dim' : ''}`}
+              onClick={() => { setModoNoticias(false); toggleCanal(cn.id); }}
+              title={cn.publica ? `${cn.lbl} · filtra y publica` : `${cn.lbl} · sólo filtro/planeación (no publica aún)`}>
+              <cn.Icon /> {cn.lbl}{!cn.publica && <span className="er-canal-soft">·plan</span>}
+            </button>
+          );
+        })}
+        <span className="er-canales-sep" />
+        <button type="button" className={`er-canal er-canal-news ${modoNoticias ? 'on' : ''}`}
+          onClick={() => setModoNoticias((v) => !v)} title="Noticias y artículos SEO">
+          <FaNewspaper /> Noticias/Artículos
+        </button>
+      </div>
+
+      {modoNoticias && (
+        <div className="er-noticias-wrap">
+          <div className="er-noticias-soon">
+            <FaNewspaper />
+            <h3>Estudio de Noticias · {fMarca}</h3>
+            <p>Generación de artículos SEO, aprobación y publicación. Se activa en la siguiente fase.</p>
+          </div>
+        </div>
+      )}
+
       {/* KPIs + avance */}
-      <div className="er-kpis">
+      {!modoNoticias && <div className="er-kpis">
         <div className="er-kpi"><span className="er-kpi-n">{posts.length}</span><span className="er-kpi-l">Piezas</span></div>
         <div className="er-kpi"><span className="er-kpi-n" style={{ color: EST.programado.c }}>{kpi.programado || 0}</span><span className="er-kpi-l">Programadas</span></div>
         <div className="er-kpi"><span className="er-kpi-n" style={{ color: EST.publicado.c }}>{kpi.publicado || 0}</span><span className="er-kpi-l">Publicadas</span></div>
@@ -363,10 +484,10 @@ export default function EstudioRedes() {
           <div className="er-avance-top"><span>Avance del mes</span><b>{avance}%</b></div>
           <div className="er-avance-bar"><i style={{ width: `${avance}%` }} /></div>
         </div>
-      </div>
+      </div>}
 
       {/* Controles: vista + filtros */}
-      <div className="er-controls">
+      {!modoNoticias && <div className="er-controls">
         <div className="er-vistas">
           <button className={vista === 'calendario' ? 'on' : ''} onClick={() => setVista('calendario')}><FaCalendarAlt /> Calendario</button>
           <button className={vista === 'grid' ? 'on' : ''} onClick={() => setVista('grid')}><FaThLarge /> Cuadrícula</button>
@@ -383,16 +504,16 @@ export default function EstudioRedes() {
             {formatos.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
-      </div>
+      </div>}
 
-      {loading && <p className="er-muted">Cargando contenido…</p>}
-      {!loading && !posts.length && <p className="er-muted">No hay contenido cargado todavía.</p>}
-      {!loading && posts.length > 0 && base.length === 0 && (
+      {!modoNoticias && loading && <p className="er-muted">Cargando contenido…</p>}
+      {!modoNoticias && !loading && !posts.length && <p className="er-muted">No hay contenido cargado todavía.</p>}
+      {!modoNoticias && !loading && posts.length > 0 && base.length === 0 && (
         <p className="er-muted">Aún no hay contenido para <b>{fMarca}</b>. Sus canales de Instagram/Facebook se llenarán cuando generes su contenido.</p>
       )}
 
       {/* ── CALENDARIO ── */}
-      {!loading && vista === 'calendario' && base.length > 0 && (
+      {!modoNoticias && !loading && vista === 'calendario' && base.length > 0 && (
         <div className="er-cal">
           <div className="er-cal-nav">
             <button onClick={() => cambiarMes(-1)}><FaChevronLeft /></button>
@@ -422,7 +543,7 @@ export default function EstudioRedes() {
       )}
 
       {/* ── CUADRÍCULA (feed) — un renglón por día, todos los días del mes ── */}
-      {!loading && vista === 'grid' && (() => {
+      {!modoNoticias && !loading && vista === 'grid' && (() => {
         const DOW = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const byDay = {};
         filtrados.forEach((p) => {
@@ -485,7 +606,7 @@ export default function EstudioRedes() {
       })()}
 
       {/* ── LISTA ── */}
-      {!loading && vista === 'lista' && (
+      {!modoNoticias && !loading && vista === 'lista' && (
         <div className="er-lista">
           {filtrados.map((p) => (
             <div key={p.id} className="er-row" onClick={() => abrir(p)}>
@@ -508,7 +629,7 @@ export default function EstudioRedes() {
       )}
 
       {/* ── RENDIMIENTO ── */}
-      {!loading && vista === 'rendimiento' && (
+      {!modoNoticias && !loading && vista === 'rendimiento' && (
         <div className="er-rend">
           <div className="er-rend-head">
             <p className="er-muted" style={{ margin: 0 }}>Cuánto han jalado tus publicaciones en Instagram y Facebook.</p>
@@ -567,6 +688,77 @@ export default function EstudioRedes() {
                       </div>
                     </a>
                   ))}
+                </div>
+
+                {diag && (
+                  <div className="er-diag">
+                    <div className="er-diag-head">
+                      <h3 className="er-rend-title"><FaChartBar /> Diagnóstico · qué haces bien y qué mejorar</h3>
+                      <button className="er-diag-ia-btn" onClick={analizarIA} disabled={diagIALoad}>
+                        <FaChartLine /> {diagIALoad ? 'Analizando…' : (diagIA ? 'Re-analizar con IA' : 'Análisis con IA')}
+                      </button>
+                    </div>
+                    <div className="er-diag-kpis">
+                      <div className="er-diag-kpi"><span className="er-diag-n">{diag.engRate != null ? `${diag.engRate.toFixed(1)}%` : '—'}</span><span className="er-diag-l">Tasa de interacción</span></div>
+                      <div className="er-diag-kpi"><span className="er-diag-n">{diag.avgEng}</span><span className="er-diag-l">Interacc./post</span></div>
+                      <div className="er-diag-kpi"><span className="er-diag-n">{diag.mejorFmt?.k || '—'}</span><span className="er-diag-l">Formato estrella</span></div>
+                      <div className="er-diag-kpi"><span className="er-diag-n">{diag.mejorHora ? `${String(diag.mejorHora.k).padStart(2, '0')}:00` : '—'}</span><span className="er-diag-l">Mejor hora</span></div>
+                      <div className="er-diag-kpi"><span className="er-diag-n">{diag.ult14}</span><span className="er-diag-l">Posts / 14 días</span></div>
+                    </div>
+                    {diag.n < 5 && <p className="er-diag-thin">Diagnóstico preliminar ({diag.n} piezas con métricas). Entre más publiques, más certero.</p>}
+                    <div className="er-diag-cols">
+                      <div className="er-diag-col ok">
+                        <h4><FaCheck /> Lo que va bien</h4>
+                        {diag.aciertos.length ? <ul>{diag.aciertos.map((t, i) => <li key={i}>{t}</li>)}</ul> : <p className="er-muted">Aún sin señales claras.</p>}
+                      </div>
+                      <div className="er-diag-col warn">
+                        <h4><FaExclamationTriangle /> A mejorar</h4>
+                        {diag.mejoras.length ? <ul>{diag.mejoras.map((t, i) => <li key={i}>{t}</li>)}</ul> : <p className="er-muted">Nada urgente por ahora.</p>}
+                      </div>
+                      <div className="er-diag-col tip">
+                        <h4><FaChartLine /> Recomendaciones</h4>
+                        {diag.recomendaciones.length ? <ul>{diag.recomendaciones.map((t, i) => <li key={i}>{t}</li>)}</ul> : <p className="er-muted">Sigue así.</p>}
+                      </div>
+                    </div>
+                    {diagIA && (
+                      <div className="er-diag-ia">
+                        <h4><FaChartLine /> Análisis con IA</h4>
+                        {diagIA.resumen && <p className="er-diag-ia-resumen">{diagIA.resumen}</p>}
+                        {(diagIA.acciones || []).length > 0 && (
+                          <ol className="er-diag-ia-acciones">{diagIA.acciones.map((a, i) => <li key={i}>{a}</li>)}</ol>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <h3 className="er-rend-title"><FaEye /> Nuestras publicaciones ({fMarca})</h3>
+                {rendPiezasLoad && <p className="er-muted">Cargando métricas de tus piezas…</p>}
+                {!rendPiezasLoad && rendPiezas?.sinCredenciales && <p className="er-muted">Sin credenciales de Meta para {fMarca}: no se pueden traer métricas por-pieza.</p>}
+                {!rendPiezasLoad && rendPiezas && !rendPiezas.sinCredenciales && (rendPiezas.piezas || []).length === 0 &&
+                  <p className="er-muted">Aún no hay piezas publicadas desde el estudio para {fMarca}.</p>}
+                <div className="er-piezas-grid">
+                  {(rendPiezas?.piezas || []).map((p) => {
+                    const RI = PLAT_ICON[p.red] || FaChartBar;
+                    return (
+                      <a key={p.id} className="er-pieza-card" href={p.permalink || '#'} target="_blank" rel="noopener noreferrer">
+                        <div className="er-pieza-thumb">
+                          {p.preview ? <img src={p.preview} alt={p.tema} loading="lazy" /> : <div className="er-pieza-noimg"><RI /></div>}
+                          <span className="er-pieza-fmt" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
+                          {p.red && <span className={`er-pieza-red pl-${p.red}`}><RI /></span>}
+                          {p.vistas != null && <span className="er-pieza-views"><FaEye /> {num(p.vistas)}</span>}
+                        </div>
+                        <div className="er-pieza-body">
+                          <p className="er-pieza-tema">{p.tema || '(sin título)'}</p>
+                          <div className="er-pieza-stats">
+                            <span title="Me gusta"><FaHeart /> {p.reacciones != null ? num(p.reacciones) : '—'}</span>
+                            <span title="Comentarios"><FaComment /> {p.comentarios != null ? num(p.comentarios) : '—'}</span>
+                            <span title="Compartidos"><FaShareAlt /> {p.compartidos != null ? num(p.compartidos) : '—'}</span>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               </>
             );
@@ -685,7 +877,12 @@ export default function EstudioRedes() {
                   <span>Se publica a las</span>
                   <input type="time" className="er-hora-input" value={draft?.hora || '10:00'}
                     onChange={(e) => setDraft({ ...draft, hora: e.target.value })} />
-                  <span className="er-hora-tz">CDMX · {autoPub ? 'auto-publicación ON' : 'auto-publicación apagada'}</span>
+                  <span className="er-hora-tz">CDMX</span>
+                  <button type="button" className={`er-autopub-sw ${autoPub ? 'on' : ''}`} onClick={toggleAutoPub} disabled={autoPubBusy}
+                    title="Publicación automática de todas las piezas programadas cuando llega su hora">
+                    <span className="er-sw-track"><span className="er-sw-thumb" /></span>
+                    Autopublicación {autoPub ? 'ON' : 'OFF'}
+                  </button>
                 </div>
                 {(() => {
                   const tipo = esReel(draft?.formato || abierta.formato) ? 'reel' : 'post';
@@ -709,9 +906,21 @@ export default function EstudioRedes() {
               {avisos(abierta).length > 0 && (
                 <div className="er-panel-avisos"><FaExclamationTriangle /> <span>{avisos(abierta).join(' · ')}</span></div>
               )}
-              <div className="er-panel-plats">
-                {(abierta.plataformas || []).map((pl) => { const I = PLAT_ICON[pl]; return I ? <span key={pl} className={`er-plat pl-${pl}`}><I /> {pl.toUpperCase()}</span> : null; })}
-                {abierta.pilar && <span className="er-pilar">{abierta.pilar}</span>}
+              <div className="er-plats-edit">
+                <span className="er-plats-lbl">Publicar en:</span>
+                <div className="er-panel-plats">
+                  {['ig', 'fb', 'tiktok', 'linkedin'].map((pl) => {
+                    const I = PLAT_ICON[pl];
+                    const on = (draft?.plataformas || []).includes(pl);
+                    return (
+                      <button key={pl} type="button" className={`er-plat-toggle pl-${pl} ${on ? 'on' : 'off'}`} onClick={() => togglePlat(pl)}
+                        title={on ? `Se publicará en ${pl.toUpperCase()}` : `${pl.toUpperCase()} desactivado`}>
+                        <I /> {pl.toUpperCase()} {on ? <FaCheck className="er-plat-mk" /> : <FaPlus className="er-plat-mk" />}
+                      </button>
+                    );
+                  })}
+                  {abierta.pilar && <span className="er-pilar">{abierta.pilar}</span>}
+                </div>
               </div>
               <h3>{abierta.tema}</h3>
 

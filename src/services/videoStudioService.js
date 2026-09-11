@@ -58,6 +58,10 @@ export const uploadSocialVideo = (id, file) => {
   }).then((r) => r.data);
 };
 export const publishSocial = (id) => axiosWithAuth.post(`${BASE}/social/${id}/publish`, {}, LENTO).then((r) => r.data);
+// Rendimiento de NUESTRAS piezas publicadas (métricas por-post del Graph API). Lento: hace varias llamadas.
+export const getRendimientoPiezas = (marca) => axiosWithAuth.get(`${BASE}/social/rendimiento-piezas`, { params: { marca }, timeout: LENTO.timeout }).then((r) => r.data);
+// Diagnóstico con IA (Claude lee las métricas y dice qué se hace bien/mal + acciones)
+export const diagnosticoIA = (marca) => axiosWithAuth.post(`${BASE}/social/diagnostico-ia`, { marca }, LENTO).then((r) => r.data);
 export const deleteSocial = (id) => axiosWithAuth.delete(`${BASE}/social/${id}`).then((r) => r.data);
 export const sugerenciasSocial = (id) => axiosWithAuth.post(`${BASE}/social/${id}/sugerencias`).then((r) => r.data);
 export const getAutopublish = () => axiosWithAuth.get(`${BASE}/social/autopublish`).then((r) => r.data);
@@ -68,4 +72,5 @@ export default {
   updateVideo, deleteVideo, approveVideo, publishVideo,
   getSocial, createSocial, updateSocial, approveSocial, discardSocial, uploadSocialImage,
   uploadSocialVideo, publishSocial, deleteSocial, sugerenciasSocial, getAutopublish, setAutopublish,
+  getRendimientoPiezas, diagnosticoIA,
 };
