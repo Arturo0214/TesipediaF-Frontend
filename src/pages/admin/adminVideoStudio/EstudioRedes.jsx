@@ -70,6 +70,14 @@ const playableVideo = (url) => {
 
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+// Las URLs del CDN de Instagram/Facebook expiran y bloquean hotlink en <img>. Las servimos por el
+// proxy del backend (/social/img). Las de Cloudinary y demás pasan sin cambios.
+const proxImg = (url) => {
+  if (!url || !/(cdninstagram\.com|fbcdn\.net)/i.test(url)) return url;
+  const base = import.meta.env.VITE_BASE_URL || '/api/';
+  return `${base}social/img?u=${encodeURIComponent(url)}`;
+};
+
 // ── Guías de recorte para redes ─────────────────────────────
 // IG/TikTok llenan (cover) la imagen al lienzo del formato destino y recortan el excedente.
 // Con esto avisamos ANTES de publicar qué parte se pierde y mostramos las zonas seguras.
@@ -684,7 +692,7 @@ export default function EstudioRedes() {
                     return (
                       <a key={p.id} className="er-pieza-card" href={p.permalink || '#'} target="_blank" rel="noopener noreferrer">
                         <div className="er-pieza-thumb">
-                          {p.preview ? <img src={p.preview} alt={p.tema} loading="lazy" /> : <div className="er-pieza-noimg"><RI /></div>}
+                          {p.preview ? <img src={proxImg(p.preview)} alt={p.tema} loading="lazy" /> : <div className="er-pieza-noimg"><RI /></div>}
                           <span className="er-pieza-fmt" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
                           {p.red && <span className={`er-pieza-red pl-${p.red}`}><RI /></span>}
                           {p.vistas != null && <span className="er-pieza-views"><FaEye /> {num(p.vistas)}</span>}
@@ -702,23 +710,30 @@ export default function EstudioRedes() {
                   })}
                 </div>
 
-                <h3 className="er-rend-title"><FaChartLine /> Publicaciones que más jalaron</h3>
+                <h3 className="er-rend-title"><FaChartLine /> Publicaciones que más jalaron{fMarca !== 'Tesipedia' ? ' (Tesipedia)' : ''}</h3>
                 {all.length === 0 && <p className="er-muted">Aún no hay publicaciones con métricas. Publica desde aquí y vuelve en unas horas.</p>}
-                <div className="er-rend-posts">
-                  {all.map((p) => (
-                    <a key={`${p.plat}-${p.id}`} className="er-rend-post" href={p.url || '#'} target="_blank" rel="noopener noreferrer">
-                      {p.mediaUrl ? <img src={p.mediaUrl} alt="" loading="lazy" /> : <div className="er-rend-post-noimg">{p.plat === 'ig' ? <FaInstagram /> : <FaFacebookF />}</div>}
-                      <div className="er-rend-post-body">
-                        <span className="er-rend-post-plat">{p.plat === 'ig' ? <FaInstagram /> : <FaFacebookF />} {new Date(p.date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}</span>
-                        <p>{(p.caption || '(sin texto)').slice(0, 70)}</p>
-                        <div className="er-rend-post-stats">
-                          <span><FaHeart /> {num(p.likes)}</span>
-                          <span><FaComment /> {num(p.comments)}</span>
-                          {p.shares ? <span><FaShareAlt /> {num(p.shares)}</span> : null}
+                <div className="er-piezas-grid">
+                  {all.map((p) => {
+                    const RI = p.plat === 'ig' ? FaInstagram : FaFacebookF;
+                    const tipo = p.type === 'VIDEO' ? 'REEL' : p.type === 'CAROUSEL_ALBUM' ? 'CARRUSEL' : 'POST';
+                    return (
+                      <a key={`${p.plat}-${p.id}`} className="er-pieza-card" href={p.url || '#'} target="_blank" rel="noopener noreferrer">
+                        <div className="er-pieza-thumb">
+                          {p.mediaUrl ? <img src={proxImg(p.mediaUrl)} alt="" loading="lazy" /> : <div className="er-pieza-noimg"><RI /></div>}
+                          <span className="er-pieza-fmt" style={{ background: p.type === 'VIDEO' ? '#7C3AED' : '#334155', color: '#fff' }}>{tipo}</span>
+                          <span className={`er-pieza-red pl-${p.plat}`}><RI /></span>
                         </div>
-                      </div>
-                    </a>
-                  ))}
+                        <div className="er-pieza-body">
+                          <p className="er-pieza-tema">{(p.caption || '(sin texto)').slice(0, 60)}</p>
+                          <div className="er-pieza-stats">
+                            <span title="Me gusta"><FaHeart /> {num(p.likes)}</span>
+                            <span title="Comentarios"><FaComment /> {num(p.comments)}</span>
+                            <span title="Compartidos"><FaShareAlt /> {p.shares != null ? num(p.shares) : '—'}</span>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
 
                 {diag && (

@@ -150,7 +150,7 @@
 /* ── Composer modal ── */
 .er-modal-bg { position: fixed; inset: 0; background: rgba(4, 7, 14, .72); backdrop-filter: blur(6px); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 24px; animation: er-fade .2s; }
 @keyframes er-fade { from { opacity: 0; } }
-.er-modal { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); background: var(--surface); border: 1px solid var(--line-hi); border-radius: 22px; overflow: hidden; width: min(1020px, 100%); max-height: 90vh; box-shadow: 0 40px 100px rgba(0,0,0,.6); animation: er-pop .24s cubic-bezier(.2,.9,.3,1.2); }
+.er-modal { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); grid-template-rows: minmax(0, 1fr); background: var(--surface); border: 1px solid var(--line-hi); border-radius: 22px; overflow: hidden; width: min(1020px, 100%); max-height: 90vh; box-shadow: 0 40px 100px rgba(0,0,0,.6); animation: er-pop .24s cubic-bezier(.2,.9,.3,1.2); }
 @keyframes er-pop { from { transform: scale(.96) translateY(8px); opacity: 0; } }
 .er-modal-x { position: absolute; top: 14px; right: 14px; z-index: 5; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: rgba(11,15,26,.6); cursor: pointer; color: var(--txt); font-size: 1rem; backdrop-filter: blur(6px); }
 .er-modal-x:hover { border-color: var(--red); color: var(--red); }
@@ -204,7 +204,7 @@
 .er-add-img { background: transparent; color: var(--gold, #E0B23C); border: 1.5px solid var(--gold, #E0B23C); }
 .er-add-img:hover { background: rgba(224,178,60,.12); filter: none; }
 
-.er-panel { padding: 24px; display: flex; flex-direction: column; gap: 11px; overflow-y: auto; background: var(--surface); }
+.er-panel { padding: 24px; display: flex; flex-direction: column; gap: 11px; overflow-y: auto; min-height: 0; background: var(--surface); }
 .er-panel-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .er-panel-fecha { font-size: .74rem; color: var(--muted); margin-left: auto; }
 .er-panel-plats { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -247,8 +247,9 @@
 @media (max-width: 1000px) {
   /* Modal scrolleable: el backdrop hace scroll y el modal crece natural (así SIEMPRE se cierra) */
   .er-modal-bg { padding: 10px; align-items: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .er-modal { grid-template-columns: 1fr; max-height: none; width: 100%; }
-  .er-panel { overflow: visible; }
+  .er-modal { grid-template-columns: 1fr; grid-template-rows: auto; max-height: none; width: 100%; }
+  .er-visor { overflow: visible; }
+  .er-panel { overflow: visible; min-height: auto; }
   .er-visor-main { min-height: 200px; }
   .er-visor-main img { max-height: 46vh; }
   /* Botón de cerrar FIJO en la pantalla: siempre alcanzable sin importar el scroll */
