@@ -81,13 +81,10 @@ const videoPoster = (url) => {
   return `${base}/video/upload/so_auto/${path}`;   // so_auto = frame representativo (mejor portada)
 };
 
-// Las URLs del CDN de Instagram/Facebook expiran y bloquean hotlink en <img>. Las servimos por el
-// proxy del backend (/social/img). Las de Cloudinary y demás pasan sin cambios.
-const proxImg = (url) => {
-  if (!url || !/(cdninstagram\.com|fbcdn\.net)/i.test(url)) return url;
-  const base = import.meta.env.VITE_BASE_URL || '/api/';
-  return `${base}social/img?u=${encodeURIComponent(url)}`;
-};
+// Las URLs del CDN de IG/FB cargan bien directo en <img> (verificado 10/10). Pasarlas por un proxy
+// las rompía (query param larguísimo). Se usan tal cual; se deja el helper como passthrough por si
+// más adelante hace falta (p. ej. si empiezan a bloquear hotlink).
+const proxImg = (url) => url;
 
 // ── Guías de recorte para redes ─────────────────────────────
 // IG/TikTok llenan (cover) la imagen al lienzo del formato destino y recortan el excedente.
@@ -381,7 +378,7 @@ export default function EstudioRedes() {
   });
   const abrir = (p) => {
     setAbierta(p); setImgIdx(0); setSug(null);
-    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '', hora: (p.hora || '10:00').slice(0, 5), plataformas: p.plataformas || ['ig', 'fb'] });
+    setDraft({ titular: p.titular || '', copy: p.copy || '', hashtags: p.hashtags || '', cta: p.cta || '', formato: p.formato || 'CARRUSEL', video_url: p.video_url || '', hora: (p.hora || '10:00').slice(0, 5), plataformas: p.plataformas || ['ig', 'fb'], historia: !!p.historia });
   };
   const subirImagen = async (file, index = imgIdx) => {
     if (!file || !abierta) return;
@@ -983,6 +980,12 @@ export default function EstudioRedes() {
                   })}
                   {abierta.pilar && <span className="er-pilar">{abierta.pilar}</span>}
                 </div>
+                <button type="button" className={`er-hist-sw ${draft?.historia ? 'on' : ''}`}
+                  onClick={() => setDraft({ ...draft, historia: !draft?.historia })}
+                  title="Además del feed, sube esta pieza como Historia en IG/FB (ideal 9:16; el 4:5 se recorta)">
+                  <span className="er-sw-track"><span className="er-sw-thumb" /></span>
+                  También en Historias {draft?.historia ? 'ON' : 'OFF'}
+                </button>
               </div>
               <h3>{abierta.tema}</h3>
 

@@ -422,6 +422,12 @@
 .er-plat-toggle.on.pl-tiktok { background: #111; border-color: var(--line-hi, rgba(255,255,255,.24)); }
 .er-plat-toggle.on.pl-linkedin { background: #0A66C2; }
 
+/* Toggle "También en Historias" */
+.er-hist-sw { display: inline-flex; align-items: center; gap: 8px; width: 100%; margin-top: 2px; background: transparent; border: 1.5px solid var(--line, rgba(255,255,255,.08)); color: var(--txt-soft, #8fa0bd); font-size: .78rem; font-weight: 800; padding: 7px 12px 7px 7px; border-radius: 10px; cursor: pointer; transition: .15s; }
+.er-hist-sw.on { border-color: rgba(168,85,247,.6); color: #d8b4fe; }
+.er-hist-sw.on .er-sw-track { background: #a855f7; }
+.er-hist-sw.on .er-sw-thumb { left: 17px; }
+
 /* ── Grid por día (encabezado) ── */
 /* Cuadrícula de días: hasta 5 columnas por fila, cada día una tarjeta compacta */
 .er-days-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
