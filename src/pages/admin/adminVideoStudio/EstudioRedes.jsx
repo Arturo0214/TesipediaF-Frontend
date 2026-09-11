@@ -10,6 +10,7 @@ import {
 import { FaXTwitter } from 'react-icons/fa6';
 import svc from '../../../services/videoStudioService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
+import NoticiasStudio from './NoticiasStudio';
 import './EstudioRedes.css';
 
 const FORMATO_COLOR = {
@@ -505,11 +506,9 @@ export default function EstudioRedes() {
 
       {modoNoticias && (
         <div className="er-noticias-wrap">
-          <div className="er-noticias-soon">
-            <FaNewspaper />
-            <h3>Estudio de Noticias · {fMarca}</h3>
-            <p>Generación de artículos SEO, aprobación y publicación. Se activa en la siguiente fase.</p>
-          </div>
+          {fMarca === 'Tesipedia'
+            ? <NoticiasStudio />
+            : <div className="er-noticias-soon"><FaNewspaper /><h3>Estudio de Noticias · {fMarca}</h3><p>El motor de noticias de {fMarca} se habilita en su propio proyecto. Por ahora está activo en Tesipedia.</p></div>}
         </div>
       )}
 

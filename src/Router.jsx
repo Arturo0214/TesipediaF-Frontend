@@ -26,6 +26,8 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService/TermsOfService'));
 const Blog = lazy(() => import('./pages/Blog/Blog'));
 const BlogPost = lazy(() => import('./pages/Blog/BlogPost'));
+const NoticiasIndex = lazy(() => import('./pages/Noticias/NoticiasIndex'));
+const NoticiaArticulo = lazy(() => import('./pages/Noticias/NoticiaArticulo'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 const PublicQuote = lazy(() => import('./pages/PublicQuote/PublicQuote'));
 
@@ -93,6 +95,8 @@ const router = createBrowserRouter(
         { path: 'preguntas-frecuentes', element: <LazyPage><FAQ /></LazyPage> },
         { path: 'blog', element: <LazyPage><Blog /></LazyPage> },
         { path: 'blog/:slug', element: <LazyPage><BlogPost /></LazyPage> },
+        { path: 'noticias', element: <LazyPage><NoticiasIndex /></LazyPage> },
+        { path: 'noticias/:slug', element: <LazyPage><NoticiaArticulo /></LazyPage> },
         { path: 'cotizacion/:id', element: <LazyPage><PublicQuote /></LazyPage> },
         { path: 'comprar-tesis', element: <LazyPage><ComprarTesis /></LazyPage> },
         { path: 'tesis-licenciatura', element: <LazyPage><TesisLicenciatura /></LazyPage> },
