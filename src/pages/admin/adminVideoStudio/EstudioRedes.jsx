@@ -632,33 +632,35 @@ export default function EstudioRedes() {
       {!modoNoticias && !loading && vista === 'rendimiento' && (
         <div className="er-rend">
           <div className="er-rend-head">
-            <p className="er-muted" style={{ margin: 0 }}>Cuánto han jalado tus publicaciones en Instagram y Facebook.</p>
-            <button className="er-mini-btn" onClick={cargarRend} disabled={rendLoad}>{rendLoad ? <FaSync className="er-spin" /> : <FaSync />} Actualizar</button>
+            <p className="er-muted" style={{ margin: 0 }}>Cuánto han jalado tus publicaciones{fCanales.includes('ig') && fCanales.includes('fb') ? ' en Instagram y Facebook' : fCanales.includes('ig') ? ' en Instagram' : fCanales.includes('fb') ? ' en Facebook' : ''}. Filtra con los canales de arriba.</p>
+            <button className="er-mini-btn" onClick={() => { cargarRend(); cargarRendPiezas(fMarca); }} disabled={rendLoad}>{rendLoad ? <FaSync className="er-spin" /> : <FaSync />} Actualizar</button>
           </div>
           {rendLoad && !rend && <p className="er-muted">Cargando métricas de FB/IG…</p>}
           {rend && (() => {
             const num = (n) => (n == null ? '—' : Number(n).toLocaleString('es-MX'));
             const ig = rend.metrics?.instagram; const fb = rend.metrics?.facebook;
+            const verIg = fCanales.includes('ig'); const verFb = fCanales.includes('fb');
             const all = [
-              ...(rend.ig || []).map((p) => ({ ...p, plat: 'ig' })),
-              ...(rend.fb || []).map((p) => ({ ...p, plat: 'fb' })),
+              ...(verIg ? (rend.ig || []).map((p) => ({ ...p, plat: 'ig' })) : []),
+              ...(verFb ? (rend.fb || []).map((p) => ({ ...p, plat: 'fb' })) : []),
             ].sort((a, b) => ((b.likes || 0) + (b.comments || 0)) - ((a.likes || 0) + (a.comments || 0))).slice(0, 12);
+            const piezasFiltradas = (rendPiezas?.piezas || []).filter((p) => !p.red || fCanales.includes(p.red));
             const KPI = (label, value) => (<div className="er-kpi"><span className="er-kpi-n">{value}</span><span className="er-kpi-l">{label}</span></div>);
             return (
               <>
                 <div className="er-rend-cards">
-                  <div className="er-rend-card ig">
+                  {verIg && <div className="er-rend-card ig">
                     <div className="er-rend-card-h"><FaInstagram /> Instagram {ig?.profilePic && <img src={ig.profilePic} alt="" />}</div>
                     {ig ? (
                       <div className="er-kpis">
                         {KPI('Seguidores', num(ig.followers))}
-                        {KPI('Engagement', ig.engagement || '—')}
+                        {KPI('Interacción/post', num((ig.avgLikes || 0) + (ig.avgComments || 0)))}
                         {KPI('Likes/post', num(ig.avgLikes))}
                         {KPI('Coment./post', num(ig.avgComments))}
                       </div>
                     ) : <p className="er-muted">Sin datos de Instagram.</p>}
-                  </div>
-                  <div className="er-rend-card fb">
+                  </div>}
+                  {verFb && <div className="er-rend-card fb">
                     <div className="er-rend-card-h"><FaFacebookF /> Facebook</div>
                     {fb ? (
                       <div className="er-kpis">
@@ -668,7 +670,36 @@ export default function EstudioRedes() {
                         {KPI('Comentarios', num(fb.totalComments))}
                       </div>
                     ) : <p className="er-muted">Sin datos de Facebook.</p>}
-                  </div>
+                  </div>}
+                </div>
+
+                <h3 className="er-rend-title"><FaEye /> Nuestras publicaciones ({fMarca})</h3>
+                {rendPiezasLoad && <p className="er-muted">Cargando métricas de tus piezas…</p>}
+                {!rendPiezasLoad && rendPiezas?.sinCredenciales && <p className="er-muted">Sin credenciales de Meta para {fMarca}: no se pueden traer métricas por-pieza.</p>}
+                {!rendPiezasLoad && rendPiezas && !rendPiezas.sinCredenciales && piezasFiltradas.length === 0 &&
+                  <p className="er-muted">No hay piezas publicadas para el/los canal(es) seleccionado(s).</p>}
+                <div className="er-piezas-grid">
+                  {piezasFiltradas.map((p) => {
+                    const RI = PLAT_ICON[p.red] || FaChartBar;
+                    return (
+                      <a key={p.id} className="er-pieza-card" href={p.permalink || '#'} target="_blank" rel="noopener noreferrer">
+                        <div className="er-pieza-thumb">
+                          {p.preview ? <img src={p.preview} alt={p.tema} loading="lazy" /> : <div className="er-pieza-noimg"><RI /></div>}
+                          <span className="er-pieza-fmt" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
+                          {p.red && <span className={`er-pieza-red pl-${p.red}`}><RI /></span>}
+                          {p.vistas != null && <span className="er-pieza-views"><FaEye /> {num(p.vistas)}</span>}
+                        </div>
+                        <div className="er-pieza-body">
+                          <p className="er-pieza-tema">{p.tema || '(sin título)'}</p>
+                          <div className="er-pieza-stats">
+                            <span title="Me gusta"><FaHeart /> {p.reacciones != null ? num(p.reacciones) : '—'}</span>
+                            <span title="Comentarios"><FaComment /> {p.comentarios != null ? num(p.comentarios) : '—'}</span>
+                            <span title="Compartidos"><FaShareAlt /> {p.compartidos != null ? num(p.compartidos) : '—'}</span>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
 
                 <h3 className="er-rend-title"><FaChartLine /> Publicaciones que más jalaron</h3>
@@ -731,35 +762,6 @@ export default function EstudioRedes() {
                     )}
                   </div>
                 )}
-
-                <h3 className="er-rend-title"><FaEye /> Nuestras publicaciones ({fMarca})</h3>
-                {rendPiezasLoad && <p className="er-muted">Cargando métricas de tus piezas…</p>}
-                {!rendPiezasLoad && rendPiezas?.sinCredenciales && <p className="er-muted">Sin credenciales de Meta para {fMarca}: no se pueden traer métricas por-pieza.</p>}
-                {!rendPiezasLoad && rendPiezas && !rendPiezas.sinCredenciales && (rendPiezas.piezas || []).length === 0 &&
-                  <p className="er-muted">Aún no hay piezas publicadas desde el estudio para {fMarca}.</p>}
-                <div className="er-piezas-grid">
-                  {(rendPiezas?.piezas || []).map((p) => {
-                    const RI = PLAT_ICON[p.red] || FaChartBar;
-                    return (
-                      <a key={p.id} className="er-pieza-card" href={p.permalink || '#'} target="_blank" rel="noopener noreferrer">
-                        <div className="er-pieza-thumb">
-                          {p.preview ? <img src={p.preview} alt={p.tema} loading="lazy" /> : <div className="er-pieza-noimg"><RI /></div>}
-                          <span className="er-pieza-fmt" style={{ background: FORMATO_COLOR[p.formato] || '#4b5563' }}>{p.formato}</span>
-                          {p.red && <span className={`er-pieza-red pl-${p.red}`}><RI /></span>}
-                          {p.vistas != null && <span className="er-pieza-views"><FaEye /> {num(p.vistas)}</span>}
-                        </div>
-                        <div className="er-pieza-body">
-                          <p className="er-pieza-tema">{p.tema || '(sin título)'}</p>
-                          <div className="er-pieza-stats">
-                            <span title="Me gusta"><FaHeart /> {p.reacciones != null ? num(p.reacciones) : '—'}</span>
-                            <span title="Comentarios"><FaComment /> {p.comentarios != null ? num(p.comentarios) : '—'}</span>
-                            <span title="Compartidos"><FaShareAlt /> {p.compartidos != null ? num(p.compartidos) : '—'}</span>
-                          </div>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div>
               </>
             );
           })()}
