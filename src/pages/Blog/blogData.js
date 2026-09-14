@@ -2,6 +2,8 @@
 import { postsTitulacion } from './blogPostsTitulacion.js';
 import { postsTemas1 } from './blogPostsTemas1.js';
 import { postsTemas2 } from './blogPostsTemas2.js';
+import { postsEjemplos1 } from './blogPostsEjemplos1.js';
+import { postsEjemplos2 } from './blogPostsEjemplos2.js';
 
 // Images for blog posts — Unsplash (gratuitas, confiables, temáticas académicas)
 export const images = {
@@ -1187,7 +1189,7 @@ No arriesgues tu título con servicios dudosos. Cotiza tu asesoría gratis por W
 ];
 
 // Blog completo = base + posts SEO de alto volumen (titulación por universidad + temas por carrera).
-export const blogPosts = [...blogPostsBase, ...postsTitulacion, ...postsTemas1, ...postsTemas2];
+export const blogPosts = [...blogPostsBase, ...postsTitulacion, ...postsTemas1, ...postsTemas2, ...postsEjemplos1, ...postsEjemplos2];
 
 /**
  * Get a blog post by its slug
