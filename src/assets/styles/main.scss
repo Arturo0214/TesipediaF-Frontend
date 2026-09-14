@@ -283,3 +283,10 @@ footer {
 .main-content {
   padding-top: 70px;
 }
+
+/* Cinturón anti scroll-horizontal: ningún elemento debe desbordar el ancho del viewport
+   (arregla el overflow del carrusel/secciones en pantallas muy angostas, p.ej. 320px). */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}

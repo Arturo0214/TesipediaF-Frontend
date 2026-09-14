@@ -1,5 +1,5 @@
 /* ============ GUIAS CAROUSEL — estilo "elige tu plantilla" (ref. Contratado) ============ */
-.gcar { position: relative; padding: 8px 0 6px; }
+.gcar { position: relative; padding: 8px 0 6px; overflow: hidden; }
 
 .gcar-swiper { padding: 18px 0 44px !important; }
 
