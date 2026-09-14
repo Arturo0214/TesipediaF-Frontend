@@ -300,7 +300,9 @@ function BlogPost() {
             {/* ===== Columna principal ===== */}
             <div className="bp-main">
               <div className="bp-body">
-                {formatContent(post.content)}
+                {/^\s*</.test(post.content)
+                  ? <div className="bp-body-html" dangerouslySetInnerHTML={{ __html: post.content }} />
+                  : formatContent(post.content)}
               </div>
 
               {/* CTA a la tienda de guías (canaliza el tráfico orgánico al producto) */}

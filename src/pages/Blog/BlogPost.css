@@ -823,3 +823,14 @@
   .bp-fs-actions { justify-content: center; }
   .bp-fs-art { order: -1; }
 }
+
+/* Posts con content en HTML (batch SEO de alto volumen) */
+.bp-body-html { color: var(--ink-2, #334155); }
+.bp-body-html h2 { font-family: var(--font-display, serif); font-weight: 700; color: var(--navy-900, #0b1f3a); font-size: clamp(1.35rem, 2.4vw, 1.75rem); line-height: 1.2; margin: 34px 0 14px; }
+.bp-body-html h3 { font-family: var(--font-display, serif); font-weight: 600; color: var(--navy-900, #0b1f3a); font-size: 1.15rem; margin: 24px 0 10px; }
+.bp-body-html p { font-size: 1.05rem; line-height: 1.75; margin: 0 0 16px; }
+.bp-body-html ul { margin: 0 0 18px; padding-left: 22px; }
+.bp-body-html li { font-size: 1.03rem; line-height: 1.65; margin-bottom: 8px; }
+.bp-body-html a { color: #2563EB; font-weight: 600; text-decoration: none; }
+.bp-body-html a:hover { text-decoration: underline; }
+.bp-body-html strong { color: var(--navy-900, #0b1f3a); font-weight: 700; }

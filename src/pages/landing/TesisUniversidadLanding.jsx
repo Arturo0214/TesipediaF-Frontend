@@ -166,6 +166,19 @@ function TesisUniversidadLanding({ slug }) {
             ))}
           </div>
         )}
+        {u.documentos?.length > 0 && (
+          <div className="landing-docs">
+            <h3>Documentos que suele pedir el trámite en la {u.sigla}</h3>
+            <ul className="landing-docs-list">
+              {u.documentos.map((d, i) => <li key={i}>{d}</li>)}
+            </ul>
+          </div>
+        )}
+        {u.consejos && (
+          <div className="landing-prose">
+            {u.consejos.split('\n\n').map((par, i) => <p key={i}>{par}</p>)}
+          </div>
+        )}
         <div className="landing-features-grid">
           <div className="landing-feature-card">
             <FaUniversity className="feature-icon" />
