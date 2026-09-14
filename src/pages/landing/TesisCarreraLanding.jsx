@@ -102,7 +102,8 @@ function TesisCarreraLanding({ slug }) {
       { "@type": "Question", "name": `¿Asesoran tesis de ${c.nombre}?`, "acceptedAnswer": { "@type": "Answer", "text": `Sí. En Tesipedia asesoramos tesis de ${c.nombre} con investigadores especializados en ${c.area}, para licenciatura, maestría y doctorado, con la metodología y citación que exige tu universidad. Tú eres el autor de tu tesis y nosotros te guiamos.` } },
       { "@type": "Question", "name": `¿Qué metodología usan en una tesis de ${c.nombre}?`, "acceptedAnswer": { "@type": "Answer", "text": c.metodologia } },
       { "@type": "Question", "name": `¿Cuánto cuesta la asesoría de una tesis de ${c.nombre}?`, "acceptedAnswer": { "@type": "Answer", "text": "Los programas de asesoría comienzan desde $5,500 MXN para licenciatura, $12,800 para maestría y $25,200 para doctorado. El precio final depende del alcance del acompañamiento, el área y la fecha objetivo. La cotización es gratuita." } },
-      { "@type": "Question", "name": "¿El trabajo es original?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Tú redactas tu tesis con nuestra guía, con citación correcta y revisión de originalidad. Te orientan investigadores con posgrado." } }
+      { "@type": "Question", "name": "¿El trabajo es original?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Tú redactas tu tesis con nuestra guía, con citación correcta y revisión de originalidad. Te orientan investigadores con posgrado." } },
+      ...(c.faqs || []).map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
     ]
   };
 
@@ -176,6 +177,11 @@ function TesisCarreraLanding({ slug }) {
       <section className="landing-section" id="metodologia">
         <h2>Metodología para tu tesis de {c.nombre}</h2>
         <p className="landing-section-intro">{c.metodologia}</p>
+        {c.introExtendida && (
+          <div className="landing-prose">
+            {c.introExtendida.split('\n\n').map((par, i) => <p key={i}>{par}</p>)}
+          </div>
+        )}
         <div className="landing-features-grid">
           <div className="landing-feature-card">
             <FaFlask className="feature-icon" />
@@ -211,7 +217,32 @@ function TesisCarreraLanding({ slug }) {
             <span className="landing-pill" key={i}><FaLightbulb /> {t}</span>
           ))}
         </div>
+        {c.temasDetalle?.length > 0 && (
+          <div className="landing-topics-grid">
+            {c.temasDetalle.map((t, i) => (
+              <div className="landing-topic-card" key={i}>
+                <h3><FaLightbulb /> {t.titulo}</h3>
+                <p>{t.descripcion}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
+
+      {/* RETOS COMUNES */}
+      {c.retos?.length > 0 && (
+        <section className="landing-section" id="retos">
+          <h2>Retos comunes en la tesis de {c.nombre} (y cómo los resolvemos)</h2>
+          <div className="landing-features-grid">
+            {c.retos.map((r, i) => (
+              <div className="landing-feature-card" key={i}>
+                <h3>{r.titulo}</h3>
+                <p>{r.texto}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CÓMO FUNCIONA */}
       <section className="landing-section" id="como-funciona">

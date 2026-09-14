@@ -76,7 +76,8 @@ function TesisUniversidadLanding({ slug }) {
       { "@type": "Question", "name": `¿Asesoran tesis para la ${u.sigla}?`, "acceptedAnswer": { "@type": "Answer", "text": `Sí. En Tesipedia asesoramos a estudiantes de la ${u.nombre} (${u.sigla}) en todas sus carreras y niveles (licenciatura, maestría y doctorado), respetando los requisitos y el formato de tu facultad o escuela. Tú eres el autor de tu tesis y nosotros te acompañamos.` } },
       { "@type": "Question", "name": `¿Cuánto cuesta la asesoría de una tesis para la ${u.sigla}?`, "acceptedAnswer": { "@type": "Answer", "text": "Los programas de asesoría comienzan desde $5,500 MXN para licenciatura, $12,800 para maestría y $25,200 para doctorado. El precio final depende del alcance del acompañamiento, el área y la fecha objetivo. La cotización es gratuita." } },
       { "@type": "Question", "name": "¿El trabajo es original y con citación correcta?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Tú redactas tu tesis con nuestra guía, con citación correcta y revisión de originalidad, sin plantillas ni trabajos reciclados. Te orientan investigadores con posgrado." } },
-      { "@type": "Question", "name": "¿Cuánto dura el acompañamiento?", "acceptedAnswer": { "@type": "Answer", "text": "De 3 a 4 semanas por etapa para licenciatura y de 4 a 8 semanas para posgrado. También ofrecemos sesiones intensivas para avances urgentes." } }
+      { "@type": "Question", "name": "¿Cuánto dura el acompañamiento?", "acceptedAnswer": { "@type": "Answer", "text": "De 3 a 4 semanas por etapa para licenciatura y de 4 a 8 semanas para posgrado. También ofrecemos sesiones intensivas para avances urgentes." } },
+      ...(u.faqs || []).map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
     ]
   };
 
@@ -150,6 +151,21 @@ function TesisUniversidadLanding({ slug }) {
       <section className="landing-section" id="titulacion">
         <h2>Titulación por tesis en la {u.sigla}</h2>
         <p className="landing-section-intro">{u.titulacion}</p>
+        {u.introExtendida && (
+          <div className="landing-prose">
+            {u.introExtendida.split('\n\n').map((par, i) => <p key={i}>{par}</p>)}
+          </div>
+        )}
+        {u.modalidades?.length > 0 && (
+          <div className="landing-topics-grid">
+            {u.modalidades.map((m, i) => (
+              <div className="landing-topic-card" key={i}>
+                <h3>{m.titulo}</h3>
+                <p>{m.descripcion}</p>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="landing-features-grid">
           <div className="landing-feature-card">
             <FaUniversity className="feature-icon" />
@@ -202,6 +218,21 @@ function TesisUniversidadLanding({ slug }) {
           ))}
         </div>
       </section>
+
+      {/* RETOS DEL TRÁMITE */}
+      {u.retos?.length > 0 && (
+        <section className="landing-section" id="retos">
+          <h2>Lo que más confunde al titularte en la {u.sigla} (y cómo te ayudamos)</h2>
+          <div className="landing-features-grid">
+            {u.retos.map((r, i) => (
+              <div className="landing-feature-card" key={i}>
+                <h3>{r.titulo}</h3>
+                <p>{r.texto}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CÓMO FUNCIONA */}
       <section className="landing-section" id="como-funciona">
