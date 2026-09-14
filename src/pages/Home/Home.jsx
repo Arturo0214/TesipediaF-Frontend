@@ -202,11 +202,31 @@ function Home() {
     }
   };
 
+  const organizationLdSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Tesipedia",
+    "url": "https://tesipedia.com",
+    "logo": "https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png",
+    "description": "Servicio profesional de asesoría de tesis en México para licenciatura, maestría y doctorado.",
+    "sameAs": [
+      "https://www.instagram.com/tesipediaoficial",
+      "https://www.facebook.com/tesipedia"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+525670071517",
+      "contactType": "customer service",
+      "areaServed": "MX",
+      "availableLanguage": "Spanish"
+    }
+  };
+
   return (
     <>
       <Helmet>
         <title>Asesoría de Tesis en México | Tesipedia — Licenciatura, Maestría y Doctorado</title>
-        <meta name="description" content="Asesoría profesional de tesis en México: te acompañamos para hacer tu tesis de licenciatura, maestría y doctorado. La redactas tú, original y con revisión, guiado por investigadores con posgrado. Desde $110/página. +3,000 estudiantes asesorados. Cotiza gratis por WhatsApp." />
+        <meta name="description" content="Asesoría de tesis en México para licenciatura, maestría y doctorado. La redactas tú, guiado por investigadores con posgrado. Desde $110/página. Cotiza gratis." />
         <meta name="keywords" content="asesoría de tesis, asesoría de tesis México, hacer tesis, hacer mi tesis, te asesoramos para hacer tu tesis, quien me ayuda con mi tesis, asesoría tesis licenciatura, asesoría tesis maestría, asesoría tesis doctorado, elaboración de tesis, desarrollo de tesis México, tutoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
         <meta property="og:title" content="Asesoría de Tesis en México | Tesipedia — Desde $110/pág" />
         <meta property="og:description" content="Te asesoramos para hacer tu tesis: +3,000 estudiantes acompañados. La redactas tú, original y con revisión. Desde $110/página. Cotiza gratis." />
@@ -218,6 +238,7 @@ function Home() {
 
         {/* Schema.org structured data */}
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(organizationLdSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>

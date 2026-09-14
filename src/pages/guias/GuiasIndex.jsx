@@ -43,7 +43,7 @@ function ProductCard({ g }) {
           <div className="gi-card-pakstack">
             {(g.incluyeIds || []).slice(0, 3).map((id, i) => {
               const src = BY_ID[id]?.pages?.[0]?.src;
-              return src ? <img key={id} className={`gi-pakthumb gi-pakthumb-${i}`} src={src} alt="" loading="lazy" /> : null;
+              return src ? <img key={id} className={`gi-pakthumb gi-pakthumb-${i}`} src={src} alt={`Guía incluida en ${g.nombre}${BY_ID[id]?.nombre ? `: ${BY_ID[id].nombre}` : ''}`} loading="lazy" /> : null;
             })}
             <span className="gi-card-pakn">{(g.incluyeIds || []).length} guías incluidas</span>
           </div>
@@ -101,6 +101,15 @@ export default function GuiasIndex() {
       <Helmet>
         <title>Tienda de guías de tesis en PDF — APA 7, por carrera y por universidad | Tesipedia</title>
         <meta name="description" content="Guías-taller en PDF para hacer tu tesis paso a paso: busca y filtra por sección, carrera (Medicina, Derecho, Psicología…) o universidad (UNAM, IPN, UAM…). Descarga inmediata, pago seguro." />
+        <meta property="og:title" content="Tienda de guías de tesis en PDF — APA 7, por carrera y por universidad | Tesipedia" />
+        <meta property="og:description" content="Guías-taller en PDF para hacer tu tesis paso a paso. Busca la tuya por carrera o universidad. Descarga inmediata, pago seguro." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://tesipedia.com/guias" />
+        <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Tienda de guías de tesis en PDF — APA 7, por carrera y por universidad | Tesipedia" />
+        <meta name="twitter:description" content="Guías-taller en PDF para hacer tu tesis paso a paso. Busca la tuya por carrera o universidad. Descarga inmediata, pago seguro." />
+        <meta name="twitter:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
         <link rel="canonical" href="https://tesipedia.com/guias" />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'ItemList',

@@ -174,13 +174,18 @@ function FAQ() {
   return (
     <div className="fq-page">
       <Helmet>
-        <title>Preguntas Frecuentes | ¿Cuánto cuesta la asesoría de tesis? | Tesipedia</title>
+        <title>Preguntas Frecuentes sobre Asesoría de Tesis | Precios y Proceso | Tesipedia</title>
         <meta name="description" content="Respuestas a las preguntas más comunes: ¿Cuánto cuesta la asesoría de una tesis en México? ¿Cómo funciona? ¿Cuánto tarda? ¿El trabajo es original? Te asesoramos para que hagas y termines tu propia tesis." />
         <meta name="keywords" content="hacer tesis, asesoría de tesis, cuánto cuesta hacer una tesis, cuánto cuesta una tesis México, quién me asesora con mi tesis, hacer tesis rápido, revisión de originalidad tesis, pagar asesoría de tesis a meses, Tesipedia FAQ" />
         <meta property="og:title" content="Preguntas Frecuentes | ¿Cuánto cuesta la asesoría de una tesis? | Tesipedia" />
         <meta property="og:description" content="Todas las respuestas sobre nuestra asesoría de tesis: precios, tiempos, calidad y acompañamiento." />
         <meta property="og:url" content="https://tesipedia.com/preguntas-frecuentes" />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Preguntas Frecuentes sobre Asesoría de Tesis | Precios y Proceso | Tesipedia" />
+        <meta name="twitter:description" content="Respuestas a las preguntas más comunes sobre nuestra asesoría de tesis en México: precios, tiempos, calidad y acompañamiento." />
+        <meta name="twitter:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
         <link rel="canonical" href="https://tesipedia.com/preguntas-frecuentes" />
 
         {/* FAQPage Schema - CLAVE para Rich Snippets en Google */}

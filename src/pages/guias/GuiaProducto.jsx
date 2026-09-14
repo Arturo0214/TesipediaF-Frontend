@@ -88,12 +88,17 @@ export default function GuiaProducto() {
   return (
     <div className="gp">
       <Helmet>
-        <title>{`${nombre} (PDF) — Guía de Tesis | Tesipedia`}</title>
+        <title>{`${nombre} en PDF — ${kicker} | Tesipedia`}</title>
         <meta name="description" content={`${resumen} Descarga inmediata en PDF, pago seguro con MercadoPago.`} />
         <meta name="keywords" content={`${kicker.toLowerCase()}, guía de tesis pdf, ${nombre.toLowerCase()}, tesis méxico`} />
         <meta property="og:title" content={`${nombre} — Tesipedia`} />
         <meta property="og:description" content={resumen} />
         <meta property="og:type" content="product" />
+        {muestraUrl && <meta property="og:image" content={muestraUrl} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${nombre} en PDF — ${kicker} | Tesipedia`} />
+        <meta name="twitter:description" content={`${resumen} Descarga inmediata en PDF, pago seguro con MercadoPago.`} />
+        <meta name="twitter:image" content={muestraUrl || 'https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png'} />
         <link rel="canonical" href={canonical} />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'Product', name: nombre, description: resumen,
