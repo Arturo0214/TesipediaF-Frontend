@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { blogPosts, images } from './blogData';
+import BlogCover from './BlogCover';
+import { FaBookOpen, FaArrowRight, FaBolt } from 'react-icons/fa';
+import './BlogCover.css';
 import './Blog.css';
 
 // Gradient fallbacks for when images fail to load (e.g. sandbox/dev)
@@ -157,58 +160,43 @@ function Blog() {
             {featuredPost && (
               <Link to={`/blog/${featuredPost.slug}`} className="blog-featured">
                 <div className="blog-featured-image-wrapper">
-                  <BlogImage src={featuredPost.image} alt={featuredPost.title} index={0} />
-                  <div className="blog-featured-overlay" />
+                  <BlogCover post={featuredPost} variant="featured" />
                 </div>
                 <div className="blog-featured-content">
-                  <div className="blog-featured-top">
-                    <span
-                      className="blog-tag"
-                      style={{
-                        color: getCategoryColor(featuredPost.category),
-                        backgroundColor: getCategoryBg(featuredPost.category)
-                      }}
-                    >
-                      {featuredPost.category}
-                    </span>
-                  </div>
-                  <h2 className="blog-featured-title">{featuredPost.title}</h2>
+                  <span className="blog-featured-badge">★ Artículo destacado</span>
                   <p className="blog-featured-excerpt">{featuredPost.excerpt}</p>
                   <div className="blog-featured-meta">
                     <span>{formatDate(featuredPost.date)}</span>
                     <span className="blog-meta-sep">•</span>
                     <span>{featuredPost.readTime}</span>
                   </div>
+                  <span className="blog-featured-cta">Leer artículo <FaArrowRight /></span>
                 </div>
               </Link>
             )}
 
             {/* Grid of posts */}
             <div className="blog-grid">
+              {/* Gancho de venta: card de la tienda de guías dentro del grid */}
+              <Link to="/guias" className="blog-promo-card" data-track-cta="blog_grid_guias">
+                <span className="blog-promo-ico"><FaBookOpen /></span>
+                <span className="blog-promo-kicker"><FaBolt /> Tienda de guías · desde $79</span>
+                <h3 className="blog-promo-title">¿Prefieres avanzar tu tesis por tu cuenta?</h3>
+                <p className="blog-promo-text">Guías-taller en PDF paso a paso, con ejemplos y plantillas. Descarga inmediata.</p>
+                <span className="blog-promo-cta">Ver la tienda <FaArrowRight /></span>
+              </Link>
               {remainingPosts.map(post => (
                 <Link key={post.id} to={`/blog/${post.slug}`} className="blog-card">
                   <div className="blog-card-image-wrapper">
-                    <BlogImage src={post.image} alt={post.title} index={post.id} />
-                    <div className="blog-card-image-overlay" />
+                    <BlogCover post={post} variant="card" />
                   </div>
                   <div className="blog-card-content">
-                    <div className="blog-card-top">
-                      <span
-                        className="blog-tag"
-                        style={{
-                          color: getCategoryColor(post.category),
-                          backgroundColor: getCategoryBg(post.category)
-                        }}
-                      >
-                        {post.category}
-                      </span>
-                    </div>
-                    <h3 className="blog-card-title">{post.title}</h3>
                     <p className="blog-card-excerpt">{post.excerpt}</p>
                     <div className="blog-card-meta">
                       <span>{formatDate(post.date)}</span>
                       <span className="blog-meta-sep">•</span>
                       <span>{post.readTime}</span>
+                      <span className="blog-card-more">Leer <FaArrowRight /></span>
                     </div>
                   </div>
                 </Link>

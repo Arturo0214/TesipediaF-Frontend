@@ -6,7 +6,9 @@ import { FaCalendarAlt, FaClock, FaUser, FaArrowLeft, FaWhatsapp, FaBookOpen, Fa
 import { getPostBySlug, blogPosts } from './blogData';
 import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
 import TiendaGuiasCTA from '../../components/common/TiendaGuiasCTA';
+import BlogCover from './BlogCover';
 import { getGuiaByBlog, getGuia } from '../../data/guias';
+import './BlogCover.css';
 import './BlogPost.css';
 
 const BP_WA = 'https://wa.me/525670071517?text=Hola%2C%20quiero%20asesor%C3%ADa%20para%20mi%20tesis';
@@ -288,8 +290,8 @@ function BlogPost() {
               <div className="bp-fs-art"><GuiaPagesShowcase pages={guia.pages} chip={guia.kicker} /></div>
             </div>
           ) : (
-            <div className="bp-featured-image">
-              <BlogPostImage src={post.image} alt={post.title} index={post.id} className="bp-img" />
+            <div className="bp-featured-cover">
+              <BlogCover post={post} variant="hero" />
             </div>
           )}
         </Container>

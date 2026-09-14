@@ -560,3 +560,51 @@
     padding: 0.25rem 0.5rem;
   }
 }
+
+/* ── Rediseño editorial del blog: portadas de marca + gancho de venta ── */
+/* La portada de marca llena el wrapper (antes iba una <img>) */
+.blog-featured-image-wrapper { position: relative; overflow: hidden; }
+.blog-featured-image-wrapper .blog-cover { position: absolute; inset: 0; }
+.blog-card-image-wrapper { position: relative; overflow: hidden; }
+.blog-card-image-wrapper .blog-cover { position: absolute; inset: 0; }
+
+.blog-featured-badge {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-family: var(--font-sans); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold-600, #c79a2e); background: rgba(224, 178, 60, 0.12);
+  padding: 5px 11px; border-radius: 999px; margin-bottom: 12px;
+}
+.blog-featured-cta {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+  font-family: var(--font-sans); font-weight: 800; font-size: 0.95rem; color: #2563EB;
+  transition: gap .18s ease;
+}
+.blog-featured:hover .blog-featured-cta { gap: 12px; }
+
+.blog-card-more { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-weight: 800; color: #2563EB; }
+.blog-card:hover .blog-card-more { text-decoration: underline; }
+
+/* Card promocional de la tienda dentro del grid */
+.blog-promo-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 22px 22px 20px; border-radius: 16px; text-decoration: none;
+  background: linear-gradient(158deg, #0b1f3a 0%, #16407e 100%);
+  color: #fff; position: relative; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(9, 24, 64, 0.2);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.blog-promo-card:hover { transform: translateY(-4px); box-shadow: 0 22px 46px rgba(9, 24, 64, 0.3); }
+.blog-promo-ico {
+  width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px;
+  background: rgba(245, 197, 81, 0.16); color: var(--gold-400, #F5C451); font-size: 1.15rem; margin-bottom: 4px;
+}
+.blog-promo-kicker { display: inline-flex; align-items: center; gap: 6px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-400, #F5C451); }
+.blog-promo-title { font-family: var(--font-display, serif); font-weight: 600; font-size: 1.2rem; line-height: 1.2; color: #fdfbf5; margin: 2px 0 2px; }
+.blog-promo-text { font-size: 0.9rem; line-height: 1.5; color: rgba(255,255,255,0.8); margin: 0; flex: 1; }
+.blog-promo-cta {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; align-self: flex-start;
+  background: linear-gradient(135deg, var(--gold-400, #F5C451), var(--gold-500, #E0B23C));
+  color: #14202e; font-weight: 800; font-size: 0.9rem; padding: 10px 18px; border-radius: 10px;
+  transition: gap .18s ease;
+}
+.blog-promo-card:hover .blog-promo-cta { gap: 12px; }

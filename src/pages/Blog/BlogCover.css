@@ -1,0 +1,84 @@
+/* ── Portada editorial de marca para el blog (reemplaza fotos stock) ── */
+.blog-cover {
+  --accent: #C79A2E;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 22px 22px 20px;
+  background: linear-gradient(158deg, #0a1c38 0%, #102a54 62%, #0c2148 100%);
+  color: #fff;
+  isolation: isolate;
+}
+/* velo de acento por categoría en la esquina superior */
+.blog-cover::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(135% 95% at 100% -12%, var(--accent), transparent 56%);
+  opacity: 0.42;
+}
+/* grano de papel sutil */
+.blog-cover::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+.blog-cover > * { position: relative; z-index: 1; }
+
+/* marca de agua tipográfica */
+.blog-cover-wm {
+  position: absolute; top: -0.24em; right: -0.04em; z-index: 0;
+  font-family: var(--font-display, 'Fraunces', serif);
+  font-weight: 600; font-size: clamp(4.2rem, 9vw, 7rem);
+  line-height: 0.8; letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.06);
+  pointer-events: none; user-select: none; white-space: nowrap;
+}
+.blog-cover-rule {
+  position: absolute; left: 22px; top: 20px; width: 34px; height: 3px; z-index: 1;
+  background: var(--accent); border-radius: 2px;
+}
+.blog-cover-top {
+  display: inline-flex; align-items: center; gap: 9px; margin-top: auto;
+}
+.blog-cover-ico {
+  width: 34px; height: 34px; flex: 0 0 auto;
+  display: grid; place-items: center; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.10); color: var(--accent);
+  font-size: 0.95rem; border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.blog-cover-kicker {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--accent);
+}
+.blog-cover-title {
+  font-family: var(--font-display, 'Fraunces', serif);
+  font-weight: 600; font-size: 1.16rem; line-height: 1.2; letter-spacing: -0.01em;
+  color: #fdfbf5; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  text-wrap: pretty;
+}
+.blog-cover-foot {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--font-sans, system-ui); font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.blog-cover-brand { font-weight: 800; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.82); }
+.blog-cover-dot { color: rgba(255, 255, 255, 0.35); }
+
+/* Variante destacada (featured del índice) */
+.blog-cover-featured { min-height: 100%; padding: 34px 32px; }
+.blog-cover-featured .blog-cover-title { font-size: clamp(1.5rem, 2.6vw, 2.1rem); -webkit-line-clamp: 4; }
+.blog-cover-featured .blog-cover-wm { font-size: clamp(6rem, 12vw, 10rem); }
+.blog-cover-featured .blog-cover-ico { width: 40px; height: 40px; font-size: 1.1rem; }
+
+/* Variante hero (dentro del post) */
+.blog-cover-hero { min-height: 300px; padding: 34px; border-radius: 18px; }
+.blog-cover-hero .blog-cover-title { font-size: clamp(1.6rem, 3vw, 2.4rem); -webkit-line-clamp: 4; }
+.blog-cover-hero .blog-cover-wm { font-size: clamp(7rem, 16vw, 13rem); }

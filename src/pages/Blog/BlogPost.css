@@ -834,3 +834,7 @@
 .bp-body-html a { color: #2563EB; font-weight: 600; text-decoration: none; }
 .bp-body-html a:hover { text-decoration: underline; }
 .bp-body-html strong { color: var(--navy-900, #0b1f3a); font-weight: 700; }
+
+/* Hero del post con portada de marca (cuando no hay guía asociada) */
+.bp-featured-cover { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+.bp-featured-cover .blog-cover { border-radius: 18px; box-shadow: 0 22px 50px rgba(9,24,64,0.18); }
