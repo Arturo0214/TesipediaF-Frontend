@@ -40,8 +40,8 @@ const PHONE = '+52 56 7007 1517';
 const coreRoutes = [
   {
     path: '/',
-    title: 'Tesipedia — ¿Comprar Tesis en México? Mejor Asesórate | Asesoría de Tesis de Licenciatura, Maestría y Doctorado',
-    description: '¿Buscas comprar tesis? Mejor te asesoramos para hacer tu tesis de licenciatura, maestría y doctorado en México. Desde $110/página. Te guiamos para que la redactes tú, original y con revisión. +3,000 estudiantes asesorados. Cotiza gratis.',
+    title: 'Asesoría de Tesis en México | Tesipedia — Licenciatura, Maestría y Doctorado',
+    description: 'Asesoría profesional de tesis en México: te acompañamos para hacer tu tesis de licenciatura, maestría y doctorado. La redactas tú, original y con revisión, guiado por investigadores con posgrado. Desde $110/página. +3,000 estudiantes asesorados. Cotiza gratis.',
     keywords: 'asesoría de tesis, asesoría de tesis México, cómo hacer una tesis, ayuda con tu tesis, asesoría de tesis de licenciatura, asesoría de tesis de maestría, tutoría de tesis, revisión de tesis, Tesipedia',
     schema: {
       "@context": "https://schema.org",
@@ -60,17 +60,17 @@ const coreRoutes = [
   // ─── Landing pages comerciales (alta intención de compra) ───────────────
   {
     path: '/comprar-tesis',
-    title: 'Comprar Tesis en México 2026 — Desde $110/Página | Tesipedia #1 en Tesis Profesionales',
-    description: 'Compra tu tesis profesional en México desde $110 por página. Tesis de licenciatura, maestría y doctorado 100% originales, con citación correcta y revisión de originalidad. Más de 3,000 titulados. Entrega en 3 semanas. Cotiza gratis por WhatsApp.',
-    keywords: 'comprar tesis, comprar tesis en México, comprar tesis México, tesis por encargo México, hacer tesis, tesis profesional, tesis 100% original, tesis sin plagio, tesis licenciatura, tesis maestría, tesis doctorado, tesipedia, elaboración de tesis, encargar tesis, quién me hace mi tesis',
+    title: '¿Comprar Tesis? Mejor Asesórate y Termínala | Tesipedia México 2026',
+    description: '¿Buscas comprar tesis en México? Mejor asesórate y termina la tuya. Te acompañamos para hacer tu tesis de licenciatura, maestría o doctorado: guía metodológica, revisión de tu borrador y asesoría experta. Tú eres el autor. +3,000 estudiantes asesorados. Cotiza gratis por WhatsApp.',
+    keywords: 'comprar tesis, comprar tesis en México, asesoría de tesis, asesoría de tesis México, hacer tesis, ayuda con tesis, tesis licenciatura, tesis maestría, tesis doctorado, tesipedia, asesoría académica, quién me ayuda con mi tesis',
     schema: {
       "@context": "https://schema.org",
       "@type": "Service",
-      "name": "Comprar Tesis en México",
-      "serviceType": "Elaboración profesional de tesis",
+      "name": "Asesoría de Tesis (alternativa a comprar tesis)",
+      "serviceType": "Asesoría académica de tesis",
       "provider": { "@type": "ProfessionalService", "name": "Tesipedia", "url": SITE_URL, "telephone": "+52-56-7007-1517" },
       "areaServed": { "@type": "Country", "name": "México" },
-      "description": "Compra tu tesis de licenciatura, maestría o doctorado, 100% original y sin plagio, desde $110 MXN por página.",
+      "description": "En lugar de comprar una tesis hecha, Tesipedia te asesora para que hagas la tuya: guía metodológica, revisión y acompañamiento experto. Tú eres el autor. Desde $110 MXN por página.",
       "offers": { "@type": "Offer", "price": "110", "priceCurrency": "MXN", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "110", "priceCurrency": "MXN", "unitText": "por página" } }
     }
   },
@@ -204,11 +204,11 @@ const coreRoutes = [
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "¿Cuánto cuesta hacer una tesis en México?", "acceptedAnswer": { "@type": "Answer", "text": "Para una tesis de licenciatura de 100 páginas, desde $9,900 MXN (corrección) hasta $19,800 MXN (desarrollo completo). Cotización gratuita disponible." } },
-        { "@type": "Question", "name": "¿Cuánto tiempo tardan en hacer una tesis?", "acceptedAnswer": { "@type": "Answer", "text": "3 a 4 semanas para licenciatura, 4 a 8 semanas para maestría y doctorado. Servicio express disponible." } },
-        { "@type": "Question", "name": "¿La tesis es original y sin plagio?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, cada tesis se verifica con Turnitin y escáneres anti-IA. Elaborada 100% por investigadores humanos." } },
-        { "@type": "Question", "name": "¿Dónde comprar tesis en México de forma segura?", "acceptedAnswer": { "@type": "Answer", "text": "Tesipedia: +3,000 titulados, 98% aprobación, tesis 100% originales. WhatsApp: +52 56 7007 1517." } },
-        { "@type": "Question", "name": "¿Hacen tesis para cualquier universidad?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, para UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac y todas las universidades de México." } }
+        { "@type": "Question", "name": "¿Cuánto cuesta la asesoría de tesis en México?", "acceptedAnswer": { "@type": "Answer", "text": "Para una tesis de licenciatura de 100 páginas, la asesoría va desde $9,900 MXN (revisión y corrección) hasta $19,800 MXN (asesoría integral). Cotización gratuita disponible." } },
+        { "@type": "Question", "name": "¿Cuánto tiempo lleva terminar una tesis con asesoría?", "acceptedAnswer": { "@type": "Answer", "text": "Con buen acompañamiento, 3 a 4 semanas por etapas para licenciatura; 4 a 8 semanas para maestría y doctorado. Asesoría acelerada disponible para casos urgentes." } },
+        { "@type": "Question", "name": "¿Mi tesis queda original y sin plagio?", "acceptedAnswer": { "@type": "Answer", "text": "Sí: tú redactas tu tesis con nuestra guía y en cada etapa la verificamos con Turnitin y escáneres anti-IA. Te asesoran investigadores humanos con posgrado." } },
+        { "@type": "Question", "name": "¿Dónde obtener asesoría de tesis en México de forma segura?", "acceptedAnswer": { "@type": "Answer", "text": "Tesipedia: +3,000 estudiantes asesorados, 98% de aprobación, trabajos 100% originales que redactas tú con nuestra guía. WhatsApp: +52 56 7007 1517." } },
+        { "@type": "Question", "name": "¿Dan asesoría para cualquier universidad?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, para UNAM, IPN, ITESM, UAM, UVM, UNITEC, La Salle, Anáhuac y todas las universidades de México." } }
       ]
     }
   },
@@ -343,8 +343,8 @@ const coreRoutes = [
   {
     path: '/blog/es-seguro-comprar-tesis-en-mexico-lo-que-debes-saber',
     title: '¿Es Seguro Comprar Tesis en México? Lo Que Debes Saber — Tesipedia',
-    description: '¿Estás pensando en comprar tu tesis? Te explicamos cómo funciona el servicio de elaboración de tesis por encargo, qué garantías pedir y cómo asegurarte de recibir un trabajo de calidad.',
-    keywords: 'comprar tesis México, es seguro comprar tesis, tesis por encargo seguro, garantías tesis',
+    description: '¿Estás pensando en comprar tu tesis? Te explicamos los riesgos académicos y de originalidad, y por qué la asesoría —donde tú eres el autor y te guiamos paso a paso— es la opción segura para titularte.',
+    keywords: 'es seguro comprar tesis, riesgos comprar tesis, asesoría de tesis México, alternativa a comprar tesis',
     image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=450&fit=crop&q=80',
     datePublished: '2026-03-18',
     schema: {
@@ -530,8 +530,8 @@ const coreRoutes = [
   {
     path: '/blog/comprar-tesis-en-linea-en-mexico-como-elegir-un-servicio-confiable',
     title: 'Comprar Tesis en Línea en México: Cómo Elegir un Servicio Confiable — Tesipedia',
-    description: 'Guía honesta para evaluar servicios de tesis en línea en México. Señales de alerta, qué preguntar y cómo proteger tu inversión.',
-    keywords: 'comprar tesis en línea, servicio tesis confiable, tesis por encargo México, elegir servicio tesis',
+    description: 'Guía honesta para evaluar servicios de tesis en línea en México: señales de alerta, riesgos de los servicios que venden tesis hechas y por qué conviene una asesoría donde tú eres el autor.',
+    keywords: 'servicios de tesis en línea, servicio tesis confiable, asesoría de tesis en línea, señales de alerta tesis',
     image: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=800&h=450&fit=crop&q=80',
     datePublished: '2026-03-05',
     schema: {

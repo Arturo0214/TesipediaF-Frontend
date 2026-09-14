@@ -9,6 +9,7 @@ import {
   FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaQuoteLeft
 } from 'react-icons/fa';
 import './Landing.css';
+import GuiasCrossSell from '../../components/common/GuiasCrossSell';
 
 const WA_LINK = 'https://wa.me/5215670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis';
 
@@ -83,7 +84,7 @@ function ComprarTesis() {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://tesipedia.com/" },
-      { "@type": "ListItem", "position": 2, "name": "Comprar Tesis", "item": "https://tesipedia.com/comprar-tesis" }
+      { "@type": "ListItem", "position": 2, "name": "¿Comprar tesis? Mejor asesórate", "item": "https://tesipedia.com/comprar-tesis" }
     ]
   };
 
@@ -291,6 +292,13 @@ function ComprarTesis() {
         </a>
         <p className="landing-final-sub">O llámanos: <a href="tel:+525670071517">+52 56 7007 1517</a></p>
       </section>
+
+      {/* Cross-sell: alternativa ética y low-ticket a "comprar tesis" — hazla tú con guía */}
+      <GuiasCrossSell
+        origen="comprar"
+        titulo="La alternativa inteligente: hazla tú, con guía"
+        sub="En vez de arriesgarte comprando una tesis, avanza la tuya con guías paso a paso desde $79. Original, tuya y sin riesgo."
+      />
 
       {/* INTERNAL LINKS SEO */}
       <section className="landing-section" style={{ paddingTop: '1rem', paddingBottom: '2rem' }}>

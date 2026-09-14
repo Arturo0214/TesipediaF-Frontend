@@ -11,6 +11,7 @@ import { FaXTwitter } from 'react-icons/fa6';
 import svc from '../../../services/videoStudioService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import NoticiasStudio from './NoticiasStudio';
+import { scoreViralidad, TIER_INFO, RANGO_VIRAL } from './viralidad';
 import './EstudioRedes.css';
 
 const FORMATO_COLOR = {
@@ -180,6 +181,8 @@ export default function EstudioRedes() {
   const [guiaFmt, setGuiaFmt] = useState('9:16');     // formato destino para las guías de recorte
   const [guiasOn, setGuiasOn] = useState(true);       // mostrar/ocultar guías sobre la imagen
   const [draft, setDraft] = useState(null);
+  // Score de viralidad en vivo (se recalcula al editar formato/copy/hashtags)
+  const viral = useMemo(() => (abierta ? scoreViralidad(draft || {}, abierta) : null), [draft, abierta]);
   const [subiendo, setSubiendo] = useState(false);
   const [publicando, setPublicando] = useState(false);
   const [sug, setSug] = useState(null);
@@ -1009,6 +1012,34 @@ export default function EstudioRedes() {
               <label>Hashtags
                 <textarea rows={2} value={draft?.hashtags || ''} onChange={(e) => setDraft({ ...draft, hashtags: e.target.value })} />
               </label>
+
+              {/* Evaluador de viralidad (predice antes de publicar) */}
+              {viral && (
+                <div className={`er-viral tier-${viral.tier}`}>
+                  <div className="er-viral-head">
+                    <div className="er-viral-gauge" style={{ '--pct': `${viral.score}%`, '--col': TIER_INFO[viral.tier].color }}>
+                      <span>{viral.score}</span>
+                    </div>
+                    <div className="er-viral-verdict">
+                      <strong>{TIER_INFO[viral.tier].emoji} {TIER_INFO[viral.tier].label}</strong>
+                      <small>Potencial de viralidad · {viral.score}/100</small>
+                    </div>
+                  </div>
+                  <div className="er-viral-bars">
+                    {viral.factores.map((x) => (
+                      <div key={x.k} className="er-viral-bar" title={`${x.label}: ${x.pts}/${x.max}`}>
+                        <span className="er-viral-bar-lbl">{x.label}</span>
+                        <span className="er-viral-bar-track"><i style={{ width: `${Math.round((x.pts / x.max) * 100)}%`, background: x.pts / x.max >= 0.6 ? '#16A34A' : x.pts / x.max >= 0.3 ? '#F5B301' : '#DC2626' }} /></span>
+                      </div>
+                    ))}
+                  </div>
+                  {viral.sugerencias.length > 0 && (
+                    <ul className="er-viral-tips">
+                      {viral.sugerencias.map((t, i) => <li key={i}>{t}</li>)}
+                    </ul>
+                  )}
+                </div>
+              )}
 
               {/* Sugerencias por tendencia (IA) */}
               <div className="er-sug">

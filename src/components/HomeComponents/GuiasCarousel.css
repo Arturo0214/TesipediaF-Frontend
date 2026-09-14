@@ -1,0 +1,105 @@
+/* ============ GUIAS CAROUSEL — estilo "elige tu plantilla" (ref. Contratado) ============ */
+.gcar { position: relative; padding: 8px 0 6px; }
+
+.gcar-swiper { padding: 18px 0 44px !important; }
+
+/* Tarjeta */
+.gcar-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, opacity 0.35s ease, border-color 0.35s ease;
+  transform: scale(0.88);
+  opacity: 0.55;
+}
+
+/* Slide activa: enfocada, elevada, con CTA visible */
+.swiper-slide-active .gcar-card {
+  transform: scale(1);
+  opacity: 1;
+  border-color: var(--gold-200);
+  box-shadow: 0 22px 48px rgba(7, 26, 58, 0.16);
+}
+.swiper-slide-active .gcar-cta { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+
+/* Portada real de la guía */
+.gcar-cover { position: relative; background: var(--ivory-2); }
+.gcar-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 466;
+  object-fit: cover;
+  object-position: top;
+}
+.gcar-cover-fallback {
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 360 / 466;
+  font-family: var(--font-serif); font-size: 1.1rem; color: var(--navy-700);
+  padding: 20px; text-align: center;
+}
+.gcar-chip {
+  position: absolute; top: 10px; left: 10px;
+  background: var(--navy-900); color: #fff;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+}
+
+/* Info inferior */
+.gcar-info {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line-2);
+}
+.gcar-info strong {
+  font-family: var(--font-serif); font-weight: 600; font-size: 0.88rem;
+  color: var(--navy-900); line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.gcar-price { color: var(--gold-600); font-size: 0.95rem; white-space: nowrap; }
+
+/* CTA flotante sobre la portada (solo activa) — como "Usar esta plantilla" */
+.gcar-cta {
+  position: absolute;
+  left: 50%;
+  bottom: 66px;
+  transform: translateX(-50%) translateY(8px);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gold-500); color: #fff;
+  font-weight: 800; font-size: 0.92rem;
+  padding: 12px 22px; border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.45);
+  opacity: 0; pointer-events: none;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.gcar-cta { margin-left: -0; }
+.gcar-cta:hover { background: var(--gold-600); color: #fff; transform: translateX(-50%) translateY(-2px); }
+
+/* Flechas */
+.gcar-arrow {
+  position: absolute; top: 42%; z-index: 5;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--navy-900);
+  border: 1.5px solid var(--line);
+  box-shadow: 0 8px 20px rgba(7, 26, 58, 0.12);
+  cursor: pointer; transition: all 0.15s ease;
+}
+.gcar-arrow:hover { border-color: var(--gold-400); color: var(--gold-600); transform: scale(1.06); }
+.gcar-arrow-prev { left: 4px; }
+.gcar-arrow-next { right: 4px; }
+
+/* Dots */
+.gcar .swiper-pagination-bullet { background: var(--muted-2); opacity: 0.6; }
+.gcar .swiper-pagination-bullet-active { background: var(--gold-500); opacity: 1; }
+
+@media (max-width: 640px) {
+  .gcar-arrow { width: 38px; height: 38px; }
+  .gcar-cta { bottom: 62px; font-size: 0.85rem; padding: 10px 18px; }
+}

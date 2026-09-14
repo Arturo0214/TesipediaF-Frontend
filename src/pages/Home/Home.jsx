@@ -9,11 +9,15 @@ import {
   TrustBar, ScannerTeaser, HowItWorks, RealTimeTracking, WhyTesipedia, LevelsPricing,
   SuccessStories, SpecialOffer, ExploreLinks, SeoBlock, HomeFAQ, FinalCTA,
 } from '../../components/HomeComponents/HomeSections';
+import GuiasShowcase from '../../components/HomeComponents/GuiasShowcase';
+import useABTest from '../../hooks/useABTest';
 
 import './Home.css';
 
 function Home() {
   const dispatch = useDispatch();
+  // Experimento 1: posición de la sección de guías — antes (B) o después (A) del TrustBar
+  const homeOrder = useABTest('home_order');
   // Chat state is managed by FixedButtons via custom event
 
   useEffect(() => {
@@ -201,11 +205,11 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>¿Comprar Tesis en México? Mejor Asesórate y Termínala | Tesipedia — Asesoría de Tesis de Licenciatura, Maestría y Doctorado</title>
-        <meta name="description" content="¿Buscas comprar tesis en México? Mejor te asesoramos para hacer tu tesis de licenciatura, maestría y doctorado. Acompañamiento para que la redactes tú, original y con revisión. Desde $110/página. +3,000 estudiantes asesorados. Cotiza gratis por WhatsApp." />
-        <meta name="keywords" content="comprar tesis, comprar tesis México, hacer tesis, hacer mi tesis, te asesoramos para hacer tu tesis, asesoría de tesis, quien me ayuda con mi tesis, asesoría tesis licenciatura, asesoría tesis maestría, asesoría tesis doctorado, tesis por encargo, elaboración de tesis, desarrollo de tesis México, tutoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
-        <meta property="og:title" content="¿Comprar Tesis en México? Mejor Asesórate | Tesipedia — Asesoría de Tesis Desde $110/pág" />
-        <meta property="og:description" content="¿Buscas comprar tesis? Mejor asesórate con Tesipedia: +3,000 estudiantes asesorados. Te guiamos para que redactes tu propia tesis, original. Desde $110/página. Cotiza gratis." />
+        <title>Asesoría de Tesis en México | Tesipedia — Licenciatura, Maestría y Doctorado</title>
+        <meta name="description" content="Asesoría profesional de tesis en México: te acompañamos para hacer tu tesis de licenciatura, maestría y doctorado. La redactas tú, original y con revisión, guiado por investigadores con posgrado. Desde $110/página. +3,000 estudiantes asesorados. Cotiza gratis por WhatsApp." />
+        <meta name="keywords" content="asesoría de tesis, asesoría de tesis México, hacer tesis, hacer mi tesis, te asesoramos para hacer tu tesis, quien me ayuda con mi tesis, asesoría tesis licenciatura, asesoría tesis maestría, asesoría tesis doctorado, elaboración de tesis, desarrollo de tesis México, tutoría de tesis, cuánto cuesta una tesis, tesis UNAM, tesis IPN, tesis ITESM, tesis UAM, Tesipedia" />
+        <meta property="og:title" content="Asesoría de Tesis en México | Tesipedia — Desde $110/pág" />
+        <meta property="og:description" content="Te asesoramos para hacer tu tesis: +3,000 estudiantes acompañados. La redactas tú, original y con revisión. Desde $110/página. Cotiza gratis." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tesipedia.com" />
         <meta property="og:image" content="https://res.cloudinary.com/dbowaer8j/image/upload/v1743713944/Tesipedia-logo_n1liaw.png" />
@@ -222,7 +226,9 @@ function Home() {
       </Helmet>
 
       <HeroSection onOpenChat={handleOpenChat} />
+      {homeOrder === 'B' && <GuiasShowcase />}
       <TrustBar />
+      {homeOrder === 'A' && <GuiasShowcase />}
       <ScannerTeaser />
       <LevelsPricing />
       <HowItWorks />

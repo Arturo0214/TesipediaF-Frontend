@@ -4,19 +4,51 @@ import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
-import { getCarreraBySlug } from '../../data/seoCarreras';
+import { carreras, getCarreraBySlug } from '../../data/seoCarreras';
 import { getGuiaByCareer } from '../../data/guias';
 import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
+import TiendaGuiasCTA from '../../components/common/TiendaGuiasCTA';
 import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
   FaGraduationCap, FaClock, FaFlask, FaArrowRight, FaLightbulb, FaBolt,
-  FaBookOpen, FaFilePdf
+  FaBookOpen, FaFilePdf, FaNewspaper, FaFileAlt
 } from 'react-icons/fa';
 import './Landing.css';
 
 const WA_LINK = 'https://wa.me/5215670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis';
 const SITE = 'https://tesipedia.com';
+
+// Posts core del blog (aplican a cualquier carrera). Enlazado interno SEO.
+const BLOG_CORE = [
+  { slug: 'como-hacer-planteamiento-del-problema-tesis-ejemplos', title: 'Cómo hacer el planteamiento del problema', tag: 'Metodología' },
+  { slug: 'como-hacer-marco-teorico-tesis-guia-paso-a-paso', title: 'Cómo hacer el marco teórico paso a paso', tag: 'Metodología' },
+  { slug: 'metodos-de-investigacion-guia-completa', title: 'Métodos de investigación: guía completa', tag: 'Investigación' },
+  { slug: 'formato-apa-7-edicion-tesis-guia-completa-ejemplos', title: 'Formato APA 7 para tesis con ejemplos', tag: 'Citación' },
+  { slug: 'como-hacer-una-tesis-rapido-10-pasos-titularte-2026', title: 'Cómo hacer una tesis rápido: 10 pasos', tag: 'Consejos' },
+];
+// Post extra por área temática (se antepone a los core cuando aplica).
+const BLOG_POR_AREA = {
+  'Ciencias de la Salud': { slug: 'normas-vancouver-como-citar-en-tesis-de-salud-ejemplos', title: 'Normas Vancouver: citar en tesis de salud', tag: 'Citación' },
+  'Ciencias de la Salud y del Comportamiento': { slug: 'analisis-de-datos-en-tu-tesis-spss-r-y-excel-explicados', title: 'Análisis de datos: SPSS, R y Excel', tag: 'Investigación' },
+  'Ingeniería y Tecnología': { slug: 'analisis-de-datos-en-tu-tesis-spss-r-y-excel-explicados', title: 'Análisis de datos: SPSS, R y Excel', tag: 'Investigación' },
+  'Ciencias Económico-Administrativas': { slug: 'variables-de-investigacion-tipos-operacionalizacion-ejemplos', title: 'Variables de investigación y operacionalización', tag: 'Metodología' },
+};
+
+// Devuelve 5 posts relevantes para la carrera (área-específico + core, sin duplicar).
+function articulosParaCarrera(area) {
+  const extra = BLOG_POR_AREA[area];
+  const base = extra ? [extra, ...BLOG_CORE] : [...BLOG_CORE];
+  const vistos = new Set();
+  return base.filter((p) => (vistos.has(p.slug) ? false : vistos.add(p.slug))).slice(0, 5);
+}
+
+// Otras carreras de la misma área (o cualquier otra si no hay suficientes).
+function otrasCarreras(actual) {
+  const mismaArea = carreras.filter((c) => c.slug !== actual.slug && c.area === actual.area);
+  const resto = carreras.filter((c) => c.slug !== actual.slug && c.area !== actual.area);
+  return [...mismaArea, ...resto].slice(0, 3);
+}
 
 function TesisCarreraLanding({ slug }) {
   const dispatch = useDispatch();
@@ -25,6 +57,9 @@ function TesisCarreraLanding({ slug }) {
   const guiaProd = getGuiaByCareer(`/${slug}`);
   // Loop de contenido/SEO: guía publicada (generada del trabajo vendido de esta carrera)
   const [guia, setGuia] = useState(null);
+  // Enlazado interno SEO: artículos del blog y otras carreras relacionadas.
+  const articulos = c ? articulosParaCarrera(c.area) : [];
+  const relacionadas = c ? otrasCarreras(c) : [];
 
   useEffect(() => {
     dispatch(trackVisit({ path: `/${slug}`, referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
@@ -76,7 +111,7 @@ function TesisCarreraLanding({ slug }) {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Inicio", "item": `${SITE}/` },
-      { "@type": "ListItem", "position": 2, "name": "Comprar Tesis", "item": `${SITE}/comprar-tesis` },
+      { "@type": "ListItem", "position": 2, "name": "¿Comprar tesis? Mejor asesórate", "item": `${SITE}/comprar-tesis` },
       { "@type": "ListItem", "position": 3, "name": `Tesis de ${c.nombre}`, "item": canonical }
     ]
   };
@@ -133,7 +168,7 @@ function TesisCarreraLanding({ slug }) {
 
       <LandingBreadcrumb items={[
         { label: 'Inicio', to: '/' },
-        { label: 'Comprar Tesis', to: '/comprar-tesis' },
+        { label: '¿Comprar tesis? Mejor asesórate', to: '/comprar-tesis' },
         { label: `Tesis de ${c.nombre}` },
       ]} />
 
@@ -274,6 +309,13 @@ function TesisCarreraLanding({ slug }) {
         </div>
       </section>
 
+      {/* CTA a la tienda de guías */}
+      <TiendaGuiasCTA
+        titulo={`Guías-taller para tu tesis de ${c.nombre}`}
+        texto="¿Prefieres avanzar por tu cuenta? Descarga nuestras guías PDF paso a paso, con ejemplos y plantillas, desde $79."
+        trackId={`car_${c.slug}_tienda`}
+      />
+
       {/* CTA FINAL */}
       <section className="landing-final-cta">
         <h2>Avanza tu tesis de {c.nombre} — Cotiza tu asesoría gratis</h2>
@@ -305,6 +347,46 @@ function TesisCarreraLanding({ slug }) {
           </a>
         </div>
       </section>
+
+      {/* ARTÍCULOS DEL BLOG (enlazado interno SEO) */}
+      <section className="landing-section landing-section-alt" id="articulos">
+        <h2>Artículos que te ayudan con tu tesis de {c.nombre}</h2>
+        <p className="landing-section-intro">
+          Guías prácticas de nuestro blog para avanzar cada etapa de tu tesis de {c.nombre}, del planteamiento a la citación.
+        </p>
+        <div className="landing-linkcards">
+          {articulos.map((p) => (
+            <Link key={p.slug} to={`/blog/${p.slug}`} className="landing-linkcard">
+              <FaNewspaper className="linkcard-icon" />
+              <span className="linkcard-body">
+                <span className="linkcard-title">{p.title}</span>
+                <span className="linkcard-tag">{p.tag}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* OTRAS CARRERAS (enlazado interno SEO) */}
+      {relacionadas.length > 0 && (
+        <section className="landing-section" id="otras-carreras">
+          <h2>Otras carreras que también asesoramos</h2>
+          <p className="landing-section-intro">
+            ¿Buscas asesoría para otra disciplina? Estas son áreas afines a {c.nombre} en las que también acompañamos tesis:
+          </p>
+          <div className="landing-linkcards">
+            {relacionadas.map((r) => (
+              <Link key={r.slug} to={`/${r.slug}`} className="landing-linkcard">
+                <FaFileAlt className="linkcard-icon" />
+                <span className="linkcard-body">
+                  <span className="linkcard-title">Tesis de {r.nombre}</span>
+                  <span className="linkcard-tag">{r.area}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* INTERNAL LINKS SEO */}
       <section className="landing-section" style={{ paddingTop: '1rem', paddingBottom: '2rem' }}>

@@ -124,6 +124,119 @@
 .nav-link-cotizar:hover,
 .nav-link-cotizar.active { color: var(--gold-600) !important; }
 
+/* ── Items DESTACADOS del navbar (Detector IA + Tienda de guías): pills premium en 1 línea ── */
+.nav-link.nav-link-destacado,
+.nav-link-destacado {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;               /* nunca envuelve → no crece ni tapa el navbar */
+    line-height: 1;
+    font-weight: 700 !important;
+    font-size: 0.95rem;
+    padding: 9px 16px !important;
+    border-radius: 999px;
+    margin: 0 5px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.nav-link.nav-link-destacado::after,
+.nav-link-destacado::after { display: none !important; }
+
+/* Destacado 1 — Detector de IA: chip "nuevo" limpio con punto verde pulsante */
+.nav-link.nav-link-detector,
+.nav-link-detector {
+    color: var(--navy-900) !important;
+    background: #fff;
+    border: 1.5px solid rgba(37, 99, 235, 0.28);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+.nav-link-detector .nav-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #16C27A; flex: 0 0 auto;
+    box-shadow: 0 0 0 0 rgba(22, 194, 122, 0.55);
+    animation: navDotPulse 1.8s ease-out infinite;
+}
+@keyframes navDotPulse {
+    0% { box-shadow: 0 0 0 0 rgba(22, 194, 122, 0.55); }
+    70% { box-shadow: 0 0 0 7px rgba(22, 194, 122, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(22, 194, 122, 0); }
+}
+.nav-link.nav-link-detector:hover,
+.nav-link.nav-link-detector.active,
+.nav-link-detector:hover,
+.nav-link-detector.active {
+    color: var(--navy-900) !important;
+    border-color: #2563EB;
+    background: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.18);
+}
+
+/* Destacado 2 — Tienda de guías: CTA comercial #1, gradiente azul→índigo con brillo */
+.nav-link.nav-link-guias,
+.nav-link-guias {
+    position: relative;
+    overflow: hidden;
+    color: #fff !important;
+    background: linear-gradient(135deg, #2f6bff 0%, #2453d6 55%, #1e40af 100%);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.nav-link-guias::before {   /* brillo diagonal sutil */
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.22) 48%, transparent 66%);
+    transform: translateX(-120%);
+    transition: transform 0.6s ease;
+}
+.nav-link-guias:hover::before { transform: translateX(120%); }
+.nav-link.nav-link-guias:hover,
+.nav-link.nav-link-guias.active,
+.nav-link-guias:hover,
+.nav-link-guias.active {
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.nav-guias-badge {
+    background: var(--amber-400, #F5B301);
+    color: #1e293b;
+    font-size: 0.66rem;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    position: relative; z-index: 1;
+}
+
+/* Dropdown "Recursos": el toggle se ve como un nav-link normal */
+.nav-dropdown-recursos .dropdown-toggle {
+    color: var(--navy-700, #334155) !important;
+    font-weight: 500;
+    padding: 8px 12px !important;
+}
+.nav-dropdown-recursos .dropdown-toggle:hover,
+.nav-dropdown-recursos.show .dropdown-toggle { color: var(--navy-900) !important; }
+.nav-dropdown-recursos .dropdown-menu {
+    border: 1px solid #eef0f4;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+    padding: 8px;
+    margin-top: 8px;
+}
+.nav-dropdown-recursos .dropdown-item {
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 500;
+}
+.nav-dropdown-recursos .dropdown-item.active,
+.nav-dropdown-recursos .dropdown-item:active { background: rgba(37, 99, 235, 0.1); color: var(--navy-900); }
+
+@media (max-width: 991px) {
+    .nav-link.nav-link-destacado,
+    .nav-link-destacado { justify-content: center; margin: 6px 0; }
+}
+
 /* Dropdown */
 .nav-dropdown .dropdown-toggle {
     font-weight: 500;
@@ -186,4 +299,22 @@
 @media (max-width: 576px) {
     .navbar { height: 60px; padding: 0.3rem 0; }
     .brand-logo { height: 48px; margin-top: -1px; }
+}
+
+/* Destacado — Blog: chip limpio con acento ámbar (mismo nivel que Detector/Tienda) */
+.nav-link.nav-link-blog,
+.nav-link-blog {
+    color: var(--navy-900) !important;
+    background: rgba(224, 178, 60, 0.10);
+    border: 1.5px solid rgba(224, 178, 60, 0.35);
+}
+.nav-link-blog svg { color: var(--gold-600, #c79a2e); }
+.nav-link.nav-link-blog:hover,
+.nav-link.nav-link-blog.active,
+.nav-link-blog:hover,
+.nav-link-blog.active {
+    color: var(--navy-900) !important;
+    background: rgba(224, 178, 60, 0.18);
+    border-color: var(--gold-500, #E0B23C);
+    transform: translateY(-1px);
 }

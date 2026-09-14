@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import NavbarRedactor from './NavbarRedactor';
 import NavbarCliente from './NavbarClient/NavbarCliente';
 import Navbar from "./Navbar/Navbar";
+import PromoBar from "./PromoBar";
 import { Footer } from "./Footer";
 import ScrollToTop from "../common/ScrollToTop";
 import FixedButtons from "../sections/FixedButtons";
@@ -28,7 +29,10 @@ function MainLayout() {
                 ) : isAuthenticated && user?.role === 'cliente' ? (
                     <NavbarCliente />
                 ) : (
-                    <Navbar />
+                    <>
+                        <PromoBar />
+                        <Navbar />
+                    </>
                 )}
 
                 <main id="main-content" className="flex-fill main-content" role="main">

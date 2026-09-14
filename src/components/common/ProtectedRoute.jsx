@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { Helmet } from 'react-helmet-async';
 import { getProfile, checkAdminStatus } from '../../features/auth/authSlice';
 
 const ProtectedRoute = ({ requireAdmin }) => {
@@ -48,7 +49,13 @@ const ProtectedRoute = ({ requireAdmin }) => {
         return <Navigate to="/dashboard" state={{ from: { pathname: location.pathname } }} replace />;
     }
 
-    return <Outlet />;
+    // Todas las páginas privadas NO deben indexarse (además del bloqueo en robots.txt).
+    return (
+        <>
+            <Helmet><meta name="robots" content="noindex, nofollow" /></Helmet>
+            <Outlet />
+        </>
+    );
 };
 
 export default ProtectedRoute;

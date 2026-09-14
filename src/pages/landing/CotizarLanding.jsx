@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import './Landing.css';
 import './CotizarLanding.css';
+import GuiasCrossSell from '../../components/common/GuiasCrossSell';
 
 const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_COTIZAR_URL || 'https://primary-production-73558.up.railway.app/webhook/1b8bd3b7-14f4-474f-b513-cd180620578e';
 const API_BASE = import.meta.env.VITE_BASE_URL || '/api/';
@@ -202,7 +203,7 @@ function CotizarLanding() {
       <Helmet>
         <title>Cotiza tu tesis con Tesipedia | Asesoría profesional para titulación</title>
         <meta name="description" content="Asesoría personalizada para tu titulación. Agenda o cotiza en menos de 2 minutos. Tesis, tesinas, tareas y proyectos de titulación." />
-        <meta name="keywords" content="cotizar tesis, cotización tesis México, asesoría tesis, hacer mi tesis, comprar tesis, Tesipedia cotizar" />
+        <meta name="keywords" content="cotizar tesis, cotización tesis México, asesoría tesis, hacer mi tesis, Tesipedia cotizar" />
         <link rel="canonical" href="https://tesipedia.com/cotizar" />
 
         {/* Open Graph */}
@@ -538,6 +539,13 @@ function CotizarLanding() {
           <FaShieldAlt style={{ marginRight: 4 }} /> 100% confidencial · Sin compromiso · Respuesta en menos de 2 horas
         </p>
       </section>
+
+      {/* Cross-sell: mientras espera su cotización puede llevarse una guía hoy */}
+      <GuiasCrossSell
+        origen="cotizar"
+        titulo="Mientras te cotizamos, empieza hoy"
+        sub="No esperes la respuesta con las manos vacías: estas guías te desbloquean desde el primer capítulo. Desde $79."
+      />
     </div>
   );
 }

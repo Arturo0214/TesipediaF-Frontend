@@ -4,20 +4,36 @@ import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { trackVisit } from '../../features/visits/visitsSlice';
 import { trackCTA, trackGoogleAdsConversion } from '../../services/eventService';
-import { getUniversidadBySlug } from '../../data/seoUniversidades';
+import { universidades, getUniversidadBySlug } from '../../data/seoUniversidades';
 import { getGuiaByUniversity } from '../../data/guias';
 import { getLineamientoByLanding } from '../../data/lineamientos';
 import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
+import TiendaGuiasCTA from '../../components/common/TiendaGuiasCTA';
 import { LandingStats, LandingBreadcrumb, StickyWhatsApp, howToSchema } from './LandingShared';
 import {
   FaWhatsapp, FaCheckCircle, FaShieldAlt, FaStar, FaUserGraduate,
   FaGraduationCap, FaClock, FaFileAlt, FaArrowRight, FaUniversity, FaBolt,
-  FaBookOpen, FaFilePdf
+  FaBookOpen, FaFilePdf, FaNewspaper, FaDownload
 } from 'react-icons/fa';
 import './Landing.css';
 
 const WA_LINK = 'https://wa.me/5215670071517?text=Hola%2C%20quiero%20cotizar%20mi%20tesis';
 const SITE = 'https://tesipedia.com';
+
+// Guías del blog útiles para titularte (enlazado interno SEO).
+const BLOG_TITULACION = [
+  { slug: 'opciones-de-titulacion-en-mexico-2026-tesis-egel-tesina-y-mas', title: 'Opciones de titulación en México: tesis, EGEL, tesina y más', tag: 'Titulación' },
+  { slug: 'como-hacer-una-tesis-rapido-10-pasos-titularte-2026', title: 'Cómo hacer una tesis rápido: 10 pasos para titularte', tag: 'Consejos' },
+  { slug: 'formato-apa-7-edicion-tesis-guia-completa-ejemplos', title: 'Formato APA 7 para tesis con ejemplos', tag: 'Citación' },
+  { slug: 'metodos-de-investigacion-guia-completa', title: 'Métodos de investigación: guía completa', tag: 'Metodología' },
+];
+
+// 3 universidades relacionadas: primero misma ciudad, luego el resto.
+function otrasUniversidades(actual) {
+  const mismaCiudad = universidades.filter((x) => x.slug !== actual.slug && x.ciudad === actual.ciudad);
+  const resto = universidades.filter((x) => x.slug !== actual.slug && x.ciudad !== actual.ciudad);
+  return [...mismaCiudad, ...resto].slice(0, 3);
+}
 
 function TesisUniversidadLanding({ slug }) {
   const dispatch = useDispatch();
@@ -26,6 +42,8 @@ function TesisUniversidadLanding({ slug }) {
   const guiaProd = getGuiaByUniversity(`/${slug}`);
   // Ficha gratuita de lineamientos de titulación (imán SEO).
   const lin = getLineamientoByLanding(`/${slug}`);
+  // Enlazado interno SEO: otras universidades relacionadas.
+  const otrasUnis = u ? otrasUniversidades(u) : [];
 
   useEffect(() => {
     dispatch(trackVisit({ path: `/${slug}`, referrer: document.referrer || 'Direct', userAgent: navigator.userAgent }));
@@ -67,7 +85,7 @@ function TesisUniversidadLanding({ slug }) {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Inicio", "item": `${SITE}/` },
-      { "@type": "ListItem", "position": 2, "name": "Comprar Tesis", "item": `${SITE}/comprar-tesis` },
+      { "@type": "ListItem", "position": 2, "name": "¿Comprar tesis? Mejor asesórate", "item": `${SITE}/comprar-tesis` },
       { "@type": "ListItem", "position": 3, "name": `Tesis ${u.sigla}`, "item": canonical }
     ]
   };
@@ -124,7 +142,7 @@ function TesisUniversidadLanding({ slug }) {
 
       <LandingBreadcrumb items={[
         { label: 'Inicio', to: '/' },
-        { label: 'Comprar Tesis', to: '/comprar-tesis' },
+        { label: '¿Comprar tesis? Mejor asesórate', to: '/comprar-tesis' },
         { label: `Tesis ${u.sigla}` },
       ]} />
 
@@ -155,6 +173,22 @@ function TesisUniversidadLanding({ slug }) {
           </div>
         </div>
       </section>
+
+      {/* FICHA GRATIS DE TITULACIÓN (imán SEO) */}
+      {lin && (
+        <section className="landing-section" id="ficha-titulacion">
+          <div className="landing-ficha-cta">
+            <div className="ficha-copy">
+              <span className="ficha-badge">Gratis · sin registro</span>
+              <h3><FaFileAlt /> Requisitos de titulación de la {u.sigla}</h3>
+              <p>Descarga gratis la ficha con las opciones de titulación, requisitos, documentos y tiempos de la {u.nombre}, verificados y actualizados.</p>
+            </div>
+            <Link to={`/${lin.lineSlug}`} className="landing-cta-primary" onClick={() => handleWAClick(`uni_${u.slug}_ficha`)}>
+              <FaDownload /> Ver requisitos de la {u.sigla}
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* CARRERAS */}
       <section className="landing-section landing-section-alt" id="carreras">
@@ -251,6 +285,13 @@ function TesisUniversidadLanding({ slug }) {
         </div>
       </section>
 
+      {/* CTA a la tienda de guías */}
+      <TiendaGuiasCTA
+        titulo={`Guías para titularte en la ${u.sigla}`}
+        texto="Guías-taller en PDF (trámite de titulación, APA 7, metodología y más), con descarga inmediata desde $79."
+        trackId={`uni_${u.slug}_tienda`}
+      />
+
       {/* CTA FINAL */}
       <section className="landing-final-cta">
         <h2>Avanza tu tesis de la {u.sigla} — Cotiza tu asesoría gratis</h2>
@@ -283,6 +324,46 @@ function TesisUniversidadLanding({ slug }) {
           </a>
         </div>
       </section>
+
+      {/* GUÍAS DEL BLOG (enlazado interno SEO) */}
+      <section className="landing-section landing-section-alt" id="guias-blog">
+        <h2>Guías que te sirven para titularte en la {u.sigla}</h2>
+        <p className="landing-section-intro">
+          Artículos de nuestro blog para preparar tu titulación en la {u.nombre}: opciones, citación y metodología.
+        </p>
+        <div className="landing-linkcards">
+          {BLOG_TITULACION.map((p) => (
+            <Link key={p.slug} to={`/blog/${p.slug}`} className="landing-linkcard">
+              <FaNewspaper className="linkcard-icon" />
+              <span className="linkcard-body">
+                <span className="linkcard-title">{p.title}</span>
+                <span className="linkcard-tag">{p.tag}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* OTRAS UNIVERSIDADES (enlazado interno SEO) */}
+      {otrasUnis.length > 0 && (
+        <section className="landing-section" id="otras-universidades">
+          <h2>Asesoría de tesis en otras universidades</h2>
+          <p className="landing-section-intro">
+            También acompañamos a estudiantes de otras instituciones. Conoce nuestra asesoría de tesis en:
+          </p>
+          <div className="landing-linkcards">
+            {otrasUnis.map((x) => (
+              <Link key={x.slug} to={`/${x.slug}`} className="landing-linkcard">
+                <FaUniversity className="linkcard-icon" />
+                <span className="linkcard-body">
+                  <span className="linkcard-title">Tesis {x.sigla}</span>
+                  <span className="linkcard-tag">{x.ciudad}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* INTERNAL LINKS SEO */}
       <section className="landing-section" style={{ paddingTop: '1rem', paddingBottom: '2rem' }}>

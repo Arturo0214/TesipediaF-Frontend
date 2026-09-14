@@ -460,3 +460,26 @@
 .er-tile-add:hover .er-add-box { border-color: var(--gold, #E0B23C); color: var(--gold, #E0B23C); }
 .er-add-box { background: transparent; }
 .er-add-box svg { opacity: .8; }
+
+/* ── Evaluador de viralidad ── */
+.er-viral { margin: 12px 0; padding: 14px; border-radius: 12px; border: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #fff, #fafbff); }
+.er-viral.tier-alto  { border-color: #bbf7d0; background: linear-gradient(180deg, #f2fdf6, #fff); }
+.er-viral.tier-medio { border-color: #fde9a9; background: linear-gradient(180deg, #fffdf3, #fff); }
+.er-viral.tier-bajo  { border-color: #f7c6c6; background: linear-gradient(180deg, #fef5f5, #fff); }
+.er-viral-head { display: flex; align-items: center; gap: 14px; }
+.er-viral-gauge { --pct: 0%; --col: #16A34A; width: 58px; height: 58px; border-radius: 50%; flex: 0 0 auto;
+  display: grid; place-items: center; font-weight: 800; font-size: 18px; color: #0f172a;
+  background: radial-gradient(closest-side, #fff 72%, transparent 73% 100%),
+    conic-gradient(var(--col) calc(var(--pct)), #e5e7eb 0); }
+.er-viral-verdict { display: flex; flex-direction: column; gap: 2px; }
+.er-viral-verdict strong { font-size: 15px; }
+.er-viral-verdict small { color: #64748b; }
+.er-viral-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 12px 0 4px; }
+.er-viral-bar { display: flex; align-items: center; gap: 8px; }
+.er-viral-bar-lbl { font-size: 11px; color: #475569; flex: 0 0 46%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.er-viral-bar-track { flex: 1; height: 6px; border-radius: 4px; background: #eef2f7; overflow: hidden; }
+.er-viral-bar-track i { display: block; height: 100%; border-radius: 4px; transition: width .25s; }
+.er-viral-tips { margin: 10px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.er-viral-tips li { font-size: 12.5px; color: #334155; line-height: 1.35; }
+@media (max-width: 640px) { .er-viral-bars { grid-template-columns: 1fr; } }

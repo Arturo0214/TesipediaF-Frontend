@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { FaCalendarAlt, FaClock, FaUser, FaArrowLeft, FaWhatsapp, FaBookOpen, FaArrowRight, FaFilePdf, FaRobot, FaChevronRight } from 'react-icons/fa';
 import { getPostBySlug, blogPosts } from './blogData';
 import GuiaPagesShowcase from '../../components/common/GuiaPagesShowcase';
+import TiendaGuiasCTA from '../../components/common/TiendaGuiasCTA';
 import { getGuiaByBlog, getGuia } from '../../data/guias';
 import './BlogPost.css';
 
@@ -301,6 +302,9 @@ function BlogPost() {
               <div className="bp-body">
                 {formatContent(post.content)}
               </div>
+
+              {/* CTA a la tienda de guías (canaliza el tráfico orgánico al producto) */}
+              <TiendaGuiasCTA trackId={`blog_store_cta_${post.slug}`} />
 
               {/* ── Preview dinámico de la muestra (antes del CTA) ── */}
               {guia?.muestraUrl && (

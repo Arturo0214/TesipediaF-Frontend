@@ -139,3 +139,19 @@
 .gp-cart.is-in { background: #EAF7EF; border-color: rgba(31,168,85,.4); color: #178a48; }
 .gp-cart.is-in svg { color: #1FA855; }
 .gp-sample-inline { margin-top: 14px; }
+
+/* ── Paquete: guías incluidas con portada + muestras ── */
+.gp-incluidas { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
+.gp-inc { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line, #e8ecf3); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(9,24,64,.05); transition: transform .16s ease, box-shadow .16s ease; }
+.gp-inc:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(9,24,64,.14); }
+.gp-inc-cover { display: block; aspect-ratio: 3/4; overflow: hidden; background: #0b1f3a; }
+.gp-inc-cover img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.gp-inc-cover > svg { width: 100%; height: 100%; padding: 30%; color: rgba(255,255,255,.6); }
+.gp-inc-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.gp-inc-kicker { font-size: 0.66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--amber-600, #c79a2e); }
+.gp-inc-name { font-family: var(--font-display, serif); font-weight: 600; color: var(--navy-900, #0b1f3a); font-size: 0.96rem; line-height: 1.25; text-decoration: none; }
+.gp-inc-name:hover { color: #2563EB; }
+.gp-inc-sample { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 0.8rem; font-weight: 700; color: #16a34a; text-decoration: none; }
+.gp-inc-sample:hover { text-decoration: underline; }
+.gp-samples-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.gp-samples-list .gp-sample { margin: 0; }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { trackProductView, trackInitiateCheckout } from '../../services/eventService';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import {
   FaBookOpen, FaFilePdf, FaCheckCircle, FaLock, FaArrowRight,
   FaWhatsapp, FaStar, FaShieldAlt, FaRegClock, FaTimes,
@@ -39,6 +39,14 @@ export default function GuiaProducto() {
     if (producto) trackProductView(productId, producto.nombre);
   }, [productId, producto]);
 
+  // Experimento guia_cta (variante B): llegar con ?comprar=1 abre directo el
+  // modal de pago — un paso menos entre el CTA y el checkout.
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    if (producto && searchParams.get('comprar') === '1') setModal(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+
   const comprar = useCallback(async (e) => {
     e.preventDefault();
     setPayErr('');
@@ -73,6 +81,9 @@ export default function GuiaProducto() {
   const { precio, nombre, resumen, kicker, muestraUrl, pages, incluye, tipo } = producto;
   const canonical = `https://tesipedia.com/guias/${productId}`;
   const esGuia = tipo !== 'paquete';
+  // Guías que trae un paquete (con portada y muestra) para mostrarlas de verdad.
+  const incluidas = esGuia ? [] : (producto.incluyeIds || []).map(getProducto).filter(Boolean);
+  const muestras = incluidas.filter((gi) => gi.muestraUrl);
 
   return (
     <div className="gp">
@@ -137,27 +148,58 @@ export default function GuiaProducto() {
 
       {/* QUÉ INCLUYE */}
       <section className="gp-sec">
-        <h2 className="gp-h2">{esGuia ? 'Qué incluye tu guía' : 'Qué incluye el paquete'}</h2>
-        <div className="gp-grid">
-          {incluye.map((it) => (
-            <div className="gp-card" key={it}>
-              <span className="gp-card-ico"><FaCheckCircle /></span>
-              <div><strong>{it}</strong></div>
-            </div>
-          ))}
-        </div>
+        <h2 className="gp-h2">{esGuia ? 'Qué incluye tu guía' : `Las ${incluidas.length} guías del paquete`}</h2>
+        {esGuia ? (
+          <div className="gp-grid">
+            {incluye.map((it) => (
+              <div className="gp-card" key={it}>
+                <span className="gp-card-ico"><FaCheckCircle /></span>
+                <div><strong>{it}</strong></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="gp-incluidas">
+            {incluidas.map((gi) => (
+              <div className="gp-inc" key={gi.id}>
+                <Link to={`/guias/${gi.id}`} className="gp-inc-cover" data-track-cta={`paq_${productId}_incluida_${gi.id}`}>
+                  {gi.pages?.[0]?.src ? <img src={gi.pages[0].src} alt={`Portada — ${gi.nombre}`} loading="lazy" /> : <FaBookOpen />}
+                </Link>
+                <div className="gp-inc-body">
+                  <span className="gp-inc-kicker">{gi.kicker}</span>
+                  <Link to={`/guias/${gi.id}`} className="gp-inc-name">{gi.nombre}</Link>
+                  {gi.muestraUrl && (
+                    <a className="gp-inc-sample" href={gi.muestraUrl} target="_blank" rel="noopener noreferrer" data-track-cta={`paq_${productId}_muestra_${gi.id}`}>
+                      <FaFilePdf /> Muestra gratis
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* MUESTRA */}
-      {muestraUrl && (
+      {/* MUESTRA(S) */}
+      {(muestraUrl || muestras.length > 0) && (
         <section className="gp-sample-band">
           <div>
             <h2 className="gp-h2">Míralo antes de comprar</h2>
-            <p>Descarga una <strong>muestra gratis</strong> con las primeras páginas y decide con confianza.</p>
+            <p>Descarga {esGuia ? 'una' : `las ${muestras.length}`} <strong>muestra{esGuia ? '' : 's'} gratis</strong> {esGuia ? 'con las primeras páginas' : 'de cada guía incluida'} y decide con confianza.</p>
           </div>
-          <a className="gp-sample gp-sample-lg" href={muestraUrl} target="_blank" rel="noopener noreferrer">
-            <FaFilePdf /> Descargar muestra gratis
-          </a>
+          {esGuia ? (
+            <a className="gp-sample gp-sample-lg" href={muestraUrl} target="_blank" rel="noopener noreferrer">
+              <FaFilePdf /> Descargar muestra gratis
+            </a>
+          ) : (
+            <div className="gp-samples-list">
+              {muestras.map((gi) => (
+                <a key={gi.id} className="gp-sample" href={gi.muestraUrl} target="_blank" rel="noopener noreferrer" data-track-cta={`paq_${productId}_muestra_band_${gi.id}`}>
+                  <FaFilePdf /> {gi.kicker}
+                </a>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

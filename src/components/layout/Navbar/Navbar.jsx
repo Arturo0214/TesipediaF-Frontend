@@ -2,16 +2,19 @@ import { Navbar, Nav, Container, Button, Dropdown, NavDropdown } from 'react-boo
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../../features/auth/authSlice';
-import { FaUser } from 'react-icons/fa';
+import { FaUser, FaBookOpen } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CartButton from '../../cart/CartButton';
+import useABTest from '../../../hooks/useABTest';
 import './Navbar.css';
 
 function MainNavbar() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user, isAuthenticated } = useSelector(state => state.auth);
+    // Experimento 5: "Guías para tu tesis" (A) vs "Tienda de guías" (B)
+    const navCopy = useABTest('nav_copy');
     const [showRegister, setShowRegister] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -75,7 +78,7 @@ function MainNavbar() {
             initial="hidden"
             animate="visible"
             variants={navVariants}
-            style={{ position: 'fixed', width: '100%', top: 0, zIndex: 1000 }}
+            style={{ position: 'fixed', width: '100%', top: 0, zIndex: 1030 }}
         >
             <Navbar bg="white" variant="light" expand="lg"
                 className={`shadow-sm ${scrolled ? 'scrolled' : ''}`}
@@ -98,27 +101,33 @@ function MainNavbar() {
                     </Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
+                        <Nav className="me-auto nav-main align-items-lg-center">
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/" onClick={closeNavbar}>Inicio</Nav.Link>
+                                <Nav.Link as={NavLink} to="/" end onClick={closeNavbar}>Inicio</Nav.Link>
                             </motion.div>
+                            {/* Todo lo informativo agrupado en un dropdown (patrón Contratado) */}
+                            <NavDropdown title="Recursos" id="nav-recursos" className="nav-dropdown-recursos">
+                                <NavDropdown.Item as={NavLink} to="/sobre-nosotros" onClick={closeNavbar}>Sobre Nosotros</NavDropdown.Item>
+                                <NavDropdown.Item as={NavLink} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas Frecuentes</NavDropdown.Item>
+                                <NavDropdown.Item as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</NavDropdown.Item>
+                            </NavDropdown>
+                            {/* Destacado: Blog (mismo nivel que Detector y Tienda) */}
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/sobre-nosotros" onClick={closeNavbar}>Sobre Nosotros</Nav.Link>
+                                <Nav.Link as={NavLink} to="/blog" className="nav-link-destacado nav-link-blog" onClick={closeNavbar}>
+                                    <FaBookOpen /> Blog
+                                </Nav.Link>
                             </motion.div>
+                            {/* Destacado 1: Escáner / Detector IA */}
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/preguntas-frecuentes" onClick={closeNavbar}>Preguntas Frecuentes</Nav.Link>
+                                <Nav.Link as={NavLink} to="/detector-ia-tesis" className="nav-link-destacado nav-link-detector" onClick={closeNavbar}>
+                                    <span className="nav-dot" aria-hidden="true" /> Detector de IA
+                                </Nav.Link>
                             </motion.div>
+                            {/* Destacado 2: Tienda de guías (CTA comercial) */}
                             <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/blog" onClick={closeNavbar}>Blog</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/guias" onClick={closeNavbar}>Guías</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/detector-ia-tesis" className="nav-link-cotizar" onClick={closeNavbar}>Detector IA</Nav.Link>
-                            </motion.div>
-                            <motion.div variants={linkVariants} whileHover="hover">
-                                <Nav.Link as={NavLink} to="/contacto" onClick={closeNavbar}>Contacto</Nav.Link>
+                                <Nav.Link as={NavLink} to="/guias" className="nav-link-destacado nav-link-guias" onClick={closeNavbar} data-track-cta={`nav_guias_${navCopy.toLowerCase()}`}>
+                                    📚 {navCopy === 'B' ? 'Tienda de guías' : 'Guías'}<span className="nav-guias-badge">desde $79</span>
+                                </Nav.Link>
                             </motion.div>
                         </Nav>
                         <Nav className="align-items-center">

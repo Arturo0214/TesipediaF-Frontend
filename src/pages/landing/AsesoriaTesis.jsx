@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { styles, featureColors } from './_ads/adsStyles';
 import { MiniHeader, MiniFooter, FaqItem } from './_ads/AdsChrome';
+import GuiasCrossSell from '../../components/common/GuiasCrossSell';
 
 const CANONICAL = 'https://tesipedia.com/asesoria-tesis';
 const WA_LINK = 'https://wa.me/5215670071517?text=Hola%2C%20me%20interesa%20la%20asesor%C3%ADa%20para%20mi%20tesis';
@@ -218,6 +219,13 @@ function AsesoriaTesis() {
           </div>
         </section>
       </div>
+
+      {/* Cross-sell: quien no contrata asesoría se lleva la guía low-ticket */}
+      <GuiasCrossSell
+        origen="asesoria"
+        titulo="¿Prefieres avanzarla por tu cuenta?"
+        sub="Guías-taller en PDF con el mismo método de nuestros asesores: paso a paso, ejemplos y plantillas. Desde $79, descarga inmediata."
+      />
 
       <MiniFooter />
     </>

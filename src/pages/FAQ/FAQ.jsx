@@ -174,9 +174,9 @@ function FAQ() {
   return (
     <div className="fq-page">
       <Helmet>
-        <title>Preguntas Frecuentes | ¿Cuánto cuesta hacer una tesis? ¿Cómo comprar tesis? | Tesipedia</title>
+        <title>Preguntas Frecuentes | ¿Cuánto cuesta la asesoría de tesis? | Tesipedia</title>
         <meta name="description" content="Respuestas a las preguntas más comunes: ¿Cuánto cuesta la asesoría de una tesis en México? ¿Cómo funciona? ¿Cuánto tarda? ¿El trabajo es original? Te asesoramos para que hagas y termines tu propia tesis." />
-        <meta name="keywords" content="hacer tesis, comprar tesis, asesoría de tesis, cuánto cuesta hacer una tesis, cuánto cuesta una tesis México, quién me asesora con mi tesis, hacer tesis rápido, revisión de originalidad tesis, pagar asesoría de tesis a meses, Tesipedia FAQ" />
+        <meta name="keywords" content="hacer tesis, asesoría de tesis, cuánto cuesta hacer una tesis, cuánto cuesta una tesis México, quién me asesora con mi tesis, hacer tesis rápido, revisión de originalidad tesis, pagar asesoría de tesis a meses, Tesipedia FAQ" />
         <meta property="og:title" content="Preguntas Frecuentes | ¿Cuánto cuesta la asesoría de una tesis? | Tesipedia" />
         <meta property="og:description" content="Todas las respuestas sobre nuestra asesoría de tesis: precios, tiempos, calidad y acompañamiento." />
         <meta property="og:url" content="https://tesipedia.com/preguntas-frecuentes" />
