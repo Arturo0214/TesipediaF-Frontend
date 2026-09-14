@@ -5,7 +5,7 @@ import {
   FaCalendarAlt, FaThLarge, FaListUl, FaImage, FaInstagram, FaFacebookF, FaTiktok, FaLinkedin,
   FaCloudUploadAlt, FaRegClock, FaChartLine, FaPaperPlane, FaTrashAlt,
   FaChartBar, FaHeart, FaComment, FaShareAlt, FaUsers,
-  FaPlus, FaExclamationTriangle, FaNewspaper, FaEye, FaPlay, FaGripVertical,
+  FaPlus, FaExclamationTriangle, FaNewspaper, FaEye, FaPlay, FaGripVertical, FaDownload,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import svc from '../../../services/videoStudioService';
@@ -407,6 +407,18 @@ export default function EstudioRedes() {
     finally { setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; }
   };
   const reemplazar = (e) => subirImagen(e.target.files?.[0], imgIdx);
+  // Descarga forzada (Cloudinary fl_attachment añade Content-Disposition: attachment).
+  const descargar = (url, nombre) => {
+    if (!url) return;
+    const dl = url.includes('/upload/') ? url.replace('/upload/', `/upload/fl_attachment${nombre ? ':' + nombre.replace(/\.[^.]+$/, '') : ''}/`) : url;
+    const a = document.createElement('a');
+    a.href = dl; a.download = nombre || ''; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  const descargarTodas = () => {
+    const imgs = abierta?.imagenes || [];
+    imgs.forEach((u, i) => setTimeout(() => descargar(u, `${abierta.marca || 'tesipedia'}-${abierta.fecha}-${i + 1}.jpg`), i * 500));
+  };
   const subirVideo = async (file) => {
     if (!file || !abierta) return;
     if (!file.type.startsWith('video/')) { toast.error('Ese archivo no es un video'); return; }
@@ -923,6 +935,21 @@ export default function EstudioRedes() {
                 {(abierta.imagenes || []).length > 0 && !abierta.video_url && (
                   <button className="er-replace" disabled={subiendo} onClick={() => fileRef.current?.click()}>
                     <FaCloudUploadAlt /> {subiendo ? 'Subiendo…' : `Reemplazar imagen ${imgIdx + 1}`}
+                  </button>
+                )}
+                {(abierta.imagenes || []).length > 0 && !abierta.video_url && (
+                  <button className="er-download-btn" onClick={() => descargar((abierta.imagenes || [])[imgIdx], `${abierta.marca || 'tesipedia'}-${abierta.fecha}-${imgIdx + 1}.jpg`)}>
+                    <FaDownload /> Descargar imagen {imgIdx + 1}
+                  </button>
+                )}
+                {(abierta.imagenes || []).length > 1 && !abierta.video_url && (
+                  <button className="er-download-btn" onClick={descargarTodas}>
+                    <FaDownload /> Descargar todas ({(abierta.imagenes || []).length})
+                  </button>
+                )}
+                {abierta.video_url && (
+                  <button className="er-download-btn" onClick={() => descargar(abierta.video_url, `${abierta.marca || 'tesipedia'}-${abierta.fecha}.mp4`)}>
+                    <FaDownload /> Descargar video
                   </button>
                 )}
                 {(draft?.formato || abierta.formato) === 'VIDEO' && (
