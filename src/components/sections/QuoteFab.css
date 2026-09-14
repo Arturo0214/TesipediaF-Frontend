@@ -57,8 +57,10 @@
 .qf-wa:hover { background: var(--wa-dark); color: #fff; }
 
 @media (max-width: 560px) {
-  .qf-launch { bottom: 148px; right: 16px; padding: 12px 16px; font-size: 0.88rem; }
-  .qf-launch span:not(.qf-launch-pulse) { display: inline; }
+  /* En móvil: ícono compacto redondo (no un pill ancho que tapa botones del contenido) */
+  .qf-launch { bottom: 150px; right: 16px; width: 52px; height: 52px; padding: 0; border-radius: 50%; justify-content: center; gap: 0; }
+  .qf-launch > span:not(.qf-launch-pulse) { display: none; }
+  .qf-launch svg { font-size: 1.3rem; }
   .qf-overlay { align-items: flex-end; padding: 0; }
   .qf-panel { max-width: 100%; border-radius: 22px 22px 0 0; }
 }
