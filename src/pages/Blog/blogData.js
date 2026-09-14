@@ -772,51 +772,6 @@ Los errores más frecuentes que vemos en Tesipedia son: hipótesis demasiado amp
 Tu hipótesis debe poder probarse con los datos y métodos que tienes disponibles. No propongas algo que requiera un estudio de 10 años si tienes 6 meses para tu tesis. Sé realista y específico — los comités evaluadores aprecian la precisión sobre la ambición.`
   },
   {
-    id: 16,
-    title: 'Revisión de Literatura: Cómo Buscar y Organizar Fuentes Académicas',
-    excerpt: 'Domina la revisión de literatura para tu tesis. Bases de datos académicas, criterios de selección, organización con gestores bibliográficos y tips para escribir tu estado del arte.',
-    image: images.revisarLiteratura,
-    date: '2026-03-12',
-    category: 'Investigación',
-    readTime: '9 min',
-    featured: false,
-    slug: createSlug('Revisión de Literatura Cómo Buscar y Organizar Fuentes Académicas'),
-    content: `La revisión de literatura es probablemente la parte más laboriosa de tu tesis, pero también la que demuestra que realmente conoces tu tema. No se trata de copiar y pegar resúmenes de artículos — se trata de construir un argumento sólido que justifique tu investigación.
-
-🔎 Dónde buscar fuentes académicas en México
-
-Olvídate de Google genérico. Para una tesis seria, estas son las bases de datos que debes usar:
-
-• Google Scholar: Buen punto de partida, pero filtra por fecha y relevancia
-• CONRICYT / CONAHCyT: Acceso gratuito para estudiantes mexicanos a miles de revistas indexadas
-• Scopus y Web of Science: Las bases más prestigiosas. Muchas universidades mexicanas tienen acceso institucional
-• Redalyc y SciELO: Ideales para investigación latinoamericana en español
-• Dialnet: Excelente para artículos en español de universidades iberoamericanas
-• TESIUNAM y repositorios institucionales: Para consultar tesis previas en tu área
-
-📊 Criterios de selección de fuentes
-
-No todas las fuentes valen igual. Prioriza artículos de revistas indexadas (JCR, Scopus), libros de editoriales académicas reconocidas y tesis de posgrado. Evita blogs, páginas web sin respaldo académico y artículos de revistas predatorias. Para tu marco teórico, intenta que al menos el 60% de tus fuentes sean de los últimos 5 años.
-
-📁 Organización con gestores bibliográficos
-
-Gestionar 50-100 fuentes manualmente es un caos. Usa herramientas como:
-
-• Mendeley (gratuito): Perfecto para organizar PDFs y generar bibliografías automáticas
-• Zotero (gratuito y open source): Integración con Word y extensión para navegador
-• EndNote: Más robusto pero de pago. Ideal si tu universidad tiene licencia
-
-Estos gestores te permiten organizar por temas, anotar PDFs y generar tu bibliografía en formato APA, Vancouver o el que necesites con un clic.
-
-✍️ Cómo escribir tu estado del arte
-
-El error más común es hacer una lista de resúmenes ("Autor X dice esto, Autor Y dice aquello"). En cambio, organiza tu revisión por temas o conceptos, compara posiciones de diferentes autores, identifica tendencias y señala los vacíos que tu investigación va a llenar. Eso es lo que buscan los evaluadores.
-
-💡 Tip de Tesipedia
-
-Crea una tabla de Excel antes de empezar a escribir: columnas para autor, año, metodología, hallazgos principales y cómo se relaciona con tu tema. Esto te dará un mapa visual que hace mucho más fácil la redacción posterior.`
-  },
-  {
     id: 17,
     title: 'Análisis de Datos en tu Tesis: SPSS, R y Excel Explicados',
     excerpt: 'Guía práctica para elegir la herramienta correcta de análisis estadístico para tu tesis. Comparamos SPSS, R y Excel: cuándo usar cada uno y qué pruebas aplicar.',
