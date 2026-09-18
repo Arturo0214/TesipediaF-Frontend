@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import {
   FaCalendarCheck, FaSyncAlt, FaSearch, FaWhatsapp, FaCheckCircle, FaExclamationTriangle,
@@ -134,6 +134,7 @@ const SeguimientoMensual = () => {
   const [editName, setEditName] = useState(null);   // rowId cuyo nombre se está editando
   const [nameInput, setNameInput] = useState('');    // texto del nombre en edición
   const [dragRow, setDragRow] = useState(null);      // rowId sobre el que se arrastra un archivo
+  const fileInputsRef = useRef({});                  // rowId -> <input type=file>
   // Filtros
   const [search, setSearch] = useState('');
   const [vendedorFilter, setVendedorFilter] = useState('todos');
@@ -141,6 +142,14 @@ const SeguimientoMensual = () => {
   const [soloActivos, setSoloActivos] = useState(false);
 
   const hoy = useMemo(() => { const d = new Date(); d.setHours(23, 59, 59, 999); return d; }, []);
+
+  // Evitar que el navegador abra el archivo si se suelta fuera de la zona exacta
+  useEffect(() => {
+    const prevent = (e) => { e.preventDefault(); };
+    window.addEventListener('dragover', prevent);
+    window.addEventListener('drop', prevent);
+    return () => { window.removeEventListener('dragover', prevent); window.removeEventListener('drop', prevent); };
+  }, []);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -696,21 +705,31 @@ const SeguimientoMensual = () => {
                                 <button className="sm-btn sm-btn-pay" disabled={saving === `nota-${r.id}`} onClick={() => handleAddNota(r)}>Enviar</button>
                               </div>
                             </div>
-                            {/* Historial de archivos */}
-                            <div className="sm-detail-col">
+                            {/* Historial de archivos — toda la columna es zona de arrastre */}
+                            <div
+                              className={`sm-detail-col sm-dropzone ${dragRow === r.id ? 'drag' : ''}`}
+                              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; if (dragRow !== r.id) setDragRow(r.id); }}
+                              onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(r.id); }}
+                              onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setDragRow(null); }}
+                              onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); const f = e.dataTransfer?.files?.[0]; if (f) handleUploadArchivo(r, f); }}
+                            >
                               <h4><FaPaperclip /> Historial de archivos {r.archivos?.length > 0 && <span className="sm-count">({r.archivos.length})</span>}</h4>
-                              <label
+                              <button
+                                type="button"
                                 className={`sm-upload ${saving === `file-${r.id}` ? 'busy' : ''} ${dragRow === r.id ? 'drag' : ''}`}
-                                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (dragRow !== r.id) setDragRow(r.id); }}
-                                onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(r.id); }}
-                                onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); }}
-                                onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); const f = e.dataTransfer?.files?.[0]; handleUploadArchivo(r, f); }}
+                                disabled={saving === `file-${r.id}`}
+                                onClick={() => fileInputsRef.current[r.id]?.click()}
                               >
                                 <FaCloudUploadAlt />
-                                {saving === `file-${r.id}` ? 'Subiendo…' : dragRow === r.id ? 'Suelta el archivo aquí' : 'Arrastra un archivo o haz clic'}
-                                <input type="file" hidden disabled={saving === `file-${r.id}`}
-                                  onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; handleUploadArchivo(r, f); }} />
-                              </label>
+                                {saving === `file-${r.id}` ? 'Subiendo…' : dragRow === r.id ? '⬇ Suelta el archivo aquí' : 'Arrastra un archivo aquí o haz clic'}
+                              </button>
+                              <input
+                                type="file"
+                                hidden
+                                ref={(el) => { fileInputsRef.current[r.id] = el; }}
+                                disabled={saving === `file-${r.id}`}
+                                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadArchivo(r, f); }}
+                              />
                               <div className="sm-upload-hint">PDF, Word, imágenes… (imágenes se comprimen · máx 15 MB)</div>
                               {r.archivos?.length > 0 ? (
                                 <div className="sm-files">
@@ -721,7 +740,7 @@ const SeguimientoMensual = () => {
                                         {i === r.archivos.length - 1 && <span className="sm-file-badge">último</span>}
                                       </a>
                                       <div className="sm-file-meta">
-                                        <span>{a.subidoPor || 'Admin'} · {a.subidoEn ? new Date(a.subidoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                        <span>{a.subidoPor || 'Admin'} · {a.subidoEn ? new Date(a.subidoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}{a.size ? ` · ${fmtBytes(a.size)}` : ''}</span>
                                         <button className="sm-nota-del" onClick={() => handleDelArchivo(r, a._id)} title="Eliminar"><FaTrashAlt /></button>
                                       </div>
                                     </div>

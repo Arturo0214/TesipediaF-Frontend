@@ -269,14 +269,18 @@
 .sm-file-link svg { flex: 0 0 auto; }
 .sm-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sm-file-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; font-size: 0.66rem; color: var(--s-faint); }
+/* Zona de arrastre = toda la columna de archivos */
+.sm-dropzone { border-radius: 10px; transition: box-shadow 0.15s, background 0.15s; }
+.sm-dropzone.drag { box-shadow: 0 0 0 2px var(--s-green) inset; background: rgba(16, 185, 129, 0.06); }
+
 .sm-upload {
-  display: flex; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer;
-  border: 1.5px dashed var(--s-border-2); border-radius: 9px; padding: 0.6rem; color: #93C5FD;
-  font-size: 0.82rem; font-weight: 700; transition: all 0.15s;
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer;
+  border: 1.5px dashed var(--s-border-2); border-radius: 9px; padding: 0.7rem; color: #93C5FD;
+  font-size: 0.82rem; font-weight: 700; transition: all 0.15s; background: transparent;
 }
 .sm-upload:hover { border-color: var(--s-blue); background: rgba(59, 130, 246, 0.08); }
-.sm-upload.busy { opacity: 0.6; pointer-events: none; }
-.sm-upload.drag { border-color: var(--s-green); background: rgba(16, 185, 129, 0.14); color: #6EE7B7; transform: scale(1.01); }
+.sm-upload:disabled { opacity: 0.6; pointer-events: none; }
+.sm-upload.drag { border-color: var(--s-green); background: rgba(16, 185, 129, 0.14); color: #6EE7B7; }
 .sm-upload.drag svg { transform: translateY(-2px); }
 .sm-upload svg { font-size: 1rem; }
 .sm-upload-hint { font-size: 0.66rem; color: var(--s-faint); text-align: center; margin-top: 0.3rem; }
