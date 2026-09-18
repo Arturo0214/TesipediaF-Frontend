@@ -152,3 +152,45 @@
   .mp-kpis { grid-template-columns: 1fr 1fr; gap: 11px; }
   .mp-prod-head, .mp-prod-row { grid-template-columns: 1fr 54px 78px; }
 }
+
+/* Pestañas del panel (Resumen / WhatsApp) */
+.mp-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.mp-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 10px; cursor: pointer;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  color: #AEB9CE; font-size: 13px; font-weight: 700; transition: all .15s ease;
+}
+.mp-tab svg { font-size: 14px; }
+.mp-tab:hover { background: rgba(255,255,255,0.08); color: #EAF0FB; }
+.mp-tab.active { background: #2563EB; border-color: #2563EB; color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
+.mp-tab-badge { background: rgba(255,255,255,0.25); color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 20px; font-weight: 800; }
+
+/* Inbox de WhatsApp embebido en la pestaña.
+   Anula la regla global `.tesipedia-admin-content:has(.wa-panel)` (overflow:hidden)
+   SOLO en esta página (identificada por .mp-tabs), para no matar el scroll. */
+.tesipedia-admin-content:has(.mp-tabs) { overflow-y: auto !important; display: block !important; }
+.tesipedia-admin-content:has(.mp-tabs) .tesipedia-admin-component { height: auto !important; min-height: 100%; flex: none !important; }
+.mp-wa-inbox { height: 80vh; min-height: 540px; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.28); }
+.mp-wa-inbox .wa-panel { height: 100% !important; max-height: 100% !important; border-radius: 14px; }
+
+/* Tabla de leads de WhatsApp de la campaña de guías */
+.wa-table { font-size: 13px; margin-top: 14px; }
+.wa-head, .wa-row {
+  display: grid;
+  grid-template-columns: 128px 1.2fr 130px 1.6fr 116px;
+  gap: 10px; align-items: center; padding: 11px 0;
+}
+.wa-head {
+  color: #66748E; font-weight: 700; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.04em; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.wa-row { border-bottom: 1px solid rgba(255,255,255,0.05); color: #C7D2E4; }
+.wa-row:last-child { border-bottom: none; }
+.wa-row a { color: #4ADE80; text-decoration: none; font-weight: 600; }
+.wa-row a:hover { text-decoration: underline; }
+.wa-cell-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) {
+  .wa-head { display: none; }
+  .wa-row { grid-template-columns: 1fr 1fr; row-gap: 4px; padding: 13px 0; }
+}

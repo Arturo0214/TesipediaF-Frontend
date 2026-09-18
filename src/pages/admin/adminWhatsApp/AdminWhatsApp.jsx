@@ -41,6 +41,8 @@ import {
 } from 'react-icons/fa';
 import {
   getLeads,
+  getGuideLeads,
+  getLeadCampaigns,
   getLeadByWaId,
   toggleModoHumano,
   toggleAutoPaused,
@@ -187,7 +189,7 @@ function formatLabel(text) {
 
 const POLL_INTERVAL = 20000; // 20 segundos — balance entre costo y reactividad
 
-const AdminWhatsApp = () => {
+const AdminWhatsApp = ({ guideOnly = false } = {}) => {
   const dispatch = useDispatch();
   const { user: authUser, isSuperAdmin } = useSelector((state) => state.auth || {});
   const currentAdminKey = normalizeAdminName(authUser?.name || authUser?.nombre || '');
@@ -216,6 +218,9 @@ const AdminWhatsApp = () => {
   const [newChatNumber, setNewChatNumber] = useState('');
   const [leadInfoOpen, setLeadInfoOpen] = useState(false);
   const [tagFilter, setTagFilter] = useState('all');
+  const [campaignFilter, setCampaignFilter] = useState('all'); // 'all' | nombre de campaña Meta | '__guias'
+  const [serverCampaigns, setServerCampaigns] = useState([]); // [{ name, count }] desde el backend
+  const [guiasCount, setGuiasCount] = useState(0); // conteo del embudo de guías
   const [estadoFilter, setEstadoFilter] = useState('all');
   const [attendedFilter, setAttendedFilter] = useState('all'); // 'all' | 'atendido' | 'sin_atender'
   const [dateFilter, setDateFilter] = useState(''); // '' = all, 'YYYY-MM-DD' = specific day
@@ -378,19 +383,44 @@ const AdminWhatsApp = () => {
   const attendedFilterRef = useRef(attendedFilter);
   const dateFilterRef = useRef(dateFilter);
   const searchQueryRef = useRef(searchQuery);
+  const campaignFilterRef = useRef(campaignFilter);
   useEffect(() => { estadoFilterRef.current = estadoFilter; }, [estadoFilter]);
   useEffect(() => { attendedFilterRef.current = attendedFilter; }, [attendedFilter]);
   useEffect(() => { dateFilterRef.current = dateFilter; }, [dateFilter]);
   useEffect(() => { searchQueryRef.current = searchQuery; }, [searchQuery]);
+  useEffect(() => { campaignFilterRef.current = campaignFilter; }, [campaignFilter]);
 
   const buildFilters = useCallback(() => ({
     estado: estadoFilterRef.current === '__nuevos_mensajes' ? 'all' : estadoFilterRef.current,
     atendido: attendedFilterRef.current,
     fecha: dateFilterRef.current,
     search: searchQueryRef.current,
+    campania: campaignFilterRef.current,
   }), []);
 
   const fetchLeads = useCallback(async (silent = false) => {
+    // Modo guías: traer SOLO los leads del embudo de la campaña de guías
+    if (guideOnly) {
+      try {
+        if (!silent) setLoading(true);
+        const guideList = await getGuideLeads();
+        if (!silent) checkNewMessages(guideList);
+        setLeads(guideList);
+        setTotalLeads(guideList.length);
+        setHasMore(false);
+        setError(null);
+        const map = new Map();
+        guideList.forEach(l => map.set(l.wa_id, l.updated_at));
+        prevLeadsMapRef.current = map;
+      } catch (err) {
+        console.error('Error cargando leads de guías:', err);
+        if (!silent) setError('No se pudieron cargar los leads de guías');
+      } finally {
+        if (!silent) setLoading(false);
+      }
+      return;
+    }
+
     try {
       if (!silent) setLoading(true);
 
@@ -423,7 +453,7 @@ const AdminWhatsApp = () => {
           allData = freshData;
         }
       } else {
-        const hasActiveFilter = filters.estado !== 'all' || filters.atendido !== 'all' || filters.fecha || filters.search;
+        const hasActiveFilter = filters.estado !== 'all' || filters.atendido !== 'all' || filters.fecha || filters.search || (filters.campania && filters.campania !== 'all');
 
         if (hasActiveFilter && !filters.search) {
           // Con filtro de estado/atendido/fecha: cargar todas las páginas
@@ -525,7 +555,7 @@ const AdminWhatsApp = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [buildFilters]);
+  }, [buildFilters, guideOnly, checkNewMessages]);
 
   // Mantener refs sincronizados con leads
   const leadsRef = useRef(leads);
@@ -658,7 +688,19 @@ const AdminWhatsApp = () => {
     fetchAutoReminderStatus();
     pollRef.current = setInterval(() => fetchLeads(true), POLL_INTERVAL);
     return () => clearInterval(pollRef.current);
-  }, [origenFilter, estadoFilter, attendedFilter, dateFilter]);
+  }, [origenFilter, estadoFilter, attendedFilter, dateFilter, campaignFilter]);
+
+  // Cargar la lista de campañas (Meta + guías) para el filtro — una vez al montar
+  useEffect(() => {
+    if (guideOnly) return; // el embed de guías no necesita el selector de campañas
+    (async () => {
+      try {
+        const { campaigns, guias } = await getLeadCampaigns();
+        setServerCampaigns(campaigns);
+        setGuiasCount(guias);
+      } catch (e) { /* silencioso: el filtro cae al modo cliente */ }
+    })();
+  }, [guideOnly]);
 
   // Debounce para búsqueda por texto (evitar spam al backend)
   const searchTimerRef = useRef(null);
@@ -1590,9 +1632,18 @@ const AdminWhatsApp = () => {
 
   // Obtener todas las etiquetas únicas de los leads cargados
   const allTags = [...new Set(leads.flatMap(l => l.etiquetas || []))].sort();
+  // Campañas Meta (CTWA) presentes en los leads cargados, para el filtro de campaña
+  const allCampaigns = [...new Set(leads.map(l => l.ad_campaign_name).filter(Boolean))].sort();
+  const hasGuiaLeads = leads.some(l => String(l.estado_sofia || '').startsWith('guia_'));
+  // Opciones del selector: preferir las del servidor (todas, con conteo real); si no, caer a las cargadas
+  const campaignOptions = serverCampaigns.length > 0
+    ? serverCampaigns
+    : allCampaigns.map(name => ({ name, count: leads.filter(l => (l.ad_campaign_name || '') === name).length }));
 
   // Filtros aplicados server-side — client-side para atendido_por, etiquetas y nuevos mensajes
   const filteredLeads = leads.filter(lead => {
+    // Modo guías: solo leads del embudo de la campaña de guías (estado_sofia = guia_*)
+    if (guideOnly && !String(lead.estado_sofia || '').startsWith('guia_')) return false;
     // Filtro especial: nuevos mensajes (cliente envió último mensaje)
     if (estadoFilter === '__nuevos_mensajes') {
       if (!(lead.ultimo_mensaje_preview || '').startsWith('👤') || readLeads.has(lead.wa_id)) return false;
@@ -1607,6 +1658,13 @@ const AdminWhatsApp = () => {
     }
     if (tagFilter !== 'all') {
       if (!(lead.etiquetas || []).includes(tagFilter)) return false;
+    }
+    if (campaignFilter !== 'all') {
+      if (campaignFilter === '__guias') {
+        if (!String(lead.estado_sofia || '').startsWith('guia_')) return false;
+      } else if ((lead.ad_campaign_name || '') !== campaignFilter) {
+        return false;
+      }
     }
     return true;
   }).sort((a, b) => {
@@ -2207,6 +2265,23 @@ const AdminWhatsApp = () => {
                   const count = leads.filter(l => (l.etiquetas || []).includes(tag)).length;
                   return <option key={tag} value={tag}>{tag} ({count})</option>;
                 })}
+              </select>
+            )}
+            {(campaignOptions.length > 0 || guiasCount > 0 || hasGuiaLeads) && (
+              <select
+                className="wa-filter-select"
+                value={campaignFilter}
+                onChange={(e) => setCampaignFilter(e.target.value)}
+                style={campaignFilter !== 'all' ? { borderColor: '#1a73e8', color: '#1a73e8', fontWeight: 600 } : {}}
+                title="Filtrar por campaña de Meta / tienda de guías (trae todas las conversaciones de la campaña)"
+              >
+                <option value="all">📣 Campaña: Todas</option>
+                {(guiasCount > 0 || hasGuiaLeads) && (
+                  <option value="__guias">🛒 Guías (tienda){guiasCount > 0 ? ` (${guiasCount})` : ''}</option>
+                )}
+                {campaignOptions.map(c => (
+                  <option key={c.name} value={c.name}>{c.name}{c.count ? ` (${c.count})` : ''}</option>
+                ))}
               </select>
             )}
             <div className="wa-date-filter">

@@ -5,9 +5,10 @@ import {
 import {
   FaStore, FaShoppingCart, FaMoneyBillWave, FaSyncAlt, FaEye, FaCreditCard,
   FaCheckCircle, FaClock, FaTimesCircle, FaReceipt, FaChartLine, FaBoxOpen,
-  FaArrowDown, FaPercentage,
+  FaArrowDown, FaPercentage, FaWhatsapp, FaLink, FaComments,
 } from 'react-icons/fa';
-import { getStoreStats } from '../../../services/mercadoPagoService';
+import { getStoreStats, getWhatsappGuideLeads } from '../../../services/mercadoPagoService';
+import AdminWhatsApp from '../adminWhatsApp/AdminWhatsApp';
 import './AdminMercadoPago.css';
 
 const money = (n) => `$${Number(n || 0).toLocaleString('es-MX')}`;
@@ -19,12 +20,22 @@ const STATUS_META = {
   failed: { lbl: 'Fallido', c: '#FCA5A5', bg: 'rgba(239,68,68,0.15)', icon: <FaTimesCircle /> },
 };
 
+// Estados del embudo de la campaña de guías por WhatsApp (Sofia).
+const GUIA_ESTADO_META = {
+  guia_explorando: { lbl: 'Explorando', c: '#2563EB', bg: 'rgba(37,99,235,0.15)', icon: <FaComments /> },
+  guia_link_enviado: { lbl: 'Link enviado', c: '#7C3AED', bg: 'rgba(124,58,237,0.15)', icon: <FaLink /> },
+  guia_pagada: { lbl: 'Pagó', c: '#4ADE80', bg: 'rgba(34,197,94,0.15)', icon: <FaCheckCircle /> },
+  guia_upsell: { lbl: 'Upsell', c: '#F59E0B', bg: 'rgba(245,158,11,0.15)', icon: <FaMoneyBillWave /> },
+};
+
 export default function AdminMercadoPago() {
   const [data, setData] = useState(null);
+  const [wa, setWa] = useState(null); // leads de WhatsApp de la campaña de guías
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [days, setDays] = useState(30);
   const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState('resumen'); // 'resumen' (Mercado Pago) | 'whatsapp' (campaña de guías)
 
   const load = useCallback(async () => {
     setError(null);
@@ -33,6 +44,13 @@ export default function AdminMercadoPago() {
       setData(d);
     } catch (err) {
       setError(err?.response?.data?.error || err.message || 'Error al cargar métricas');
+    }
+    // Los leads de WhatsApp son un extra: si falla, no rompe el panel de pagos.
+    try {
+      const w = await getWhatsappGuideLeads();
+      setWa(w);
+    } catch {
+      setWa(null);
     }
   }, [days]);
 
@@ -67,6 +85,22 @@ export default function AdminMercadoPago() {
     { key: 'compra', lbl: 'Compran', val: funnel.compras || 0, icon: <FaCheckCircle />, c: '#15803d', tasa: funnel.tasaCompra },
   ];
 
+  // ── Embudo de la campaña de WhatsApp (guías) — acumulado por estado ──
+  const pct = (n, d) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0);
+  const waFunnel = wa?.funnel || {};
+  const wExp = waFunnel.guia_explorando || 0;
+  const wLink = waFunnel.guia_link_enviado || 0;
+  const wPago = waFunnel.guia_pagada || 0;
+  const nLleg = wExp + wLink + wPago; // entraron al flujo de guías
+  const nLink = wLink + wPago;        // llegaron al link de pago
+  const nPago = wPago;                // pagaron / recibieron guía
+  const waBase = Math.max(nLleg, 1);
+  const waPasos = [
+    { key: 'lleg', lbl: 'Entraron al flujo', val: nLleg, icon: <FaComments />, c: '#2563EB' },
+    { key: 'link', lbl: 'Recibieron link de pago', val: nLink, icon: <FaLink />, c: '#7C3AED', tasa: pct(nLink, nLleg) },
+    { key: 'pago', lbl: 'Pagaron / recibieron guía', val: nPago, icon: <FaCheckCircle />, c: '#15803d', tasa: pct(nPago, nLink) },
+  ];
+
   return (
     <div className="mp">
       {/* HEADER */}
@@ -98,6 +132,18 @@ export default function AdminMercadoPago() {
         </div>
       )}
 
+      {/* TABS */}
+      <div className="mp-tabs">
+        <button className={`mp-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>
+          <FaStore /> Resumen
+        </button>
+        <button className={`mp-tab ${tab === 'whatsapp' ? 'active' : ''}`} onClick={() => setTab('whatsapp')}>
+          <FaWhatsapp /> WhatsApp {wa?.total ? <span className="mp-tab-badge">{wa.total}</span> : null}
+        </button>
+      </div>
+
+      {tab === 'resumen' && (
+      <>
       {/* KPIs */}
       <div className="mp-kpis">
         <div className="mp-kpi">
@@ -266,6 +312,71 @@ export default function AdminMercadoPago() {
           <div className="mp-empty">Sin compras registradas en este periodo.</div>
         )}
       </div>
+      </>
+      )}
+
+      {tab === 'whatsapp' && (
+      <>
+        {/* KPIs WhatsApp */}
+        <div className="mp-kpis">
+          <div className="mp-kpi">
+            <span className="mp-kpi-ico blue"><FaComments /></span>
+            <div className="mp-kpi-val">{wExp}</div>
+            <div className="mp-kpi-lbl">En exploración</div>
+          </div>
+          <div className="mp-kpi">
+            <span className="mp-kpi-ico purple"><FaLink /></span>
+            <div className="mp-kpi-val">{wLink}</div>
+            <div className="mp-kpi-lbl">Con link de pago</div>
+          </div>
+          <div className="mp-kpi">
+            <span className="mp-kpi-ico green"><FaCheckCircle /></span>
+            <div className="mp-kpi-val">{wPago}</div>
+            <div className="mp-kpi-lbl">Pagaron / recibieron guía</div>
+          </div>
+          <div className="mp-kpi">
+            <span className="mp-kpi-ico gold"><FaWhatsapp /></span>
+            <div className="mp-kpi-val">{wa?.total || 0}</div>
+            <div className="mp-kpi-lbl">Total leads de la campaña</div>
+          </div>
+        </div>
+
+        {/* Embudo WhatsApp */}
+        <div className="mp-card">
+          <h3 className="mp-card-title"><FaArrowDown /> Embudo de la campaña de guías</h3>
+          <div className="mp-funnel">
+            {waPasos.map((p, i) => {
+              const width = Math.max(Math.round((p.val / waBase) * 100), p.val > 0 ? 8 : 3);
+              return (
+                <div className="mp-funnel-row" key={p.key}>
+                  <div className="mp-funnel-info">
+                    <span className="mp-funnel-ico" style={{ color: p.c }}>{p.icon}</span>
+                    <span className="mp-funnel-lbl">{p.lbl}</span>
+                  </div>
+                  <div className="mp-funnel-bar-wrap">
+                    <div className="mp-funnel-bar" style={{ width: `${width}%`, background: p.c }}>
+                      <span className="mp-funnel-val">{p.val.toLocaleString()}</span>
+                    </div>
+                    {i > 0 && p.tasa != null && (
+                      <span className="mp-funnel-rate"><FaPercentage /> {p.tasa}%</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mp-funnel-note">
+            Leads que llegan del anuncio de guías y hablan con Sofia por WhatsApp: exploran, reciben su link de pago
+            y compran. La guía se entrega en el chat al confirmarse el pago.
+          </p>
+        </div>
+
+        {/* Inbox de WhatsApp embebido — chat inline, igual que la sección WhatsApp */}
+        <div className="mp-wa-inbox">
+          <AdminWhatsApp guideOnly />
+        </div>
+      </>
+      )}
     </div>
   );
 }

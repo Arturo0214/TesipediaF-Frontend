@@ -28,6 +28,7 @@ import {
     FaFacebookF,
     FaFunnelDollar,
     FaCalendarAlt,
+    FaCalendarCheck,
     FaRobot,
     FaShareAlt,
     FaFireAlt,
@@ -80,6 +81,7 @@ const AdminStatus = lazy(() => import('../adminStatus/AdminStatus.jsx'));
 const AdminLoops = lazy(() => import('../adminLoops/AdminLoops.jsx'));
 const AdminContent = lazy(() => import('../adminContent/AdminContent.jsx'));
 const ManageSeguimientos = lazy(() => import('../adminSeguimientos/ManageSeguimientos.jsx'));
+const SeguimientoMensual = lazy(() => import('../adminSeguimientoMensual/SeguimientoMensual.jsx'));
 const LeadsDiario = lazy(() => import('../adminLeadsDiario/LeadsDiario.jsx'));
 const AdminVideoStudio = lazy(() => import('../adminVideoStudio/AdminVideoStudio.jsx'));
 const AdminMercadoPago = lazy(() => import('../adminMercadoPago/AdminMercadoPago.jsx'));
@@ -150,6 +152,7 @@ const AdminPanel = () => {
         if (path.includes('/mensajes')) return 'mensajes';
         if (path.includes('/cotizaciones')) return 'cotizaciones';
         if (path.includes('/proyectos')) return 'proyectos';
+        if (path.includes('/seguimiento-mensual')) return 'seguimientomensual';
         if (path.includes('/seguimientos')) return 'seguimientos';
         if (path.includes('/leads-diario')) return 'leadsdiario';
         if (path.includes('/mercadopago')) return 'mercadopago';
@@ -182,6 +185,7 @@ const AdminPanel = () => {
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos', color: '#A78BFA' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos', color: '#F472B6' },
         { key: 'seguimientos', icon: FaFileInvoiceDollar, label: 'Seguimientos', section: 'principal', path: '/admin/seguimientos', color: '#F59E0B' },
+        { key: 'seguimientomensual', icon: FaCalendarCheck, label: 'Seguimiento Mensual', section: 'principal', path: '/admin/seguimiento-mensual', color: '#60A5FA' },
         { key: 'leadsdiario', icon: FaUserClock, label: 'Leads del Día', section: 'principal', path: '/admin/leads-diario', color: '#22C55E' },
         { key: 'calendarios', icon: FaCalendarAlt, label: 'Calendarios', section: 'principal', path: '/admin/calendarios', color: '#38BDF8' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp', color: '#25D366' },
@@ -336,6 +340,7 @@ const AdminPanel = () => {
         pagos: ManagePayments,
         mercadopago: AdminMercadoPago,
         seguimientos: ManageSeguimientos,
+        seguimientomensual: SeguimientoMensual,
         leadsdiario: LeadsDiario,
         visitas: ManageVisits,
         usuarios: ManageUsers,

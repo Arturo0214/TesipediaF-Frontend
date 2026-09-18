@@ -17,8 +17,36 @@ export async function getLeads(origen = 'regular', limit = 100, offset = 0, filt
   if (filters.atendido && filters.atendido !== 'all') params.set('atendido', filters.atendido);
   if (filters.fecha) params.set('fecha', filters.fecha);
   if (filters.search) params.set('search', filters.search);
+  if (filters.campania && filters.campania !== 'all') params.set('campania', filters.campania);
   const { data } = await axiosWithAuth.get(`${BASE}/leads?${params.toString()}`);
   return data; // { leads: [...], total, limit, offset, hasMore }
+}
+
+/**
+ * Listar campañas Meta presentes en los leads (con conteo) + conteo del embudo de guías.
+ * Para poblar el filtro de campaña del inbox con TODAS las campañas, no solo las cargadas.
+ */
+export async function getLeadCampaigns() {
+  const { data } = await axiosWithAuth.get(`${BASE}/leads-campaigns`);
+  return { campaigns: data?.campaigns || [], guias: data?.guias || 0 };
+}
+
+/**
+ * Obtener SOLO los leads del embudo de la campaña de guías (estado_sofia = guia_*).
+ * Devuelve la forma mínima para pintar la lista; el chat completo se carga con getLeadByWaId al abrir.
+ */
+export async function getGuideLeads() {
+  const { data } = await axiosWithAuth.get('/guias/admin/whatsapp-leads');
+  const raw = Array.isArray(data?.leads) ? data.leads : [];
+  return raw.map((l) => ({
+    wa_id: l.waId,
+    nombre: l.nombre || 'Lead',
+    estado_sofia: l.estado,
+    ultimo_mensaje_preview: l.ultimoMensaje || '',
+    updated_at: l.actualizado,
+    mensajes_sin_leer: 0,
+    etiquetas: [],
+  }));
 }
 
 /**
