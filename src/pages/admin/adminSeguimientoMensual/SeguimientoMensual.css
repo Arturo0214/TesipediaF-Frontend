@@ -276,6 +276,8 @@
 }
 .sm-upload:hover { border-color: var(--s-blue); background: rgba(59, 130, 246, 0.08); }
 .sm-upload.busy { opacity: 0.6; pointer-events: none; }
+.sm-upload.drag { border-color: var(--s-green); background: rgba(16, 185, 129, 0.14); color: #6EE7B7; transform: scale(1.01); }
+.sm-upload.drag svg { transform: translateY(-2px); }
 .sm-upload svg { font-size: 1rem; }
 .sm-upload-hint { font-size: 0.66rem; color: var(--s-faint); text-align: center; margin-top: 0.3rem; }
 

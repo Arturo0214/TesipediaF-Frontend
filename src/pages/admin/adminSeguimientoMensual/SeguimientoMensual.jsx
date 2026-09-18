@@ -56,6 +56,38 @@ const fmtNotaFecha = (d) => {
   return `${dia} · ${hora}`;
 };
 
+const fmtBytes = (b) => {
+  if (!b && b !== 0) return '';
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+};
+// Comprime imágenes client-side (canvas). Otros tipos se devuelven tal cual.
+const compressImage = (file) => new Promise((resolve) => {
+  if (!file || !file.type?.startsWith('image/') || file.type === 'image/gif' || file.type === 'image/svg+xml') return resolve(file);
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    const MAX = 1600; // lado máximo
+    let { width, height } = img;
+    if (width > MAX || height > MAX) {
+      const scale = Math.min(MAX / width, MAX / height);
+      width = Math.round(width * scale); height = Math.round(height * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+    canvas.toBlob((blob) => {
+      if (!blob || blob.size >= file.size) return resolve(file); // sin ganancia → original
+      const nombre = file.name.replace(/\.(png|jpe?g|webp|bmp|tiff?)$/i, '') + '.jpg';
+      resolve(new File([blob], nombre, { type: 'image/jpeg', lastModified: file.lastModified || Date.now() }));
+    }, 'image/jpeg', 0.72);
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+  img.src = url;
+});
+
 const mxn = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(Math.round(n || 0));
 const mxnExact = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n || 0);
 const soloDigitos = (s) => String(s || '').replace(/\D/g, '');
@@ -101,6 +133,7 @@ const SeguimientoMensual = () => {
   const [openReply, setOpenReply] = useState(null); // noteId con el input de contestación abierto
   const [editName, setEditName] = useState(null);   // rowId cuyo nombre se está editando
   const [nameInput, setNameInput] = useState('');    // texto del nombre en edición
+  const [dragRow, setDragRow] = useState(null);      // rowId sobre el que se arrastra un archivo
   // Filtros
   const [search, setSearch] = useState('');
   const [vendedorFilter, setVendedorFilter] = useState('todos');
@@ -321,12 +354,15 @@ const SeguimientoMensual = () => {
 
   const handleUploadArchivo = async (row, file) => {
     if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB'); return; }
     setSaving(`file-${row.id}`);
     try {
-      const { archivos } = await uploadArchivo('quote', row.id, file);
+      const original = file.size;
+      const f = await compressImage(file).catch(() => file);
+      if (f.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB (aún comprimido)'); return; }
+      const { archivos } = await uploadArchivo('quote', row.id, f);
       setSegMap((prev) => { const n = new Map(prev); n.set(String(row.id), { ...(n.get(String(row.id)) || {}), archivos }); return n; });
-      toast.success('Archivo subido ✅');
+      if (f.size < original * 0.95) toast.success(`Subido y comprimido: ${fmtBytes(original)} → ${fmtBytes(f.size)} ✅`);
+      else toast.success('Archivo subido ✅');
     } catch { toast.error('No se pudo subir el archivo'); }
     finally { setSaving(null); }
   };
@@ -663,13 +699,19 @@ const SeguimientoMensual = () => {
                             {/* Historial de archivos */}
                             <div className="sm-detail-col">
                               <h4><FaPaperclip /> Historial de archivos {r.archivos?.length > 0 && <span className="sm-count">({r.archivos.length})</span>}</h4>
-                              <label className={`sm-upload ${saving === `file-${r.id}` ? 'busy' : ''}`}>
+                              <label
+                                className={`sm-upload ${saving === `file-${r.id}` ? 'busy' : ''} ${dragRow === r.id ? 'drag' : ''}`}
+                                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (dragRow !== r.id) setDragRow(r.id); }}
+                                onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(r.id); }}
+                                onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); }}
+                                onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); const f = e.dataTransfer?.files?.[0]; handleUploadArchivo(r, f); }}
+                              >
                                 <FaCloudUploadAlt />
-                                {saving === `file-${r.id}` ? 'Subiendo…' : 'Subir archivo'}
+                                {saving === `file-${r.id}` ? 'Subiendo…' : dragRow === r.id ? 'Suelta el archivo aquí' : 'Arrastra un archivo o haz clic'}
                                 <input type="file" hidden disabled={saving === `file-${r.id}`}
                                   onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; handleUploadArchivo(r, f); }} />
                               </label>
-                              <div className="sm-upload-hint">PDF, Word, imágenes… (máx 15 MB)</div>
+                              <div className="sm-upload-hint">PDF, Word, imágenes… (imágenes se comprimen · máx 15 MB)</div>
                               {r.archivos?.length > 0 ? (
                                 <div className="sm-files">
                                   {[...r.archivos].map((a, i) => ({ a, i })).reverse().map(({ a, i }) => (
