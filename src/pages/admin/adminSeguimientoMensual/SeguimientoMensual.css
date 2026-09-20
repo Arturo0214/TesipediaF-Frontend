@@ -300,3 +300,106 @@
   .sm-kpis { grid-template-columns: repeat(2, 1fr); }
   .sm-col-fecha { display: none; }
 }
+
+/* ═══ Pestañas de la sección (Entregas / Flujo / Pendientes) ═══ */
+.sm-tabs { display: flex; gap: 8px; margin: 14px 0 16px; flex-wrap: wrap; }
+.sm-tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 0.92rem;
+    background: rgba(255, 255, 255, 0.04); color: #9CA3AF;
+    border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; transition: all .15s;
+}
+.sm-tab:hover { color: #E5E7EB; border-color: rgba(255, 255, 255, 0.2); }
+.sm-tab.active { background: rgba(59, 130, 246, 0.14); color: #93C5FD; border-color: #3B82F6; }
+.sm-tab-badge {
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; background: #3B82F6; color: #fff;
+}
+.sm-tab-badge.red { background: #EF4444; animation: sm-pulse 2s infinite; }
+
+/* ═══ Señal de atención del lead ═══ */
+.sm-att-chip {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 4px;
+    padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600;
+}
+.sm-att-chip.green { background: rgba(16, 185, 129, 0.14); color: #34D399; }
+.sm-att-chip.amber { background: rgba(245, 158, 11, 0.14); color: #FBBF24; }
+.sm-att-chip.red { background: rgba(239, 68, 68, 0.16); color: #F87171; }
+.sm-att-chip.gray { background: rgba(255, 255, 255, 0.06); color: #9CA3AF; }
+.sm-att-chip.pulse { animation: sm-pulse 2s infinite; }
+@keyframes sm-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); } 50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); } }
+.sm-att-detail { font-size: 0.72rem; color: #9CA3AF; margin-top: 3px; }
+
+/* ═══ Prioritario (estrella) ═══ */
+.sm-prio-btn {
+    background: none; border: none; cursor: pointer; padding: 2px;
+    color: #6B7280; font-size: 0.95rem; display: inline-flex; align-items: center;
+    transition: color .15s, transform .15s;
+}
+.sm-prio-btn:hover { color: #FBBF24; transform: scale(1.15); }
+.sm-prio-btn.on { color: #FBBF24; }
+.sm-row.sm-prio { background: rgba(251, 191, 36, 0.05); box-shadow: inset 3px 0 0 #FBBF24; }
+
+/* ═══ Fechas relativas y pago con atraso ═══ */
+.sm-fecha-rel { font-size: 0.72rem; color: #9CA3AF; }
+.sm-paid-date { font-size: 0.72rem; color: #34D399; margin-top: 2px; }
+.sm-late { color: #F87171; font-weight: 700; }
+
+/* ═══ Acuerdos (correcciones + fecha de entrega) ═══ */
+.sm-acuerdo-form { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sm-acuerdo-form input[type="date"] {
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #E5E7EB; border-radius: 8px; padding: 6px 8px; font-size: 0.82rem;
+    color-scheme: dark;
+}
+.sm-acuerdo-form input:not([type="date"]) {
+    flex: 1; min-width: 180px;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #E5E7EB; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem;
+}
+.sm-acuerdos-list { display: flex; flex-direction: column; gap: 5px; margin: 8px 0; }
+.sm-acuerdo {
+    display: flex; align-items: flex-start; gap: 8px;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px; padding: 6px 10px; font-size: 0.82rem; color: #D1D5DB;
+}
+.sm-acuerdo.ff { border-color: rgba(167, 139, 250, 0.35); }
+.sm-acuerdo-src { color: #A78BFA; margin-top: 2px; flex-shrink: 0; }
+.sm-acuerdo .sm-acuerdo-txt { flex: 1; }
+.sm-acuerdo-txt b { color: #93C5FD; }
+.sm-acuerdo-meta { color: #6B7280; font-size: 0.72rem; }
+.sm-cell-acuerdo { max-width: 340px; }
+.sm-col-act-lg { width: 300px; }
+
+/* ═══ Botón Fireflies + toolbar de Entregas ═══ */
+.sm-toolbar-entregas { justify-content: space-between; align-items: center; }
+.sm-entregas-hint { color: #9CA3AF; font-size: 0.85rem; max-width: 640px; }
+.sm-btn-ff {
+    background: linear-gradient(135deg, #7C3AED, #A78BFA); color: #fff;
+    display: inline-flex; align-items: center; gap: 8px;
+}
+.sm-btn-ff:hover { filter: brightness(1.1); }
+.sm-btn-ff:disabled { opacity: 0.7; cursor: wait; }
+
+/* ═══ Cotizaciones del lead ═══ */
+.sm-cots-toggle {
+    background: none; border: none; cursor: pointer; color: #93C5FD;
+    display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600;
+    padding: 2px 0;
+}
+.sm-cots-toggle:hover { text-decoration: underline; }
+.sm-cots-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.sm-cot {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px; padding: 5px 9px; font-size: 0.78rem; color: #D1D5DB;
+}
+.sm-cot.is-current { border-color: rgba(16, 185, 129, 0.4); }
+.sm-cot-title { flex: 1; min-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-cot-precio { font-weight: 700; color: #E5E7EB; }
+.sm-cot-fecha { color: #6B7280; }
+.sm-cot-badge {
+    font-size: 0.68rem; font-weight: 700; color: #34D399;
+    background: rgba(16, 185, 129, 0.12); border-radius: 999px; padding: 1px 7px;
+}

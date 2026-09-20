@@ -4,11 +4,15 @@ import {
   FaCalendarCheck, FaSyncAlt, FaSearch, FaWhatsapp, FaCheckCircle, FaExclamationTriangle,
   FaRegClock, FaBan, FaChevronDown, FaChevronRight, FaFileCsv, FaStickyNote, FaTrashAlt,
   FaRegCircle, FaUserTie, FaMoneyBillWave, FaPaperclip, FaCloudUploadAlt, FaFileAlt,
-  FaPencilAlt, FaCheck, FaTimes,
+  FaPencilAlt, FaCheck, FaTimes, FaHandshake, FaMicrophone, FaShippingFast, FaListAlt,
+  FaFileInvoiceDollar, FaStar, FaRegStar,
 } from 'react-icons/fa';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import revenueService from '../../../services/revenueService';
-import { getSeguimientos, addNota, deleteNota, updateSeguimiento, uploadArchivo, deleteArchivo } from '../../../services/seguimientoService';
+import {
+  getSeguimientos, addNota, deleteNota, updateSeguimiento, uploadArchivo, deleteArchivo,
+  addAcuerdo, deleteAcuerdo, syncFireflies,
+} from '../../../services/seguimientoService';
 import './SeguimientoMensual.css';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -92,6 +96,23 @@ const mxn = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency:
 const mxnExact = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n || 0);
 const soloDigitos = (s) => String(s || '').replace(/\D/g, '');
 const fmtFecha = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' }) : '—';
+const fmtFechaFull = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+const DAY = 24 * 60 * 60 * 1000;
+// Días (enteros) desde/hasta una fecha, medidos por día calendario
+const diasHasta = (d) => {
+  if (!d) return null;
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const f = new Date(d); f.setHours(0, 0, 0, 0);
+  return Math.round((f - hoy) / DAY);
+};
+const relDias = (d) => {
+  const n = diasHasta(d);
+  if (n === null) return '';
+  if (n === 0) return 'hoy';
+  if (n > 0) return `en ${n}d`;
+  return `hace ${-n}d`;
+};
 
 // Estado de pago de un renglón según sus parcialidades del periodo seleccionado
 function calcEstadoPago({ montoSel, cobradoSel, porCobrarSel, perdidoSel, vencidoSel }) {
@@ -119,12 +140,49 @@ const PROJ_STATUS = {
   cancelled: { label: 'Cancelado', color: '#EF4444' },
 };
 
+const COT_STATUS = {
+  paid: { label: 'Pagada', cls: 'sm-chip-green' },
+  pending: { label: 'Pendiente', cls: 'sm-chip-amber' },
+  approved: { label: 'Aprobada', cls: 'sm-chip-amber' },
+  rejected: { label: 'Rechazada', cls: 'sm-chip-gray' },
+  cancelled: { label: 'Cancelada', cls: 'sm-chip-gray' },
+};
+
+// Señal de atención del lead: ¿le respondimos? ¿hace cuánto fue el último seguimiento?
+const AtencionChip = ({ atencion }) => {
+  if (!atencion) return null;
+  if (atencion.sinRespuesta) {
+    return (
+      <span className="sm-att-chip red pulse" title={`El lead escribió y nadie le ha contestado (${atencion.diasSinRespuesta ?? '?'} días)`}>
+        <FaExclamationTriangle /> Sin responder al lead · {atencion.diasSinRespuesta ?? '?'}d
+      </span>
+    );
+  }
+  if (atencion.lastSeguimientoAt) {
+    const d = atencion.diasSinSeguimiento ?? 0;
+    const cls = d <= 3 ? 'green' : d <= 7 ? 'amber' : 'red';
+    return (
+      <span className={`sm-att-chip ${cls}`} title={`Último seguimiento: ${fmtNotaFecha(atencion.lastSeguimientoAt)}`}>
+        <FaCheckCircle /> {d === 0 ? 'Atendido hoy' : `Seguimiento hace ${d}d`}
+      </span>
+    );
+  }
+  return (
+    <span className="sm-att-chip red pulse" title="No hay respuestas de WhatsApp ni notas registradas para este lead">
+      <FaRegCircle /> Sin seguimiento
+    </span>
+  );
+};
+
 const SeguimientoMensual = () => {
   const now = new Date();
+  const [view, setView] = useState('entregas'); // entregas | flujo | pendientes
   const [year, setYear] = useState(now.getFullYear());
   const [selKey, setSelKey] = useState(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
   const [cf, setCf] = useState(null);          // { monthly, yearTotals, projects }
-  const [segMap, setSegMap] = useState(new Map()); // quoteId -> { notas, estado, vendedor }
+  const [segRows, setSegRows] = useState([]);  // filas completas de /seguimientos (globales)
+  const [segTotales, setSegTotales] = useState(null);
+  const [segMap, setSegMap] = useState(new Map()); // quoteId -> capa manual + atención
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
   const [expanded, setExpanded] = useState(new Set());
@@ -135,7 +193,13 @@ const SeguimientoMensual = () => {
   const [nameInput, setNameInput] = useState('');    // texto del nombre en edición
   const [dragRow, setDragRow] = useState(null);      // rowId sobre el que se arrastra un archivo
   const fileInputsRef = useRef({});                  // rowId -> <input type=file>
-  // Filtros
+  // Acuerdos (correcciones + fecha de entrega)
+  const [acuerdoOpen, setAcuerdoOpen] = useState(null); // rowId con el editor abierto
+  const [acuerdoTexto, setAcuerdoTexto] = useState('');
+  const [acuerdoFecha, setAcuerdoFecha] = useState('');
+  const [syncingFF, setSyncingFF] = useState(false);
+  const [cotOpen, setCotOpen] = useState(new Set());    // rowIds con cotizaciones desplegadas
+  // Filtros (pestaña flujo)
   const [search, setSearch] = useState('');
   const [vendedorFilter, setVendedorFilter] = useState('todos');
   const [estadoFilter, setEstadoFilter] = useState('todos');
@@ -156,17 +220,23 @@ const SeguimientoMensual = () => {
     try {
       const [cfData, seg] = await Promise.all([
         revenueService.getCashflow(year),
-        getSeguimientos().catch(() => ({ rows: [] })),
+        getSeguimientos().catch(() => ({ rows: [], totales: null })),
       ]);
       setCf(cfData);
+      setSegRows(seg?.rows || []);
+      setSegTotales(seg?.totales || null);
       const map = new Map();
       for (const r of (seg?.rows || [])) {
-        map.set(String(r.id), { notas: r.notas || [], estado: r.estado || 'sin_gestion', vendedor: r.vendedor || '', archivos: r.archivos || [], nombre: r.nombre || '' });
+        map.set(String(r.id), {
+          notas: r.notas || [], estado: r.estado || 'sin_gestion', vendedor: r.vendedor || '',
+          archivos: r.archivos || [], nombre: r.nombre || '', prioritario: !!r.prioritario,
+          atencion: r.atencion || null, acuerdos: r.acuerdos || [], cotizaciones: r.cotizaciones || [],
+        });
       }
       setSegMap(map);
     } catch (err) {
       toast.error('No se pudo cargar el seguimiento');
-      console.error('SeguimientoMensual fetch:', err);
+      console.error('Seguimiento fetch:', err);
     } finally {
       setLoading(false);
     }
@@ -221,6 +291,9 @@ const SeguimientoMensual = () => {
       vendedorFinal: p.vendedor || seg.vendedor || '',
       client: seg.nombre || p.client || 'Cliente',
       sinNombre: sinNombre && !seg.nombre,
+      atencion: seg.atencion || null,
+      acuerdos: seg.acuerdos || [],
+      prioritario: !!seg.prioritario,
     };
   }, [selKey, year, segMap, hoy]);
 
@@ -249,6 +322,7 @@ const SeguimientoMensual = () => {
     });
     const rank = { vencido: 0, por_cobrar: 1, pagado: 2, perdido: 3, sin_cobro: 4 };
     arr.sort((a, b) => {
+      if (a.prioritario !== b.prioritario) return b.prioritario - a.prioritario;
       if (rank[a.estadoPago] !== rank[b.estadoPago]) return rank[a.estadoPago] - rank[b.estadoPago];
       return (b.montoSel || 0) - (a.montoSel || 0);
     });
@@ -273,8 +347,47 @@ const SeguimientoMensual = () => {
     porCobrar: a.porCobrar + r.porCobrarSel, vencido: a.vencido + r.vencidoSel,
   }), { monto: 0, cobrado: 0, porCobrar: 0, vencido: 0 }), [rows]);
 
+  // ── Pestaña ENTREGAS: proyectos por entregar, ordenados por fecha ──
+  const entregasRows = useMemo(() => {
+    const activos = segRows.filter((r) => r.projectStatus !== 'completed' && r.projectStatus !== 'cancelled' && r.estado !== 'incobrable');
+    return [...activos].sort((a, b) => {
+      if (!!a.prioritario !== !!b.prioritario) return !!b.prioritario - !!a.prioritario;
+      const fa = a.fechaEntrega ? new Date(a.fechaEntrega).getTime() : Infinity;
+      const fb = b.fechaEntrega ? new Date(b.fechaEntrega).getTime() : Infinity;
+      return fa - fb;
+    });
+  }, [segRows]);
+
+  // ── Pestaña PENDIENTES: sin respuesta / vencimientos / cotizaciones ──
+  const pendientesRows = useMemo(() => {
+    const arr = segRows.filter((r) => (r.porCobrarActivo || 0) > 0.5 || r.atencion?.sinRespuesta);
+    return [...arr].sort((a, b) => {
+      if (!!a.prioritario !== !!b.prioritario) return !!b.prioritario - !!a.prioritario;
+      const sa = a.atencion?.sinRespuesta ? 0 : 1;
+      const sb = b.atencion?.sinRespuesta ? 0 : 1;
+      if (sa !== sb) return sa - sb;
+      if ((b.nVencidas > 0) !== (a.nVencidas > 0)) return (b.nVencidas > 0) - (a.nVencidas > 0);
+      return (b.porCobrarActivo || 0) - (a.porCobrarActivo || 0);
+    });
+  }, [segRows]);
+
+  const pendKpis = useMemo(() => {
+    const sinRespuesta = segRows.filter((r) => r.atencion?.sinRespuesta).length;
+    const vencidoActivo = segRows.reduce((a, r) => a + (r.nVencidas > 0 ? (r.porCobrarActivo || 0) : 0), 0);
+    const cobradoConAtraso = segTotales?.cobradoConAtraso || 0;
+    const entregas7d = segRows.filter((r) => {
+      if (r.projectStatus === 'completed' || r.projectStatus === 'cancelled') return false;
+      const d = diasHasta(r.fechaEntrega);
+      return d !== null && d >= 0 && d <= 7;
+    }).length;
+    return { sinRespuesta, vencidoActivo, cobradoConAtraso, entregas7d };
+  }, [segRows, segTotales]);
+
   // ── Acciones ──
   const toggleExpand = (id) => setExpanded((prev) => {
+    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
+  });
+  const toggleCot = (id) => setCotOpen((prev) => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
 
@@ -282,13 +395,14 @@ const SeguimientoMensual = () => {
     const key = `${quoteId}-${idx}`;
     setSaving(key);
     try {
-      await axiosWithAuth.patch(`/payments/dashboard/${quoteId}/installment?source=sofia`, { installmentIndex: idx, status });
-      // Actualizar localmente sin recargar todo
+      const { data } = await axiosWithAuth.patch(`/payments/dashboard/${quoteId}/installment?source=sofia`, { installmentIndex: idx, status });
+      const paidAtMap = data?.installmentPaidAt || {};
+      // Actualizar localmente sin recargar todo (incluida la fecha real de pago)
       setCf((prev) => {
         if (!prev) return prev;
         const projects = prev.projects.map((p) => {
           if (String(p.id) !== String(quoteId)) return p;
-          return { ...p, installments: p.installments.map((it) => it.idx === idx ? { ...it, status } : it) };
+          return { ...p, installments: p.installments.map((it) => it.idx === idx ? { ...it, status, paidAt: paidAtMap[String(idx)] || null } : it) };
         });
         return { ...prev, projects };
       });
@@ -384,6 +498,69 @@ const SeguimientoMensual = () => {
     } catch { toast.error('No se pudo borrar el archivo'); }
   };
 
+  // ── Prioritario: estrella que sube el lead al inicio de todas las pestañas ──
+  const handleTogglePrioritario = async (rowId, actual) => {
+    const nuevo = !actual;
+    setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId) ? { ...r, prioritario: nuevo } : r));
+    setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), prioritario: nuevo }); return n; });
+    try { await updateSeguimiento('quote', rowId, { prioritario: nuevo }); }
+    catch {
+      toast.error('No se pudo cambiar la prioridad');
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId) ? { ...r, prioritario: actual } : r));
+      setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), prioritario: actual }); return n; });
+    }
+  };
+
+  const PrioBtn = ({ row }) => (
+    <button
+      className={`sm-prio-btn ${row.prioritario ? 'on' : ''}`}
+      onClick={(e) => { e.stopPropagation(); handleTogglePrioritario(row.id, !!row.prioritario); }}
+      title={row.prioritario ? 'Quitar prioridad' : 'Marcar como prioritario'}
+    >
+      {row.prioritario ? <FaStar /> : <FaRegStar />}
+    </button>
+  );
+
+  // ── Acuerdos: correcciones + fecha de entrega ──
+  const openAcuerdo = (rowId) => { setAcuerdoOpen(rowId); setAcuerdoTexto(''); setAcuerdoFecha(''); };
+  const handleAddAcuerdo = async (rowId) => {
+    if (!acuerdoTexto.trim() && !acuerdoFecha) { toast.error('Escribe las correcciones o pon una fecha de entrega'); return; }
+    setSaving(`acuerdo-${rowId}`);
+    try {
+      const { acuerdos, fechaEntrega } = await addAcuerdo('quote', rowId, { texto: acuerdoTexto, fechaEntrega: acuerdoFecha || null });
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId)
+        ? { ...r, acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null, fechaEntrega: fechaEntrega || r.fechaEntrega }
+        : r));
+      setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), acuerdos }); return n; });
+      setAcuerdoOpen(null); setAcuerdoTexto(''); setAcuerdoFecha('');
+      toast.success('Acuerdo guardado ✅');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'No se pudo guardar el acuerdo');
+    } finally { setSaving(null); }
+  };
+  const handleDelAcuerdo = async (rowId, acuerdoId) => {
+    if (!window.confirm('¿Eliminar este acuerdo?')) return;
+    try {
+      const { acuerdos } = await deleteAcuerdo('quote', rowId, acuerdoId);
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId)
+        ? { ...r, acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null }
+        : r));
+      setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), acuerdos }); return n; });
+    } catch { toast.error('No se pudo borrar el acuerdo'); }
+  };
+
+  const handleSyncFireflies = async () => {
+    setSyncingFF(true);
+    try {
+      const r = await syncFireflies(21);
+      if (r.nuevos > 0) toast.success(`🎙 ${r.nuevos} acuerdo(s) importados de ${r.procesadas} sesión(es)`);
+      else toast(r.nota || `Sin acuerdos nuevos (${r.meetings} sesiones revisadas)`);
+      await fetchAll();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'No se pudo sincronizar Fireflies');
+    } finally { setSyncingFF(false); }
+  };
+
   const exportCsv = () => {
     const headers = ['Cliente', 'Proyecto', 'Número', 'Monto periodo', 'Cobrado', 'Por cobrar', 'Vencido', 'Estado pago', 'Atención', 'Avance', 'Entrega', 'Gestión', 'Última nota'];
     const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
@@ -402,376 +579,655 @@ const SeguimientoMensual = () => {
     URL.revokeObjectURL(url);
   };
 
-  const yearOptions = [now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2];
+  // Incluye el año siguiente para poder programar cobros/entregas a futuro
+  const yearOptions = [now.getFullYear() + 1, now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2];
+
+  // Editor inline de acuerdo (se usa en Entregas y en el detalle del flujo)
+  const renderAcuerdoEditor = (rowId) => (
+    <div className="sm-acuerdo-form" onClick={(e) => e.stopPropagation()}>
+      <input
+        type="date"
+        value={acuerdoFecha}
+        onChange={(e) => setAcuerdoFecha(e.target.value)}
+        title="Fecha de entrega acordada"
+      />
+      <input
+        autoFocus
+        placeholder="Correcciones / acuerdo con el lead…"
+        value={acuerdoTexto}
+        onChange={(e) => setAcuerdoTexto(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') handleAddAcuerdo(rowId); if (e.key === 'Escape') setAcuerdoOpen(null); }}
+      />
+      <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={saving === `acuerdo-${rowId}`} onClick={() => handleAddAcuerdo(rowId)}>
+        {saving === `acuerdo-${rowId}` ? '…' : 'Guardar'}
+      </button>
+      <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={() => setAcuerdoOpen(null)}>✕</button>
+    </div>
+  );
+
+  const renderAcuerdosList = (row, limit = 3) => {
+    const acuerdos = row.acuerdos || [];
+    if (!acuerdos.length) return null;
+    return (
+      <div className="sm-acuerdos-list">
+        {[...acuerdos].reverse().slice(0, limit).map((a) => (
+          <div key={a._id || a.creadoEn} className={`sm-acuerdo ${a.fuente === 'fireflies' ? 'ff' : ''}`}>
+            <span className="sm-acuerdo-src" title={a.fuente === 'fireflies' ? `Fireflies: ${a.meetingTitle || 'sesión'}` : `Manual · ${a.autor || ''}`}>
+              {a.fuente === 'fireflies' ? <FaMicrophone /> : <FaHandshake />}
+            </span>
+            <span className="sm-acuerdo-txt">
+              {a.texto || <em>Sin correcciones</em>}
+              {a.fechaEntrega && <b> · Entrega: {fmtFechaFull(a.fechaEntrega)}</b>}
+              <span className="sm-acuerdo-meta"> ({fmtFecha(a.meetingDate || a.creadoEn)})</span>
+            </span>
+            <button className="sm-nota-del" onClick={(e) => { e.stopPropagation(); handleDelAcuerdo(row.id, a._id); }} title="Eliminar acuerdo"><FaTrashAlt /></button>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderCotizaciones = (row) => {
+    const cots = row.cotizaciones || [];
+    const abierto = cotOpen.has(row.id);
+    return (
+      <div className="sm-cots">
+        <button className="sm-cots-toggle" onClick={(e) => { e.stopPropagation(); toggleCot(row.id); }}>
+          <FaFileInvoiceDollar /> {cots.length} cotización{cots.length !== 1 ? 'es' : ''} {abierto ? <FaChevronDown /> : <FaChevronRight />}
+        </button>
+        {abierto && (
+          <div className="sm-cots-list" onClick={(e) => e.stopPropagation()}>
+            {cots.length === 0 && <div className="sm-faint">Sin cotizaciones registradas para este contacto.</div>}
+            {cots.map((c) => {
+              const meta = COT_STATUS[c.status] || { label: c.status, cls: 'sm-chip-gray' };
+              return (
+                <div key={c.id} className={`sm-cot ${String(c.id) === String(row.id) ? 'is-current' : ''}`}>
+                  <span className="sm-cot-title" title={c.titulo}>{c.titulo}</span>
+                  <span className="sm-cot-precio">{mxn(c.precio)}</span>
+                  <span className={`sm-chip ${meta.cls}`}>{meta.label}</span>
+                  <span className="sm-cot-fecha">{fmtFechaFull(c.fecha)}</span>
+                  {String(c.id) === String(row.id) && <span className="sm-cot-badge">en tablero</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="sm-wrap">
       {/* Header */}
       <div className="sm-head">
         <div>
-          <h2><FaCalendarCheck /> Seguimiento Mensual</h2>
-          <p className="sm-sub">Todos tus proyectos activos, empatados con Revenue, en flujo de caja mes a mes.</p>
+          <h2><FaCalendarCheck /> Seguimiento</h2>
+          <p className="sm-sub">Entregas, flujo de caja y pendientes de todos tus proyectos activos.</p>
         </div>
         <div className="sm-head-actions">
           <select className="sm-select" value={year} onChange={(e) => setYear(Number(e.target.value))}>
             {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
-          <button className="sm-btn sm-btn-ghost" onClick={exportCsv} disabled={!rows.length} title="Exportar a CSV">
-            <FaFileCsv /> CSV
-          </button>
+          {view === 'flujo' && (
+            <button className="sm-btn sm-btn-ghost" onClick={exportCsv} disabled={!rows.length} title="Exportar a CSV">
+              <FaFileCsv /> CSV
+            </button>
+          )}
           <button className="sm-btn sm-btn-ghost" onClick={fetchAll} disabled={loading} title="Actualizar">
             <FaSyncAlt className={loading ? 'sm-spin' : ''} />
           </button>
         </div>
       </div>
 
-      {/* Pestañas de mes */}
-      <div className="sm-months">
-        <button className={`sm-month ${selKey === 'year' ? 'active' : ''}`} onClick={() => setSelKey('year')}>
-          <span className="sm-month-name">Todo {year}</span>
-          <span className="sm-month-amt">{mxn(cf?.yearTotals?.porCobrar || 0)} <em>x cobrar</em></span>
+      {/* Pestañas de la sección */}
+      <div className="sm-tabs">
+        <button className={`sm-tab ${view === 'entregas' ? 'active' : ''}`} onClick={() => setView('entregas')}>
+          <FaShippingFast /> Entregas
+          {pendKpis.entregas7d > 0 && <span className="sm-tab-badge">{pendKpis.entregas7d}</span>}
         </button>
-        {months.map((m) => {
-          const activo = selKey === m.key;
-          const tiene = m.vendido > 0 || m.cobrado > 0 || m.porCobrar > 0;
-          return (
-            <button key={m.key} className={`sm-month ${activo ? 'active' : ''} ${tiene ? 'has' : 'empty'}`} onClick={() => setSelKey(m.key)}>
-              <span className="sm-month-name">{m.corto}</span>
-              {m.porCobrar > 0
-                ? <span className="sm-month-amt amber">{mxn(m.porCobrar)} <em>x cobrar</em></span>
-                : m.cobrado > 0
-                  ? <span className="sm-month-amt green">{mxn(m.cobrado)} <em>cobrado</em></span>
-                  : <span className="sm-month-amt faint">—</span>}
-            </button>
-          );
-        })}
+        <button className={`sm-tab ${view === 'flujo' ? 'active' : ''}`} onClick={() => setView('flujo')}>
+          <FaMoneyBillWave /> Flujo de caja
+        </button>
+        <button className={`sm-tab ${view === 'pendientes' ? 'active' : ''}`} onClick={() => setView('pendientes')}>
+          <FaListAlt /> Pendientes
+          {(pendKpis.sinRespuesta > 0) && <span className="sm-tab-badge red">{pendKpis.sinRespuesta}</span>}
+        </button>
       </div>
 
-      {/* KPIs del periodo */}
-      <div className="sm-kpis">
-        <div className="sm-kpi"><span className="sm-kpi-lbl">Vendido · {kpis.label}</span><span className="sm-kpi-val">{mxn(kpis.vendido)}</span></div>
-        <div className="sm-kpi green"><span className="sm-kpi-lbl">Cobrado</span><span className="sm-kpi-val">{mxn(kpis.cobrado)}</span></div>
-        <div className="sm-kpi amber"><span className="sm-kpi-lbl">Por cobrar</span><span className="sm-kpi-val">{mxn(kpis.porCobrar)}</span></div>
-        <div className="sm-kpi red"><span className="sm-kpi-lbl">Vencido</span><span className="sm-kpi-val">{mxn(kpis.vencido)}</span></div>
-        <div className="sm-kpi gray"><span className="sm-kpi-lbl">Perdido</span><span className="sm-kpi-val">{mxn(kpis.perdido)}</span></div>
-      </div>
-
-      {/* Toolbar de filtros */}
-      <div className="sm-toolbar">
-        <div className="sm-search">
-          <FaSearch />
-          <input placeholder="Buscar cliente, proyecto, número…" value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
-        <select className="sm-select" value={vendedorFilter} onChange={(e) => setVendedorFilter(e.target.value)}>
-          <option value="todos">Atención: Todos</option>
-          {vendedores.map((v) => <option key={v} value={v}>{v}</option>)}
-        </select>
-        <div className="sm-estado-chips">
-          {[
-            { k: 'todos', l: 'Todos' },
-            { k: 'vencido', l: 'Vencidos' },
-            { k: 'por_cobrar', l: 'Por cobrar' },
-            { k: 'pagado', l: 'Pagados' },
-            { k: 'perdido', l: 'Perdidos' },
-          ].map((c) => (
-            <button key={c.k} className={`sm-fchip ${estadoFilter === c.k ? 'active' : ''}`} onClick={() => setEstadoFilter(c.k)}>{c.l}</button>
-          ))}
-        </div>
-        <label className="sm-toggle">
-          <input type="checkbox" checked={soloActivos} onChange={(e) => setSoloActivos(e.target.checked)} />
-          Solo activos
-        </label>
-      </div>
-
-      {/* Tabla */}
       {loading ? (
         <div className="sm-empty">Cargando seguimiento…</div>
-      ) : !rows.length ? (
-        <div className="sm-empty">No hay proyectos con cobros en {kpis.label}.</div>
-      ) : (
-        <div className="sm-table-wrap">
-          <table className="sm-table">
-            <thead>
-              <tr>
-                <th className="sm-col-exp"></th>
-                <th>Cliente / Proyecto</th>
-                <th className="sm-num sm-col-monto">Monto {selKey === 'year' ? 'año' : 'mes'}</th>
-                <th className="sm-col-estado">Estado</th>
-                <th className="sm-col-vend">Atención</th>
-                <th className="sm-col-prog">Avance</th>
-                <th className="sm-col-fecha">Entrega</th>
-                <th className="sm-col-act"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => {
-                const isOpen = expanded.has(r.id);
-                const meta = ESTADO_META[r.estadoPago];
-                const Icon = meta.icon;
-                const ps = PROJ_STATUS[r.projectStatus];
-                const rowSaving = saving === `row-${r.id}`;
-                const lastNota = r.notas?.length ? r.notas[r.notas.length - 1].texto : '';
-                return (
-                  <React.Fragment key={r.id}>
-                    <tr className={`sm-row ${r.estadoPago}`} onClick={() => toggleExpand(r.id)}>
-                      <td className="sm-col-exp">
-                        <button className="sm-exp-btn" title="Ver detalle">
-                          {isOpen ? <FaChevronDown /> : <FaChevronRight />}
-                        </button>
-                      </td>
-                      <td className="sm-cell-client">
-                        <div className="sm-client-line">
-                          {r.phone && (
-                            <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()} title={`WhatsApp ${r.phone}`}><FaWhatsapp /></a>
-                          )}
-                          {editName === r.id ? (
-                            <span className="sm-name-edit" onClick={(e) => e.stopPropagation()}>
-                              <input autoFocus value={nameInput} placeholder="Nombre del cliente"
-                                onChange={(e) => setNameInput(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(r); if (e.key === 'Escape') setEditName(null); }} />
-                              <button className="sm-name-ok" onClick={() => handleSaveName(r)} title="Guardar"><FaCheck /></button>
-                              <button className="sm-name-cancel" onClick={() => setEditName(null)} title="Cancelar"><FaTimes /></button>
-                            </span>
-                          ) : (
+      ) : view === 'entregas' ? (
+        /* ═══════════════ PESTAÑA ENTREGAS ═══════════════ */
+        <>
+          <div className="sm-toolbar sm-toolbar-entregas">
+            <div className="sm-entregas-hint">
+              Proyectos por entregar, ordenados por fecha. Los acuerdos se cargan a mano
+              (botón <b>Correcciones / entrega</b>) o desde tus sesiones de Fireflies.
+            </div>
+            <button className="sm-btn sm-btn-ff" onClick={handleSyncFireflies} disabled={syncingFF} title="Lee tus sesiones de Fireflies y extrae con IA las fechas y correcciones acordadas">
+              <FaMicrophone className={syncingFF ? 'sm-spin' : ''} /> {syncingFF ? 'Leyendo sesiones…' : 'Sincronizar Fireflies'}
+            </button>
+          </div>
+          {!entregasRows.length ? (
+            <div className="sm-empty">No hay proyectos activos por entregar. 🎉</div>
+          ) : (
+            <div className="sm-table-wrap">
+              <table className="sm-table">
+                <thead>
+                  <tr>
+                    <th>Cliente / Proyecto</th>
+                    <th className="sm-col-prog">Avance</th>
+                    <th className="sm-col-fecha">Entrega</th>
+                    <th>Último acuerdo</th>
+                    <th className="sm-col-act-lg"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entregasRows.map((r) => {
+                    const ps = PROJ_STATUS[r.projectStatus];
+                    const dEnt = diasHasta(r.fechaEntrega);
+                    const entCls = dEnt === null ? 'sm-faint' : dEnt < 0 ? 'sm-red' : dEnt <= 3 ? 'sm-amber' : '';
+                    return (
+                      <tr key={r.id} className={`sm-row ${r.prioritario ? 'sm-prio' : ''}`}>
+                        <td className="sm-cell-client">
+                          <div className="sm-client-line">
+                            <PrioBtn row={r} />
+                            {r.celular && (
+                              <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
+                            )}
+                            <span className="sm-client">{r.cliente}</span>
+                          </div>
+                          <div className="sm-title">{r.title}</div>
+                          <AtencionChip atencion={r.atencion} />
+                        </td>
+                        <td className="sm-col-prog">
+                          {ps ? (
+                            <div className="sm-prog" title={`${ps.label}${r.progress != null ? ` · ${r.progress}%` : ''}`}>
+                              <div className="sm-prog-bar"><span style={{ width: `${r.progress ?? 0}%`, background: ps.color }} /></div>
+                              <span className="sm-prog-lbl" style={{ color: ps.color }}>{r.progress != null ? `${r.progress}%` : ps.label}</span>
+                            </div>
+                          ) : <span className="sm-faint">Sin proyecto</span>}
+                        </td>
+                        <td className={`sm-fecha sm-col-fecha ${entCls}`}>
+                          {r.fechaEntrega ? (
                             <>
-                              {r.sinNombre
-                                ? <button className="sm-name-set" onClick={(e) => { e.stopPropagation(); startEditName(r); }}><FaPencilAlt /> Poner nombre</button>
-                                : <span className="sm-client">{r.client}</span>}
-                              {!r.sinNombre && (
-                                <button className="sm-name-edit-btn" onClick={(e) => { e.stopPropagation(); startEditName(r); }} title="Editar nombre"><FaPencilAlt /></button>
-                              )}
+                              <div>{fmtFechaFull(r.fechaEntrega)}</div>
+                              <div className="sm-fecha-rel">{relDias(r.fechaEntrega)}</div>
                             </>
+                          ) : 'Sin fecha'}
+                        </td>
+                        <td className="sm-cell-acuerdo">
+                          {r.ultimoAcuerdo ? renderAcuerdosList(r, 2) : <span className="sm-faint">Sin acuerdos registrados</span>}
+                        </td>
+                        <td className="sm-col-act-lg">
+                          {acuerdoOpen === r.id ? renderAcuerdoEditor(r.id) : (
+                            <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={() => openAcuerdo(r.id)} title="Registrar correcciones y/o fecha de entrega acordada">
+                              <FaHandshake /> Correcciones / entrega
+                            </button>
                           )}
-                          {r.archivos?.length > 0 && <FaPaperclip className="sm-clip" title={`${r.archivos.length} archivo(s)`} />}
-                        </div>
-                        <div className="sm-title">{r.title}</div>
-                        {lastNota && <div className="sm-lastnote" title={lastNota}><FaStickyNote /> {lastNota}</div>}
-                      </td>
-                      <td className="sm-num sm-col-monto">
-                        <div className="sm-strong">{mxn(r.montoSel)}</div>
-                        <div className="sm-mini-break">
-                          {r.cobradoSel > 0 && <span className="sm-green">✓{mxn(r.cobradoSel)}</span>}
-                          {r.porCobrarSel > 0 && <span className="sm-amber">●{mxn(r.porCobrarSel)}</span>}
-                        </div>
-                      </td>
-                      <td className="sm-col-estado">
-                        <span className={`sm-chip ${meta.cls}`}><Icon /> {meta.label}</span>
-                      </td>
-                      <td className="sm-col-vend">{r.vendedorFinal ? <span className="sm-vend"><FaUserTie /> {r.vendedorFinal}</span> : <span className="sm-faint">—</span>}</td>
-                      <td className="sm-col-prog">
-                        {ps ? (
-                          <div className="sm-prog" title={`${ps.label}${r.progress != null ? ` · ${r.progress}%` : ''}`}>
-                            <div className="sm-prog-bar"><span style={{ width: `${r.progress ?? 0}%`, background: ps.color }} /></div>
-                            <span className="sm-prog-lbl" style={{ color: ps.color }}>{r.progress != null ? `${r.progress}%` : ps.label}</span>
-                          </div>
-                        ) : <span className="sm-faint">—</span>}
-                      </td>
-                      <td className="sm-fecha sm-col-fecha">{fmtFecha(r.dueDate)}</td>
-                      <td className="sm-col-act">
-                        {(r.porCobrarSel > 0.5) && (
-                          <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={rowSaving}
-                            onClick={(e) => { e.stopPropagation(); marcarMesCobrado(r); }} title="Marcar cobrado el mes">
-                            {rowSaving ? '…' : <FaMoneyBillWave />}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                    {isOpen && (
-                      <tr className="sm-detail-row">
-                        <td colSpan={8}>
-                          <div className="sm-detail-contact">
-                            <span className="sm-contact-name">{r.client}</span>
-                            {r.phone ? (
-                              <a className="sm-wa-btn" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer">
-                                <FaWhatsapp /> {r.phone}
-                              </a>
-                            ) : <span className="sm-faint">Sin número</span>}
-                            {r.email && <a className="sm-contact-mail" href={`mailto:${r.email}`}>{r.email}</a>}
-                          </div>
-                          <div className="sm-detail">
-                            {/* Parcialidades */}
-                            <div className="sm-detail-col">
-                              <h4>Parcialidades {selKey === 'year' ? `de ${year}` : `de ${MESES[Number(selKey.split('-')[1]) - 1]}`}</h4>
-                              <table className="sm-sched">
-                                <tbody>
-                                  {r.insts.map((it) => {
-                                    const k = `${r.id}-${it.idx}`;
-                                    const vencida = it.status !== 'paid' && it.status !== 'lost' && it.fecha && new Date(it.fecha) < hoy;
-                                    return (
-                                      <tr key={it.idx}>
-                                        <td>{fmtFecha(it.fecha)}</td>
-                                        <td className="sm-num">{mxnExact(it.amount)}</td>
-                                        <td>
-                                          {it.status === 'paid' ? <span className="sm-chip sm-chip-green"><FaCheckCircle /> Pagado</span>
-                                            : it.status === 'lost' ? <span className="sm-chip sm-chip-gray"><FaBan /> Perdido</span>
-                                              : vencida ? <span className="sm-chip sm-chip-red"><FaExclamationTriangle /> Vencido</span>
-                                                : <span className="sm-chip sm-chip-amber"><FaRegClock /> Pendiente</span>}
-                                        </td>
-                                        <td className="sm-sched-act">
-                                          <button className="sm-mini" disabled={saving === k || it.status === 'lost'}
-                                            onClick={() => patchInstallment(r.id, it.idx, it.status === 'paid' ? 'pending' : 'paid')}>
-                                            {it.status === 'paid' ? 'Desmarcar' : 'Marcar pagado'}
-                                          </button>
-                                          <button className="sm-mini sm-mini-danger" disabled={saving === k || it.status === 'paid'}
-                                            onClick={() => patchInstallment(r.id, it.idx, it.status === 'lost' ? 'pending' : 'lost')}>
-                                            {it.status === 'lost' ? 'Restaurar' : 'Perdido'}
-                                          </button>
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                              {r.porCobrarSel > 0.5 ? (
-                                <button className="sm-btn sm-btn-pay sm-btn-block" disabled={saving === `row-${r.id}`} onClick={() => marcarMesCobrado(r)}>
-                                  {saving === `row-${r.id}` ? 'Guardando…' : <><FaMoneyBillWave /> Marcar como pagado ({mxn(r.porCobrarSel)})</>}
-                                </button>
-                              ) : r.montoSel > 0.5 && (
-                                <div className="sm-paid-ok"><FaCheckCircle /> Cobrado al 100% en este periodo</div>
-                              )}
-                              <div className="sm-sync-note">🔗 Al marcar pagado se refleja en <b>Pagos</b> y <b>Revenue</b> (mismo registro).</div>
-                              <div className="sm-gestion">
-                                <span>Gestión:</span>
-                                <select value={r.estadoGestion} onChange={(e) => handleEstadoGestion(r, e.target.value)}>
-                                  {ESTADO_GESTION.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
-                                </select>
-                              </div>
-                            </div>
-                            {/* Notas / contestación — hilo con respuesta por mensaje */}
-                            <div className="sm-detail-col">
-                              <h4><FaStickyNote /> Notas y contestación</h4>
-                              <div className="sm-chat">
-                                {(() => {
-                                  const { mains, repliesByParent } = buildThread(r.notas);
-                                  if (!mains.length) return <div className="sm-faint">Sin notas todavía. Escribe tu mensaje abajo.</div>;
-                                  return mains.map((n) => {
-                                    const replies = repliesByParent[n._id] || [];
-                                    const isOpenReply = openReply === n._id;
-                                    return (
-                                      <div key={n._id || n.fecha} className="sm-thread">
-                                        {/* Mensaje que enviaste */}
-                                        <div className="sm-msg main">
-                                          <div className="sm-msg-bubble">
-                                            <div className="sm-msg-text">{n._clean}</div>
-                                            <div className="sm-msg-foot">
-                                              <span className="sm-msg-time">{n.autor || 'Yo'} · {fmtNotaFecha(n.fecha)}</span>
-                                              <button className="sm-nota-del" onClick={() => handleDelNota(r, n._id)} title="Eliminar"><FaTrashAlt /></button>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        {/* Contestaciones del cliente, anidadas */}
-                                        {replies.map((rep) => (
-                                          <div key={rep._id || rep.fecha} className="sm-msg reply">
-                                            <div className="sm-msg-bubble">
-                                              <div className="sm-msg-label">Contestación</div>
-                                              <div className="sm-msg-text">{rep._clean}</div>
-                                              <div className="sm-msg-foot">
-                                                <span className="sm-msg-time">{fmtNotaFecha(rep.fecha)}</span>
-                                                <button className="sm-nota-del" onClick={() => handleDelNota(r, rep._id)} title="Eliminar"><FaTrashAlt /></button>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                        {/* Agregar contestación a ESTE mensaje */}
-                                        {isOpenReply ? (
-                                          <div className="sm-reply-add">
-                                            <input
-                                              autoFocus
-                                              placeholder="Contestación del cliente…"
-                                              value={replyInput[n._id] || ''}
-                                              onChange={(e) => setReplyInput((prev) => ({ ...prev, [n._id]: e.target.value }))}
-                                              onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(r, n._id); if (e.key === 'Escape') setOpenReply(null); }}
-                                            />
-                                            <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={saving === `nota-${r.id}`} onClick={() => handleAddReply(r, n._id)}>Guardar</button>
-                                            <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={() => setOpenReply(null)}>✕</button>
-                                          </div>
-                                        ) : (
-                                          <button className="sm-reply-btn" onClick={() => setOpenReply(n._id)}>↳ Agregar contestación</button>
-                                        )}
-                                      </div>
-                                    );
-                                  });
-                                })()}
-                              </div>
-                              {/* Nuevo mensaje tuyo */}
-                              <div className="sm-nota-add">
-                                <input
-                                  placeholder="Escribe tu mensaje (lo que le mandaste)…"
-                                  value={notaInput[r.id] || ''}
-                                  onChange={(e) => setNotaInput((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && handleAddNota(r)}
-                                />
-                                <button className="sm-btn sm-btn-pay" disabled={saving === `nota-${r.id}`} onClick={() => handleAddNota(r)}>Enviar</button>
-                              </div>
-                            </div>
-                            {/* Historial de archivos — toda la columna es zona de arrastre */}
-                            <div
-                              className={`sm-detail-col sm-dropzone ${dragRow === r.id ? 'drag' : ''}`}
-                              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; if (dragRow !== r.id) setDragRow(r.id); }}
-                              onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(r.id); }}
-                              onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setDragRow(null); }}
-                              onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); const f = e.dataTransfer?.files?.[0]; if (f) handleUploadArchivo(r, f); }}
-                            >
-                              <h4><FaPaperclip /> Historial de archivos {r.archivos?.length > 0 && <span className="sm-count">({r.archivos.length})</span>}</h4>
-                              <button
-                                type="button"
-                                className={`sm-upload ${saving === `file-${r.id}` ? 'busy' : ''} ${dragRow === r.id ? 'drag' : ''}`}
-                                disabled={saving === `file-${r.id}`}
-                                onClick={() => fileInputsRef.current[r.id]?.click()}
-                              >
-                                <FaCloudUploadAlt />
-                                {saving === `file-${r.id}` ? 'Subiendo…' : dragRow === r.id ? '⬇ Suelta el archivo aquí' : 'Arrastra un archivo aquí o haz clic'}
-                              </button>
-                              <input
-                                type="file"
-                                hidden
-                                ref={(el) => { fileInputsRef.current[r.id] = el; }}
-                                disabled={saving === `file-${r.id}`}
-                                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadArchivo(r, f); }}
-                              />
-                              <div className="sm-upload-hint">PDF, Word, imágenes… (imágenes se comprimen · máx 15 MB)</div>
-                              {r.archivos?.length > 0 ? (
-                                <div className="sm-files">
-                                  {[...r.archivos].map((a, i) => ({ a, i })).reverse().map(({ a, i }) => (
-                                    <div key={a._id || a.url} className={`sm-file ${i === r.archivos.length - 1 ? 'is-latest' : ''}`}>
-                                      <a href={a.url} target="_blank" rel="noopener noreferrer" className="sm-file-link" title={a.nombre}>
-                                        <FaFileAlt /> <span className="sm-file-name">{a.nombre || 'archivo'}</span>
-                                        {i === r.archivos.length - 1 && <span className="sm-file-badge">último</span>}
-                                      </a>
-                                      <div className="sm-file-meta">
-                                        <span>{a.subidoPor || 'Admin'} · {a.subidoEn ? new Date(a.subidoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}{a.size ? ` · ${fmtBytes(a.size)}` : ''}</span>
-                                        <button className="sm-nota-del" onClick={() => handleDelArchivo(r, a._id)} title="Eliminar"><FaTrashAlt /></button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : <div className="sm-faint">Sin archivos todavía.</div>}
-                            </div>
-                          </div>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td></td>
-                <td className="sm-strong">{rows.length} proyecto{rows.length !== 1 ? 's' : ''}</td>
-                <td className="sm-num sm-col-monto">
-                  <div className="sm-strong">{mxn(totalesTabla.monto)}</div>
-                  <div className="sm-mini-break">
-                    {totalesTabla.cobrado > 0 && <span className="sm-green">✓{mxn(totalesTabla.cobrado)}</span>}
-                    {totalesTabla.porCobrar > 0 && <span className="sm-amber">●{mxn(totalesTabla.porCobrar)}</span>}
-                  </div>
-                </td>
-                <td className="sm-num sm-red" colSpan={5}>{totalesTabla.vencido > 0 ? `${mxn(totalesTabla.vencido)} vencido` : ''}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      ) : view === 'pendientes' ? (
+        /* ═══════════════ PESTAÑA PENDIENTES ═══════════════ */
+        <>
+          <div className="sm-kpis">
+            <div className={`sm-kpi ${pendKpis.sinRespuesta ? 'red' : 'green'}`}>
+              <span className="sm-kpi-lbl">Leads sin respuesta</span>
+              <span className="sm-kpi-val">{pendKpis.sinRespuesta}</span>
+            </div>
+            <div className="sm-kpi red"><span className="sm-kpi-lbl">Vencido por cobrar</span><span className="sm-kpi-val">{mxn(pendKpis.vencidoActivo)}</span></div>
+            <div className="sm-kpi amber"><span className="sm-kpi-lbl">Cobrado con atraso</span><span className="sm-kpi-val">{mxn(pendKpis.cobradoConAtraso)}</span></div>
+            <div className="sm-kpi"><span className="sm-kpi-lbl">Entregas próximos 7 días</span><span className="sm-kpi-val">{pendKpis.entregas7d}</span></div>
+          </div>
+          {!pendientesRows.length ? (
+            <div className="sm-empty">Nada pendiente: sin saldos por cobrar ni leads sin respuesta. 🎉</div>
+          ) : (
+            <div className="sm-table-wrap">
+              <table className="sm-table">
+                <thead>
+                  <tr>
+                    <th>Cliente / Proyecto</th>
+                    <th>Atención</th>
+                    <th className="sm-col-fecha">Próx. vencimiento</th>
+                    <th className="sm-col-fecha">Entrega</th>
+                    <th className="sm-num">Pendiente</th>
+                    <th>Cotizaciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendientesRows.map((r) => {
+                    const dVen = diasHasta(r.proximoVencimiento);
+                    const venCls = dVen === null ? 'sm-faint' : dVen < 0 ? 'sm-red' : dVen <= 3 ? 'sm-amber' : '';
+                    const dEnt = diasHasta(r.fechaEntrega);
+                    const entCls = dEnt === null ? 'sm-faint' : dEnt < 0 ? 'sm-red' : dEnt <= 3 ? 'sm-amber' : '';
+                    return (
+                      <tr key={r.id} className={`sm-row ${r.nVencidas > 0 ? 'vencido' : ''} ${r.prioritario ? 'sm-prio' : ''}`}>
+                        <td className="sm-cell-client">
+                          <div className="sm-client-line">
+                            <PrioBtn row={r} />
+                            {r.celular && (
+                              <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
+                            )}
+                            <span className="sm-client">{r.cliente}</span>
+                          </div>
+                          <div className="sm-title">{r.title}</div>
+                        </td>
+                        <td>
+                          <AtencionChip atencion={r.atencion} />
+                          {r.atencion?.lastSeguimientoAt && (
+                            <div className="sm-att-detail">Último seguimiento: {fmtNotaFecha(r.atencion.lastSeguimientoAt)}</div>
+                          )}
+                          {r.atencion?.sinRespuesta && r.atencion?.lastLeadMsgAt && (
+                            <div className="sm-att-detail sm-red">El lead escribió: {fmtNotaFecha(r.atencion.lastLeadMsgAt)}</div>
+                          )}
+                        </td>
+                        <td className={`sm-fecha sm-col-fecha ${venCls}`}>
+                          {r.proximoVencimiento ? (
+                            <>
+                              <div>{fmtFechaFull(r.proximoVencimiento)}</div>
+                              <div className="sm-fecha-rel">{dVen < 0 ? `vencido ${relDias(r.proximoVencimiento)}` : relDias(r.proximoVencimiento)}</div>
+                            </>
+                          ) : '—'}
+                          {r.nVencidas > 0 && <div className="sm-red sm-fecha-rel">{r.nVencidas} vencida{r.nVencidas !== 1 ? 's' : ''}</div>}
+                        </td>
+                        <td className={`sm-fecha sm-col-fecha ${entCls}`}>
+                          {r.fechaEntrega ? (
+                            <>
+                              <div>{fmtFechaFull(r.fechaEntrega)}</div>
+                              <div className="sm-fecha-rel">{relDias(r.fechaEntrega)}</div>
+                            </>
+                          ) : '—'}
+                        </td>
+                        <td className="sm-num">
+                          <div className="sm-strong sm-amber">{mxn(r.porCobrarActivo)}</div>
+                          {r.cobradoConAtraso > 0 && <div className="sm-fecha-rel" title="Pagos que entraron después de su fecha">↺ {mxn(r.cobradoConAtraso)} cobrado tarde</div>}
+                        </td>
+                        <td>{renderCotizaciones(r)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      ) : (
+        /* ═══════════════ PESTAÑA FLUJO DE CAJA ═══════════════ */
+        <>
+          {/* Pestañas de mes */}
+          <div className="sm-months">
+            <button className={`sm-month ${selKey === 'year' ? 'active' : ''}`} onClick={() => setSelKey('year')}>
+              <span className="sm-month-name">Todo {year}</span>
+              <span className="sm-month-amt">{mxn(cf?.yearTotals?.porCobrar || 0)} <em>x cobrar</em></span>
+            </button>
+            {months.map((m) => {
+              const activo = selKey === m.key;
+              const tiene = m.vendido > 0 || m.cobrado > 0 || m.porCobrar > 0;
+              return (
+                <button key={m.key} className={`sm-month ${activo ? 'active' : ''} ${tiene ? 'has' : 'empty'}`} onClick={() => setSelKey(m.key)}>
+                  <span className="sm-month-name">{m.corto}</span>
+                  {m.porCobrar > 0
+                    ? <span className="sm-month-amt amber">{mxn(m.porCobrar)} <em>x cobrar</em></span>
+                    : m.cobrado > 0
+                      ? <span className="sm-month-amt green">{mxn(m.cobrado)} <em>cobrado</em></span>
+                      : <span className="sm-month-amt faint">—</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* KPIs del periodo */}
+          <div className="sm-kpis">
+            <div className="sm-kpi"><span className="sm-kpi-lbl">Vendido · {kpis.label}</span><span className="sm-kpi-val">{mxn(kpis.vendido)}</span></div>
+            <div className="sm-kpi green"><span className="sm-kpi-lbl">Cobrado</span><span className="sm-kpi-val">{mxn(kpis.cobrado)}</span></div>
+            <div className="sm-kpi amber"><span className="sm-kpi-lbl">Por cobrar</span><span className="sm-kpi-val">{mxn(kpis.porCobrar)}</span></div>
+            <div className="sm-kpi red"><span className="sm-kpi-lbl">Vencido</span><span className="sm-kpi-val">{mxn(kpis.vencido)}</span></div>
+            <div className="sm-kpi gray"><span className="sm-kpi-lbl">Perdido</span><span className="sm-kpi-val">{mxn(kpis.perdido)}</span></div>
+          </div>
+
+          {/* Toolbar de filtros */}
+          <div className="sm-toolbar">
+            <div className="sm-search">
+              <FaSearch />
+              <input placeholder="Buscar cliente, proyecto, número…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <select className="sm-select" value={vendedorFilter} onChange={(e) => setVendedorFilter(e.target.value)}>
+              <option value="todos">Atención: Todos</option>
+              {vendedores.map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <div className="sm-estado-chips">
+              {[
+                { k: 'todos', l: 'Todos' },
+                { k: 'vencido', l: 'Vencidos' },
+                { k: 'por_cobrar', l: 'Por cobrar' },
+                { k: 'pagado', l: 'Pagados' },
+                { k: 'perdido', l: 'Perdidos' },
+              ].map((c) => (
+                <button key={c.k} className={`sm-fchip ${estadoFilter === c.k ? 'active' : ''}`} onClick={() => setEstadoFilter(c.k)}>{c.l}</button>
+              ))}
+            </div>
+            <label className="sm-toggle">
+              <input type="checkbox" checked={soloActivos} onChange={(e) => setSoloActivos(e.target.checked)} />
+              Solo activos
+            </label>
+          </div>
+
+          {/* Tabla */}
+          {!rows.length ? (
+            <div className="sm-empty">No hay proyectos con cobros en {kpis.label}.</div>
+          ) : (
+            <div className="sm-table-wrap">
+              <table className="sm-table">
+                <thead>
+                  <tr>
+                    <th className="sm-col-exp"></th>
+                    <th>Cliente / Proyecto</th>
+                    <th className="sm-num sm-col-monto">Monto {selKey === 'year' ? 'año' : 'mes'}</th>
+                    <th className="sm-col-estado">Estado</th>
+                    <th className="sm-col-vend">Atención</th>
+                    <th className="sm-col-prog">Avance</th>
+                    <th className="sm-col-fecha">Entrega</th>
+                    <th className="sm-col-act"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => {
+                    const isOpen = expanded.has(r.id);
+                    const meta = ESTADO_META[r.estadoPago];
+                    const Icon = meta.icon;
+                    const ps = PROJ_STATUS[r.projectStatus];
+                    const rowSaving = saving === `row-${r.id}`;
+                    const lastNota = r.notas?.length ? r.notas[r.notas.length - 1].texto : '';
+                    return (
+                      <React.Fragment key={r.id}>
+                        <tr className={`sm-row ${r.estadoPago} ${r.prioritario ? 'sm-prio' : ''}`} onClick={() => toggleExpand(r.id)}>
+                          <td className="sm-col-exp">
+                            <button className="sm-exp-btn" title="Ver detalle">
+                              {isOpen ? <FaChevronDown /> : <FaChevronRight />}
+                            </button>
+                          </td>
+                          <td className="sm-cell-client">
+                            <div className="sm-client-line">
+                              <PrioBtn row={r} />
+                              {r.phone && (
+                                <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()} title={`WhatsApp ${r.phone}`}><FaWhatsapp /></a>
+                              )}
+                              {editName === r.id ? (
+                                <span className="sm-name-edit" onClick={(e) => e.stopPropagation()}>
+                                  <input autoFocus value={nameInput} placeholder="Nombre del cliente"
+                                    onChange={(e) => setNameInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(r); if (e.key === 'Escape') setEditName(null); }} />
+                                  <button className="sm-name-ok" onClick={() => handleSaveName(r)} title="Guardar"><FaCheck /></button>
+                                  <button className="sm-name-cancel" onClick={() => setEditName(null)} title="Cancelar"><FaTimes /></button>
+                                </span>
+                              ) : (
+                                <>
+                                  {r.sinNombre
+                                    ? <button className="sm-name-set" onClick={(e) => { e.stopPropagation(); startEditName(r); }}><FaPencilAlt /> Poner nombre</button>
+                                    : <span className="sm-client">{r.client}</span>}
+                                  {!r.sinNombre && (
+                                    <button className="sm-name-edit-btn" onClick={(e) => { e.stopPropagation(); startEditName(r); }} title="Editar nombre"><FaPencilAlt /></button>
+                                  )}
+                                </>
+                              )}
+                              {r.archivos?.length > 0 && <FaPaperclip className="sm-clip" title={`${r.archivos.length} archivo(s)`} />}
+                            </div>
+                            <div className="sm-title">{r.title}</div>
+                            <AtencionChip atencion={r.atencion} />
+                            {lastNota && <div className="sm-lastnote" title={lastNota}><FaStickyNote /> {lastNota}</div>}
+                          </td>
+                          <td className="sm-num sm-col-monto">
+                            <div className="sm-strong">{mxn(r.montoSel)}</div>
+                            <div className="sm-mini-break">
+                              {r.cobradoSel > 0 && <span className="sm-green">✓{mxn(r.cobradoSel)}</span>}
+                              {r.porCobrarSel > 0 && <span className="sm-amber">●{mxn(r.porCobrarSel)}</span>}
+                            </div>
+                          </td>
+                          <td className="sm-col-estado">
+                            <span className={`sm-chip ${meta.cls}`}><Icon /> {meta.label}</span>
+                          </td>
+                          <td className="sm-col-vend">{r.vendedorFinal ? <span className="sm-vend"><FaUserTie /> {r.vendedorFinal}</span> : <span className="sm-faint">—</span>}</td>
+                          <td className="sm-col-prog">
+                            {ps ? (
+                              <div className="sm-prog" title={`${ps.label}${r.progress != null ? ` · ${r.progress}%` : ''}`}>
+                                <div className="sm-prog-bar"><span style={{ width: `${r.progress ?? 0}%`, background: ps.color }} /></div>
+                                <span className="sm-prog-lbl" style={{ color: ps.color }}>{r.progress != null ? `${r.progress}%` : ps.label}</span>
+                              </div>
+                            ) : <span className="sm-faint">—</span>}
+                          </td>
+                          <td className="sm-fecha sm-col-fecha">{fmtFecha(r.dueDate)}</td>
+                          <td className="sm-col-act">
+                            {(r.porCobrarSel > 0.5) && (
+                              <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={rowSaving}
+                                onClick={(e) => { e.stopPropagation(); marcarMesCobrado(r); }} title="Marcar cobrado el mes">
+                                {rowSaving ? '…' : <FaMoneyBillWave />}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                        {isOpen && (
+                          <tr className="sm-detail-row">
+                            <td colSpan={8}>
+                              <div className="sm-detail-contact">
+                                <span className="sm-contact-name">{r.client}</span>
+                                {r.phone ? (
+                                  <a className="sm-wa-btn" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp /> {r.phone}
+                                  </a>
+                                ) : <span className="sm-faint">Sin número</span>}
+                                {r.email && <a className="sm-contact-mail" href={`mailto:${r.email}`}>{r.email}</a>}
+                                {acuerdoOpen === r.id ? renderAcuerdoEditor(r.id) : (
+                                  <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={(e) => { e.stopPropagation(); openAcuerdo(r.id); }} title="Registrar correcciones y/o fecha de entrega acordada">
+                                    <FaHandshake /> Correcciones / entrega
+                                  </button>
+                                )}
+                              </div>
+                              {r.acuerdos?.length > 0 && renderAcuerdosList(r, 3)}
+                              <div className="sm-detail">
+                                {/* Parcialidades */}
+                                <div className="sm-detail-col">
+                                  <h4>Parcialidades {selKey === 'year' ? `de ${year}` : `de ${MESES[Number(selKey.split('-')[1]) - 1]}`}</h4>
+                                  <table className="sm-sched">
+                                    <tbody>
+                                      {r.insts.map((it) => {
+                                        const k = `${r.id}-${it.idx}`;
+                                        const vencida = it.status !== 'paid' && it.status !== 'lost' && it.fecha && new Date(it.fecha) < hoy;
+                                        const atraso = it.status === 'paid' && it.paidAt && it.fecha
+                                          ? Math.max(0, Math.round((new Date(it.paidAt) - new Date(it.fecha)) / DAY)) : null;
+                                        return (
+                                          <tr key={it.idx}>
+                                            <td>{fmtFecha(it.fecha)}</td>
+                                            <td className="sm-num">{mxnExact(it.amount)}</td>
+                                            <td>
+                                              {it.status === 'paid' ? (
+                                                <>
+                                                  <span className="sm-chip sm-chip-green"><FaCheckCircle /> Pagado</span>
+                                                  {it.paidAt && (
+                                                    <div className="sm-paid-date">
+                                                      el {fmtFecha(it.paidAt)}
+                                                      {atraso > 0 && <span className="sm-late" title="Días de atraso vs la fecha programada"> · +{atraso}d tarde</span>}
+                                                    </div>
+                                                  )}
+                                                </>
+                                              )
+                                                : it.status === 'lost' ? <span className="sm-chip sm-chip-gray"><FaBan /> Perdido</span>
+                                                  : vencida ? <span className="sm-chip sm-chip-red"><FaExclamationTriangle /> Vencido</span>
+                                                    : <span className="sm-chip sm-chip-amber"><FaRegClock /> Pendiente</span>}
+                                            </td>
+                                            <td className="sm-sched-act">
+                                              <button className="sm-mini" disabled={saving === k || it.status === 'lost'}
+                                                onClick={() => patchInstallment(r.id, it.idx, it.status === 'paid' ? 'pending' : 'paid')}>
+                                                {it.status === 'paid' ? 'Desmarcar' : 'Marcar pagado'}
+                                              </button>
+                                              <button className="sm-mini sm-mini-danger" disabled={saving === k || it.status === 'paid'}
+                                                onClick={() => patchInstallment(r.id, it.idx, it.status === 'lost' ? 'pending' : 'lost')}>
+                                                {it.status === 'lost' ? 'Restaurar' : 'Perdido'}
+                                              </button>
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                  {r.porCobrarSel > 0.5 ? (
+                                    <button className="sm-btn sm-btn-pay sm-btn-block" disabled={saving === `row-${r.id}`} onClick={() => marcarMesCobrado(r)}>
+                                      {saving === `row-${r.id}` ? 'Guardando…' : <><FaMoneyBillWave /> Marcar como pagado ({mxn(r.porCobrarSel)})</>}
+                                    </button>
+                                  ) : r.montoSel > 0.5 && (
+                                    <div className="sm-paid-ok"><FaCheckCircle /> Cobrado al 100% en este periodo</div>
+                                  )}
+                                  <div className="sm-sync-note">🔗 Al marcar pagado se refleja en <b>Pagos</b> y <b>Revenue</b> (mismo registro).</div>
+                                  <div className="sm-gestion">
+                                    <span>Gestión:</span>
+                                    <select value={r.estadoGestion} onChange={(e) => handleEstadoGestion(r, e.target.value)}>
+                                      {ESTADO_GESTION.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
+                                    </select>
+                                  </div>
+                                </div>
+                                {/* Notas / contestación — hilo con respuesta por mensaje */}
+                                <div className="sm-detail-col">
+                                  <h4><FaStickyNote /> Notas y contestación</h4>
+                                  <div className="sm-chat">
+                                    {(() => {
+                                      const { mains, repliesByParent } = buildThread(r.notas);
+                                      if (!mains.length) return <div className="sm-faint">Sin notas todavía. Escribe tu mensaje abajo.</div>;
+                                      return mains.map((n) => {
+                                        const replies = repliesByParent[n._id] || [];
+                                        const isOpenReply = openReply === n._id;
+                                        return (
+                                          <div key={n._id || n.fecha} className="sm-thread">
+                                            {/* Mensaje que enviaste */}
+                                            <div className="sm-msg main">
+                                              <div className="sm-msg-bubble">
+                                                <div className="sm-msg-text">{n._clean}</div>
+                                                <div className="sm-msg-foot">
+                                                  <span className="sm-msg-time">{n.autor || 'Yo'} · {fmtNotaFecha(n.fecha)}</span>
+                                                  <button className="sm-nota-del" onClick={() => handleDelNota(r, n._id)} title="Eliminar"><FaTrashAlt /></button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                            {/* Contestaciones del cliente, anidadas */}
+                                            {replies.map((rep) => (
+                                              <div key={rep._id || rep.fecha} className="sm-msg reply">
+                                                <div className="sm-msg-bubble">
+                                                  <div className="sm-msg-label">Contestación</div>
+                                                  <div className="sm-msg-text">{rep._clean}</div>
+                                                  <div className="sm-msg-foot">
+                                                    <span className="sm-msg-time">{fmtNotaFecha(rep.fecha)}</span>
+                                                    <button className="sm-nota-del" onClick={() => handleDelNota(r, rep._id)} title="Eliminar"><FaTrashAlt /></button>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            ))}
+                                            {/* Agregar contestación a ESTE mensaje */}
+                                            {isOpenReply ? (
+                                              <div className="sm-reply-add">
+                                                <input
+                                                  autoFocus
+                                                  placeholder="Contestación del cliente…"
+                                                  value={replyInput[n._id] || ''}
+                                                  onChange={(e) => setReplyInput((prev) => ({ ...prev, [n._id]: e.target.value }))}
+                                                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(r, n._id); if (e.key === 'Escape') setOpenReply(null); }}
+                                                />
+                                                <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={saving === `nota-${r.id}`} onClick={() => handleAddReply(r, n._id)}>Guardar</button>
+                                                <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={() => setOpenReply(null)}>✕</button>
+                                              </div>
+                                            ) : (
+                                              <button className="sm-reply-btn" onClick={() => setOpenReply(n._id)}>↳ Agregar contestación</button>
+                                            )}
+                                          </div>
+                                        );
+                                      });
+                                    })()}
+                                  </div>
+                                  {/* Nuevo mensaje tuyo */}
+                                  <div className="sm-nota-add">
+                                    <input
+                                      placeholder="Escribe tu mensaje (lo que le mandaste)…"
+                                      value={notaInput[r.id] || ''}
+                                      onChange={(e) => setNotaInput((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAddNota(r)}
+                                    />
+                                    <button className="sm-btn sm-btn-pay" disabled={saving === `nota-${r.id}`} onClick={() => handleAddNota(r)}>Enviar</button>
+                                  </div>
+                                </div>
+                                {/* Historial de archivos — toda la columna es zona de arrastre */}
+                                <div
+                                  className={`sm-detail-col sm-dropzone ${dragRow === r.id ? 'drag' : ''}`}
+                                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; if (dragRow !== r.id) setDragRow(r.id); }}
+                                  onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(r.id); }}
+                                  onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setDragRow(null); }}
+                                  onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragRow(null); const f = e.dataTransfer?.files?.[0]; if (f) handleUploadArchivo(r, f); }}
+                                >
+                                  <h4><FaPaperclip /> Historial de archivos {r.archivos?.length > 0 && <span className="sm-count">({r.archivos.length})</span>}</h4>
+                                  <button
+                                    type="button"
+                                    className={`sm-upload ${saving === `file-${r.id}` ? 'busy' : ''} ${dragRow === r.id ? 'drag' : ''}`}
+                                    disabled={saving === `file-${r.id}`}
+                                    onClick={() => fileInputsRef.current[r.id]?.click()}
+                                  >
+                                    <FaCloudUploadAlt />
+                                    {saving === `file-${r.id}` ? 'Subiendo…' : dragRow === r.id ? '⬇ Suelta el archivo aquí' : 'Arrastra un archivo aquí o haz clic'}
+                                  </button>
+                                  <input
+                                    type="file"
+                                    hidden
+                                    ref={(el) => { fileInputsRef.current[r.id] = el; }}
+                                    disabled={saving === `file-${r.id}`}
+                                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadArchivo(r, f); }}
+                                  />
+                                  <div className="sm-upload-hint">PDF, Word, imágenes… (imágenes se comprimen · máx 15 MB)</div>
+                                  {r.archivos?.length > 0 ? (
+                                    <div className="sm-files">
+                                      {[...r.archivos].map((a, i) => ({ a, i })).reverse().map(({ a, i }) => (
+                                        <div key={a._id || a.url} className={`sm-file ${i === r.archivos.length - 1 ? 'is-latest' : ''}`}>
+                                          <a href={a.url} target="_blank" rel="noopener noreferrer" className="sm-file-link" title={a.nombre}>
+                                            <FaFileAlt /> <span className="sm-file-name">{a.nombre || 'archivo'}</span>
+                                            {i === r.archivos.length - 1 && <span className="sm-file-badge">último</span>}
+                                          </a>
+                                          <div className="sm-file-meta">
+                                            <span>{a.subidoPor || 'Admin'} · {a.subidoEn ? new Date(a.subidoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}{a.size ? ` · ${fmtBytes(a.size)}` : ''}</span>
+                                            <button className="sm-nota-del" onClick={() => handleDelArchivo(r, a._id)} title="Eliminar"><FaTrashAlt /></button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : <div className="sm-faint">Sin archivos todavía.</div>}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td></td>
+                    <td className="sm-strong">{rows.length} proyecto{rows.length !== 1 ? 's' : ''}</td>
+                    <td className="sm-num sm-col-monto">
+                      <div className="sm-strong">{mxn(totalesTabla.monto)}</div>
+                      <div className="sm-mini-break">
+                        {totalesTabla.cobrado > 0 && <span className="sm-green">✓{mxn(totalesTabla.cobrado)}</span>}
+                        {totalesTabla.porCobrar > 0 && <span className="sm-amber">●{mxn(totalesTabla.porCobrar)}</span>}
+                      </div>
+                    </td>
+                    <td className="sm-num sm-red" colSpan={5}>{totalesTabla.vencido > 0 ? `${mxn(totalesTabla.vencido)} vencido` : ''}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

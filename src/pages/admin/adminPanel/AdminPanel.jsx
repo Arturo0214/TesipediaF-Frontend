@@ -80,8 +80,8 @@ const AdminRevivals = lazy(() => import('../adminPayments/RevivalPipeline.jsx'))
 const AdminStatus = lazy(() => import('../adminStatus/AdminStatus.jsx'));
 const AdminLoops = lazy(() => import('../adminLoops/AdminLoops.jsx'));
 const AdminContent = lazy(() => import('../adminContent/AdminContent.jsx'));
-const ManageSeguimientos = lazy(() => import('../adminSeguimientos/ManageSeguimientos.jsx'));
 const SeguimientoMensual = lazy(() => import('../adminSeguimientoMensual/SeguimientoMensual.jsx'));
+const Contabilidad = lazy(() => import('../adminContabilidad/Contabilidad.jsx'));
 const LeadsDiario = lazy(() => import('../adminLeadsDiario/LeadsDiario.jsx'));
 const AdminVideoStudio = lazy(() => import('../adminVideoStudio/AdminVideoStudio.jsx'));
 const AdminMercadoPago = lazy(() => import('../adminMercadoPago/AdminMercadoPago.jsx'));
@@ -153,7 +153,8 @@ const AdminPanel = () => {
         if (path.includes('/cotizaciones')) return 'cotizaciones';
         if (path.includes('/proyectos')) return 'proyectos';
         if (path.includes('/seguimiento-mensual')) return 'seguimientomensual';
-        if (path.includes('/seguimientos')) return 'seguimientos';
+        if (path.includes('/seguimientos')) return 'seguimientomensual'; // la sección vieja redirige a Seguimiento
+        if (path.includes('/contabilidad')) return 'contabilidad';
         if (path.includes('/leads-diario')) return 'leadsdiario';
         if (path.includes('/mercadopago')) return 'mercadopago';
         if (path.includes('/pagos')) return 'pagos';
@@ -184,8 +185,7 @@ const AdminPanel = () => {
         { key: 'cotizaciones', icon: FaFileAlt, label: 'Cotizaciones', section: 'principal', path: '/admin/cotizaciones', color: '#FBBF24' },
         { key: 'proyectos', icon: FaProjectDiagram, label: 'Proyectos', section: 'principal', path: '/admin/proyectos', color: '#A78BFA' },
         { key: 'pagos', icon: FaMoneyBillWave, label: 'Pagos', section: 'principal', path: '/admin/pagos', color: '#F472B6' },
-        { key: 'seguimientos', icon: FaFileInvoiceDollar, label: 'Seguimientos', section: 'principal', path: '/admin/seguimientos', color: '#F59E0B' },
-        { key: 'seguimientomensual', icon: FaCalendarCheck, label: 'Seguimiento Mensual', section: 'principal', path: '/admin/seguimiento-mensual', color: '#60A5FA' },
+        { key: 'seguimientomensual', icon: FaCalendarCheck, label: 'Seguimiento', section: 'principal', path: '/admin/seguimiento-mensual', color: '#60A5FA' },
         { key: 'leadsdiario', icon: FaUserClock, label: 'Leads del Día', section: 'principal', path: '/admin/leads-diario', color: '#22C55E' },
         { key: 'calendarios', icon: FaCalendarAlt, label: 'Calendarios', section: 'principal', path: '/admin/calendarios', color: '#38BDF8' },
         { key: 'whatsapp', icon: FaWhatsapp, label: 'WhatsApp', section: 'gestion', path: '/admin/whatsapp', color: '#25D366' },
@@ -199,6 +199,7 @@ const AdminPanel = () => {
         { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes', color: '#60A5FA' },
         { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns', color: '#1877F2' },
         { key: 'mercadopago', icon: FaStore, label: 'Mercado Pago', section: 'finanzas', path: '/admin/mercadopago', color: '#00B1EA' },
+        { key: 'contabilidad', icon: FaFileInvoiceDollar, label: 'Contabilidad', section: 'finanzas', path: '/admin/contabilidad', color: '#F59E0B' },
         { key: 'visitas', icon: FaChartLine, label: 'Visitas', section: 'estadisticas', path: '/admin/visitas', color: '#F472B6' },
         { key: 'redes', icon: FaShareAlt, label: 'Redes Sociales', section: 'estadisticas', path: '/admin/redes', color: '#E4405F' },
         { key: 'agentes', icon: FaRobot, label: 'Agentes IA', section: 'gestion', path: '/admin/agentes', color: '#A78BFA' },
@@ -216,6 +217,7 @@ const AdminPanel = () => {
         mensajes: ['mensaje'],
         visitas: ['visita'],
         whatsapp: ['whatsapp', 'lead'],
+        seguimientomensual: ['seguimiento'],
         dashboard: ['alerta', 'info'],
     };
 
@@ -339,8 +341,8 @@ const AdminPanel = () => {
         proyectos: ManageProjects,
         pagos: ManagePayments,
         mercadopago: AdminMercadoPago,
-        seguimientos: ManageSeguimientos,
         seguimientomensual: SeguimientoMensual,
+        contabilidad: Contabilidad,
         leadsdiario: LeadsDiario,
         visitas: ManageVisits,
         usuarios: ManageUsers,
@@ -375,6 +377,7 @@ const AdminPanel = () => {
         visita: 'visitas',
         whatsapp: 'whatsapp',
         lead: 'whatsapp',
+        seguimiento: 'seguimientomensual',
         alerta: 'dashboard',
         info: 'dashboard',
     };
