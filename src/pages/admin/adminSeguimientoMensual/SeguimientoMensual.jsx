@@ -483,6 +483,21 @@ const SeguimientoMensual = () => {
     catch { toast.error('No se pudo actualizar el estado'); }
   };
 
+  // Registrar una nota cuenta como atender al lead: el chip pasa a "Atendido hoy"
+  // sin esperar a recargar (el backend llega a la misma conclusión en el próximo fetch).
+  const marcarAtendidoLocal = (rowId) => {
+    const ahora = new Date().toISOString();
+    const patch = (at) => ({
+      ...(at || {}),
+      lastSeguimientoAt: ahora,
+      sinRespuesta: false,
+      diasSinRespuesta: null,
+      diasSinSeguimiento: 0,
+    });
+    setSegMap((prev) => { const n = new Map(prev); const e = n.get(String(rowId)) || {}; n.set(String(rowId), { ...e, atencion: patch(e.atencion) }); return n; });
+    setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId) ? { ...r, atencion: patch(r.atencion) } : r));
+  };
+
   const addNotaText = async (row, texto) => {
     const t = (texto || '').trim();
     if (!t) return;
@@ -491,6 +506,7 @@ const SeguimientoMensual = () => {
       const { notas } = await addNota('quote', row.id, t);
       setSegMap((prev) => { const n = new Map(prev); n.set(String(row.id), { ...(n.get(String(row.id)) || {}), notas }); return n; });
       setNotaInput((prev) => ({ ...prev, [row.id]: '' }));
+      marcarAtendidoLocal(row.id);
     } catch { toast.error('No se pudo agregar la nota'); }
     finally { setSaving(null); }
   };
@@ -585,6 +601,7 @@ const SeguimientoMensual = () => {
         : r));
       setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), acuerdos }); return n; });
       setAcuerdoOpen(null); setAcuerdoTexto(''); setAcuerdoFecha('');
+      marcarAtendidoLocal(rowId); // registrar un acuerdo también cuenta como atención
       toast.success('Acuerdo guardado ✅');
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo guardar el acuerdo');
@@ -599,6 +616,29 @@ const SeguimientoMensual = () => {
         : r));
       setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), acuerdos }); return n; });
     } catch { toast.error('No se pudo borrar el acuerdo'); }
+  };
+
+  // ── Borrar cotizaciones duplicadas del lead (no permite borrar pagadas) ──
+  const handleDeleteCotizacion = async (cot) => {
+    if (cot.status === 'paid') {
+      toast.error('Esa cotización está PAGADA y vive en el tablero; bórrala desde la sección Cotizaciones solo si estás seguro.');
+      return;
+    }
+    if (!window.confirm(`¿Borrar la cotización "${cot.titulo}" (${mxn(cot.precio)})?\nEsto no se puede deshacer.`)) return;
+    setSaving(`cot-${cot.id}`);
+    try {
+      await axiosWithAuth.delete(`/quotes/generated/${cot.id}`);
+      const quitar = (list) => (list || []).filter((c) => String(c.id) !== String(cot.id));
+      setSegRows((prev) => prev.map((r) => r.cotizaciones?.length ? { ...r, cotizaciones: quitar(r.cotizaciones) } : r));
+      setSegMap((prev) => {
+        const n = new Map(prev);
+        for (const [k, v] of n) if (v.cotizaciones?.length) n.set(k, { ...v, cotizaciones: quitar(v.cotizaciones) });
+        return n;
+      });
+      toast.success('Cotización duplicada eliminada 🗑');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'No se pudo borrar la cotización');
+    } finally { setSaving(null); }
   };
 
   const handleSyncFireflies = async () => {
@@ -692,13 +732,24 @@ const SeguimientoMensual = () => {
             {cots.length === 0 && <div className="sm-faint">Sin cotizaciones registradas para este contacto.</div>}
             {cots.map((c) => {
               const meta = COT_STATUS[c.status] || { label: c.status, cls: 'sm-chip-gray' };
+              const esActual = String(c.id) === String(row.id);
               return (
-                <div key={c.id} className={`sm-cot ${String(c.id) === String(row.id) ? 'is-current' : ''}`}>
+                <div key={c.id} className={`sm-cot ${esActual ? 'is-current' : ''}`}>
                   <span className="sm-cot-title" title={c.titulo}>{c.titulo}</span>
                   <span className="sm-cot-precio">{mxn(c.precio)}</span>
                   <span className={`sm-chip ${meta.cls}`}>{meta.label}</span>
                   <span className="sm-cot-fecha">{fmtFechaFull(c.fecha)}</span>
-                  {String(c.id) === String(row.id) && <span className="sm-cot-badge">en tablero</span>}
+                  {esActual && <span className="sm-cot-badge">en tablero</span>}
+                  {!esActual && c.status !== 'paid' && (
+                    <button
+                      className="sm-nota-del"
+                      disabled={saving === `cot-${c.id}`}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteCotizacion(c); }}
+                      title="Borrar cotización duplicada"
+                    >
+                      {saving === `cot-${c.id}` ? '…' : <FaTrashAlt />}
+                    </button>
+                  )}
                 </div>
               );
             })}
