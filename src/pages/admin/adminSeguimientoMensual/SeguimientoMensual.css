@@ -403,3 +403,30 @@
     font-size: 0.68rem; font-weight: 700; color: #34D399;
     background: rgba(16, 185, 129, 0.12); border-radius: 999px; padding: 1px 7px;
 }
+
+/* ═══ KPIs clicables (filtros de Pendientes) ═══ */
+.sm-kpi.clickable { cursor: pointer; text-align: left; font: inherit; transition: border-color .15s, transform .1s; position: relative; }
+.sm-kpi.clickable:hover { border-color: #3B82F6; transform: translateY(-1px); }
+.sm-kpi.clickable.active { border-color: #3B82F6; background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 0 1px #3B82F6 inset; }
+.sm-kpi-filter-tag {
+    position: absolute; top: 8px; right: 10px; font-size: 0.66rem; font-weight: 700;
+    color: #93C5FD; background: rgba(59, 130, 246, 0.18); border-radius: 999px; padding: 2px 8px;
+}
+
+/* ═══ Grupos de Entregas (sin archivos / entregadas) ═══ */
+.sm-ent-group { margin-top: 18px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px 14px; }
+.sm-ent-group.warn { border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.04); }
+.sm-ent-group.done { border-color: rgba(16, 185, 129, 0.3); }
+.sm-ent-group h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; color: #FBBF24; font-size: 0.95rem; }
+.sm-ent-group-hint { color: #9CA3AF; font-size: 0.8rem; margin-bottom: 10px; }
+.sm-ent-group-toggle {
+    background: none; border: none; cursor: pointer; color: #34D399; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; padding: 2px 0;
+}
+.sm-ent-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.sm-ent-item:first-of-type { border-top: none; }
+.sm-ent-item-info { min-width: 0; flex: 1; }
+.sm-ent-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }

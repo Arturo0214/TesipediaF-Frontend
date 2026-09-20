@@ -199,6 +199,8 @@ const SeguimientoMensual = () => {
   const [acuerdoFecha, setAcuerdoFecha] = useState('');
   const [syncingFF, setSyncingFF] = useState(false);
   const [cotOpen, setCotOpen] = useState(new Set());    // rowIds con cotizaciones desplegadas
+  const [showEntregadas, setShowEntregadas] = useState(false); // lista de entregadas colapsada
+  const [pendFilter, setPendFilter] = useState('todos'); // filtro activo de la pestaña Pendientes
   // Filtros (pestaña flujo)
   const [search, setSearch] = useState('');
   const [vendedorFilter, setVendedorFilter] = useState('todos');
@@ -347,20 +349,55 @@ const SeguimientoMensual = () => {
     porCobrar: a.porCobrar + r.porCobrarSel, vencido: a.vencido + r.vencidoSel,
   }), { monto: 0, cobrado: 0, porCobrar: 0, vencido: 0 }), [rows]);
 
-  // ── Pestaña ENTREGAS: proyectos por entregar, ordenados por fecha ──
-  const entregasRows = useMemo(() => {
-    const activos = segRows.filter((r) => r.projectStatus !== 'completed' && r.projectStatus !== 'cancelled' && r.estado !== 'incobrable');
-    return [...activos].sort((a, b) => {
+  // ── Pestaña ENTREGAS ──
+  // Regla de negocio: si el cliente ya pagó el 100%, el proyecto ya se entregó
+  // (se corrobora con los archivos cargados). Solo son "por entregar" los que
+  // aún deben. Un liquidado SIN archivos queda como "terminado, falta cargar".
+  const entregasData = useMemo(() => {
+    const porEntregar = [], sinArchivos = [], entregadas = [];
+    for (const r of segRows) {
+      if (r.projectStatus === 'cancelled' || r.estado === 'incobrable') continue;
+      const tieneArchivos = (r.archivos?.length || 0) > 0;
+      if (r.entregado || r.projectStatus === 'completed' || (r.liquidado && tieneArchivos)) entregadas.push(r);
+      else if (r.liquidado) sinArchivos.push(r);
+      else porEntregar.push(r);
+    }
+    const byFecha = (a, b) => {
       if (!!a.prioritario !== !!b.prioritario) return !!b.prioritario - !!a.prioritario;
       const fa = a.fechaEntrega ? new Date(a.fechaEntrega).getTime() : Infinity;
       const fb = b.fechaEntrega ? new Date(b.fechaEntrega).getTime() : Infinity;
       return fa - fb;
-    });
+    };
+    porEntregar.sort(byFecha);
+    sinArchivos.sort(byFecha);
+    entregadas.sort((a, b) => new Date(b.entregadoEn || b.fechaEntrega || 0) - new Date(a.entregadoEn || a.fechaEntrega || 0));
+    const vencidas = porEntregar.filter((r) => { const d = diasHasta(r.fechaEntrega); return d !== null && d < 0; }).length;
+    return { porEntregar, sinArchivos, entregadas, vencidas };
   }, [segRows]);
 
-  // ── Pestaña PENDIENTES: sin respuesta / vencimientos / cotizaciones ──
+  // ── Pestaña PENDIENTES: los KPIs de arriba funcionan como filtros ──
   const pendientesRows = useMemo(() => {
-    const arr = segRows.filter((r) => (r.porCobrarActivo || 0) > 0.5 || r.atencion?.sinRespuesta);
+    let arr;
+    switch (pendFilter) {
+      case 'sin_respuesta':
+        arr = segRows.filter((r) => r.atencion?.sinRespuesta);
+        break;
+      case 'vencido':
+        arr = segRows.filter((r) => r.nVencidas > 0 && (r.porCobrarActivo || 0) > 0.5);
+        break;
+      case 'atraso':
+        arr = segRows.filter((r) => (r.cobradoConAtraso || 0) > 0);
+        break;
+      case 'entregas7':
+        arr = segRows.filter((r) => {
+          if (r.projectStatus === 'completed' || r.projectStatus === 'cancelled' || r.entregado || r.liquidado) return false;
+          const d = diasHasta(r.fechaEntrega);
+          return d !== null && d >= 0 && d <= 7;
+        });
+        break;
+      default:
+        arr = segRows.filter((r) => (r.porCobrarActivo || 0) > 0.5 || r.atencion?.sinRespuesta);
+    }
     return [...arr].sort((a, b) => {
       if (!!a.prioritario !== !!b.prioritario) return !!b.prioritario - !!a.prioritario;
       const sa = a.atencion?.sinRespuesta ? 0 : 1;
@@ -369,14 +406,14 @@ const SeguimientoMensual = () => {
       if ((b.nVencidas > 0) !== (a.nVencidas > 0)) return (b.nVencidas > 0) - (a.nVencidas > 0);
       return (b.porCobrarActivo || 0) - (a.porCobrarActivo || 0);
     });
-  }, [segRows]);
+  }, [segRows, pendFilter]);
 
   const pendKpis = useMemo(() => {
     const sinRespuesta = segRows.filter((r) => r.atencion?.sinRespuesta).length;
     const vencidoActivo = segRows.reduce((a, r) => a + (r.nVencidas > 0 ? (r.porCobrarActivo || 0) : 0), 0);
     const cobradoConAtraso = segTotales?.cobradoConAtraso || 0;
     const entregas7d = segRows.filter((r) => {
-      if (r.projectStatus === 'completed' || r.projectStatus === 'cancelled') return false;
+      if (r.projectStatus === 'completed' || r.projectStatus === 'cancelled' || r.entregado || r.liquidado) return false;
       const d = diasHasta(r.fechaEntrega);
       return d !== null && d >= 0 && d <= 7;
     }).length;
@@ -484,6 +521,8 @@ const SeguimientoMensual = () => {
       if (f.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB (aún comprimido)'); return; }
       const { archivos } = await uploadArchivo('quote', row.id, f);
       setSegMap((prev) => { const n = new Map(prev); n.set(String(row.id), { ...(n.get(String(row.id)) || {}), archivos }); return n; });
+      // También en las filas globales: con archivo cargado un liquidado pasa a "entregada"
+      setSegRows((prev) => prev.map((x) => String(x.id) === String(row.id) ? { ...x, archivos } : x));
       if (f.size < original * 0.95) toast.success(`Subido y comprimido: ${fmtBytes(original)} → ${fmtBytes(f.size)} ✅`);
       else toast.success('Archivo subido ✅');
     } catch { toast.error('No se pudo subir el archivo'); }
@@ -509,6 +548,19 @@ const SeguimientoMensual = () => {
       setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId) ? { ...r, prioritario: actual } : r));
       setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), prioritario: actual }); return n; });
     }
+  };
+
+  // ── Marcar entregada (a mano, para proyectos que no siguen la regla de pago) ──
+  const handleMarcarEntregada = async (rowId, valor) => {
+    setSaving(`ent-${rowId}`);
+    try {
+      const resp = await updateSeguimiento('quote', rowId, { entregado: valor });
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId)
+        ? { ...r, entregado: resp.entregado, entregadoEn: resp.entregadoEn }
+        : r));
+      toast.success(valor ? 'Marcada como entregada ✅' : 'Entrega desmarcada');
+    } catch { toast.error('No se pudo actualizar la entrega'); }
+    finally { setSaving(null); }
   };
 
   const PrioBtn = ({ row }) => (
@@ -683,7 +735,9 @@ const SeguimientoMensual = () => {
       <div className="sm-tabs">
         <button className={`sm-tab ${view === 'entregas' ? 'active' : ''}`} onClick={() => setView('entregas')}>
           <FaShippingFast /> Entregas
-          {pendKpis.entregas7d > 0 && <span className="sm-tab-badge">{pendKpis.entregas7d}</span>}
+          {entregasData.porEntregar.length > 0 && (
+            <span className={`sm-tab-badge ${entregasData.vencidas > 0 ? 'red' : ''}`}>{entregasData.porEntregar.length}</span>
+          )}
         </button>
         <button className={`sm-tab ${view === 'flujo' ? 'active' : ''}`} onClick={() => setView('flujo')}>
           <FaMoneyBillWave /> Flujo de caja
@@ -701,34 +755,38 @@ const SeguimientoMensual = () => {
         <>
           <div className="sm-toolbar sm-toolbar-entregas">
             <div className="sm-entregas-hint">
-              Proyectos por entregar, ordenados por fecha. Los acuerdos se cargan a mano
-              (botón <b>Correcciones / entrega</b>) o desde tus sesiones de Fireflies.
+              Solo entregas <b>activas</b> (clientes que aún deben). Si un cliente ya pagó el 100%,
+              su proyecto cuenta como entregado — y si no tiene archivos cargados aparece abajo
+              como <b>terminado, falta cargar archivos</b>.
             </div>
             <button className="sm-btn sm-btn-ff" onClick={handleSyncFireflies} disabled={syncingFF} title="Lee tus sesiones de Fireflies y extrae con IA las fechas y correcciones acordadas">
               <FaMicrophone className={syncingFF ? 'sm-spin' : ''} /> {syncingFF ? 'Leyendo sesiones…' : 'Sincronizar Fireflies'}
             </button>
           </div>
-          {!entregasRows.length ? (
-            <div className="sm-empty">No hay proyectos activos por entregar. 🎉</div>
+
+          {/* ── Por entregar (activas: próximas o vencidas) ── */}
+          {!entregasData.porEntregar.length ? (
+            <div className="sm-empty">No tienes entregas activas pendientes. 🎉</div>
           ) : (
             <div className="sm-table-wrap">
               <table className="sm-table">
                 <thead>
                   <tr>
                     <th>Cliente / Proyecto</th>
+                    <th className="sm-col-estado">Entrega</th>
                     <th className="sm-col-prog">Avance</th>
-                    <th className="sm-col-fecha">Entrega</th>
+                    <th className="sm-col-fecha">Fecha</th>
                     <th>Último acuerdo</th>
                     <th className="sm-col-act-lg"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {entregasRows.map((r) => {
+                  {entregasData.porEntregar.map((r) => {
                     const ps = PROJ_STATUS[r.projectStatus];
                     const dEnt = diasHasta(r.fechaEntrega);
                     const entCls = dEnt === null ? 'sm-faint' : dEnt < 0 ? 'sm-red' : dEnt <= 3 ? 'sm-amber' : '';
                     return (
-                      <tr key={r.id} className={`sm-row ${r.prioritario ? 'sm-prio' : ''}`}>
+                      <tr key={r.id} className={`sm-row ${dEnt !== null && dEnt < 0 ? 'vencido' : ''} ${r.prioritario ? 'sm-prio' : ''}`}>
                         <td className="sm-cell-client">
                           <div className="sm-client-line">
                             <PrioBtn row={r} />
@@ -740,6 +798,12 @@ const SeguimientoMensual = () => {
                           <div className="sm-title">{r.title}</div>
                           <AtencionChip atencion={r.atencion} />
                         </td>
+                        <td className="sm-col-estado">
+                          {dEnt === null ? <span className="sm-chip sm-chip-gray"><FaRegClock /> Sin fecha</span>
+                            : dEnt < 0 ? <span className="sm-chip sm-chip-red"><FaExclamationTriangle /> Vencida {relDias(r.fechaEntrega)}</span>
+                              : dEnt <= 7 ? <span className="sm-chip sm-chip-amber"><FaRegClock /> Próxima · {relDias(r.fechaEntrega)}</span>
+                                : <span className="sm-chip sm-chip-gray"><FaRegClock /> {relDias(r.fechaEntrega)}</span>}
+                        </td>
                         <td className="sm-col-prog">
                           {ps ? (
                             <div className="sm-prog" title={`${ps.label}${r.progress != null ? ` · ${r.progress}%` : ''}`}>
@@ -749,21 +813,22 @@ const SeguimientoMensual = () => {
                           ) : <span className="sm-faint">Sin proyecto</span>}
                         </td>
                         <td className={`sm-fecha sm-col-fecha ${entCls}`}>
-                          {r.fechaEntrega ? (
-                            <>
-                              <div>{fmtFechaFull(r.fechaEntrega)}</div>
-                              <div className="sm-fecha-rel">{relDias(r.fechaEntrega)}</div>
-                            </>
-                          ) : 'Sin fecha'}
+                          {r.fechaEntrega ? fmtFechaFull(r.fechaEntrega) : '—'}
                         </td>
                         <td className="sm-cell-acuerdo">
                           {r.ultimoAcuerdo ? renderAcuerdosList(r, 2) : <span className="sm-faint">Sin acuerdos registrados</span>}
                         </td>
                         <td className="sm-col-act-lg">
                           {acuerdoOpen === r.id ? renderAcuerdoEditor(r.id) : (
-                            <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={() => openAcuerdo(r.id)} title="Registrar correcciones y/o fecha de entrega acordada">
-                              <FaHandshake /> Correcciones / entrega
-                            </button>
+                            <div className="sm-ent-actions">
+                              <button className="sm-btn sm-btn-ghost sm-btn-sm" onClick={() => openAcuerdo(r.id)} title="Registrar correcciones y/o fecha de entrega acordada">
+                                <FaHandshake /> Correcciones / entrega
+                              </button>
+                              <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={saving === `ent-${r.id}`}
+                                onClick={() => handleMarcarEntregada(r.id, true)} title="Marcar este proyecto como ya entregado">
+                                {saving === `ent-${r.id}` ? '…' : <><FaCheck /> Entregada</>}
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -773,21 +838,101 @@ const SeguimientoMensual = () => {
               </table>
             </div>
           )}
+
+          {/* ── Terminados (pagados 100%) pero sin archivos cargados ── */}
+          {entregasData.sinArchivos.length > 0 && (
+            <div className="sm-ent-group warn">
+              <h4><FaExclamationTriangle /> Proyecto terminado, falta cargar archivos ({entregasData.sinArchivos.length})</h4>
+              <div className="sm-ent-group-hint">Pagados al 100% pero sin el entregable en el historial. Sube el archivo o márcalos entregados.</div>
+              {entregasData.sinArchivos.map((r) => (
+                <div key={r.id} className="sm-ent-item">
+                  <div className="sm-ent-item-info">
+                    <div className="sm-client-line">
+                      <PrioBtn row={r} />
+                      {r.celular && (
+                        <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
+                      )}
+                      <span className="sm-client">{r.cliente}</span>
+                      <span className="sm-chip sm-chip-amber"><FaCheckCircle /> Pagado 100% · sin archivos</span>
+                    </div>
+                    <div className="sm-title">{r.title}</div>
+                  </div>
+                  <div className="sm-ent-actions">
+                    <button className="sm-btn sm-btn-ghost sm-btn-sm" disabled={saving === `file-${r.id}`}
+                      onClick={() => fileInputsRef.current[`ent-${r.id}`]?.click()} title="Cargar el entregable final">
+                      <FaCloudUploadAlt /> {saving === `file-${r.id}` ? 'Subiendo…' : 'Cargar archivo'}
+                    </button>
+                    <input type="file" hidden ref={(el) => { fileInputsRef.current[`ent-${r.id}`] = el; }}
+                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadArchivo(r, f); }} />
+                    <button className="sm-btn sm-btn-pay sm-btn-sm" disabled={saving === `ent-${r.id}`}
+                      onClick={() => handleMarcarEntregada(r.id, true)} title="Marcar como entregada sin subir archivo">
+                      {saving === `ent-${r.id}` ? '…' : <><FaCheck /> Entregada</>}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Entregadas (pagadas con archivos, marcadas a mano o proyecto completado) ── */}
+          {entregasData.entregadas.length > 0 && (
+            <div className="sm-ent-group done">
+              <button className="sm-ent-group-toggle" onClick={() => setShowEntregadas((v) => !v)}>
+                <FaCheckCircle /> {entregasData.entregadas.length} entregada{entregasData.entregadas.length !== 1 ? 's' : ''}
+                {showEntregadas ? <FaChevronDown /> : <FaChevronRight />}
+              </button>
+              {showEntregadas && entregasData.entregadas.map((r) => (
+                <div key={r.id} className="sm-ent-item">
+                  <div className="sm-ent-item-info">
+                    <div className="sm-client-line">
+                      <span className="sm-client">{r.cliente}</span>
+                      <span className="sm-chip sm-chip-green">
+                        <FaCheckCircle /> {r.entregado ? `Entregada${r.entregadoEn ? ` el ${fmtFecha(r.entregadoEn)}` : ''}`
+                          : r.projectStatus === 'completed' ? 'Proyecto completado'
+                            : 'Pagado 100% + archivos'}
+                      </span>
+                      {(r.archivos?.length || 0) > 0 && <span className="sm-faint"><FaPaperclip /> {r.archivos.length}</span>}
+                    </div>
+                    <div className="sm-title">{r.title}</div>
+                  </div>
+                  {r.entregado && (
+                    <button className="sm-mini" disabled={saving === `ent-${r.id}`} onClick={() => handleMarcarEntregada(r.id, false)}>
+                      Desmarcar
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </>
       ) : view === 'pendientes' ? (
         /* ═══════════════ PESTAÑA PENDIENTES ═══════════════ */
         <>
           <div className="sm-kpis">
-            <div className={`sm-kpi ${pendKpis.sinRespuesta ? 'red' : 'green'}`}>
-              <span className="sm-kpi-lbl">Leads sin respuesta</span>
-              <span className="sm-kpi-val">{pendKpis.sinRespuesta}</span>
-            </div>
-            <div className="sm-kpi red"><span className="sm-kpi-lbl">Vencido por cobrar</span><span className="sm-kpi-val">{mxn(pendKpis.vencidoActivo)}</span></div>
-            <div className="sm-kpi amber"><span className="sm-kpi-lbl">Cobrado con atraso</span><span className="sm-kpi-val">{mxn(pendKpis.cobradoConAtraso)}</span></div>
-            <div className="sm-kpi"><span className="sm-kpi-lbl">Entregas próximos 7 días</span><span className="sm-kpi-val">{pendKpis.entregas7d}</span></div>
+            {[
+              { k: 'sin_respuesta', lbl: 'Leads sin respuesta', val: pendKpis.sinRespuesta, cls: pendKpis.sinRespuesta ? 'red' : 'green' },
+              { k: 'vencido', lbl: 'Vencido por cobrar', val: mxn(pendKpis.vencidoActivo), cls: 'red' },
+              { k: 'atraso', lbl: 'Cobrado con atraso', val: mxn(pendKpis.cobradoConAtraso), cls: 'amber' },
+              { k: 'entregas7', lbl: 'Entregas próximos 7 días', val: pendKpis.entregas7d, cls: '' },
+            ].map((c) => (
+              <button
+                key={c.k}
+                className={`sm-kpi clickable ${c.cls} ${pendFilter === c.k ? 'active' : ''}`}
+                onClick={() => setPendFilter((prev) => prev === c.k ? 'todos' : c.k)}
+                title={pendFilter === c.k ? 'Quitar filtro' : 'Filtrar la tabla por este indicador'}
+              >
+                <span className="sm-kpi-lbl">{c.lbl}</span>
+                <span className="sm-kpi-val">{c.val}</span>
+                {pendFilter === c.k && <span className="sm-kpi-filter-tag">filtrando ✕</span>}
+              </button>
+            ))}
           </div>
           {!pendientesRows.length ? (
-            <div className="sm-empty">Nada pendiente: sin saldos por cobrar ni leads sin respuesta. 🎉</div>
+            <div className="sm-empty">
+              {pendFilter === 'todos'
+                ? 'Nada pendiente: sin saldos por cobrar ni leads sin respuesta. 🎉'
+                : 'Nada con este filtro. Haz clic de nuevo en la tarjeta para quitarlo.'}
+            </div>
           ) : (
             <div className="sm-table-wrap">
               <table className="sm-table">
