@@ -569,3 +569,73 @@
     border: 1px solid rgba(120, 130, 150, 0.3); background: transparent; color: inherit;
     cursor: pointer;
 }
+
+/* ═══ Tabla profesional de cotizaciones ═══ */
+.mq-tablewrap { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+.mq-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1080px; }
+.mq-table thead th {
+    text-align: left; padding: 10px 12px; font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #6b7280; background: #f9fafb; border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; position: sticky; top: 0; z-index: 1;
+}
+.mq-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+.mq-trow { cursor: pointer; transition: background .12s; }
+.mq-trow:hover td { background: #f5f7ff; }
+.mq-trow-paid { box-shadow: inset 3px 0 0 #3b82f6; }
+.mq-trow-pending { box-shadow: inset 3px 0 0 #f59e0b; }
+.mq-trow-cancelled td, .mq-trow-rejected td { opacity: 0.65; }
+.mq-th-num, .mq-td-price { text-align: right; }
+.mq-td-name { font-weight: 700; color: #111827; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.mq-td-phone { display: inline-flex; align-items: center; gap: 4px; color: #16a34a; font-size: 0.75rem; text-decoration: none; }
+.mq-td-phone:hover { text-decoration: underline; color: #15803d; }
+.mq-td-titletext { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #111827; }
+.mq-td-sub { color: #9ca3af; font-size: 0.72rem; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mq-td-plazo, .mq-td-date { white-space: nowrap; color: #6b7280; font-size: 0.78rem; }
+.mq-td-esquema { color: #6b7280; font-size: 0.75rem; max-width: 220px; }
+.mq-td-vend { white-space: nowrap; color: #374151; font-size: 0.78rem; }
+.mq-td-price-val { font-weight: 800; color: #111827; }
+.mq-td-actions { white-space: nowrap; }
+
+/* Pills de estado en la fila de filtros (combinables con todo lo demás) */
+.mq-fpill-status { display: inline-flex; align-items: center; gap: 5px; }
+.mq-fpill-status svg { color: var(--st-color); }
+.mq-fpill-status.mq-fpill-active { border-color: var(--st-color); color: var(--st-color); background: color-mix(in srgb, var(--st-color) 10%, #fff); }
+
+/* ═══ Visor de PDF + edición ═══ */
+.mq-viewer {
+    background: #fff; border-radius: 14px; width: min(1240px, 96vw); height: min(860px, 92vh);
+    display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+}
+.mq-viewer-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 18px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;
+}
+.mq-viewer-title { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+.mq-viewer-title h3 { margin: 0; font-size: 1.05rem; color: #111827; }
+.mq-viewer-sub { color: #6b7280; font-size: 0.82rem; max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mq-dirty-tag { color: #f59e0b; font-size: 0.78rem; font-weight: 700; }
+.mq-viewer-body { flex: 1; display: grid; grid-template-columns: 1fr 350px; min-height: 0; }
+.mq-pdf-pane { background: #4b5563; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.mq-pdf-frame { width: 100%; height: 100%; border: none; }
+.mq-pdf-loading { color: #e5e7eb; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+.mq-side-pane { padding: 16px 18px; overflow-y: auto; border-left: 1px solid #e5e7eb; }
+.mq-side-pane h4 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: #111827; margin: 0 0 12px; }
+.mq-side-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.mq-side-actions .mq-btn { justify-content: center; }
+
+/* Formulario de edición */
+.mq-edit-form { display: flex; flex-direction: column; gap: 9px; }
+.mq-edit-field { display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem; color: #6b7280; font-weight: 600; }
+.mq-edit-field input {
+    padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.85rem;
+    color: #111827; font-weight: 500;
+}
+.mq-edit-field input:focus { outline: none; border-color: #4a6cf7; box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+.mq-edit-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.mq-edit-seclabel { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem; color: #374151; margin-top: 6px; }
+.mq-edit-hint { color: #9ca3af; font-size: 0.72rem; }
+
+@media (max-width: 900px) {
+    .mq-viewer-body { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .mq-side-pane { border-left: none; border-top: 1px solid #e5e7eb; max-height: 45%; }
+}

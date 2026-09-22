@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
  * Tamaño: Letter (215.9 x 279.4 mm)
  * @param {Object} quoteData - Datos de la cotización
  */
-export const generateSalesQuotePDF = async (rawData) => {
+export const generateSalesQuotePDF = async (rawData, opts = {}) => {
     // Normalize fields — ManageQuotes passes normalized objects with _prefixed keys
     // while SalesQuote passes direct fields. Merge both so the PDF always finds data.
     const quoteData = {
@@ -1088,6 +1088,11 @@ export const generateSalesQuotePDF = async (rawData) => {
     doc.triangle(0, footerY + 5, pageWidth, footerY, pageWidth, footerY - 3, 'F');
     doc.triangle(0, footerY + 5, 0, footerY + 2, pageWidth, footerY - 3, 'F');
     doc.triangle(0, footerY + 5, 0, footerY, pageWidth, footerY - 3, 'F');
+
+    // Modo visor: devolver el PDF como blob sin descargar ni subir a Cloudinary
+    if (opts.output === 'blob') {
+        return doc.output('blob');
+    }
 
     // ============ GUARDAR PDF Y SUBIR A CLOUDINARY ============
     const clientNameSafe = quoteData.clientName.replace(/[^a-zA-Z0-9]/g, '_');
