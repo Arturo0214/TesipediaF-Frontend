@@ -6,6 +6,7 @@ import {
   FaHourglassHalf, FaCheckCircle, FaTimesCircle,
   FaCreditCard, FaMoneyBillWave, FaSortAmountDown, FaSortAmountUp,
   FaCalculator, FaGlobe, FaWhatsapp,
+  FaCalendarAlt, FaFileAlt, FaGraduationCap, FaUser, FaEye,
   FaEdit, FaSave, FaSyncAlt,
 } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
@@ -378,6 +379,12 @@ const ManageQuotes = () => {
     catch { toast.error('Error al generar PDF'); }
   };
 
+  const getPaymentInfo = (quote) => {
+    const key = quote._paymentKey;
+    if (key === 'sin-metodo') return { label: 'N/A', color: '#9ca3af', icon: <FaCreditCard />, border: '#d1d5db' };
+    return paymentConfig[key] || paymentConfig['tarjeta'];
+  };
+
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
   const formatCurrency = (n) => `$${(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0 })}`;
   const soloDigitos = (s) => String(s || '').replace(/\D/g, '');
@@ -564,68 +571,79 @@ const ManageQuotes = () => {
         <div className="mq-empty">No hay cotizaciones con estos filtros</div>
       ) : (
         <>
-          <div className="mq-tablewrap">
-            <table className="mq-table">
-              <thead>
-                <tr>
-                  <th>Folio</th>
-                  <th>Cliente</th>
-                  <th>Proyecto</th>
-                  <th>Plazo</th>
-                  <th>Esquema</th>
-                  <th>Vendedor</th>
-                  <th className="mq-th-num">Precio</th>
-                  <th>Estado</th>
-                  <th>Creada</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageQuotes.map(quote => (
-                  <tr key={`${quote._source}-${quote._id}`}
-                    className={`mq-trow mq-trow-${quote.status}`}
-                    onClick={() => setSelectedQuote(quote)}
-                    title="Ver PDF de la cotización">
-                    <td className="mq-td-folio">
-                      {quote._folio
-                        ? <span className="mq-card-folio" title={`ID cliente: ${quote.leadId || '—'}`}>{quote._folio}</span>
-                        : <span className={`mq-source-tag mq-source-${quote._source}`}>{quote._source === 'generated' ? <FaCalculator /> : <FaGlobe />} {quote._sourceLabel}</span>}
-                    </td>
-                    <td className="mq-td-client">
-                      <div className="mq-td-name">{quote._clientName}</div>
-                      {quote._phone && (
-                        <a className="mq-td-phone" href={`https://wa.me/${soloDigitos(quote._phone)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                          <FaWhatsapp /> {quote._phone}
-                        </a>
+          <div className="mq-grid">
+            {pageQuotes.map(quote => {
+              const pm = getPaymentInfo(quote);
+              return (
+                <div key={`${quote._source}-${quote._id}`} className="mq-card"
+                  style={{ borderLeftColor: pm.border || '#e5e7eb' }}>
+                  {/* Card Header */}
+                  <div className="mq-card-head">
+                    <div className="mq-card-client">
+                      <FaUser className="mq-card-client-icon" />
+                      <span className="mq-card-name">{quote._clientName}</span>
+                      {quote._folio && <span className="mq-card-folio" title={`ID cliente: ${quote.leadId || '—'}`}>{quote._folio}</span>}
+                      <span className={`mq-source-tag mq-source-${quote._source}`}>
+                        {quote._source === 'generated' ? <FaCalculator /> : <FaGlobe />}
+                        {quote._sourceLabel}
+                      </span>
+                      {quote._createdBy && (
+                        <span className="mq-sofia-badge">{quote._createdBy}</span>
                       )}
-                    </td>
-                    <td className="mq-td-title">
-                      <div className="mq-td-titletext" title={quote._title}>{quote._title}</div>
-                      <div className="mq-td-sub">
-                        {[quote._career, quote._pages && `${quote._pages} págs`, quote._service].filter(Boolean).join(' · ')}
-                      </div>
-                    </td>
-                    <td className="mq-td-plazo">{quote._dueDate || '—'}</td>
-                    <td className="mq-td-esquema" title={quote._paymentScheme}>{quote._paymentScheme ? `${quote._paymentScheme.slice(0, 34)}${quote._paymentScheme.length > 34 ? '…' : ''}` : '—'}</td>
-                    <td className="mq-td-vend">{quote.vendedor || quote._createdBy || '—'}</td>
-                    <td className="mq-td-price">
-                      <span className="mq-td-price-val">{formatCurrency(quote._price)}</span>
+                    </div>
+                    <StatusBadge quote={quote} />
+                  </div>
+
+                  {/* Card Body — click: visor de PDF editable */}
+                  <div className="mq-card-body" onClick={() => setSelectedQuote(quote)} title="Ver PDF de la cotización">
+                    <div className="mq-card-title">{quote._title}</div>
+                    <div className="mq-card-meta">
+                      {quote._service && <span className="mq-card-tag"><FaFileAlt /> {quote._service}</span>}
+                      {quote._level && <span className="mq-card-tag"><FaGraduationCap /> {quote._level}</span>}
+                      {quote._pages && <span className="mq-card-tag">{quote._pages} págs</span>}
+                    </div>
+                    {/* Extra info rows */}
+                    <div className="mq-card-info">
+                      {quote._career && <div className="mq-card-info-row"><span className="mq-card-info-label">Carrera</span><span>{quote._career}</span></div>}
+                      {quote._area && <div className="mq-card-info-row"><span className="mq-card-info-label">Área</span><span>{quote._area}</span></div>}
+                      {quote._email && <div className="mq-card-info-row"><span className="mq-card-info-label">Email</span><span>{quote._email}</span></div>}
+                      {quote._phone && <div className="mq-card-info-row"><span className="mq-card-info-label">Tel</span><span>{quote._phone}</span></div>}
+                      {quote._deliveryTime && <div className="mq-card-info-row"><span className="mq-card-info-label">Plazo</span><span>{quote._deliveryTime}</span></div>}
+                      {quote._paymentScheme && <div className="mq-card-info-row"><span className="mq-card-info-label">Esquema</span><span>{quote._paymentScheme}</span></div>}
+                      {(quote.leadId || quote.publicId) && (
+                        <div className="mq-card-info-row">
+                          <span className="mq-card-info-label">{quote.leadId ? 'ID cliente' : 'ID'}</span>
+                          <span className="mq-card-id" title={quote.leadId || quote.publicId}>{String(quote.leadId || quote.publicId).slice(0, 8)}...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="mq-card-foot">
+                    <div className="mq-card-pricing">
+                      <span className="mq-card-price">{formatCurrency(quote._price)}</span>
                       {quote._discount > 0 && <span className="mq-card-disc">-{formatCurrency(quote._discount)}</span>}
-                    </td>
-                    <td className="mq-td-status" onClick={(e) => e.stopPropagation()}>
-                      <StatusBadge quote={quote} />
-                    </td>
-                    <td className="mq-td-date">{formatDate(quote.createdAt)}</td>
-                    <td className="mq-td-actions" onClick={(e) => e.stopPropagation()}>
-                      {quote._source === 'generated' && (
-                        <button className="mq-act mq-act-pdf" onClick={() => handleDownload(quote)} title="Descargar PDF"><FaFilePdf /></button>
-                      )}
-                      <button className="mq-act mq-act-del" onClick={() => handleDelete(quote)} title="Eliminar"><FaTrash /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      {quote._surcharge > 0 && <span className="mq-card-surch">+{formatCurrency(quote._surcharge)}</span>}
+                    </div>
+                    <div className="mq-card-foot-right">
+                      <span className="mq-card-payment" style={{ color: pm.color }}>{pm.icon} {pm.label}</span>
+                      <span className="mq-card-date"><FaCalendarAlt /> {quote._dueDate || formatDate(quote.createdAt)}</span>
+                      {quote.createdAt && quote._dueDate && <span className="mq-card-date-sub">Creada: {formatDate(quote.createdAt)}</span>}
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="mq-card-actions">
+                    <button className="mq-act mq-act-view" onClick={() => setSelectedQuote(quote)} title="Ver PDF"><FaEye /></button>
+                    {quote._source === 'generated' && (
+                      <button className="mq-act mq-act-pdf" onClick={() => handleDownload(quote)} title="Descargar PDF"><FaFilePdf /></button>
+                    )}
+                    <button className="mq-act mq-act-del" onClick={() => handleDelete(quote)} title="Eliminar"><FaTrash /></button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {totalPages > 1 && (
