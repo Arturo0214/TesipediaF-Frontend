@@ -115,6 +115,36 @@ const normalizeRegular = (q) => {
   };
 };
 
+// Calendario de pagos actual de una cotización → [{ monto (final), fecha 'YYYY-MM-DD' }]
+// Prioriza pagosCustom (estructurado); si no, lo extrae del texto del esquema.
+const MESES_ES = { enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11 };
+const parseScheduleFromQuote = (q) => {
+  const descFactor = 1 - ((parseFloat(q.descuentoEfectivo) || 0) / 100);
+  if (Array.isArray(q.pagosCustom) && q.pagosCustom.length) {
+    return q.pagosCustom.map((x) => ({
+      monto: Math.round((Number(x.monto) || 0) * descFactor * 100) / 100,
+      fecha: String(x.fecha || '').slice(0, 10),
+    }));
+  }
+  const texto = q.esquemaPago || '';
+  const montos = [...texto.matchAll(/\$\s*([\d,]+(?:\.\d{1,2})?)/g)].map((m) => parseFloat(m[1].replace(/,/g, '')));
+  const fechas = [];
+  const re = /(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/g;
+  let m;
+  while ((m = re.exec(texto)) !== null) {
+    const mes = MESES_ES[m[2].toLowerCase()];
+    if (mes !== undefined) fechas.push(`${m[3]}-${String(mes + 1).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`);
+  }
+  const n = Math.max(montos.length, fechas.length);
+  if (!n) {
+    const hoy = new Date().toISOString().slice(0, 10);
+    return [{ monto: q.precioConDescuento || q.precioBase || 0, fecha: hoy }];
+  }
+  return Array.from({ length: n }, (_, i) => ({ monto: montos[i] ?? 0, fecha: fechas[i] || '' }));
+};
+
+const fechaLargaEs = (iso) => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+
 // Campos editables desde el visor (cotizaciones del cotizador)
 const editableFromQuote = (q) => ({
   clientName: q.clientName || q._clientName || '',
@@ -155,6 +185,8 @@ const ManageQuotes = () => {
   const [editFields, setEditFields] = useState({});
   const [editBaseline, setEditBaseline] = useState({});
   const [savingEdit, setSavingEdit] = useState(false);
+  const [editPagos, setEditPagos] = useState([]);
+  const [pagosBaseline, setPagosBaseline] = useState('[]');
   const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const quotesPerPage = 20;
@@ -267,7 +299,8 @@ const ManageQuotes = () => {
   }, [selectedQuote?._id]);
 
   /* ── Guardia de cambios sin guardar ── */
-  const isDirty = editMode && JSON.stringify(editFields) !== JSON.stringify(editBaseline);
+  const pagosDirty = editMode && JSON.stringify(editPagos) !== pagosBaseline;
+  const isDirty = editMode && (JSON.stringify(editFields) !== JSON.stringify(editBaseline) || pagosDirty);
 
   useEffect(() => {
     const h = (e) => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } };
@@ -281,6 +314,8 @@ const ManageQuotes = () => {
     setEditMode(false);
     setEditFields({});
     setEditBaseline({});
+    setEditPagos([]);
+    setPagosBaseline('[]');
   };
 
   const cancelEdit = () => {
@@ -288,6 +323,8 @@ const ManageQuotes = () => {
     setEditMode(false);
     setEditFields({});
     setEditBaseline({});
+    setEditPagos([]);
+    setPagosBaseline('[]');
     buildPreview(selectedQuote);
   };
 
@@ -297,6 +334,9 @@ const ManageQuotes = () => {
     const base = editableFromQuote(selectedQuote);
     setEditFields(base);
     setEditBaseline(base);
+    const pagos = parseScheduleFromQuote(selectedQuote);
+    setEditPagos(pagos);
+    setPagosBaseline(JSON.stringify(pagos));
     setEditMode(true);
   };
 
@@ -309,19 +349,48 @@ const ManageQuotes = () => {
     return next;
   });
 
-  const previewEdits = () => buildPreview({ ...selectedQuote, ...editFields });
+  // Texto de esquema para la vista previa cuando se editaron fechas de pago
+  const esquemaFromPagos = (pagos) => {
+    const fmt = (v) => '$' + Number(v || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `Esquema de ${pagos.length} pagos personalizado: ` +
+      pagos.map((x, i) => `Pago ${i + 1}: ${fmt(x.monto)} (${fechaLargaEs(x.fecha)})`).join(', ') + '.';
+  };
+
+  const previewEdits = () => {
+    const data = { ...selectedQuote, ...editFields };
+    if (pagosDirty) data.esquemaPago = esquemaFromPagos(editPagos);
+    buildPreview(data);
+  };
+
+  const setPago = (i, k, v) => {
+    setEditPagos((prev) => prev.map((x, j) => j === i ? { ...x, [k]: k === 'monto' ? (v === '' ? '' : Number(v)) : v } : x));
+  };
 
   const handleSaveEdit = async () => {
     if (!selectedQuote) return;
     setSavingEdit(true);
     try {
-      await dispatch(updateGeneratedQuote({ quoteId: selectedQuote._id, updatedData: editFields })).unwrap();
+      const payload = { ...editFields };
+      if (pagosDirty) {
+        const validos = editPagos.filter((x) => x.fecha && Number(x.monto) > 0);
+        if (!validos.length) { toast.error('El calendario de pagos necesita al menos un pago con monto y fecha'); setSavingEdit(false); return; }
+        // pagosCustom se guarda PRE-descuento (el backend le aplica descuentoEfectivo)
+        const descFactor = 1 - ((parseFloat(selectedQuote.descuentoEfectivo) || 0) / 100);
+        payload.pagosCustom = validos.map((x) => ({
+          monto: descFactor > 0 ? Math.round((Number(x.monto) / descFactor) * 100) / 100 : Number(x.monto),
+          fecha: x.fecha,
+        }));
+        payload.esquemaTipo = 'personalizado';
+      }
+      const updated = await dispatch(updateGeneratedQuote({ quoteId: selectedQuote._id, updatedData: payload })).unwrap();
       dispatch(getGeneratedQuotes());
-      const merged = normalizeGenerated({ ...selectedQuote, ...editFields });
+      const merged = normalizeGenerated({ ...selectedQuote, ...editFields, ...(updated && updated._id ? updated : {}) });
       setSelectedQuote(merged);
       setEditMode(false);
       setEditFields({});
       setEditBaseline({});
+      setEditPagos([]);
+      setPagosBaseline('[]');
       buildPreview(merged);
       toast.success('Cotización guardada ✅');
     } catch (err) {
@@ -725,6 +794,30 @@ const ManageQuotes = () => {
                       {selectedQuote.status !== 'paid' && (
                         <div className="mq-edit-hint">Al guardar con precio nuevo, el esquema de pago se recalcula solo.</div>
                       )}
+                      <div className="mq-edit-seclabel"><FaCalendarAlt /> Fechas de pago</div>
+                      <div className="mq-pagos-edit">
+                        {editPagos.map((x, i) => (
+                          <div key={i} className="mq-pago-row">
+                            <span className="mq-pago-num">{i + 1}</span>
+                            <input type="number" min="0" step="50" placeholder="Monto" value={x.monto}
+                              onChange={(e) => setPago(i, 'monto', e.target.value)} />
+                            <input type="date" value={x.fecha}
+                              onChange={(e) => setPago(i, 'fecha', e.target.value)} />
+                            <button className="mq-pago-del" title="Quitar pago"
+                              onClick={() => setEditPagos((prev) => prev.filter((_, j) => j !== i))}><FaTimes /></button>
+                          </div>
+                        ))}
+                        <div className="mq-pago-foot">
+                          <button className="mq-pago-add" onClick={() => setEditPagos((prev) => [...prev, { monto: 0, fecha: '' }])}>+ Agregar pago</button>
+                          {(() => {
+                            const suma = editPagos.reduce((a, x) => a + (Number(x.monto) || 0), 0);
+                            const total = Number(editFields.precioConDescuento) || 0;
+                            const ok = Math.abs(suma - total) < 1;
+                            return <span className={`mq-pago-suma ${ok ? 'ok' : 'warn'}`}>Suma: {formatCurrency(suma)} / {formatCurrency(total)}</span>;
+                          })()}
+                        </div>
+                        {pagosDirty && <div className="mq-edit-hint">Al guardar, el esquema se convierte a <b>personalizado</b> con estas fechas y montos{selectedQuote.status === 'paid' ? ' (los pagos ya marcados conservan su estado por número de pago)' : ''}.</div>}
+                      </div>
                     </div>
                     <div className="mq-side-actions">
                       <button className="mq-btn mq-btn-outline" onClick={previewEdits} disabled={pdfLoading} title="Ver los cambios reflejados en el PDF">

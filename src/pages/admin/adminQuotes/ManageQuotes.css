@@ -639,3 +639,23 @@
     .mq-viewer-body { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
     .mq-side-pane { border-left: none; border-top: 1px solid #e5e7eb; max-height: 45%; }
 }
+
+/* ═══ Editor de fechas de pago (visor) ═══ */
+.mq-pagos-edit { display: flex; flex-direction: column; gap: 7px; }
+.mq-pago-row { display: grid; grid-template-columns: 22px 1fr 1fr 26px; gap: 6px; align-items: center; }
+.mq-pago-num { font-size: 0.72rem; font-weight: 700; color: #9ca3af; text-align: center; }
+.mq-pago-row input {
+    padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.82rem; color: #111827;
+}
+.mq-pago-row input:focus { outline: none; border-color: #4a6cf7; box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+.mq-pago-del { background: none; border: none; color: #9ca3af; cursor: pointer; padding: 2px; }
+.mq-pago-del:hover { color: #ef4444; }
+.mq-pago-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mq-pago-add {
+    background: none; border: 1px dashed #a5b4fc; color: #4a6cf7; border-radius: 8px;
+    padding: 5px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+}
+.mq-pago-add:hover { background: rgba(74,108,247,0.06); }
+.mq-pago-suma { font-size: 0.75rem; font-weight: 700; }
+.mq-pago-suma.ok { color: #10b981; }
+.mq-pago-suma.warn { color: #f59e0b; }
