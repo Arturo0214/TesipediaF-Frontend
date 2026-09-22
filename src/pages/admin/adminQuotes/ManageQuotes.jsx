@@ -50,7 +50,7 @@ const normalizeGenerated = (q) => {
     ...q,
     _source: 'generated',
     _sourceLabel: 'Cotizador',
-    _folio: q.folio || (q.createdAt ? `COT-${String(new Date(q.createdAt).getTime()).slice(-6)}` : ''),
+    _folio: q.folio || (q._id ? `COT-${String(q._id).slice(-6).toUpperCase()}` : ''),
     _createdBy: q.generatedBy?.name || '',
     _clientName: q.clientName || 'Sin nombre',
     _title: q.tituloTrabajo || q.tipoTrabajo || 'Sin título',
