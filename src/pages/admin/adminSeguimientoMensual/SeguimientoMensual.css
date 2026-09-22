@@ -430,3 +430,9 @@
 .sm-ent-item:first-of-type { border-top: none; }
 .sm-ent-item-info { min-width: 0; flex: 1; }
 .sm-ent-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* Folio COT en la lista de cotizaciones del lead */
+.sm-cot-folio {
+    font-size: 0.68rem; font-weight: 700; color: #93C5FD;
+    background: rgba(59, 130, 246, 0.12); border-radius: 999px; padding: 1px 7px; white-space: nowrap;
+}

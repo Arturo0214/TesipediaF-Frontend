@@ -50,6 +50,7 @@ const normalizeGenerated = (q) => {
     ...q,
     _source: 'generated',
     _sourceLabel: 'Cotizador',
+    _folio: q.folio || (q.createdAt ? `COT-${String(new Date(q.createdAt).getTime()).slice(-6)}` : ''),
     _createdBy: q.generatedBy?.name || '',
     _clientName: q.clientName || 'Sin nombre',
     _title: q.tituloTrabajo || q.tipoTrabajo || 'Sin título',
@@ -123,6 +124,9 @@ const ManageQuotes = () => {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
   const [sortBy, setSortBy] = useState('date-desc');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [vendedorFilter, setVendedorFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
@@ -169,24 +173,40 @@ const ManageQuotes = () => {
     return s;
   }, [allQuotes]);
 
+  const vendedores = useMemo(() => {
+    const set = new Set();
+    allQuotes.forEach((q) => { const v = (q.vendedor || '').trim(); if (v) set.add(v); });
+    return [...set].sort();
+  }, [allQuotes]);
+
   const filteredQuotes = useMemo(() => {
     let list = [...allQuotes];
     if (sourceFilter !== 'all') list = list.filter(q => q._source === sourceFilter);
     if (searchQuery) {
       const s = searchQuery.toLowerCase();
+      // Si la búsqueda trae 4+ dígitos, también se compara contra el teléfono
+      // (solo dígitos en ambos lados: "55 8335-2096" encuentra a 5215583352096).
+      const sDigits = s.replace(/\D/g, '');
       list = list.filter(q =>
         q._clientName.toLowerCase().includes(s) ||
         q._title.toLowerCase().includes(s) ||
         q._taskType.toLowerCase().includes(s) ||
         (q._id || '').toLowerCase().includes(s) ||
+        (q._folio || '').toLowerCase().includes(s) ||
         (q.publicId || '').toLowerCase().includes(s) ||
-        q._email.toLowerCase().includes(s)
+        q._email.toLowerCase().includes(s) ||
+        (sDigits.length >= 4 && String(q._phone || '').replace(/\D/g, '').includes(sDigits))
       );
     }
     if (filter !== 'all') list = list.filter(q => String(q.status) === filter);
     if (paymentFilter !== 'all') {
       list = list.filter(q => q._paymentKey === paymentFilter);
     }
+    if (vendedorFilter !== 'all') list = list.filter(q => (q.vendedor || '').trim() === vendedorFilter);
+    const pMin = parseFloat(priceMin);
+    const pMax = parseFloat(priceMax);
+    if (!Number.isNaN(pMin)) list = list.filter(q => (q._price || 0) >= pMin);
+    if (!Number.isNaN(pMax)) list = list.filter(q => (q._price || 0) <= pMax);
     switch (sortBy) {
       case 'date-desc': list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
       case 'date-asc': list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); break;
@@ -195,7 +215,7 @@ const ManageQuotes = () => {
       default: break;
     }
     return list;
-  }, [allQuotes, searchQuery, filter, sourceFilter, paymentFilter, sortBy]);
+  }, [allQuotes, searchQuery, filter, sourceFilter, paymentFilter, sortBy, vendedorFilter, priceMin, priceMax]);
 
   const totalPages = Math.ceil(filteredQuotes.length / quotesPerPage);
   const pageQuotes = filteredQuotes.slice((currentPage - 1) * quotesPerPage, currentPage * quotesPerPage);
@@ -345,7 +365,7 @@ const ManageQuotes = () => {
       <div className="mq-toolbar">
         <div className="mq-search">
           <FaSearch className="mq-search-icon" />
-          <input type="text" placeholder="Buscar por cliente, título, email o ID..." value={searchQuery}
+          <input type="text" placeholder="Buscar por cliente, título, email, teléfono, folio COT o ID..." value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
         </div>
         <div className="mq-sort-group">
@@ -358,6 +378,24 @@ const ManageQuotes = () => {
             {sortBy === 'price-asc' ? <FaSortAmountUp /> : <FaSortAmountDown />} Precio
           </button>
         </div>
+        <div className="mq-price-range" title="Filtrar por rango de precio">
+          <span className="mq-filter-label">Precio</span>
+          <input type="number" min="0" placeholder="mín" value={priceMin}
+            onChange={(e) => { setPriceMin(e.target.value); setCurrentPage(1); }} />
+          <span className="mq-price-sep">–</span>
+          <input type="number" min="0" placeholder="máx" value={priceMax}
+            onChange={(e) => { setPriceMax(e.target.value); setCurrentPage(1); }} />
+          {(priceMin || priceMax) && (
+            <button className="mq-price-clear" onClick={() => { setPriceMin(''); setPriceMax(''); setCurrentPage(1); }} title="Quitar filtro de precio">✕</button>
+          )}
+        </div>
+        {vendedores.length > 0 && (
+          <select className="mq-vend-select" value={vendedorFilter}
+            onChange={(e) => { setVendedorFilter(e.target.value); setCurrentPage(1); }}>
+            <option value="all">Vendedor: Todos</option>
+            {vendedores.map((v) => <option key={v} value={v}>{v}</option>)}
+          </select>
+        )}
       </div>
 
       {/* Filter Row */}
@@ -434,6 +472,7 @@ const ManageQuotes = () => {
                     <div className="mq-card-client">
                       <FaUser className="mq-card-client-icon" />
                       <span className="mq-card-name">{quote._clientName}</span>
+                      {quote._folio && <span className="mq-card-folio" title={`ID: ${quote._id}`}>{quote._folio}</span>}
                       <span className={`mq-source-tag mq-source-${quote._source}`}>
                         {quote._source === 'generated' ? <FaCalculator /> : <FaGlobe />}
                         {quote._sourceLabel}

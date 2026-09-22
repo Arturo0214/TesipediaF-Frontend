@@ -542,3 +542,30 @@
   transition: border-color 0.2s;
 }
 .mq-edit-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+
+/* ═══ Folio COT en la tarjeta ═══ */
+.mq-card-folio {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
+    color: #4a6cf7; background: rgba(74, 108, 247, 0.1);
+    border: 1px solid rgba(74, 108, 247, 0.25);
+    border-radius: 999px; padding: 1px 8px; margin-left: 6px; white-space: nowrap;
+}
+
+/* ═══ Rango de precio + vendedor en la toolbar ═══ */
+.mq-price-range { display: inline-flex; align-items: center; gap: 6px; }
+.mq-price-range .mq-filter-label { font-size: 0.75rem; }
+.mq-price-range input {
+    width: 84px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid rgba(120, 130, 150, 0.3); background: transparent;
+    color: inherit; font-size: 0.85rem;
+}
+.mq-price-sep { color: #9CA3AF; }
+.mq-price-clear {
+    background: none; border: none; color: #ef4444; cursor: pointer;
+    font-size: 0.85rem; font-weight: 700; padding: 2px 4px;
+}
+.mq-vend-select {
+    padding: 8px 10px; border-radius: 8px; font-size: 0.85rem;
+    border: 1px solid rgba(120, 130, 150, 0.3); background: transparent; color: inherit;
+    cursor: pointer;
+}

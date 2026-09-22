@@ -735,6 +735,7 @@ const SeguimientoMensual = () => {
               const esActual = String(c.id) === String(row.id);
               return (
                 <div key={c.id} className={`sm-cot ${esActual ? 'is-current' : ''}`}>
+                  {c.folio && <span className="sm-cot-folio" title={`ID: ${c.id}`}>{c.folio}</span>}
                   <span className="sm-cot-title" title={c.titulo}>{c.titulo}</span>
                   <span className="sm-cot-precio">{mxn(c.precio)}</span>
                   <span className={`sm-chip ${meta.cls}`}>{meta.label}</span>
