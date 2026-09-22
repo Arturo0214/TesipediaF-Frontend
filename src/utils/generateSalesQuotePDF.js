@@ -190,7 +190,7 @@ export const generateSalesQuotePDF = async (rawData) => {
 
     // Generar número de cotización
     const quoteNumber = rawData.folio
-        || (rawData._id ? `COT-${String(rawData._id).slice(-6).toUpperCase()}` : `COT-${Date.now().toString().slice(-6)}`);
+        || (rawData.publicId ? `COT-${String(rawData.publicId).slice(0, 8).toUpperCase()}` : `COT-${Date.now().toString().slice(-6)}`);
 
     // Fecha actual
     const today = new Date();
