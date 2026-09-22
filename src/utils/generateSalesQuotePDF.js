@@ -5,6 +5,42 @@ import jsPDF from 'jspdf';
  * Tamaño: Letter (215.9 x 279.4 mm)
  * @param {Object} quoteData - Datos de la cotización
  */
+// Misma autogeneración que Backend/utils/generateQuotePDF.js — si la cotización
+// no trae descripcionServicio (p. ej. las de Sofia), se construye idéntica.
+const generarDescripcion = (d) => {
+    const existente = d.descripcionServicio || d._description || '';
+    if (existente.trim() !== '') return existente;
+    const tipoTrabajo = d.tipoTrabajo === 'Otro' ? (d.customTipoTrabajo || 'Proyecto') : (d.tipoTrabajo || d._taskType || 'Proyecto');
+    const tipoTrabajoLower = tipoTrabajo.toLowerCase();
+    let nombreServicio = '';
+    let preposicion = 'de';
+    if (d.tipoServicio === 'correccion') {
+        nombreServicio = 'Servicio de Corrección y Revisión';
+    } else if (d.tipoServicio === 'modalidad2') {
+        nombreServicio = 'Servicio de Acompañamiento Académico';
+        preposicion = 'para';
+    } else {
+        nombreServicio = 'Servicio Integral de Elaboración';
+    }
+
+    let descripcion = `${nombreServicio} ${preposicion} ${tipoTrabajoLower}`;
+    if (d.tituloTrabajo && d.tituloTrabajo.trim()) descripcion += ` titulada "${d.tituloTrabajo}"`;
+    const ext = d.extensionEstimada || d._pages;
+    if (ext && parseFloat(ext) > 0) descripcion += ` de ${ext} páginas (aproximadamente)`;
+    if (d.area) descripcion += ` del ${d.area}`;
+    if (d.carrera && d.carrera.trim()) descripcion += ` para la carrera de ${d.carrera}`;
+    descripcion += '.';
+
+    if (d.tipoServicio === 'correccion') {
+        descripcion += ' Incluye revisión de fondo y forma, atención a observaciones del asesor y ajustes necesarios para aprobación final.';
+    } else if (d.tipoServicio === 'modalidad2') {
+        descripcion += ' El servicio incluye acompañamiento académico continuo, revisión de avances, retroalimentación especializada y apoyo en el desarrollo del trabajo conforme a lineamientos institucionales.';
+    } else {
+        descripcion += ' El servicio contempla la elaboración integral conforme a los lineamientos institucionales aplicables, con acompañamiento académico durante todo el proceso hasta contar con una versión lista para entrega y revisión final.';
+    }
+    return descripcion;
+};
+
 export const generateSalesQuotePDF = async (rawData, opts = {}) => {
     // Normalize fields — ManageQuotes passes normalized objects with _prefixed keys
     // while SalesQuote passes direct fields. Merge both so the PDF always finds data.
@@ -13,7 +49,7 @@ export const generateSalesQuotePDF = async (rawData, opts = {}) => {
         clientName: rawData.clientName || rawData._clientName || 'Cliente',
         tipoTrabajo: rawData.tipoTrabajo || rawData._taskType || '',
         extensionEstimada: rawData.extensionEstimada || rawData._pages || '',
-        descripcionServicio: rawData.descripcionServicio || rawData._description || '',
+        descripcionServicio: generarDescripcion(rawData),
         precioBase: parseFloat(rawData.precioBase) || parseFloat(rawData._basePrice) || 0,
         descuentoEfectivo: parseFloat(rawData.descuentoEfectivo) || 0,
         descuentoMonto: parseFloat(rawData.descuentoMonto) || parseFloat(rawData._discount) || 0,
@@ -606,8 +642,14 @@ export const generateSalesQuotePDF = async (rawData, opts = {}) => {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(220, 53, 69); // Rojo
     const tiempoEntregaTexto = quoteData.tiempoEntrega || '3 semanas';
-    const fechaEntrega = quoteData.fechaEntrega || '';
-    const textEntrega = `Tiempo estimado de entrega: ${tiempoEntregaTexto}${fechaEntrega ? ` (${fechaEntrega})` : ''}`;
+    let fechaEntrega = quoteData.fechaEntrega || '';
+    // ISO → fecha larga para poder comparar con el texto del plazo
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaEntrega)) {
+        fechaEntrega = new Date(fechaEntrega + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    // No repetir la fecha si ya está incluida en el plazo
+    const showFechaExtra = fechaEntrega && !tiempoEntregaTexto.includes(fechaEntrega) && fechaEntrega !== tiempoEntregaTexto;
+    const textEntrega = `Tiempo estimado de entrega: ${tiempoEntregaTexto}${showFechaExtra ? ` (${fechaEntrega})` : ''}`;
 
     // Centrar texto
     const textWidth = doc.getTextWidth(textEntrega);
