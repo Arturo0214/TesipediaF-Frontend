@@ -166,15 +166,29 @@
 
 .mq-card-head {
   display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 14px 0;
+}
+.mq-card-head-top {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px 0;
+  gap: 8px;
+}
+.mq-card-head-top > div:last-child { flex-shrink: 0; }
+.mq-card-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 .mq-card-client {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
+  flex: 1;
 }
 .mq-card-client-icon {
   color: #9ca3af;
@@ -548,7 +562,7 @@
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
     color: #4a6cf7; background: rgba(74, 108, 247, 0.1);
     border: 1px solid rgba(74, 108, 247, 0.25);
-    border-radius: 999px; padding: 1px 8px; margin-left: 6px; white-space: nowrap;
+    border-radius: 999px; padding: 1px 8px; white-space: nowrap;
 }
 
 /* ═══ Rango de precio + vendedor en la toolbar ═══ */

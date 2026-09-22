@@ -648,9 +648,14 @@ const ManageQuotes = () => {
                   style={{ borderLeftColor: pm.border || '#e5e7eb' }}>
                   {/* Card Header */}
                   <div className="mq-card-head">
-                    <div className="mq-card-client">
-                      <FaUser className="mq-card-client-icon" />
-                      <span className="mq-card-name">{quote._clientName}</span>
+                    <div className="mq-card-head-top">
+                      <div className="mq-card-client">
+                        <FaUser className="mq-card-client-icon" />
+                        <span className="mq-card-name">{quote._clientName}</span>
+                      </div>
+                      <StatusBadge quote={quote} />
+                    </div>
+                    <div className="mq-card-tags">
                       {quote._folio && <span className="mq-card-folio" title={`ID cliente: ${quote.leadId || '—'}`}>{quote._folio}</span>}
                       <span className={`mq-source-tag mq-source-${quote._source}`}>
                         {quote._source === 'generated' ? <FaCalculator /> : <FaGlobe />}
@@ -660,7 +665,6 @@ const ManageQuotes = () => {
                         <span className="mq-sofia-badge">{quote._createdBy}</span>
                       )}
                     </div>
-                    <StatusBadge quote={quote} />
                   </div>
 
                   {/* Card Body — click: visor de PDF editable */}
