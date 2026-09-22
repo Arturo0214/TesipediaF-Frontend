@@ -172,19 +172,37 @@ export const generateSalesQuotePDF = async (rawData, opts = {}) => {
         return str.charAt(0).toUpperCase() + str.slice(1);
     };
 
-    // Función para cargar imagen
+    // Función para cargar imagen. Fallback vía <img>+canvas porque el CSP puede
+    // bloquear fetch (connect-src) aunque permita la imagen (img-src).
+    const loadImageViaTag = (url) => new Promise((resolve) => {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            } catch { resolve(null); }
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+    });
+
     const loadImage = async (url) => {
         try {
             const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const blob = await response.blob();
-            return new Promise((resolve, reject) => {
+            return await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result);
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
             });
-        } catch (error) {
-            return null;
+        } catch {
+            return loadImageViaTag(url);
         }
     };
 

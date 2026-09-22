@@ -629,7 +629,20 @@
 .mq-viewer-sub { color: #6b7280; font-size: 0.82rem; max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mq-dirty-tag { color: #f59e0b; font-size: 0.78rem; font-weight: 700; }
 .mq-viewer-body { flex: 1; display: grid; grid-template-columns: 1fr 350px; min-height: 0; }
-.mq-pdf-pane { background: #4b5563; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.mq-pdf-pane { background: #4b5563; display: flex; align-items: center; justify-content: center; min-height: 0; position: relative; }
+.mq-pdf-refresh {
+    position: absolute; top: 12px; right: 16px; z-index: 5;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(17, 24, 39, 0.85); color: #e5e7eb;
+    font-size: 0.72rem; font-weight: 600;
+    padding: 5px 10px; border-radius: 999px;
+    pointer-events: none;
+}
+.mq-live-hint {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 14px; font-size: 0.72rem; color: #6b7280;
+}
+.mq-live-hint svg { font-size: 0.65rem; color: #4a6cf7; }
 .mq-pdf-frame { width: 100%; height: 100%; border: none; }
 .mq-pdf-loading { color: #e5e7eb; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
 .mq-side-pane { padding: 16px 18px; overflow-y: auto; border-left: 1px solid #e5e7eb; }

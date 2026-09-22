@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Spinner, Pagination } from 'react-bootstrap';
 import {
   FaSearch, FaCheck, FaTimes, FaTrash, FaFilePdf,
@@ -279,16 +279,21 @@ const ManageQuotes = () => {
   const pageQuotes = filteredQuotes.slice((currentPage - 1) * quotesPerPage, currentPage * quotesPerPage);
 
   /* ── Visor de PDF: genera la vista previa desde los datos actuales ── */
+  const previewGen = useRef(0);
+  const livePrevJson = useRef('');
   const buildPreview = useCallback(async (data) => {
+    const gen = ++previewGen.current;
     setPdfLoading(true);
     try {
       const blob = await generateSalesQuotePDF(data, { output: 'blob' });
+      if (gen !== previewGen.current) return;
       setPdfBlobUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(blob); });
     } catch (e) {
       console.error('[QuotePDF preview]', e);
+      if (gen !== previewGen.current) return;
       setPdfBlobUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
     } finally {
-      setPdfLoading(false);
+      if (gen === previewGen.current) setPdfLoading(false);
     }
   }, []);
 
@@ -337,6 +342,7 @@ const ManageQuotes = () => {
     const pagos = parseScheduleFromQuote(selectedQuote);
     setEditPagos(pagos);
     setPagosBaseline(JSON.stringify(pagos));
+    livePrevJson.current = JSON.stringify({ f: base, p: pagos });
     setEditMode(true);
   };
 
@@ -361,6 +367,19 @@ const ManageQuotes = () => {
     if (pagosDirty) data.esquemaPago = esquemaFromPagos(editPagos);
     buildPreview(data);
   };
+
+  /* ── Edición en vivo: el PDF se regenera solo mientras escribes (debounce) ── */
+  useEffect(() => {
+    if (!editMode) return;
+    const json = JSON.stringify({ f: editFields, p: editPagos });
+    if (json === livePrevJson.current) return;
+    const t = setTimeout(() => {
+      livePrevJson.current = json;
+      previewEdits();
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, editFields, editPagos]);
 
   const setPago = (i, k, v) => {
     setEditPagos((prev) => prev.map((x, j) => j === i ? { ...x, [k]: k === 'monto' ? (v === '' ? '' : Number(v)) : v } : x));
@@ -759,12 +778,15 @@ const ManageQuotes = () => {
             <div className="mq-viewer-body">
               {/* Panel del PDF */}
               <div className="mq-pdf-pane">
-                {pdfLoading ? (
-                  <div className="mq-pdf-loading"><ImSpinner2 className="mq-spin" /> Generando vista previa…</div>
-                ) : pdfBlobUrl ? (
+                {pdfBlobUrl ? (
                   <iframe className="mq-pdf-frame" src={`${pdfBlobUrl}#view=FitH`} title="Cotización PDF" />
+                ) : pdfLoading ? (
+                  <div className="mq-pdf-loading"><ImSpinner2 className="mq-spin" /> Generando vista previa…</div>
                 ) : (
                   <div className="mq-pdf-loading">No se pudo generar la vista previa del PDF.</div>
+                )}
+                {pdfLoading && pdfBlobUrl && (
+                  <div className="mq-pdf-refresh"><ImSpinner2 className="mq-spin" /> Actualizando PDF…</div>
                 )}
               </div>
 
@@ -823,10 +845,8 @@ const ManageQuotes = () => {
                         {pagosDirty && <div className="mq-edit-hint">Al guardar, el esquema se convierte a <b>personalizado</b> con estas fechas y montos{selectedQuote.status === 'paid' ? ' (los pagos ya marcados conservan su estado por número de pago)' : ''}.</div>}
                       </div>
                     </div>
+                    <div className="mq-live-hint"><FaSyncAlt /> El PDF se actualiza solo mientras editas.</div>
                     <div className="mq-side-actions">
-                      <button className="mq-btn mq-btn-outline" onClick={previewEdits} disabled={pdfLoading} title="Ver los cambios reflejados en el PDF">
-                        <FaSyncAlt /> Ver cambios en PDF
-                      </button>
                       <button className="mq-btn mq-btn-success" onClick={handleSaveEdit} disabled={savingEdit || !isDirty}>
                         <FaSave /> {savingEdit ? 'Guardando…' : 'Guardar cambios'}
                       </button>
