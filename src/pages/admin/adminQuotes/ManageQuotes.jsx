@@ -194,6 +194,8 @@ const ManageQuotes = () => {
         (q._id || '').toLowerCase().includes(s) ||
         (q._folio || '').toLowerCase().includes(s) ||
         (q.publicId || '').toLowerCase().includes(s) ||
+        (q.leadId || '').toLowerCase().includes(s) ||
+        (q.waId || '').includes(sDigits.length >= 4 ? sDigits : s) ||
         q._email.toLowerCase().includes(s) ||
         (sDigits.length >= 4 && String(q._phone || '').replace(/\D/g, '').includes(sDigits))
       );
@@ -517,7 +519,12 @@ const ManageQuotes = () => {
                       {quote._phone && <div className="mq-card-info-row"><span className="mq-card-info-label">Tel</span><span>{quote._phone}</span></div>}
                       {quote._deliveryTime && <div className="mq-card-info-row"><span className="mq-card-info-label">Plazo</span><span>{quote._deliveryTime}</span></div>}
                       {quote._paymentScheme && <div className="mq-card-info-row"><span className="mq-card-info-label">Esquema</span><span>{quote._paymentScheme}</span></div>}
-                      {quote.publicId && <div className="mq-card-info-row"><span className="mq-card-info-label">ID</span><span className="mq-card-id">{quote.publicId.slice(0, 8)}...</span></div>}
+                      {(quote.leadId || quote.publicId) && (
+                        <div className="mq-card-info-row">
+                          <span className="mq-card-info-label">{quote.leadId ? 'ID cliente' : 'ID'}</span>
+                          <span className="mq-card-id" title={quote.leadId || quote.publicId}>{String(quote.leadId || quote.publicId).slice(0, 8)}...</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -687,6 +694,9 @@ const ManageQuotes = () => {
                           <div key={label} className="mq-detail-row"><span className="mq-dlabel">{label}</span><span>{val}</span></div>
                         ))}
                       </>
+                    )}
+                    {selectedQuote.leadId && !editMode && (
+                      <div className="mq-detail-row"><span className="mq-dlabel">ID cliente</span><span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{selectedQuote.leadId}</span></div>
                     )}
                     {selectedQuote.publicId && !editMode && (
                       <div className="mq-detail-row"><span className="mq-dlabel">Public ID</span><span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{selectedQuote.publicId}</span></div>
