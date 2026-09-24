@@ -162,6 +162,12 @@
   color: #25D366; text-decoration: none; font-weight: 700; font-size: 0.82rem; padding: 0.35rem 0.7rem; border-radius: 20px;
 }
 .sm-wa-btn:hover { background: rgba(37,211,102,0.25); }
+.sm-copy-btn {
+  display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(147,197,253,0.12); border: 1px solid rgba(147,197,253,0.35);
+  color: #93C5FD; font-weight: 600; font-size: 0.78rem; padding: 0.35rem 0.7rem; border-radius: 20px; cursor: pointer;
+}
+.sm-copy-btn:hover { background: rgba(147,197,253,0.22); }
+.sm-copy-btn svg { font-size: 0.72rem; }
 .sm-contact-mail { color: #93C5FD; text-decoration: none; font-size: 0.8rem; }
 .sm-contact-mail:hover { text-decoration: underline; }
 .sm-title { font-size: 0.72rem; color: var(--s-muted); margin-top: 0.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

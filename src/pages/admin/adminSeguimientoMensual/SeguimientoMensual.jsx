@@ -5,7 +5,7 @@ import {
   FaRegClock, FaBan, FaChevronDown, FaChevronRight, FaFileCsv, FaStickyNote, FaTrashAlt,
   FaRegCircle, FaUserTie, FaMoneyBillWave, FaPaperclip, FaCloudUploadAlt, FaFileAlt,
   FaPencilAlt, FaCheck, FaTimes, FaHandshake, FaMicrophone, FaShippingFast, FaListAlt,
-  FaFileInvoiceDollar, FaStar, FaRegStar,
+  FaFileInvoiceDollar, FaStar, FaRegStar, FaRegCopy,
 } from 'react-icons/fa';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import revenueService from '../../../services/revenueService';
@@ -95,6 +95,23 @@ const compressImage = (file) => new Promise((resolve) => {
 const mxn = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(Math.round(n || 0));
 const mxnExact = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n || 0);
 const soloDigitos = (s) => String(s || '').replace(/\D/g, '');
+
+const copiarTelefono = async (phone) => {
+  const num = soloDigitos(phone);
+  try {
+    await navigator.clipboard.writeText(num);
+    toast.success(`Número copiado: ${num}`);
+  } catch {
+    // Fallback para contextos sin Clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = num;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast.success(`Número copiado: ${num}`);
+  }
+};
 const fmtFecha = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' }) : '—';
 const fmtFechaFull = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -1216,9 +1233,14 @@ const SeguimientoMensual = () => {
                               <div className="sm-detail-contact">
                                 <span className="sm-contact-name">{r.client}</span>
                                 {r.phone ? (
-                                  <a className="sm-wa-btn" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer">
-                                    <FaWhatsapp /> {r.phone}
-                                  </a>
+                                  <>
+                                    <a className="sm-wa-btn" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer">
+                                      <FaWhatsapp /> {r.phone}
+                                    </a>
+                                    <button className="sm-copy-btn" onClick={(e) => { e.stopPropagation(); copiarTelefono(r.phone); }} title="Copiar número al portapapeles">
+                                      <FaRegCopy /> Copiar
+                                    </button>
+                                  </>
                                 ) : <span className="sm-faint">Sin número</span>}
                                 {r.email && <a className="sm-contact-mail" href={`mailto:${r.email}`}>{r.email}</a>}
                                 {acuerdoOpen === r.id ? renderAcuerdoEditor(r.id) : (
