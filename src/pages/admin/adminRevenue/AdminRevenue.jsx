@@ -1482,10 +1482,10 @@ const AdminRevenue = () => {
             <span style={{ color: '#10b981' }}>● cobrado</span> &nbsp; <span style={{ color: '#f59e0b' }}>● por cobrar</span> &nbsp; <span style={{ color: '#ef4444' }}>● vencido ⚠</span> &nbsp; <span style={{ color: '#9ca3af' }}>● perdido 🚫</span> &nbsp;·&nbsp; click en un proyecto para ver el desglose y marcar pagos · ordenado por vencido y saldo
           </p>
           <div style={{ overflowX: 'auto', maxHeight: 560, overflowY: 'auto', border: '1px solid #1c232d', borderRadius: 10 }}>
-            <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: 1100 }}>
+            <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 12, minWidth: 1100, width: '100%' }}>
               <thead>
                 <tr style={{ color: '#8b97a7' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 10px', position: 'sticky', left: 0, top: 0, zIndex: 3, background: '#0d1117' }}>Proyecto</th>
+                  <th style={{ textAlign: 'left', padding: '8px 10px', position: 'sticky', left: 0, top: 0, zIndex: 3, background: '#0d1117', width: '100%' }}>Proyecto</th>
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117' }}>Total</th>
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#10b981' }}>Cobrado</th>
                   <th style={{ textAlign: 'right', padding: '8px 8px', position: 'sticky', top: 0, background: '#0d1117', color: '#f59e0b' }}>Por cobrar</th>
