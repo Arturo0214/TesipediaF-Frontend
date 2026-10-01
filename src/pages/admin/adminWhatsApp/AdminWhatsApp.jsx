@@ -3085,6 +3085,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
                           <Form.Select size="sm" value={quoteFields.metodoPago || 'tarjeta-nu'} onChange={(e) => handleQuoteFieldChange('metodoPago', e.target.value)}>
                             <option value="tarjeta-nu">Tarjeta Nu</option>
                             <option value="tarjeta-bbva">Tarjeta BBVA</option>
+                            <option value="tarjeta-banamex">Tarjeta Banamex</option>
                             <option value="efectivo">Efectivo</option>
                           </Form.Select>
                         </Col>
