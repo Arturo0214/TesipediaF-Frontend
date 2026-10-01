@@ -84,6 +84,21 @@ function calcDateISO(daysFromNow) {
   return d.toISOString().split('T')[0];
 }
 
+// Guarda los leídos sin tumbar el componente si localStorage está lleno:
+// recorta a los últimos 3000 wa_ids y, si aun así no cabe, desaloja el
+// persist:root legado (datos de servidor re-fetcheables) y reintenta.
+function persistReadLeads(set) {
+  const ids = [...set].slice(-3000);
+  try {
+    localStorage.setItem('wa_read_leads', JSON.stringify(ids));
+  } catch {
+    try {
+      localStorage.removeItem('persist:root');
+      localStorage.setItem('wa_read_leads', JSON.stringify(ids));
+    } catch { /* sin espacio: seguimos solo en memoria */ }
+  }
+}
+
 function mapLeadToQuoteFields(lead) {
   const tipoServicioRaw = lead.tipo_servicio || '';
   const tipoServicio = SERVICIO_MAP[tipoServicioRaw] || tipoServicioRaw || 'modalidad1';
@@ -341,7 +356,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
           if (next.delete(l.wa_id)) changed = true;
         }
         if (!changed) return prev;
-        localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+        persistReadLeads(next);
         return next;
       });
     }
@@ -508,7 +523,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
           }
         }
         if (!changed) return prev;
-        localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+        persistReadLeads(next);
         return next;
       });
 
@@ -530,7 +545,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
             setReadLeads(prev => {
               const next = new Set(prev);
               next.delete(currentSelected.wa_id);
-              localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+              persistReadLeads(next);
               return next;
             });
             try {
@@ -579,7 +594,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
     setReadLeads(prev => {
       const next = new Set(prev);
       next.add(waId);
-      localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+      persistReadLeads(next);
       return next;
     });
   }, []);
@@ -589,7 +604,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
     setReadLeads(prev => {
       const next = new Set(prev);
       next.delete(waId);
-      localStorage.setItem('wa_read_leads', JSON.stringify([...next]));
+      persistReadLeads(next);
       return next;
     });
   }, []);

@@ -28,12 +28,20 @@ const chatPersistConfig = {
     blacklist: ['socket', 'isConnected'],
 };
 
+// Quotes: solo el estado del cotizador público; las listas admin
+// (quotes/generatedQuotes) se re-fetchean y no caben en localStorage
+const quotePersistConfig = {
+    key: 'quotes',
+    storage,
+    whitelist: ['quote', 'formData'],
+};
+
 // Reducers combinados
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
     payments: paymentReducer,
     guestPayments: guestPaymentReducer,
-    quotes: quoteReducer,
+    quotes: persistReducer(quotePersistConfig, quoteReducer),
     visits: visitReducer,
     notifications: notificationsReducer,
     users: userReducer,
@@ -47,7 +55,10 @@ const rootReducer = combineReducers({
 const persistConfig = {
     key: 'root',
     storage,
-    blacklist: ['chat', 'auth'], // 🔥 Evitamos persistir dos veces el chat y auth
+    // Solo persisten payments/guestPayments (estado chico de checkout).
+    // Los datasets de servidor (visitas, usuarios, proyectos, revenue, etc.)
+    // llenaban los ~5MB de localStorage y rompían cualquier setItem posterior.
+    blacklist: ['chat', 'auth', 'quotes', 'visits', 'notifications', 'users', 'projects', 'hubspot', 'revenue'],
 };
 
 // Reducer principal persistido
