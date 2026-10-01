@@ -578,6 +578,19 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
                                     >
                                         <FaCreditCard className="me-1" /> Tarjeta BBVA
                                     </button>
+                                    <button
+                                        type="button"
+                                        className={`pmt-btn ${metodoPago === 'tarjeta-banamex' ? 'pmt-btn-active pmt-btn-banamex' : ''}`}
+                                        onClick={() => {
+                                            setMetodoPago('tarjeta-banamex');
+                                            if (!manualDiscountLocked.current) {
+                                                setFormData(prev => ({ ...prev, descuentoEfectivo: 0 }));
+                                                setIsDiscountEditable(false);
+                                            }
+                                        }}
+                                    >
+                                        <FaCreditCard className="me-1" /> Tarjeta Banamex
+                                    </button>
                                 </div>
                             </div>
 

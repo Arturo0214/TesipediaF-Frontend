@@ -291,6 +291,10 @@ div[style*="font-size: 0.9rem"] {
     background: linear-gradient(135deg, #0c4da2, #072d6f);
 }
 
+.pmt-btn-banamex.pmt-btn-active {
+    background: linear-gradient(135deg, #06315b, #e1091d);
+}
+
 /* Responsive Payment Toggle */
 @media (max-width: 576px) {
     .payment-method-toggle {
