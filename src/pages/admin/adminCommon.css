@@ -243,12 +243,18 @@
     color: #D1D5DB !important;
 }
 
-/* Reset light theme for cotización rápida modal */
+/* Reset light theme: modal de cotización rápida y Generador de Cotizaciones
+   (secciones con tarjetas claras donde los inputs oscuros del admin desentonan) */
 .wq-modal .form-control,
 .wq-modal .form-select,
 .wq-modal input,
 .wq-modal select,
-.wq-modal textarea {
+.wq-modal textarea,
+.sales-quote-container .form-control,
+.sales-quote-container .form-select,
+.sales-quote-container input,
+.sales-quote-container select,
+.sales-quote-container textarea {
     background-color: #fff !important;
     border-color: #dee2e6 !important;
     color: #212529 !important;
@@ -256,16 +262,32 @@
 .wq-modal .form-control:focus,
 .wq-modal .form-select:focus,
 .wq-modal input:focus,
-.wq-modal select:focus {
+.wq-modal select:focus,
+.sales-quote-container .form-control:focus,
+.sales-quote-container .form-select:focus,
+.sales-quote-container input:focus,
+.sales-quote-container select:focus {
     border-color: #86b7fe !important;
     box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25) !important;
 }
 .wq-modal .form-control::placeholder,
-.wq-modal input::placeholder {
+.wq-modal input::placeholder,
+.sales-quote-container .form-control::placeholder,
+.sales-quote-container input::placeholder {
     color: #6c757d !important;
 }
-.wq-modal label {
+.wq-modal label,
+.sales-quote-container label {
     color: #212529 !important;
+}
+.sales-quote-container .form-label,
+.sales-quote-container .micro-label {
+    color: #64748b !important;
+}
+.sales-quote-container .input-group-text {
+    background: #f1f5f9 !important;
+    border-color: #dee2e6 !important;
+    color: #64748b !important;
 }
 
 /* Modals in admin */
