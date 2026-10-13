@@ -124,7 +124,7 @@ function mapLeadToQuoteFields(lead) {
     tema: lead.tema || '',
     precioManual: '',
     descuentoEfectivo: 0,
-    metodoPago: 'tarjeta-nu',
+    metodoPago: 'tarjeta-banamex',
     esquemaTipo: '33-33-34',
   };
 }
@@ -1526,7 +1526,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
         precioBase: Number(precioBase) || 0,
         descuentoEfectivo: Number(f.descuentoEfectivo) || 0,
         recargoPorcentaje: 0,
-        metodoPago: f.metodoPago || 'tarjeta-nu',
+        metodoPago: f.metodoPago || 'tarjeta-banamex',
         esquemaTipo: f.esquemaTipo || '33-33-34',
         fechaPago1: f.fechaPago1 || '',
         fechaAvance: f.fechaAvance || '',
@@ -1587,7 +1587,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
           descuentoEfectivo: descuento,
           descuentoMonto,
           precioConDescuento,
-          metodoPago: f.metodoPago || 'tarjeta-nu',
+          metodoPago: f.metodoPago || 'tarjeta-banamex',
           // Desglose estructurado del esquema de pago. El backend (utils/esquemaPago.js)
           // calcula el texto de esquemaPago a partir de esto — fuente única de verdad,
           // idéntica a la del cotizador SalesQuote.
@@ -3097,7 +3097,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
                         </Col>
                         <Col xs={6}>
                           <div className="wq-micro-label">Método de Pago</div>
-                          <Form.Select size="sm" value={quoteFields.metodoPago || 'tarjeta-nu'} onChange={(e) => handleQuoteFieldChange('metodoPago', e.target.value)}>
+                          <Form.Select size="sm" value={quoteFields.metodoPago || 'tarjeta-banamex'} onChange={(e) => handleQuoteFieldChange('metodoPago', e.target.value)}>
                             <option value="tarjeta-nu">Tarjeta Nu</option>
                             <option value="tarjeta-bbva">Tarjeta BBVA</option>
                             <option value="tarjeta-banamex">Tarjeta Banamex</option>

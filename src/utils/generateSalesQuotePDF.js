@@ -56,7 +56,7 @@ export const generateSalesQuotePDF = async (rawData, opts = {}) => {
         precioConDescuento: parseFloat(rawData.precioConDescuento) || parseFloat(rawData._price) || 0,
         recargoMonto: parseFloat(rawData.recargoMonto) || parseFloat(rawData._surcharge) || 0,
         recargoPorcentaje: parseFloat(rawData.recargoPorcentaje) || parseFloat(rawData._surchargePercent) || 0,
-        metodoPago: rawData.metodoPago || rawData._paymentMethod || 'tarjeta-nu',
+        metodoPago: rawData.metodoPago || rawData._paymentMethod || 'tarjeta-banamex',
         esquemaPago: (() => {
             const raw = rawData.esquemaPago || rawData._paymentScheme || '';
             // Si es un tipo corto (no expandido), generar texto completo con montos y fechas
@@ -858,6 +858,51 @@ export const generateSalesQuotePDF = async (rawData, opts = {}) => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.text('012180015479916039', margin + 4 + bbvaClabeW, bankY);
+    } else if (quoteData.metodoPago === 'tarjeta-banamex') {
+        // --- Datos Bancarios Banamex (Azul marino) ---
+        const banamexNavy = [6, 49, 91]; // #06315B
+        const lightNavy = [235, 242, 250];
+
+        doc.setFillColor(...lightNavy);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'F');
+        doc.setDrawColor(...banamexNavy);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(margin, yPos, ctaWidth, boxHeight, 2, 2, 'S');
+
+        let bankY = yPos + 6;
+        const bankCenterX = margin + ctaWidth / 2;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...banamexNavy);
+        doc.text('Datos Bancarios Banamex', bankCenterX, bankY, { align: 'center' });
+
+        bankY += 5;
+
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Banco: ', margin + 4, bankY);
+        const bmxBancoW = doc.getTextWidth('Banco: ');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Banamex', margin + 4 + bmxBancoW, bankY);
+
+        bankY += 4.5;
+
+        doc.setFont('helvetica', 'normal');
+        doc.text('Beneficiario: ', margin + 4, bankY);
+        const bmxBeneW = doc.getTextWidth('Beneficiario: ');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Arturo Suárez', margin + 4 + bmxBeneW, bankY);
+
+        bankY += 4.5;
+
+        doc.setFont('helvetica', 'normal');
+        doc.text('Tarjeta: ', margin + 4, bankY);
+        const bmxTarjW = doc.getTextWidth('Tarjeta: ');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('5204 1660 9537 7299', margin + 4 + bmxTarjW, bankY);
     }
 
     // --- Tabla de Totales (Derecha) ---

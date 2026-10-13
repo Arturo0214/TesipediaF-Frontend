@@ -17,7 +17,7 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
     const manualPriceLocked = useRef(false);
     const manualDiscountLocked = useRef(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
-    const [metodoPago, setMetodoPago] = useState('tarjeta-nu'); // 'tarjeta-nu', 'tarjeta-bbva', 'efectivo'
+    const [metodoPago, setMetodoPago] = useState('tarjeta-banamex'); // 'tarjeta-banamex', 'tarjeta-nu', 'tarjeta-bbva', 'efectivo'
     const [formData, setFormData] = useState(() => { const _base = {
         clientName: '',
         clientEmail: '',

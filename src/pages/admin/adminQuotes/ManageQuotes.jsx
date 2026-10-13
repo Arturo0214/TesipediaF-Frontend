@@ -31,6 +31,7 @@ const statusConfig = {
 const paymentConfig = {
   'tarjeta-nu':   { label: 'Nu',      color: '#820ad1', icon: <FaCreditCard />,    border: '#820ad1' },
   'tarjeta-bbva': { label: 'BBVA',    color: '#0d6efd', icon: <FaCreditCard />,    border: '#0d6efd' },
+  'tarjeta-banamex': { label: 'Banamex', color: '#06315b', icon: <FaCreditCard />, border: '#06315b' },
   'efectivo':     { label: 'Efectivo', color: '#16a34a', icon: <FaMoneyBillWave />, border: '#16a34a' },
   'tarjeta':      { label: 'Tarjeta', color: '#374151', icon: <FaCreditCard />,    border: '#374151' },
 };
@@ -635,6 +636,7 @@ const ManageQuotes = () => {
                 { key: 'all', label: 'Todos los métodos', color: '#374151', icon: null },
                 { key: 'tarjeta-nu', label: 'Tarjeta Nu', color: '#820ad1', icon: <FaCreditCard /> },
                 { key: 'tarjeta-bbva', label: 'Tarjeta BBVA', color: '#0d6efd', icon: <FaCreditCard /> },
+                { key: 'tarjeta-banamex', label: 'Tarjeta Banamex', color: '#06315b', icon: <FaCreditCard /> },
                 { key: 'efectivo', label: 'Efectivo', color: '#16a34a', icon: <FaMoneyBillWave /> },
                 { key: 'tarjeta', label: 'Tarjeta (otro)', color: '#374151', icon: <FaCreditCard /> },
                 { key: 'sin-metodo', label: 'Sin método', color: '#9ca3af', icon: null },
