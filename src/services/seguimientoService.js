@@ -13,9 +13,10 @@ export const deleteNota = (type, id, notaId) =>
 export const updateSeguimiento = (type, id, data) =>
   axiosWithAuth.patch(`${BASE}/${type}/${id}`, data).then((r) => r.data);
 
-export const uploadArchivo = (type, id, file) => {
+export const uploadArchivo = (type, id, file, rol = '') => {
   const fd = new FormData();
   fd.append('file', file);
+  if (rol) fd.append('rol', rol); // 'soporte' (Paula) | 'final' (Arturo al desahogar)
   return axiosWithAuth.post(`${BASE}/${type}/${id}/archivo`, fd).then((r) => r.data);
 };
 

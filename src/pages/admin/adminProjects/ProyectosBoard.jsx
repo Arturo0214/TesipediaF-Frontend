@@ -419,16 +419,32 @@ export default function ProyectosBoard() {
   const abrirProyecto = (id) => { setDetailId(id); window.scrollTo({ top: 0 }); };
 
   // ── Entregable: Paula CARGA el archivo, Arturo DESAHOGA (marca entregado) ──
-  const handleUploadEntregable = async (row, file) => {
+  const handleUploadEntregable = async (row, file, rol = 'soporte') => {
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB'); return; }
     setSaving(true);
     try {
-      const { archivos } = await uploadArchivo('quote', row.id, file);
+      const { archivos } = await uploadArchivo('quote', row.id, file, rol);
       patchRow(row.id, { archivos });
-      toast.success('Archivo cargado 📎 — listo para que Arturo lo desahogue');
+      if (rol === 'final') {
+        // Desahogo: el archivo FINAL marca el proyecto como entregado
+        await updateSeguimiento('quote', row.id, { entregado: true });
+        patchRow(row.id, { entregado: true, entregadoEn: new Date().toISOString() });
+        toast.success('Archivo FINAL adjuntado y entrega desahogada ✅ — Paula ya puede enviarlo');
+      } else {
+        toast.success('Soporte cargado 📎 — listo para que Arturo desahogue');
+      }
     } catch { toast.error('No se pudo subir el archivo'); }
     finally { setSaving(false); }
+  };
+
+  // Paula marca si el archivo final ya se le envió al cliente
+  const handleEnviado = async (row, valor) => {
+    patchRow(row.id, { entregaEnviada: valor });
+    try {
+      await updateSeguimiento('quote', row.id, { entregaEnviada: valor });
+      toast.success(valor ? 'Marcado como ENVIADO al cliente 📤✅' : 'Marcado como NO enviado');
+    } catch { toast.error('No se pudo guardar'); patchRow(row.id, { entregaEnviada: !valor }); }
   };
 
   // ── Nueva entrega manual: acuerdo + fecha de entrega + nota + evento en el calendario de Arturo ──
@@ -454,7 +470,7 @@ export default function ProyectosBoard() {
       let subidos = 0;
       for (const f of nuevaFiles) {
         try {
-          const { archivos } = await uploadArchivo('quote', row.id, f);
+          const { archivos } = await uploadArchivo('quote', row.id, f, 'soporte');
           patchRow(row.id, { archivos });
           subidos++;
         } catch { toast.error(`No se pudo subir ${f.name}`); }
@@ -884,7 +900,9 @@ export default function ProyectosBoard() {
                           <b>{r.cliente}</b>
                           <span className="pb-title">{r.title}</span>
                           {done
-                            ? <span className="pb-ent-estado done"><FaCheckCircle /> Entregado</span>
+                            ? (r.entregaEnviada
+                              ? <span className="pb-ent-estado done"><FaCheckCircle /> Entregado · enviado</span>
+                              : <span className="pb-ent-estado loaded"><FaCheckCircle /> Entregado · falta enviar</span>)
                             : nArch > 0
                               ? <span className="pb-ent-estado loaded"><FaPaperclip /> Cargado ({nArch}) · falta desahogar</span>
                               : <span className="pb-ent-estado none"><FaPaperclip /> Sin archivo</span>}
@@ -1119,36 +1137,65 @@ export default function ProyectosBoard() {
                   </div>
                 </div>
 
-                {/* Archivos de la entrega */}
-                <div className="pb-field">Archivos de esta entrega ({nArch})
-                  <div className="pb-files">
-                    {nArch === 0 && <div className="pb-faint">Nada cargado para esta entrega todavía.</div>}
-                    {[...archivosEntrega].reverse().map((a, i) => (
-                      <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
-                        <FaFileAlt />
-                        <span className="pb-file-info">
-                          <b>{a.nombre || 'archivo'}</b>
-                          <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
-                        </span>
-                        {i === 0 && <span className="pb-file-badge">último</span>}
-                      </a>
-                    ))}
-                  </div>
-                  {!done && (
-                    <div className="pb-agenda-actions" style={{ marginTop: 8 }}>
-                      <button className="pb-btn" disabled={saving} onClick={() => fileRefs.current[`entm-${r.id}`]?.click()}>
-                        <FaCloudUploadAlt /> Cargar archivo
-                      </button>
-                      <input type="file" hidden ref={(el) => { fileRefs.current[`entm-${r.id}`] = el; }}
-                        onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f); }} />
-                      {canDesahogar && nArch > 0 && (
-                        <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => handleEntregado(r, true)}>
-                          <FaCheckCircle /> Desahogar (entregado)
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* Archivos: soporte (Paula) y FINAL (Arturo al desahogar) */}
+                {(() => {
+                  const soporte = archivosEntrega.filter((a) => a.rol !== 'final');
+                  const finales = archivosEntrega.filter((a) => a.rol === 'final');
+                  const renderFile = (a, esFinal) => (
+                    <a key={a._id || a.url} className={`pb-file ${esFinal ? 'final' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
+                      <FaFileAlt />
+                      <span className="pb-file-info">
+                        <b>{a.nombre || 'archivo'}</b>
+                        <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
+                      </span>
+                      <span className={`pb-file-badge ${esFinal ? 'final' : ''}`}>{esFinal ? 'FINAL' : 'soporte'}</span>
+                    </a>
+                  );
+                  return (
+                    <>
+                      <div className="pb-field">Soporte de la entrega ({soporte.length}) — lo carga Paula
+                        <div className="pb-files">
+                          {soporte.length === 0 && <div className="pb-faint">Sin archivos de soporte todavía.</div>}
+                          {[...soporte].reverse().map((a) => renderFile(a, false))}
+                        </div>
+                        <div className="pb-agenda-actions" style={{ marginTop: 8 }}>
+                          <button className="pb-btn" disabled={saving} onClick={() => fileRefs.current[`entm-${r.id}`]?.click()}>
+                            <FaCloudUploadAlt /> Cargar soporte
+                          </button>
+                          <input type="file" hidden ref={(el) => { fileRefs.current[`entm-${r.id}`] = el; }}
+                            onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f, 'soporte'); }} />
+                        </div>
+                      </div>
+                      <div className="pb-field">Archivo FINAL ({finales.length}) — lo adjunta Arturo al desahogar
+                        <div className="pb-files">
+                          {finales.length === 0 && <div className="pb-faint">{done ? 'Entregado sin archivo final adjunto.' : 'Pendiente de desahogo.'}</div>}
+                          {[...finales].reverse().map((a) => renderFile(a, true))}
+                        </div>
+                        <div className="pb-agenda-actions" style={{ marginTop: 8 }}>
+                          {canDesahogar && !done && (
+                            <>
+                              <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => fileRefs.current[`entf-${r.id}`]?.click()}
+                                title="Adjunta el archivo final; al subirlo la entrega queda desahogada">
+                                <FaCheckCircle /> Desahogar (adjuntar archivo FINAL)
+                              </button>
+                              <input type="file" hidden ref={(el) => { fileRefs.current[`entf-${r.id}`] = el; }}
+                                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f, 'final'); }} />
+                            </>
+                          )}
+                          {done && (
+                            r.entregaEnviada
+                              ? <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => handleEnviado(r, false)} title="Clic para desmarcar">
+                                  <FaCheckCircle /> Enviado al cliente ✅ {r.entregaEnviadaEn ? `(${fmtFecha(r.entregaEnviadaEn)})` : ''}
+                                </button>
+                              : <button className="pb-btn pb-btn-enviar" disabled={saving} onClick={() => handleEnviado(r, true)} title="Paula: marca cuando ya se lo mandaste al cliente">
+                                  📤 Marcar como ENVIADO al cliente
+                                </button>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
               <div className="pb-modal-foot">
                 <button className="pb-btn" onClick={() => { setEntregaModalId(null); abrirProyecto(r.id); }}>
