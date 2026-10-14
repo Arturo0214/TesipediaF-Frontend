@@ -1060,8 +1060,15 @@ export default function ProyectosBoard() {
       {entregaModal && (() => {
         const r = entregaModal;
         const done = r.status === 'completado' || r.entregado;
-        const nArch = r.archivos?.length || 0;
         const d = diasHasta(r.fechaEntrega);
+        // La ENTREGA VIGENTE = el último acuerdo agendado. El modal solo muestra lo
+        // capturado desde entonces (nota de Paula + archivos de ESTA entrega), no el
+        // historial completo del lead (ese vive en el proyecto).
+        const acuerdoRef = [...(r.acuerdos || [])].pop() || null;
+        const desde = acuerdoRef?.creadoEn ? new Date(acuerdoRef.creadoEn) : null;
+        const notasEntrega = desde ? (r.notas || []).filter((n) => n.fecha && new Date(n.fecha) >= desde) : [];
+        const archivosEntrega = desde ? (r.archivos || []).filter((a) => a.subidoEn && new Date(a.subidoEn) >= desde) : [];
+        const nArch = archivosEntrega.length;
         return (
           <div className="pb-modal-overlay" onClick={() => setEntregaModalId(null)}>
             <div className="pb-modal pb-modal-entrega" onClick={(e) => e.stopPropagation()}>
@@ -1085,25 +1092,25 @@ export default function ProyectosBoard() {
                 {/* Requisitos de la entrega (acuerdos) */}
                 <div className="pb-field">Requisitos de la entrega
                   <div className="pb-ent-reqs">
-                    {(r.acuerdos || []).length === 0 && <div className="pb-faint">Sin requisitos registrados.</div>}
-                    {[...(r.acuerdos || [])].reverse().slice(0, 5).map((a) => (
-                      <div key={a._id || a.creadoEn} className="pb-todo-item">
-                        <span>{a.fuente === 'fireflies' ? '🎙' : '🤝'}</span>
+                    {!acuerdoRef && <div className="pb-faint">Sin entrega agendada — usa "+ Entrega" para registrarla.</div>}
+                    {acuerdoRef && (
+                      <div className="pb-todo-item">
+                        <span>{acuerdoRef.fuente === 'fireflies' ? '🎙' : '🤝'}</span>
                         <div>
-                          {a.texto || <em>Sin texto</em>}
-                          {a.fechaEntrega && <b> · para el {fmtFecha(a.fechaEntrega)}</b>}
-                          <small className="pb-faint"> ({fmtFecha(a.meetingDate || a.creadoEn)})</small>
+                          {acuerdoRef.texto || <em>Sin texto</em>}
+                          {acuerdoRef.fechaEntrega && <b> · para el {fmtFecha(acuerdoRef.fechaEntrega)}</b>}
+                          <small className="pb-faint"> (agendada el {fmtFecha(acuerdoRef.creadoEn)})</small>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
                 {/* Notas (últimas) */}
-                <div className="pb-field">Notas
+                <div className="pb-field">Notas de esta entrega
                   <div className="pb-ent-reqs">
-                    {(r.notas || []).length === 0 && <div className="pb-faint">Sin notas.</div>}
-                    {[...(r.notas || [])].reverse().slice(0, 4).map((n) => (
+                    {notasEntrega.length === 0 && <div className="pb-faint">Sin notas de esta entrega. (El historial completo está en el proyecto.)</div>}
+                    {[...notasEntrega].reverse().map((n) => (
                       <div key={n._id || n.fecha} className="pb-nota">
                         <div className="pb-nota-txt">{cleanNota(n.texto)}</div>
                         <div className="pb-nota-meta">{n.autor || 'Admin'} · {fmtNota(n.fecha)}</div>
@@ -1113,9 +1120,10 @@ export default function ProyectosBoard() {
                 </div>
 
                 {/* Archivos de la entrega */}
-                <div className="pb-field">Archivos ({nArch})
+                <div className="pb-field">Archivos de esta entrega ({nArch})
                   <div className="pb-files">
-                    {[...(r.archivos || [])].reverse().map((a, i) => (
+                    {nArch === 0 && <div className="pb-faint">Nada cargado para esta entrega todavía.</div>}
+                    {[...archivosEntrega].reverse().map((a, i) => (
                       <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
                         <FaFileAlt />
                         <span className="pb-file-info">
