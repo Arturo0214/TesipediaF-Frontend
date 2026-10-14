@@ -209,7 +209,7 @@ export default function ProyectosBoard() {
         if (rangeTo && f > new Date(`${rangeTo}T23:59:59`)) return false;
       }
       if (entregaFilter === 'desahogados') {
-        if (!(r.entregado && !r.entregaEnviada)) return false;
+        if (!r.entregado) return false; // historial completo: pendientes de envío + ya enviados
       } else {
       if (statusFilter === 'activos' && r.status === 'completado') return false;
       if (statusFilter !== 'activos' && statusFilter !== 'todos' && r.status !== statusFilter) return false;
@@ -238,6 +238,11 @@ export default function ProyectosBoard() {
     });
     const rank = { falta_pago: 0, en_proceso: 1, correcciones: 2, completado: 3 };
     arr.sort((a, b) => {
+      if (entregaFilter === 'desahogados') {
+        const ea = a.entregaEnviada ? 1 : 0, eb = b.entregaEnviada ? 1 : 0;
+        if (ea !== eb) return ea - eb;
+        return new Date(b.entregadoEn || 0) - new Date(a.entregadoEn || 0);
+      }
       if (!!a.prioritario !== !!b.prioritario) return !!b.prioritario - !!a.prioritario;
       const da = diasHasta(a.fechaEntrega); const db = diasHasta(b.fechaEntrega);
       const fa = da === null ? 9999 : da; const fb = db === null ? 9999 : db;
@@ -1068,7 +1073,14 @@ export default function ProyectosBoard() {
                       </div>
                       <span className="pb-title">{r.title || 'Proyecto'}</span>
                     </div>
-                    <div data-label="Estatus"><StatusChip status={r.status} /></div>
+                    <div data-label="Estatus">
+                      <StatusChip status={r.status} />
+                      {r.entregado && (
+                        r.entregaEnviada
+                          ? <small className="pb-envio ok">✅ enviado {r.entregaEnviadaEn ? `el ${fmtFecha(r.entregaEnviadaEn)}` : ''}</small>
+                          : <small className="pb-envio pend">📤 pendiente de envío</small>
+                      )}
+                    </div>
                     <div data-label="Avance"><AvanceBar avance={r.avance} /></div>
                     <div className="pb-cell-pagos" data-label="Pagos">
                       <b>{mxn(r.pagado)}</b> <span className="pb-faint">/ {mxn(r.montoTotal)}</span>

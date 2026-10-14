@@ -527,3 +527,8 @@
 .pb-file-badge.final { color: #10b981; background: rgba(16,185,129,0.18); }
 .pb-btn-enviar { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border-color: transparent; font-weight: 700; }
 .pb-btn-enviar:hover { filter: brightness(1.1); }
+
+/* Sub-estado de envío en el historial de desahogos */
+.pb-envio { display: block; font-size: 0.64rem; font-weight: 700; margin-top: 3px; }
+.pb-envio.ok { color: #34d399; }
+.pb-envio.pend { color: #fbbf24; }
