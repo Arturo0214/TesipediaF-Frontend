@@ -1051,7 +1051,9 @@ export default function ProyectosBoard() {
                       {matches.length > 0 && (
                         <div className="pb-lead-list">
                           {matches.map((r) => (
-                            <button key={r.id} onClick={() => setNueva({ ...nueva, rowId: r.id, query: '' })}>
+                            <button key={r.id}
+                              onPointerDown={(e) => { e.preventDefault(); setNueva({ ...nueva, rowId: r.id, query: '' }); }}
+                              onClick={(e) => e.preventDefault()}>
                               <b>{r.cliente}</b>
                               <span>{r.title || 'Proyecto'}</span>
                             </button>

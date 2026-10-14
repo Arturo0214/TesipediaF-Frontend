@@ -476,3 +476,20 @@
   .pb-agenda-item { grid-template-columns: 10px 1fr auto 16px; }
   .pb-agenda-item .pb-ent-estado { display: none; }
 }
+
+/* ═══ Modal responsive en touch (tablet/celular) ═══ */
+.pb-lead-list { max-height: 240px; overflow-y: auto; scrollbar-width: thin; }
+.pb-lead-list button { min-height: 44px; } /* área de tap cómoda */
+@media (max-width: 820px) {
+  /* El modal se ancla arriba para que el teclado en pantalla no lo tape */
+  .pb-modal-overlay { align-items: flex-start; padding: 20px 10px; }
+  .pb-modal { max-height: calc(100dvh - 40px); }
+  /* 16px evita el auto-zoom de iOS al enfocar inputs (rompía la selección del lead) */
+  .pb-field input, .pb-field textarea, .pb-add-row input { font-size: 16px; }
+  .pb-field-row { grid-template-columns: 1fr 1fr; }
+  .pb-modal-foot { position: sticky; bottom: 0; background: var(--pb-surface, #111827); }
+}
+@media (max-width: 480px) {
+  .pb-field-row { grid-template-columns: 1fr; }
+  .pb-sel-lead { flex-wrap: wrap; }
+}
