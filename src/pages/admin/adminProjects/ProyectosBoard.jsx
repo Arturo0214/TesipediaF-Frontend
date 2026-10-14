@@ -419,24 +419,36 @@ export default function ProyectosBoard() {
   const abrirProyecto = (id) => { setDetailId(id); window.scrollTo({ top: 0 }); };
 
   // ── Entregable: Paula CARGA el archivo, Arturo DESAHOGA (marca entregado) ──
-  const handleUploadEntregable = async (row, file, rol = 'soporte') => {
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB'); return; }
+  // Acepta VARIOS archivos; con rol 'final' el primer lote desahoga la entrega
+  const handleUploadEntregables = async (row, fileList, rol = 'soporte') => {
+    const files = [...(fileList || [])].filter((f) => {
+      if (f.size > 15 * 1024 * 1024) { toast.error(`${f.name} pasa de 15 MB`); return false; }
+      return true;
+    });
+    if (!files.length) return;
     setSaving(true);
     try {
-      const { archivos } = await uploadArchivo('quote', row.id, file, rol);
-      patchRow(row.id, { archivos });
-      if (rol === 'final') {
-        // Desahogo: el archivo FINAL marca el proyecto como entregado
-        await updateSeguimiento('quote', row.id, { entregado: true });
-        patchRow(row.id, { entregado: true, entregadoEn: new Date().toISOString() });
-        toast.success('Archivo FINAL adjuntado y entrega desahogada ✅ — Paula ya puede enviarlo');
-      } else {
-        toast.success('Soporte cargado 📎 — listo para que Arturo desahogue');
+      let subidos = 0;
+      for (const f of files) {
+        try {
+          const { archivos } = await uploadArchivo('quote', row.id, f, rol);
+          patchRow(row.id, { archivos });
+          subidos++;
+        } catch { toast.error(`No se pudo subir ${f.name}`); }
       }
-    } catch { toast.error('No se pudo subir el archivo'); }
-    finally { setSaving(false); }
+      if (!subidos) return;
+      if (rol === 'final') {
+        if (!row.entregado) {
+          await updateSeguimiento('quote', row.id, { entregado: true });
+          patchRow(row.id, { entregado: true, entregadoEn: new Date().toISOString() });
+        }
+        toast.success(`${subidos} archivo${subidos !== 1 ? 's' : ''} FINAL adjuntado${subidos !== 1 ? 's' : ''} ✅ — Paula ya puede enviarlos`);
+      } else {
+        toast.success(`${subidos} archivo${subidos !== 1 ? 's' : ''} de soporte cargado${subidos !== 1 ? 's' : ''} 📎`);
+      }
+    } finally { setSaving(false); }
   };
+  const handleUploadEntregable = (row, file, rol = 'soporte') => handleUploadEntregables(row, file ? [file] : [], rol);
 
   // Paula marca si el archivo final ya se le envió al cliente
   const handleEnviado = async (row, valor) => {
@@ -913,8 +925,8 @@ export default function ProyectosBoard() {
                                   onClick={() => fileRefs.current[`ent-${r.id}`]?.click()} title="Paula: cargar el entregable">
                                   <FaCloudUploadAlt /> Cargar
                                 </button>
-                                <input type="file" hidden ref={(el) => { fileRefs.current[`ent-${r.id}`] = el; }}
-                                  onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f); }} />
+                                <input type="file" hidden multiple ref={(el) => { fileRefs.current[`ent-${r.id}`] = el; }}
+                                  onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'soporte'); e.target.value = ''; }} />
                                 {canDesahogar && nArch > 0 && (
                                   <button className="pb-btn pb-btn-sm-link pb-btn-desahogar" disabled={saving}
                                     onClick={() => handleEntregado(r, true)} title="Arturo: marcar como entregado">
@@ -1162,8 +1174,8 @@ export default function ProyectosBoard() {
                           <button className="pb-btn" disabled={saving} onClick={() => fileRefs.current[`entm-${r.id}`]?.click()}>
                             <FaCloudUploadAlt /> Cargar soporte
                           </button>
-                          <input type="file" hidden ref={(el) => { fileRefs.current[`entm-${r.id}`] = el; }}
-                            onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f, 'soporte'); }} />
+                          <input type="file" hidden multiple ref={(el) => { fileRefs.current[`entm-${r.id}`] = el; }}
+                            onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'soporte'); e.target.value = ''; }} />
                         </div>
                       </div>
                       <div className="pb-field">Archivo FINAL ({finales.length}) — lo adjunta Arturo al desahogar
@@ -1172,14 +1184,14 @@ export default function ProyectosBoard() {
                           {[...finales].reverse().map((a) => renderFile(a, true))}
                         </div>
                         <div className="pb-agenda-actions" style={{ marginTop: 8 }}>
-                          {canDesahogar && !done && (
+                          {canDesahogar && (
                             <>
                               <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => fileRefs.current[`entf-${r.id}`]?.click()}
-                                title="Adjunta el archivo final; al subirlo la entrega queda desahogada">
-                                <FaCheckCircle /> Desahogar (adjuntar archivo FINAL)
+                                title={done ? 'Agregar más archivos finales' : 'Adjunta uno o varios archivos finales; al subirlos la entrega queda desahogada'}>
+                                {done ? <><FaCloudUploadAlt /> Agregar otro archivo FINAL</> : <><FaCheckCircle /> Desahogar (adjuntar archivos FINALES)</>}
                               </button>
-                              <input type="file" hidden ref={(el) => { fileRefs.current[`entf-${r.id}`] = el; }}
-                                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f, 'final'); }} />
+                              <input type="file" hidden multiple ref={(el) => { fileRefs.current[`entf-${r.id}`] = el; }}
+                                onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'final'); e.target.value = ''; }} />
                             </>
                           )}
                           {done && (
