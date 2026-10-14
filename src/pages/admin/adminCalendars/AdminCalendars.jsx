@@ -52,7 +52,8 @@ const toYMD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, 
 export default function AdminCalendars() {
   const { user, isSuperAdmin } = useSelector(state => state.auth || {});
   const currentUserName = (user?.name || '').toLowerCase().trim();
-  const isOwner = isSuperAdmin || currentUserName === 'arturo' || currentUserName === 'hugo serrano';
+  // Paula gestiona las entregas de Arturo: ve los calendarios igual que los dueños
+  const isOwner = isSuperAdmin || currentUserName === 'arturo' || currentUserName === 'hugo serrano' || currentUserName.includes('paula');
   const [connectedAdmins, setConnectedAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAdmin, setSelectedAdmin] = useState(isOwner ? 'arturo' : currentUserName.split(' ')[0]);
