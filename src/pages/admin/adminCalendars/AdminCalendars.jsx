@@ -64,6 +64,7 @@ export default function AdminCalendars() {
 
   // Modals
   const [dayDetail, setDayDetail] = useState(null); // { date, events }
+  const [expandedEv, setExpandedEv] = useState(null); // evento expandido en la agenda del día
   const [editEvent, setEditEvent] = useState(null); // event object or 'new'
   const [eventForm, setEventForm] = useState({ summary: '', description: '', date: '', time: '', endTime: '', attendees: '', meet: false });
   const [saving, setSaving] = useState(false);
@@ -132,9 +133,10 @@ export default function AdminCalendars() {
   };
 
   // Create/Edit event
-  const openNewEvent = (date) => {
+  const openNewEvent = (date, time = '10:00') => {
     const dateStr = toYMD(date || new Date());
-    setEventForm({ summary: '', description: '', date: dateStr, time: '10:00', endTime: '11:00', attendees: '', meet: false });
+    const endTime = `${String(Math.min(23, Number(time.split(':')[0]) + 1)).padStart(2, '0')}:${time.split(':')[1]}`;
+    setEventForm({ summary: '', description: '', date: dateStr, time, endTime, attendees: '', meet: false });
     setEditEvent('new');
   };
 
@@ -226,12 +228,6 @@ export default function AdminCalendars() {
 
   const isConnected = (key) => connectedAdmins.some(a => a.adminKey === key);
   const getAdminInfo = (key) => connectedAdmins.find(a => a.adminKey === key);
-
-  const formatTime = (ev) => {
-    if (ev.start?.date) return 'Todo el día';
-    const t = ev.start?.dateTime?.split('T')[1]?.slice(0, 5);
-    return t || '';
-  };
 
   // Calendar render
   const year = calMonth.getFullYear();
@@ -378,49 +374,97 @@ export default function AdminCalendars() {
         </div>
       )}
 
-      {/* ===== DAY DETAIL MODAL ===== */}
-      {dayDetail && (
-        <div className="ac-modal-overlay" onClick={() => setDayDetail(null)}>
-          <div className="ac-modal" onClick={e => e.stopPropagation()}>
-            <div className="ac-modal-header">
-              <h3><FaCalendarAlt /> {dayDetail.date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
-              <button onClick={() => setDayDetail(null)}><FaTimes /></button>
-            </div>
-            <div className="ac-modal-body">
-              {dayDetail.events.map((ev, i) => {
-                const style = getEventStyle(ev.summary, ev.calendarColor);
-                return (
-                  <div key={i} className="ac-day-event" style={{ borderLeft: `4px solid ${style.border}` }}>
-                    <div className="ac-day-event-main">
-                      <strong>{ev.summary}</strong>
-                      <span className="ac-day-event-time">{formatTime(ev)}</span>
-                    </div>
-                    {ev.calendarSummary && <span className="ac-day-event-cal" style={{ color: style.border }}>{ev.calendarSummary}</span>}
-                    {ev.description && <p className="ac-day-event-desc">{ev.description}</p>}
-                    {(ev.attendees?.length > 0) && (
-                      <p className="ac-day-event-desc">👥 {ev.attendees.map((a) => a.email).join(', ')}</p>
+      {/* ===== DAY DETAIL MODAL: agenda hora por hora ===== */}
+      {dayDetail && (() => {
+        const allDay = dayDetail.events.filter((e) => !e.start?.dateTime);
+        const timed = dayDetail.events
+          .filter((e) => e.start?.dateTime)
+          .sort((a, b) => new Date(a.start.dateTime) - new Date(b.start.dateTime));
+        // Rango de horas: 7–21 por default, extendido si hay eventos fuera
+        let minH = 7, maxH = 21;
+        for (const e of timed) {
+          const h = new Date(e.start.dateTime).getHours();
+          const hEnd = e.end?.dateTime ? new Date(e.end.dateTime).getHours() : h + 1;
+          if (h < minH) minH = h;
+          if (hEnd > maxH) maxH = Math.min(23, hEnd);
+        }
+        const hours = Array.from({ length: maxH - minH + 1 }, (_, i) => minH + i);
+        const fmtH = (h) => `${String(h).padStart(2, '0')}:00`;
+
+        const renderEv = (ev) => {
+          const style = getEventStyle(ev.summary, ev.calendarColor);
+          const id = `${ev.id}-${ev.calendarId || ''}`;
+          const open = expandedEv === id;
+          const ini = ev.start?.dateTime ? ev.start.dateTime.split('T')[1].slice(0, 5) : '';
+          const fin = ev.end?.dateTime ? ev.end.dateTime.split('T')[1].slice(0, 5) : '';
+          return (
+            <div key={id} className={`ac-tl-ev ${open ? 'open' : ''}`}
+              style={{ background: style.bg, borderLeft: `3px solid ${style.border}` }}
+              onClick={(e) => { e.stopPropagation(); setExpandedEv(open ? null : id); }}>
+              <div className="ac-tl-ev-head">
+                <strong style={{ color: style.text }}>{ev.summary || '(sin título)'}</strong>
+                <span className="ac-tl-ev-time">{ini ? `${ini}–${fin}` : 'Todo el día'}</span>
+              </div>
+              {open && (
+                <div className="ac-tl-ev-body" onClick={(e) => e.stopPropagation()}>
+                  {ev.calendarSummary && <span className="ac-day-event-cal" style={{ color: style.border }}>{ev.calendarSummary}</span>}
+                  {ev.description && <p className="ac-day-event-desc">{ev.description}</p>}
+                  {(ev.attendees?.length > 0) && (
+                    <p className="ac-day-event-desc">👥 {ev.attendees.map((a) => a.email).join(', ')}</p>
+                  )}
+                  <div className="ac-day-event-actions">
+                    {ev.hangoutLink && (
+                      <a className="ac-btn ac-btn-sm ac-btn-meet" href={ev.hangoutLink} target="_blank" rel="noopener noreferrer">🎥 Unirse a Meet</a>
                     )}
-                    <div className="ac-day-event-actions">
-                      {ev.hangoutLink && (
-                        <a className="ac-btn ac-btn-sm ac-btn-meet" href={ev.hangoutLink} target="_blank" rel="noopener noreferrer">🎥 Unirse a Meet</a>
-                      )}
-                      {!ev.readOnly && (
-                        <>
-                          <button className="ac-btn ac-btn-sm" onClick={() => { setDayDetail(null); openEditEvent(ev); }}><FaEdit /> Editar</button>
-                          <button className="ac-btn ac-btn-sm ac-btn-disconnect" onClick={() => handleDeleteEvent(ev)}><FaTrash /></button>
-                        </>
-                      )}
-                    </div>
+                    {!ev.readOnly && (
+                      <>
+                        <button className="ac-btn ac-btn-sm" onClick={() => { setDayDetail(null); openEditEvent(ev); }}><FaEdit /> Editar</button>
+                        <button className="ac-btn ac-btn-sm ac-btn-disconnect" onClick={() => handleDeleteEvent(ev)}><FaTrash /></button>
+                      </>
+                    )}
                   </div>
-                );
-              })}
-              <button className="ac-btn ac-btn-new ac-btn-full" onClick={() => { setDayDetail(null); openNewEvent(dayDetail.date); }}>
-                <FaPlus /> Nuevo evento este día
-              </button>
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        return (
+          <div className="ac-modal-overlay" onClick={() => { setDayDetail(null); setExpandedEv(null); }}>
+            <div className="ac-modal ac-modal-day" onClick={e => e.stopPropagation()}>
+              <div className="ac-modal-header">
+                <h3><FaCalendarAlt /> {dayDetail.date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                <button onClick={() => { setDayDetail(null); setExpandedEv(null); }}><FaTimes /></button>
+              </div>
+              <div className="ac-modal-body">
+                {allDay.length > 0 && (
+                  <div className="ac-tl-allday">
+                    <span className="ac-tl-hour">Todo el día</span>
+                    <div className="ac-tl-slot">{allDay.map(renderEv)}</div>
+                  </div>
+                )}
+                <div className="ac-timeline">
+                  {hours.map((h) => {
+                    const evs = timed.filter((e) => new Date(e.start.dateTime).getHours() === h);
+                    return (
+                      <div key={h} className={`ac-tl-row ${evs.length ? 'has' : ''}`}>
+                        <span className="ac-tl-hour">{fmtH(h)}</span>
+                        <div className="ac-tl-slot" title="Clic para agendar a esta hora"
+                          onClick={() => { setDayDetail(null); openNewEvent(dayDetail.date, fmtH(h)); }}>
+                          {evs.map(renderEv)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button className="ac-btn ac-btn-new ac-btn-full" onClick={() => { setDayDetail(null); openNewEvent(dayDetail.date); }}>
+                  <FaPlus /> Nuevo evento este día
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ===== CREATE/EDIT EVENT MODAL ===== */}
       {editEvent && (

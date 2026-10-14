@@ -169,6 +169,35 @@
 .ac-modal-body { padding: 16px 18px; }
 .ac-modal-footer { display: flex; align-items: center; gap: 8px; padding: 13px 18px; border-top: 1px solid var(--ac-border); }
 
+/* ── Agenda del día: hora por hora ── */
+.ac-modal-day { max-width: 640px; }
+.ac-tl-allday {
+  display: grid; grid-template-columns: 68px 1fr; gap: 8px; align-items: start;
+  padding-bottom: 10px; margin-bottom: 6px; border-bottom: 1px solid var(--ac-border);
+}
+.ac-timeline { display: flex; flex-direction: column; }
+.ac-tl-row { display: grid; grid-template-columns: 68px 1fr; gap: 8px; align-items: stretch; }
+.ac-tl-hour {
+  font-size: 0.68rem; font-weight: 700; color: var(--ac-faint); text-align: right;
+  padding: 6px 4px 0 0; font-variant-numeric: tabular-nums; user-select: none;
+}
+.ac-tl-slot {
+  border-top: 1px solid var(--ac-border); min-height: 30px; padding: 3px 0;
+  display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: background 0.12s;
+}
+.ac-tl-row:last-child .ac-tl-slot { border-bottom: 1px solid var(--ac-border); }
+.ac-tl-row:not(.has) .ac-tl-slot:hover { background: rgba(59, 130, 246, 0.07); }
+.ac-tl-allday .ac-tl-slot { border-top: none; cursor: default; }
+
+.ac-tl-ev { border-radius: 8px; padding: 7px 10px; cursor: pointer; transition: filter 0.12s; }
+.ac-tl-ev:hover { filter: brightness(1.15); }
+.ac-tl-ev-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; }
+.ac-tl-ev-head strong { font-size: 0.82rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ac-tl-ev.open .ac-tl-ev-head strong { white-space: normal; }
+.ac-tl-ev-time { font-size: 0.7rem; font-weight: 700; color: #93c5fd; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ac-tl-ev-body { margin-top: 6px; cursor: default; }
+.ac-tl-ev-body .ac-day-event-desc { max-height: 190px; overflow-y: auto; scrollbar-width: thin; }
+
 /* Detalle del día */
 .ac-day-event { padding: 10px 12px; margin-bottom: 8px; background: var(--ac-inset); border: 1px solid var(--ac-border); border-radius: 10px; }
 .ac-day-event-main { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
