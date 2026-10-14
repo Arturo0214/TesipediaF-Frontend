@@ -63,6 +63,16 @@ const calcStatus = (r) => {
 
 const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '↳ ');
 
+// Categorías de entrega para el modal "+ Entrega"
+const CATEGORIAS_ENTREGA = [
+  { k: 'avance_1', l: '1ª entrega · Avance' },
+  { k: 'avance_2', l: '2ª entrega · Avance' },
+  { k: 'avance_3', l: '3ª entrega · Avance' },
+  { k: 'correcciones', l: 'Correcciones' },
+  { k: 'final', l: 'Entrega final' },
+  { k: 'otro', l: 'Otro' },
+];
+
 // Hilo de notas (mismo formato que Seguimiento): las contestaciones del cliente
 // se guardan como "↳@<idDelMensaje>| texto" y se anidan bajo el mensaje enviado.
 const REPLY_RE = /^↳@([a-f0-9]{6,32})\|\s?([\s\S]*)$/i;
@@ -126,7 +136,7 @@ export default function ProyectosBoard() {
   const [saving, setSaving] = useState(false);
   // Nueva entrega manual (botón + Entrega)
   const [showNueva, setShowNueva] = useState(false);
-  const [nueva, setNueva] = useState({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+  const [nueva, setNueva] = useState({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
   const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
@@ -428,7 +438,9 @@ export default function ProyectosBoard() {
     if (!nueva.paraCuando) { toast.error('Pon la fecha de entrega (¿para cuándo es?)'); return; }
     setSaving(true);
     try {
+      const catLbl = CATEGORIAS_ENTREGA.find((c) => c.k === nueva.categoria)?.l || '';
       const texto = [
+        catLbl ? `[${catLbl}]` : '',
         nueva.quePidio ? `Pidió: ${nueva.quePidio}` : 'Entrega agendada',
         nueva.cuandoPidio ? `(lo pidió el ${fmtFecha(`${nueva.cuandoPidio}T12:00:00`)})` : '',
       ].filter(Boolean).join(' ');
@@ -452,7 +464,7 @@ export default function ProyectosBoard() {
       try {
         await axiosWithAuth.post('/google/events', {
           adminKey: 'arturo',
-          summary: `📦 Entrega: ${row.cliente} — ${nueva.quePidio || row.title || 'Proyecto'}`,
+          summary: `📦 ${catLbl || 'Entrega'}: ${row.cliente} — ${nueva.quePidio || row.title || 'Proyecto'}`,
           description: [
             row.celular ? `Tel: ${row.celular}` : '',
             nueva.quePidio ? `Pidió: ${nueva.quePidio}` : '',
@@ -469,7 +481,7 @@ export default function ProyectosBoard() {
         toast('Entrega guardada, pero no se pudo crear el evento en Google Calendar', { icon: '⚠️' });
       }
       setShowNueva(false);
-      setNueva({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+      setNueva({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
       setNuevaFiles([]);
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo guardar la entrega');
@@ -1151,11 +1163,21 @@ export default function ProyectosBoard() {
               <div className="pb-modal-body">
                 <label className="pb-field">¿De qué lead es? *
                   {sel ? (
-                    <div className="pb-sel-lead">
-                      <b>{sel.cliente}</b>
-                      <span className="pb-title">{sel.title}</span>
-                      <button className="pb-fchip" onClick={() => setNueva({ ...nueva, rowId: null, query: '' })}>Cambiar</button>
-                    </div>
+                    <>
+                      <div className="pb-sel-lead">
+                        <b>{sel.cliente}</b>
+                        <span className="pb-title">{sel.title}</span>
+                        <button className="pb-fchip" onClick={() => setNueva({ ...nueva, rowId: null, query: '' })}>Cambiar</button>
+                      </div>
+                      {/* Desglose: en qué estatus va el proyecto */}
+                      <div className="pb-sel-status">
+                        <StatusChip status={sel.status} />
+                        <AvanceBar avance={sel.avance} />
+                        <span className="pb-sel-dato">💰 {mxn(sel.pagado)} / {mxn(sel.montoTotal)} ({sel.nPagadas}/{sel.nParcialidades} pagos)</span>
+                        <span className="pb-sel-dato">📎 {sel.archivos?.length || 0} entrega{(sel.archivos?.length || 0) !== 1 ? 's' : ''} previa{(sel.archivos?.length || 0) !== 1 ? 's' : ''}</span>
+                        {sel.fechaEntrega && <span className="pb-sel-dato">📦 última fecha: {fmtFecha(sel.fechaEntrega)}</span>}
+                      </div>
+                    </>
                   ) : (
                     <>
                       <input autoFocus placeholder="Busca por nombre, proyecto o teléfono…" value={nueva.query}
@@ -1175,6 +1197,12 @@ export default function ProyectosBoard() {
                       {q && !matches.length && <small className="pb-faint">Sin resultados — el lead debe tener cotización pagada.</small>}
                     </>
                   )}
+                </label>
+                <label className="pb-field">Categoría de la entrega
+                  <select value={nueva.categoria} onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}>
+                    <option value="">Selecciona categoría…</option>
+                    {CATEGORIAS_ENTREGA.map((c) => <option key={c.k} value={c.k}>{c.l}</option>)}
+                  </select>
                 </label>
                 <label className="pb-field">¿Qué pidió?
                   <input placeholder="Ej: Capítulo 3 corregido, avance de metodología…" value={nueva.quePidio}
