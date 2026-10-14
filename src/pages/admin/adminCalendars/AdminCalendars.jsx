@@ -16,18 +16,38 @@ const ADMINS = [
   { key: 'hugo', label: 'Hugo', color: '#3b82f6' },
 ];
 
+// Paleta dark-friendly: fondos traslúcidos + texto claro (antes eran pasteles
+// claros con texto oscuro que en modo oscuro no se leían)
 const EVENT_COLORS = {
-  '📋': { bg: '#fef3c7', border: '#f59e0b', label: 'Proyecto' },
-  '💰': { bg: '#dcfce7', border: '#16a34a', label: 'Pago' },
-  '📞': { bg: '#dbeafe', border: '#3b82f6', label: 'Llamada' },
+  '📋': { bg: 'rgba(245,158,11,0.16)', border: '#f59e0b', text: '#fcd34d', label: 'Proyecto' },
+  '💰': { bg: 'rgba(16,185,129,0.16)', border: '#10b981', text: '#6ee7b7', label: 'Pago' },
+  '📞': { bg: 'rgba(59,130,246,0.16)', border: '#3b82f6', text: '#93c5fd', label: 'Llamada' },
 };
 
-function getEventStyle(summary) {
+const hexToRgba = (hex, a) => {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+  if (!m) return `rgba(148,163,184,${a})`;
+  return `rgba(${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)},${a})`;
+};
+
+// Si el evento no es de Tesipedia (📋💰📞), hereda el color de SU calendario de Google
+function getEventStyle(summary, calendarColor) {
   for (const [emoji, style] of Object.entries(EVENT_COLORS)) {
     if (summary?.startsWith(emoji)) return style;
   }
-  return { bg: '#f3f4f6', border: '#9ca3af', label: 'Evento' };
+  const c = calendarColor || '#94a3b8';
+  return { bg: hexToRgba(c, 0.15), border: c, text: '#e2e8f0', label: 'Evento' };
 }
+
+// Google manda eventos de todo el día como "YYYY-MM-DD"; parsearlo con new Date()
+// lo interpreta en UTC y en México el evento se pintaba UN DÍA ANTES.
+const parseEventDate = (ev) => {
+  if (ev.start?.dateTime) return new Date(ev.start.dateTime);
+  const [y, m, d] = String(ev.start?.date || '').split('-').map(Number);
+  return new Date(y || 1970, (m || 1) - 1, d || 1);
+};
+
+const toYMD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function AdminCalendars() {
   const { user, isSuperAdmin } = useSelector(state => state.auth || {});
@@ -37,6 +57,7 @@ export default function AdminCalendars() {
   const [loading, setLoading] = useState(true);
   const [selectedAdmin, setSelectedAdmin] = useState(isOwner ? 'arturo' : currentUserName.split(' ')[0]);
   const [events, setEvents] = useState([]);
+  const [calendars, setCalendars] = useState([]); // calendarios de la cuenta Google
   const [eventsLoading, setEventsLoading] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
   const [syncing, setSyncing] = useState(false);
@@ -44,7 +65,7 @@ export default function AdminCalendars() {
   // Modals
   const [dayDetail, setDayDetail] = useState(null); // { date, events }
   const [editEvent, setEditEvent] = useState(null); // event object or 'new'
-  const [eventForm, setEventForm] = useState({ summary: '', description: '', date: '', time: '', endTime: '' });
+  const [eventForm, setEventForm] = useState({ summary: '', description: '', date: '', time: '', endTime: '', attendees: '', meet: false });
   const [saving, setSaving] = useState(false);
 
   const fetchAdmins = useCallback(async () => {
@@ -67,6 +88,7 @@ export default function AdminCalendars() {
       const timeMax = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
       const { data } = await axiosWithAuth.get(`/google/events?admin=${selectedAdmin}&timeMin=${timeMin}&timeMax=${timeMax}`);
       setEvents(data.items || []);
+      setCalendars(data.calendarios || []);
     } catch (err) { setEvents([]); }
     setEventsLoading(false);
   }, [selectedAdmin, calMonth, connectedAdmins]);
@@ -111,12 +133,13 @@ export default function AdminCalendars() {
 
   // Create/Edit event
   const openNewEvent = (date) => {
-    const dateStr = date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-    setEventForm({ summary: '', description: '', date: dateStr, time: '10:00', endTime: '11:00' });
+    const dateStr = toYMD(date || new Date());
+    setEventForm({ summary: '', description: '', date: dateStr, time: '10:00', endTime: '11:00', attendees: '', meet: false });
     setEditEvent('new');
   };
 
   const openEditEvent = (ev) => {
+    if (ev.readOnly) { toast('Este evento es de un calendario de solo lectura', { icon: '🔒' }); return; }
     const start = ev.start?.dateTime || ev.start?.date || '';
     const end = ev.end?.dateTime || ev.end?.date || '';
     const isAllDay = !!ev.start?.date;
@@ -126,6 +149,8 @@ export default function AdminCalendars() {
       date: isAllDay ? start : start.split('T')[0],
       time: isAllDay ? '' : start.split('T')[1]?.slice(0, 5) || '',
       endTime: isAllDay ? '' : end.split('T')[1]?.slice(0, 5) || '',
+      attendees: (ev.attendees || []).map((a) => a.email).filter(Boolean).join(', '),
+      meet: false, // solo aplica al crear; el link existente se muestra aparte
     });
     setEditEvent(ev);
   };
@@ -142,13 +167,15 @@ export default function AdminCalendars() {
         endDate: eventForm.date,
         startTime: eventForm.time || undefined,
         endTime: eventForm.endTime || undefined,
+        attendees: eventForm.attendees,
+        meet: eventForm.meet,
       };
 
       if (editEvent === 'new') {
-        await axiosWithAuth.post('/google/events', payload);
-        toast.success('Evento creado');
+        const { data } = await axiosWithAuth.post('/google/events', payload);
+        toast.success(data.hangoutLink ? 'Reunión creada con link de Meet 🎥' : 'Evento creado');
       } else {
-        await axiosWithAuth.put(`/google/events/${editEvent.id}`, payload);
+        await axiosWithAuth.put(`/google/events/${editEvent.id}`, { ...payload, calendarId: editEvent.calendarId || 'primary' });
         toast.success('Evento actualizado');
       }
       setEditEvent(null);
@@ -161,7 +188,7 @@ export default function AdminCalendars() {
 
   const handleDeleteEvent = async (ev) => {
     try {
-      await axiosWithAuth.delete(`/google/events/${ev.id}?admin=${selectedAdmin}`);
+      await axiosWithAuth.delete(`/google/events/${ev.id}?admin=${selectedAdmin}&calendarId=${encodeURIComponent(ev.calendarId || 'primary')}`);
       toast.success('Evento eliminado');
       setEditEvent(null);
       setDayDetail(null);
@@ -273,10 +300,8 @@ export default function AdminCalendars() {
             {dayLabels.map(d => <div key={d} className="ac-cal-day-header">{d}</div>)}
             {calDays.map((day, idx) => {
               const isToday = day && day.toDateString() === new Date().toDateString();
-              const dayEvents = day ? events.filter(e => {
-                const eDate = new Date(e.start?.dateTime || e.start?.date);
-                return eDate.toDateString() === day.toDateString();
-              }) : [];
+              // parseEventDate evita el corrimiento de -1 día en eventos de todo el día
+              const dayEvents = day ? events.filter(e => parseEventDate(e).toDateString() === day.toDateString()) : [];
               const hasEvents = dayEvents.length > 0;
 
               return (
@@ -285,18 +310,22 @@ export default function AdminCalendars() {
                   onClick={() => day && (hasEvents ? openDay(day, dayEvents) : openNewEvent(day))}>
                   {day && <span className="ac-cal-day-num">{day.getDate()}</span>}
                   <div className="ac-cal-events">
-                    {dayEvents.slice(0, 3).map((ev, i) => {
-                      const style = getEventStyle(ev.summary);
+                    {dayEvents.map((ev, i) => {
+                      const style = getEventStyle(ev.summary, ev.calendarColor);
+                      const hora = ev.start?.dateTime ? ev.start.dateTime.split('T')[1]?.slice(0, 5) : '';
                       return (
-                        <div key={i} className="ac-cal-chip" title={ev.summary}
+                        <div key={i} className="ac-cal-chip" title={`${hora ? hora + ' · ' : ''}${ev.summary}${ev.calendarSummary ? ` · ${ev.calendarSummary}` : ''}`}
                           style={{ background: style.bg, borderLeft: `3px solid ${style.border}` }}
                           onClick={(e) => { e.stopPropagation(); openEditEvent(ev); }}>
-                          <span className="ac-cal-chip-text">{ev.summary?.replace(/^[📋💰📞🔔]\s*/, '').slice(0, 18)}</span>
+                          <span className="ac-cal-chip-text" style={{ color: style.text }}>
+                            {hora && <em className="ac-chip-hora">{hora}</em>}
+                            {ev.summary?.replace(/^[📋💰📞🔔]\s*/, '') || '(sin título)'}
+                          </span>
                         </div>
                       );
                     })}
-                    {dayEvents.length > 3 && <div className="ac-cal-more">+{dayEvents.length - 3}</div>}
                   </div>
+                  {dayEvents.length > 4 && <span className="ac-cal-count">{dayEvents.length}</span>}
                 </div>
               );
             })}
@@ -304,9 +333,14 @@ export default function AdminCalendars() {
 
           <div className="ac-legend">
             <span><span className="ac-legend-dot" style={{ background: '#f59e0b' }} /> Proyectos</span>
-            <span><span className="ac-legend-dot" style={{ background: '#16a34a' }} /> Pagos</span>
+            <span><span className="ac-legend-dot" style={{ background: '#10b981' }} /> Pagos</span>
             <span><span className="ac-legend-dot" style={{ background: '#3b82f6' }} /> Llamadas</span>
-            <span><span className="ac-legend-dot" style={{ background: '#9ca3af' }} /> Otros</span>
+            {calendars.filter(c => !c.primary).map(c => (
+              <span key={c.id} title={`Calendario: ${c.nombre}`}>
+                <span className="ac-legend-dot" style={{ background: c.color }} /> {c.nombre}
+              </span>
+            ))}
+            <span className="ac-legend-total">{events.length} eventos este mes · {calendars.length} calendario{calendars.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
       )}
@@ -331,17 +365,28 @@ export default function AdminCalendars() {
             </div>
             <div className="ac-modal-body">
               {dayDetail.events.map((ev, i) => {
-                const style = getEventStyle(ev.summary);
+                const style = getEventStyle(ev.summary, ev.calendarColor);
                 return (
                   <div key={i} className="ac-day-event" style={{ borderLeft: `4px solid ${style.border}` }}>
                     <div className="ac-day-event-main">
                       <strong>{ev.summary}</strong>
                       <span className="ac-day-event-time">{formatTime(ev)}</span>
                     </div>
+                    {ev.calendarSummary && <span className="ac-day-event-cal" style={{ color: style.border }}>{ev.calendarSummary}</span>}
                     {ev.description && <p className="ac-day-event-desc">{ev.description}</p>}
+                    {(ev.attendees?.length > 0) && (
+                      <p className="ac-day-event-desc">👥 {ev.attendees.map((a) => a.email).join(', ')}</p>
+                    )}
                     <div className="ac-day-event-actions">
-                      <button className="ac-btn ac-btn-sm" onClick={() => { setDayDetail(null); openEditEvent(ev); }}><FaEdit /> Editar</button>
-                      <button className="ac-btn ac-btn-sm ac-btn-disconnect" onClick={() => handleDeleteEvent(ev)}><FaTrash /></button>
+                      {ev.hangoutLink && (
+                        <a className="ac-btn ac-btn-sm ac-btn-meet" href={ev.hangoutLink} target="_blank" rel="noopener noreferrer">🎥 Unirse a Meet</a>
+                      )}
+                      {!ev.readOnly && (
+                        <>
+                          <button className="ac-btn ac-btn-sm" onClick={() => { setDayDetail(null); openEditEvent(ev); }}><FaEdit /> Editar</button>
+                          <button className="ac-btn ac-btn-sm ac-btn-disconnect" onClick={() => handleDeleteEvent(ev)}><FaTrash /></button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -381,6 +426,20 @@ export default function AdminCalendars() {
                   <input type="time" value={eventForm.endTime} onChange={e => setEventForm({ ...eventForm, endTime: e.target.value })} />
                 </div>
               </div>
+              <div className="ac-form-group">
+                <label>Invitados (correos, separados por coma)</label>
+                <input type="text" value={eventForm.attendees} onChange={e => setEventForm({ ...eventForm, attendees: e.target.value })} placeholder="cliente@gmail.com, sandy@..." />
+                <small className="ac-form-hint">Google les manda la invitación por correo automáticamente.</small>
+              </div>
+              {editEvent === 'new' && (
+                <label className="ac-meet-check">
+                  <input type="checkbox" checked={eventForm.meet} onChange={e => setEventForm({ ...eventForm, meet: e.target.checked })} />
+                  🎥 Crear link de Google Meet (reunión por videollamada)
+                </label>
+              )}
+              {editEvent !== 'new' && editEvent?.hangoutLink && (
+                <a className="ac-btn ac-btn-meet ac-btn-full" href={editEvent.hangoutLink} target="_blank" rel="noopener noreferrer">🎥 Abrir Google Meet de esta reunión</a>
+              )}
               <div className="ac-form-group">
                 <label>Descripción</label>
                 <textarea rows="3" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} placeholder="Notas, teléfono, detalles..." />
