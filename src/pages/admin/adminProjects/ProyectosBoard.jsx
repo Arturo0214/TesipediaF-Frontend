@@ -127,6 +127,7 @@ export default function ProyectosBoard() {
   // Nueva entrega manual (botón + Entrega)
   const [showNueva, setShowNueva] = useState(false);
   const [nueva, setNueva] = useState({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+  const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
   const [rangeFrom, setRangeFrom] = useState('');
   const [rangeTo, setRangeTo] = useState('');
@@ -435,6 +436,16 @@ export default function ProyectosBoard() {
         const { notas } = await addNota('quote', row.id, nueva.nota.trim());
         patchRow(row.id, { notas });
       }
+      // Archivos adjuntos de la entrega → archivos del proyecto
+      let subidos = 0;
+      for (const f of nuevaFiles) {
+        try {
+          const { archivos } = await uploadArchivo('quote', row.id, f);
+          patchRow(row.id, { archivos });
+          subidos++;
+        } catch { toast.error(`No se pudo subir ${f.name}`); }
+      }
+      if (subidos) toast.success(`${subidos} archivo${subidos !== 1 ? 's' : ''} adjuntado${subidos !== 1 ? 's' : ''} 📎`);
       // Evento con horario en el Google Calendar de Arturo
       try {
         await axiosWithAuth.post('/google/events', {
@@ -457,6 +468,7 @@ export default function ProyectosBoard() {
       }
       setShowNueva(false);
       setNueva({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+      setNuevaFiles([]);
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo guardar la entrega');
     } finally { setSaving(false); }
@@ -1083,6 +1095,28 @@ export default function ProyectosBoard() {
                   <textarea rows="2" placeholder="Detalles, acuerdos, contexto…" value={nueva.nota}
                     onChange={(e) => setNueva({ ...nueva, nota: e.target.value })} />
                 </label>
+                <div className="pb-field">Archivos de la entrega (opcional)
+                  <div className="pb-nueva-files">
+                    {nuevaFiles.map((f, i) => (
+                      <span key={`${f.name}-${i}`} className="pb-comp">
+                        <a><FaFileAlt /> {f.name.length > 28 ? f.name.slice(0, 26) + '…' : f.name} <small>({fmtBytes(f.size)})</small></a>
+                        <button type="button" onClick={() => setNuevaFiles((prev) => prev.filter((_, j) => j !== i))} title="Quitar"><FaTrashAlt /></button>
+                      </span>
+                    ))}
+                    <button type="button" className="pb-comp-add" onClick={() => fileRefs.current['nueva-ent']?.click()}>
+                      <FaCloudUploadAlt /> {nuevaFiles.length ? 'Agregar otro archivo' : 'Adjuntar archivos'}
+                    </button>
+                    <input type="file" hidden multiple ref={(el) => { fileRefs.current['nueva-ent'] = el; }}
+                      onChange={(e) => {
+                        const files = [...(e.target.files || [])].filter((f) => {
+                          if (f.size > 15 * 1024 * 1024) { toast.error(`${f.name} pasa de 15 MB`); return false; }
+                          return true;
+                        });
+                        e.target.value = '';
+                        if (files.length) setNuevaFiles((prev) => [...prev, ...files]);
+                      }} />
+                  </div>
+                </div>
                 <div className="pb-hint">Se guarda como acuerdo + fecha de entrega del proyecto, aparece en el Calendario de entregas y crea el evento con hora en el Google Calendar de Arturo.</div>
               </div>
               <div className="pb-modal-foot">

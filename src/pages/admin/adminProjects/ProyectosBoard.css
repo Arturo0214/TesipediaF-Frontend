@@ -493,3 +493,7 @@
   .pb-field-row { grid-template-columns: 1fr; }
   .pb-sel-lead { flex-wrap: wrap; }
 }
+
+/* Archivos adjuntos en el modal de nueva entrega */
+.pb-nueva-files { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pb-nueva-files .pb-comp a { cursor: default; }
