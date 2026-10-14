@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import {
   FaProjectDiagram, FaSyncAlt, FaSearch, FaWhatsapp, FaCheckCircle, FaRegClock,
   FaExclamationTriangle, FaStickyNote, FaHandshake, FaPaperclip, FaArrowLeft,
   FaChevronRight, FaChevronLeft, FaUserTie, FaRegCopy, FaFileAlt, FaMicrophone, FaStar,
-  FaCalendarDay, FaCalendarAlt, FaListUl, FaClipboardList,
+  FaRegStar, FaCalendarDay, FaCalendarAlt, FaListUl, FaClipboardList, FaReceipt,
+  FaCloudUploadAlt, FaTrashAlt, FaUser, FaRegUser, FaFileInvoiceDollar, FaExternalLinkAlt,
 } from 'react-icons/fa';
 import {
   getSeguimientos, addNota, updateSeguimiento, addAcuerdo,
+  uploadComprobante, deleteComprobante,
 } from '../../../services/seguimientoService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import './ProyectosBoard.css';
@@ -60,6 +63,20 @@ const calcStatus = (r) => {
 
 const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '↳ ');
 
+// Hilo de notas (mismo formato que Seguimiento): las contestaciones del cliente
+// se guardan como "↳@<idDelMensaje>| texto" y se anidan bajo el mensaje enviado.
+const REPLY_RE = /^↳@([a-f0-9]{6,32})\|\s?([\s\S]*)$/i;
+const buildThread = (notas = []) => {
+  const mains = [];
+  const repliesByParent = {};
+  for (const n of notas) {
+    const m = REPLY_RE.exec(n?.texto || '');
+    if (m) (repliesByParent[m[1]] = repliesByParent[m[1]] || []).push({ ...n, _clean: m[2] });
+    else mains.push({ ...n, _clean: n?.texto || '' });
+  }
+  return { mains, repliesByParent };
+};
+
 const StatusChip = ({ status }) => {
   const meta = STATUS[status];
   const Icon = meta.icon;
@@ -77,8 +94,17 @@ const AvanceBar = ({ avance }) => {
 };
 
 export default function ProyectosBoard() {
+  // Solo Arturo y Paula pueden marcar PERSONAL / Prioritario
+  const { user, isSuperAdmin } = useSelector((s) => s.auth || {});
+  const uname = (user?.name || '').toLowerCase();
+  const canMark = isSuperAdmin || uname.includes('arturo') || uname.includes('paula');
+
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [flagFilter, setFlagFilter] = useState(null); // 'personal' | 'prioritario'
+  const [replyFor, setReplyFor] = useState(null);     // nota a la que se agrega contestación
+  const [replyInput, setReplyInput] = useState('');
+  const fileRefs = useRef({});
   const [view, setView] = useState('lista'); // lista | calendario | detalle (via detailId)
   const [detailId, setDetailId] = useState(null);
   // Filtros lista
@@ -152,6 +178,8 @@ export default function ProyectosBoard() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let arr = rows.filter((r) => {
+      if (flagFilter === 'personal' && !r.personal) return false;
+      if (flagFilter === 'prioritario' && !r.prioritario) return false;
       if (statusFilter === 'activos' && r.status === 'completado') return false;
       if (statusFilter !== 'activos' && statusFilter !== 'todos' && r.status !== statusFilter) return false;
       if (yearFilter !== 'todos') {
@@ -185,7 +213,7 @@ export default function ProyectosBoard() {
       return fa - fb;
     });
     return arr;
-  }, [rows, search, statusFilter, yearFilter, monthFilter, entregaFilter]);
+  }, [rows, search, statusFilter, yearFilter, monthFilter, entregaFilter, flagFilter]);
 
   const statusCounts = useMemo(() => rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {}), [rows]);
 
@@ -283,6 +311,51 @@ export default function ProyectosBoard() {
     try { await navigator.clipboard.writeText(texto); toast.success(msg); } catch { /* noop */ }
   };
 
+  // ── Marcas PERSONAL / Prioritario (solo Arturo y Paula) ──
+  const handleFlag = async (row, campo, valor) => {
+    patchRow(row.id, { [campo]: valor });
+    try {
+      await updateSeguimiento('quote', row.id, { [campo]: valor });
+      toast.success(campo === 'personal'
+        ? (valor ? 'Marcado como PERSONAL 👤' : 'Ya no es personal')
+        : (valor ? 'Marcado como Prioritario ⭐' : 'Ya no es prioritario'));
+    } catch { toast.error('No se pudo guardar'); patchRow(row.id, { [campo]: !valor }); }
+  };
+
+  // ── Comprobante de pago por parcialidad ──
+  const handleUploadComprobante = async (row, idx, file) => {
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB'); return; }
+    setSaving(true);
+    try {
+      const { comprobantes } = await uploadComprobante('quote', row.id, file, idx);
+      patchRow(row.id, { comprobantes });
+      toast.success('Comprobante adjuntado 🧾');
+    } catch { toast.error('No se pudo subir el comprobante'); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelComprobante = async (row, compId) => {
+    if (!window.confirm('¿Eliminar este comprobante?')) return;
+    try {
+      const { comprobantes } = await deleteComprobante('quote', row.id, compId);
+      patchRow(row.id, { comprobantes });
+    } catch { toast.error('No se pudo borrar el comprobante'); }
+  };
+
+  // Contestación del cliente anidada bajo un mensaje
+  const handleAddReply = async (row, parentId) => {
+    const t = replyInput.trim();
+    if (!t) return;
+    setSaving(true);
+    try {
+      const { notas } = await addNota('quote', row.id, `↳@${parentId}| ${t}`);
+      patchRow(row.id, { notas });
+      setReplyInput(''); setReplyFor(null);
+    } catch { toast.error('No se pudo agregar la contestación'); }
+    finally { setSaving(false); }
+  };
+
   // Agendar la entrega como evento con horario en el Google Calendar de Arturo
   const handleAgendarEntrega = async (row) => {
     if (!row.fechaEntrega) { toast.error('Primero pon la fecha de entrega'); return; }
@@ -344,9 +417,27 @@ export default function ProyectosBoard() {
           <div>
             <button className="pb-back" onClick={() => setDetailId(null)}><FaArrowLeft /> Proyectos</button>
             <div className="pb-dp-title">
-              {detail.prioritario && <FaStar className="pb-star" />}
               <h2>{detail.cliente}</h2>
               <StatusChip status={detail.status} />
+              {canMark ? (
+                <>
+                  <button className={`pb-flag prio ${detail.prioritario ? 'on' : ''}`}
+                    onClick={() => handleFlag(detail, 'prioritario', !detail.prioritario)}
+                    title="Prioritario = atención especial">
+                    {detail.prioritario ? <FaStar /> : <FaRegStar />} Prioritario
+                  </button>
+                  <button className={`pb-flag pers ${detail.personal ? 'on' : ''}`}
+                    onClick={() => handleFlag(detail, 'personal', !detail.personal)}
+                    title="PERSONAL = proyecto de Arturo">
+                    {detail.personal ? <FaUser /> : <FaRegUser />} Personal
+                  </button>
+                </>
+              ) : (
+                <>
+                  {detail.prioritario && <span className="pb-flag prio on static"><FaStar /> Prioritario</span>}
+                  {detail.personal && <span className="pb-flag pers on static"><FaUser /> Personal</span>}
+                </>
+              )}
             </div>
             <p className="pb-sub">{detail.title || 'Proyecto'}</p>
           </div>
@@ -426,23 +517,56 @@ export default function ProyectosBoard() {
               <div className="pb-sched">
                 {(detail.schedule || []).map((s) => {
                   const vencida = s.status !== 'paid' && s.status !== 'lost' && s.dueDate && new Date(s.dueDate) < new Date();
+                  const idx = s.number - 1; // installmentIdx real (0-based)
+                  const comps = (detail.comprobantes || []).filter((c) => c.installmentIdx === idx);
+                  const refKey = `comp-${detail.id}-${idx}`;
                   return (
-                    <div key={s.number} className="pb-sched-row">
-                      <span>{s.label}</span>
-                      <span>{fmtFecha(s.dueDate)}</span>
-                      <b>{mxn(s.amount)}</b>
-                      {s.status === 'paid'
-                        ? <span className="pb-chip" style={{ color: '#10b981', background: 'rgba(16,185,129,0.14)' }}><FaCheckCircle /> Pagado</span>
-                        : s.status === 'lost'
-                          ? <span className="pb-chip pb-chip-gray">Perdido</span>
-                          : vencida
-                            ? <span className="pb-chip" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.14)' }}><FaExclamationTriangle /> Vencido</span>
-                            : <span className="pb-chip" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.14)' }}><FaRegClock /> Pendiente</span>}
+                    <div key={s.number} className="pb-sched-item">
+                      <div className="pb-sched-row">
+                        <span>{s.label}</span>
+                        <span>{fmtFecha(s.dueDate)}</span>
+                        <b>{mxn(s.amount)}</b>
+                        {s.status === 'paid'
+                          ? <span className="pb-chip" style={{ color: '#10b981', background: 'rgba(16,185,129,0.14)' }}><FaCheckCircle /> Pagado</span>
+                          : s.status === 'lost'
+                            ? <span className="pb-chip pb-chip-gray">Perdido</span>
+                            : vencida
+                              ? <span className="pb-chip" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.14)' }}><FaExclamationTriangle /> Vencido</span>
+                              : <span className="pb-chip" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.14)' }}><FaRegClock /> Pendiente</span>}
+                      </div>
+                      {/* Comprobante de pago de ESTA parcialidad (contabilidad) */}
+                      <div className="pb-comps">
+                        {comps.map((c) => (
+                          <span key={c._id} className="pb-comp">
+                            <a href={c.url} target="_blank" rel="noopener noreferrer" title={`${c.nombre} · ${c.subidoPor || ''}`}>
+                              <FaReceipt /> {c.nombre || 'comprobante'}
+                            </a>
+                            <button onClick={() => handleDelComprobante(detail, c._id)} title="Eliminar comprobante"><FaTrashAlt /></button>
+                          </span>
+                        ))}
+                        <button className="pb-comp-add" disabled={saving} onClick={() => fileRefs.current[refKey]?.click()}>
+                          <FaCloudUploadAlt /> {comps.length ? 'Otro comprobante' : 'Adjuntar comprobante'}
+                        </button>
+                        <input type="file" hidden accept="image/*,.pdf" ref={(el) => { fileRefs.current[refKey] = el; }}
+                          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadComprobante(detail, idx, f); }} />
+                      </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="pb-hint">Para marcar pagos usa <b>Seguimiento → Flujo de caja</b> (mismo registro).</div>
+              <div className="pb-hint">Para marcar pagos usa <b>Seguimiento → Flujo de caja</b> (mismo registro). Las imágenes de comprobantes se comprimen solas.</div>
+            </div>
+
+            {/* Visor de la cotización (PDF) */}
+            <div className="pb-panel">
+              <h4><FaFileInvoiceDollar /> Cotización {detail.folio && <span className="pb-chip pb-chip-gray">{detail.folio}</span>}
+                {detail.pdfUrl && (
+                  <a className="pb-btn pb-btn-sm-link" href={detail.pdfUrl} target="_blank" rel="noopener noreferrer"><FaExternalLinkAlt /> Abrir</a>
+                )}
+              </h4>
+              {detail.pdfUrl
+                ? <iframe className="pb-pdf" src={detail.pdfUrl} title={`Cotización ${detail.folio || detail.cliente}`} />
+                : <div className="pb-faint">Esta cotización no tiene PDF guardado.</div>}
             </div>
 
             {/* Archivos — todos */}
@@ -488,20 +612,51 @@ export default function ProyectosBoard() {
               </div>
             </div>
 
-            {/* Notas */}
+            {/* Notas — hilo tipo chat: lo que ENVIAMOS (azul, derecha) vs lo que CONTESTÓ el cliente (verde, izquierda) */}
             <div className="pb-panel">
               <h4><FaStickyNote /> Notas de seguimiento ({(detail.notas || []).length})</h4>
-              <div className="pb-notas pb-notas-page">
-                {(detail.notas || []).length === 0 && <div className="pb-faint">Sin notas todavía.</div>}
-                {[...(detail.notas || [])].reverse().map((n) => (
-                  <div key={n._id || n.fecha} className="pb-nota">
-                    <div className="pb-nota-txt">{cleanNota(n.texto)}</div>
-                    <div className="pb-nota-meta">{n.autor || 'Admin'} · {fmtNota(n.fecha)}</div>
-                  </div>
-                ))}
+              <div className="pb-chat pb-notas-page">
+                {(() => {
+                  const { mains, repliesByParent } = buildThread(detail.notas);
+                  if (!mains.length) return <div className="pb-faint">Sin notas todavía. Escribe tu mensaje abajo.</div>;
+                  return mains.map((n) => {
+                    const replies = repliesByParent[n._id] || [];
+                    return (
+                      <div key={n._id || n.fecha} className="pb-thread">
+                        <div className="pb-msg mine">
+                          <div className="pb-msg-bubble">
+                            <span className="pb-msg-who">📤 {n.autor || 'Nosotros'}</span>
+                            <div className="pb-msg-txt">{n._clean}</div>
+                            <span className="pb-msg-time">{fmtNota(n.fecha)}</span>
+                          </div>
+                        </div>
+                        {replies.map((rep) => (
+                          <div key={rep._id || rep.fecha} className="pb-msg client">
+                            <div className="pb-msg-bubble">
+                              <span className="pb-msg-who">💬 Contestación del cliente</span>
+                              <div className="pb-msg-txt">{rep._clean}</div>
+                              <span className="pb-msg-time">{fmtNota(rep.fecha)}</span>
+                            </div>
+                          </div>
+                        ))}
+                        {replyFor === n._id ? (
+                          <div className="pb-add-row pb-reply-row">
+                            <input autoFocus placeholder="¿Qué contestó el cliente?" value={replyInput}
+                              onChange={(e) => setReplyInput(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(detail, n._id); if (e.key === 'Escape') setReplyFor(null); }} />
+                            <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddReply(detail, n._id)}>Guardar</button>
+                            <button className="pb-btn" onClick={() => setReplyFor(null)}>✕</button>
+                          </div>
+                        ) : (
+                          <button className="pb-reply-btn" onClick={() => { setReplyFor(n._id); setReplyInput(''); }}>↳ Agregar contestación del cliente</button>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
               <div className="pb-add-row">
-                <input placeholder="Escribe una nota de seguimiento…" value={notaInput}
+                <input placeholder="Escribe tu mensaje / nota de seguimiento…" value={notaInput}
                   onChange={(e) => setNotaInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddNota(detail)} />
                 <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddNota(detail)}>Enviar</button>
@@ -671,6 +826,14 @@ export default function ProyectosBoard() {
                   style={statusFilter === c.k && c.c ? { borderColor: c.c, color: c.c } : {}}
                   onClick={() => setStatusFilter(c.k)}>{c.l}</button>
               ))}
+              <button className={`pb-fchip flag ${flagFilter === 'prioritario' ? 'active prio' : ''}`}
+                onClick={() => setFlagFilter((p) => p === 'prioritario' ? null : 'prioritario')}>
+                ⭐ Prioritarios ({rows.filter((r) => r.prioritario).length})
+              </button>
+              <button className={`pb-fchip flag ${flagFilter === 'personal' ? 'active pers' : ''}`}
+                onClick={() => setFlagFilter((p) => p === 'personal' ? null : 'personal')}>
+                👤 Personales ({rows.filter((r) => r.personal).length})
+              </button>
             </div>
             <div className="pb-period">
               <select value={yearFilter} onChange={(e) => { setYearFilter(e.target.value); setMonthFilter('todos'); }}>
@@ -711,7 +874,8 @@ export default function ProyectosBoard() {
                   <div key={r.id} className={`pb-row ${r.prioritario ? 'prio' : ''}`} onClick={() => abrirProyecto(r.id)}>
                     <div className="pb-cell-client" data-label="Cliente">
                       <div className="pb-client-line">
-                        {r.prioritario && <FaStar className="pb-star" />}
+                        {r.prioritario && <FaStar className="pb-star" title="Prioritario" />}
+                        {r.personal && <span className="pb-badge-pers" title="Proyecto PERSONAL de Arturo"><FaUser /></span>}
                         {r.celular && (
                           <a className="pb-wa" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()} title={r.celular}><FaWhatsapp /></a>
