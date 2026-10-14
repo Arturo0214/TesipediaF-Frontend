@@ -144,6 +144,7 @@ export default function ProyectosBoard() {
   const [nueva, setNueva] = useState({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
   const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
+  const [msgCliente, setMsgCliente] = useState(''); // nota de Arturo para Paula al desahogar: qué decirle al cliente
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
   const [rangeFrom, setRangeFrom] = useState('');
   const [rangeTo, setRangeTo] = useState('');
@@ -457,6 +458,13 @@ export default function ProyectosBoard() {
         if (!row.entregado) {
           await updateSeguimiento('quote', row.id, { entregado: true });
           patchRow(row.id, { entregado: true, entregadoEn: new Date().toISOString() });
+        }
+        if (msgCliente.trim()) {
+          try {
+            const { notas } = await addNota('quote', row.id, `📨 Mensaje para el cliente: ${msgCliente.trim()}`);
+            patchRow(row.id, { notas });
+            setMsgCliente('');
+          } catch { toast.error('No se pudo guardar el mensaje para el cliente'); }
         }
         toast.success(`${subidos} archivo${subidos !== 1 ? 's' : ''} FINAL adjuntado${subidos !== 1 ? 's' : ''} ✅ — Paula ya puede enviarlos`);
       } else {
@@ -1181,7 +1189,7 @@ export default function ProyectosBoard() {
                   <div className="pb-ent-reqs">
                     {notasEntrega.length === 0 && <div className="pb-faint">Sin notas de esta entrega. (El historial completo está en el proyecto.)</div>}
                     {[...notasEntrega].reverse().map((n) => (
-                      <div key={n._id || n.fecha} className="pb-nota">
+                      <div key={n._id || n.fecha} className={`pb-nota ${String(n.texto || '').startsWith('📨') ? 'msg-cliente' : ''}`}>
                         <div className="pb-nota-txt">{cleanNota(n.texto)}</div>
                         <div className="pb-nota-meta">{n.autor || 'Admin'} · {fmtNota(n.fecha)}</div>
                       </div>
@@ -1224,6 +1232,11 @@ export default function ProyectosBoard() {
                           {[...finales].reverse().map((a) => renderFile(a, true))}
                         </div>
                         <div className="pb-agenda-actions" style={{ marginTop: 8 }}>
+                          {canDesahogar && !done && (
+                            <textarea className="pb-msg-cliente" rows="2"
+                              placeholder="📨 Mensaje para el cliente (nota para Paula: qué decirle al enviar los archivos)…"
+                              value={msgCliente} onChange={(e) => setMsgCliente(e.target.value)} />
+                          )}
                           {canDesahogar && (
                             <>
                               <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => fileRefs.current[`entf-${r.id}`]?.click()}
