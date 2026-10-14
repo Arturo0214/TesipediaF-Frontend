@@ -231,6 +231,7 @@ const SeguimientoMensual = () => {
   const [vendedorFilter, setVendedorFilter] = useState('todos');
   const [estadoFilter, setEstadoFilter] = useState('todos');
   const [soloActivos, setSoloActivos] = useState(false);
+  const [orden, setOrden] = useState('antiguedad'); // antiguedad = vencido más viejo primero | monto
 
   const hoy = useMemo(() => { const d = new Date(); d.setHours(23, 59, 59, 999); return d; }, []);
 
@@ -299,13 +300,17 @@ const SeguimientoMensual = () => {
   const buildRow = useCallback((p) => {
     const insts = (p.installments || []).filter((it) => selKey === 'year' ? String(it.mes).startsWith(String(year)) : it.mes === selKey);
     let montoSel = 0, cobradoSel = 0, porCobrarSel = 0, perdidoSel = 0, vencidoSel = 0;
+    let vencidaMasAntigua = null; // fecha del vencido más viejo (para ordenar cobranza)
     for (const it of insts) {
       montoSel += it.amount || 0;
       if (it.status === 'paid') cobradoSel += it.amount || 0;
       else if (it.status === 'lost') perdidoSel += it.amount || 0;
       else {
         porCobrarSel += it.amount || 0;
-        if (it.fecha && new Date(it.fecha) < hoy) vencidoSel += it.amount || 0;
+        if (it.fecha && new Date(it.fecha) < hoy) {
+          vencidoSel += it.amount || 0;
+          if (!vencidaMasAntigua || new Date(it.fecha) < new Date(vencidaMasAntigua)) vencidaMasAntigua = it.fecha;
+        }
       }
     }
     const estadoPago = calcEstadoPago({ montoSel, cobradoSel, porCobrarSel, perdidoSel, vencidoSel });
@@ -318,7 +323,7 @@ const SeguimientoMensual = () => {
     return {
       ...p,
       insts,
-      montoSel, cobradoSel, porCobrarSel, perdidoSel, vencidoSel,
+      montoSel, cobradoSel, porCobrarSel, perdidoSel, vencidoSel, vencidaMasAntigua,
       estadoPago,
       avance,
       correccionesListas,
@@ -361,10 +366,16 @@ const SeguimientoMensual = () => {
     arr.sort((a, b) => {
       if (a.prioritario !== b.prioritario) return b.prioritario - a.prioritario;
       if (rank[a.estadoPago] !== rank[b.estadoPago]) return rank[a.estadoPago] - rank[b.estadoPago];
+      if (orden === 'antiguedad') {
+        // Vencidos del más antiguo al más reciente
+        const fa = a.vencidaMasAntigua ? new Date(a.vencidaMasAntigua).getTime() : Infinity;
+        const fb = b.vencidaMasAntigua ? new Date(b.vencidaMasAntigua).getTime() : Infinity;
+        if (fa !== fb) return fa - fb;
+      }
       return (b.montoSel || 0) - (a.montoSel || 0);
     });
     return arr;
-  }, [rowsAll, search, vendedorFilter, estadoFilter, soloActivos]);
+  }, [rowsAll, search, vendedorFilter, estadoFilter, soloActivos, orden]);
 
   // KPIs del periodo (sobre rowsAll, sin filtros de texto)
   const kpis = useMemo(() => {
@@ -1213,6 +1224,10 @@ const SeguimientoMensual = () => {
                 <button key={c.k} className={`sm-fchip ${estadoFilter === c.k ? 'active' : ''}`} onClick={() => setEstadoFilter(c.k)}>{c.l}</button>
               ))}
             </div>
+            <select className="sm-select" value={orden} onChange={(e) => setOrden(e.target.value)} title="Orden de la tabla">
+              <option value="antiguedad">Orden: vencido más antiguo</option>
+              <option value="monto">Orden: mayor monto</option>
+            </select>
             <label className="sm-toggle">
               <input type="checkbox" checked={soloActivos} onChange={(e) => setSoloActivos(e.target.checked)} />
               Solo activos
