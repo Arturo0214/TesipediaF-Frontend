@@ -174,7 +174,9 @@ export default function ProyectosBoard() {
   // ── Dashboard de entregas (solo proyectos no completados) ──
   const entregas = useMemo(() => {
     const activos = rows.filter((r) => r.status !== 'completado');
-    const bucket = { atrasadas: [], hoy: [], manana: [], pasado: [], semana: [], sin_fecha: [] };
+    const bucket = { atrasadas: [], hoy: [], manana: [], pasado: [], semana: [], sin_fecha: [], desahogados: [] };
+    // Desahogados: Arturo ya adjuntó el FINAL, falta que Paula los envíe al cliente
+    for (const r of rows) if (r.entregado && !r.entregaEnviada) bucket.desahogados.push(r);
     for (const r of activos) {
       const d = diasHasta(r.fechaEntrega);
       if (d === null) bucket.sin_fecha.push(r);
@@ -206,6 +208,9 @@ export default function ProyectosBoard() {
         if (rangeFrom && f < new Date(`${rangeFrom}T00:00:00`)) return false;
         if (rangeTo && f > new Date(`${rangeTo}T23:59:59`)) return false;
       }
+      if (entregaFilter === 'desahogados') {
+        if (!(r.entregado && !r.entregaEnviada)) return false;
+      } else {
       if (statusFilter === 'activos' && r.status === 'completado') return false;
       if (statusFilter !== 'activos' && statusFilter !== 'todos' && r.status !== statusFilter) return false;
       if (yearFilter !== 'todos') {
@@ -223,6 +228,7 @@ export default function ProyectosBoard() {
         if (entregaFilter === 'pasado' && d !== 2) return false;
         if (entregaFilter === 'semana' && !(d !== null && d >= 3 && d <= 7)) return false;
         if (entregaFilter === 'sin_fecha' && d !== null) return false;
+      }
       }
       if (q) {
         const hay = `${r.cliente} ${r.title} ${r.celular} ${r.vendedor}`.toLowerCase();
@@ -523,6 +529,7 @@ export default function ProyectosBoard() {
     { k: 'pasado', lbl: 'Pasado mañana', cls: 'blue' },
     { k: 'semana', lbl: 'Próximos 7 días', cls: '' },
     { k: 'sin_fecha', lbl: 'Sin fecha', cls: 'gray' },
+    { k: 'desahogados', lbl: 'Desahogados', cls: 'green' },
   ];
 
   /* ═══════════ PÁGINA COMPLETA DEL PROYECTO ═══════════ */

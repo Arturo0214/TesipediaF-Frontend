@@ -36,7 +36,7 @@
 @keyframes pb-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
 /* ── Dashboard de entregas ── */
-.pb-entregas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.pb-entregas { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
 .pb-ent-card {
   background: linear-gradient(180deg, var(--pb-surface), var(--pb-inset));
   border: 1px solid var(--pb-border); border-radius: 12px; padding: 10px 12px;
@@ -52,6 +52,7 @@
 .pb-ent-card.amber .pb-ent-num, .pb-ent-card.amber .pb-ent-lbl svg { color: #fbbf24; }
 .pb-ent-card.blue .pb-ent-num, .pb-ent-card.blue .pb-ent-lbl svg { color: #60a5fa; }
 .pb-ent-card.gray .pb-ent-num { color: var(--pb-muted); }
+.pb-ent-card.green .pb-ent-num, .pb-ent-card.green .pb-ent-lbl svg { color: #34d399; }
 
 /* ── Toolbar / filtros ── */
 .pb-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
