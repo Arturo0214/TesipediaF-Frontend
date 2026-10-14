@@ -149,13 +149,21 @@ const ESTADO_META = {
   sin_cobro: { label: '—', cls: 'sm-chip-gray', icon: FaRegCircle },
 };
 
-const PROJ_STATUS = {
-  pending: { label: 'Pendiente', color: '#9CA3AF' },
-  in_progress: { label: 'En proceso', color: '#3B82F6' },
-  review: { label: 'Revisión', color: '#A78BFA' },
-  completed: { label: 'Entregado', color: '#10B981' },
-  cancelled: { label: 'Cancelado', color: '#EF4444' },
+// ── Avance del proyecto ──
+// Los pagos pesan 90%: pagado al 100% → avance 90%. El 10% restante se libera
+// SOLO con el switch "correcciones terminadas" (porque puede estar pagado pero
+// el proyecto seguir abierto por correcciones).
+const calcAvance = (total, cobrado, correccionesListas) => {
+  const frac = total > 0 ? Math.min(1, (cobrado || 0) / total) : 0;
+  if (frac >= 0.999) return correccionesListas ? 100 : 90;
+  return Math.round(frac * 90);
 };
+const avanceColor = (a) => (a >= 100 ? '#10B981' : a >= 90 ? '#A78BFA' : '#3B82F6');
+const avanceTitle = (a, correccionesListas) => a >= 100
+  ? 'Pagado 100% y correcciones terminadas — proyecto completo'
+  : a >= 90
+    ? 'Pagado 100% · falta prender el switch de correcciones terminadas'
+    : `Avance por pagos: ${a}% (los pagos pesan 90%)${correccionesListas ? ' · correcciones listas' : ''}`;
 
 const COT_STATUS = {
   paid: { label: 'Pagada', cls: 'sm-chip-green' },
@@ -234,8 +242,10 @@ const SeguimientoMensual = () => {
     return () => { window.removeEventListener('dragover', prevent); window.removeEventListener('drop', prevent); };
   }, []);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
+  // silent=true recarga los datos en segundo plano SIN poner la pantalla en "Cargando…"
+  // (así los cambios de estatus de pago se reflejan al instante y sin parpadeo).
+  const loadData = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const [cfData, seg] = await Promise.all([
         revenueService.getCashflow(year),
@@ -250,16 +260,19 @@ const SeguimientoMensual = () => {
           notas: r.notas || [], estado: r.estado || 'sin_gestion', vendedor: r.vendedor || '',
           archivos: r.archivos || [], nombre: r.nombre || '', prioritario: !!r.prioritario,
           atencion: r.atencion || null, acuerdos: r.acuerdos || [], cotizaciones: r.cotizaciones || [],
+          correccionesListas: !!r.correccionesListas,
         });
       }
       setSegMap(map);
     } catch (err) {
-      toast.error('No se pudo cargar el seguimiento');
+      if (!silent) toast.error('No se pudo cargar el seguimiento');
       console.error('Seguimiento fetch:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [year]);
+  const fetchAll = useCallback(() => loadData(), [loadData]);
+  const refreshSilent = useCallback(() => loadData({ silent: true }), [loadData]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -299,11 +312,16 @@ const SeguimientoMensual = () => {
     const seg = segMap.get(String(p.id)) || {};
     const nombreRaw = (p.client || '').trim();
     const sinNombre = !nombreRaw || /^(s\/t|s\/n|sin nombre|cliente|lead)$/i.test(nombreRaw);
+    // Avance sobre el PROYECTO completo (no solo el mes): pagos pesan 90% + switch de correcciones
+    const correccionesListas = !!seg.correccionesListas;
+    const avance = calcAvance(p.total || 0, p.cobrado || 0, correccionesListas);
     return {
       ...p,
       insts,
       montoSel, cobradoSel, porCobrarSel, perdidoSel, vencidoSel,
       estadoPago,
+      avance,
+      correccionesListas,
       notas: seg.notas || [],
       archivos: seg.archivos || [],
       estadoGestion: seg.estado || 'sin_gestion',
@@ -445,6 +463,45 @@ const SeguimientoMensual = () => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
 
+  // Mueve el monto de una parcialidad entre buckets (cobrado/porCobrar/perdido)
+  // en un objeto de totales (mes, año o proyecto) para que KPIs y pestañas de mes
+  // se actualicen al instante, sin esperar al refetch.
+  const moveBucket = (tot, from, to, amount) => {
+    const key = (s) => (s === 'paid' ? 'cobrado' : s === 'lost' ? 'perdido' : 'porCobrar');
+    const t = { ...tot };
+    t[key(from)] = Math.max(0, (t[key(from)] || 0) - amount);
+    t[key(to)] = (t[key(to)] || 0) + amount;
+    if (t.ganancia !== undefined) t.ganancia = (t.cobrado || 0) - (t.gastos || 0);
+    return t;
+  };
+
+  // Refleja el cambio de estatus de una parcialidad en TODO el estado local:
+  // la parcialidad, los totales del proyecto, el mes y los totales del año.
+  const applyInstallmentLocal = (quoteId, idx, status, paidAt = null) => {
+    setCf((prev) => {
+      if (!prev) return prev;
+      let delta = null;
+      const projects = prev.projects.map((p) => {
+        if (String(p.id) !== String(quoteId)) return p;
+        const installments = p.installments.map((it) => {
+          if (it.idx !== idx || it.status === status) return it;
+          delta = { mes: it.mes, amount: it.amount || 0, from: it.status };
+          return { ...it, status, paidAt };
+        });
+        if (!delta) return p;
+        const proj = moveBucket({ ...p, installments }, delta.from, status, delta.amount);
+        proj.pagado = (proj.porCobrar || 0) < 0.5;
+        return proj;
+      });
+      if (!delta) return { ...prev, projects };
+      const monthly = (prev.monthly || []).map((m) => (m.key === delta.mes ? moveBucket(m, delta.from, status, delta.amount) : m));
+      const yearTotals = prev.yearTotals && String(delta.mes).startsWith(String(prev.year))
+        ? moveBucket(prev.yearTotals, delta.from, status, delta.amount)
+        : prev.yearTotals;
+      return { ...prev, projects, monthly, yearTotals };
+    });
+  };
+
   const patchInstallment = async (quoteId, idx, status) => {
     const key = `${quoteId}-${idx}`;
     setSaving(key);
@@ -452,14 +509,8 @@ const SeguimientoMensual = () => {
       const { data } = await axiosWithAuth.patch(`/payments/dashboard/${quoteId}/installment?source=sofia`, { installmentIndex: idx, status });
       const paidAtMap = data?.installmentPaidAt || {};
       // Actualizar localmente sin recargar todo (incluida la fecha real de pago)
-      setCf((prev) => {
-        if (!prev) return prev;
-        const projects = prev.projects.map((p) => {
-          if (String(p.id) !== String(quoteId)) return p;
-          return { ...p, installments: p.installments.map((it) => it.idx === idx ? { ...it, status, paidAt: paidAtMap[String(idx)] || null } : it) };
-        });
-        return { ...prev, projects };
-      });
+      applyInstallmentLocal(quoteId, idx, status, paidAtMap[String(idx)] || null);
+      refreshSilent(); // sincroniza Entregas/Pendientes en segundo plano, sin parpadeo
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al guardar el cobro');
     } finally {
@@ -473,14 +524,31 @@ const SeguimientoMensual = () => {
     setSaving(`row-${row.id}`);
     try {
       for (const it of pend) {
-        await axiosWithAuth.patch(`/payments/dashboard/${row.id}/installment?source=sofia`, { installmentIndex: it.idx, status: 'paid' });
+        const { data } = await axiosWithAuth.patch(`/payments/dashboard/${row.id}/installment?source=sofia`, { installmentIndex: it.idx, status: 'paid' });
+        const paidAtMap = data?.installmentPaidAt || {};
+        applyInstallmentLocal(row.id, it.idx, 'paid', paidAtMap[String(it.idx)] || null);
       }
       toast.success(`Cobro registrado para ${row.client} ✅`);
-      await fetchAll();
+      refreshSilent();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al registrar el cobro');
     } finally {
       setSaving(null);
+    }
+  };
+
+  // ── Switch "correcciones terminadas": libera el 10% final del avance ──
+  const handleCorrecciones = async (rowId, valor) => {
+    const patchMap = (prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), correccionesListas: valor }); return n; };
+    setSegMap(patchMap);
+    setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId) ? { ...r, correccionesListas: valor } : r));
+    try {
+      await updateSeguimiento('quote', rowId, { correccionesListas: valor });
+      toast.success(valor ? 'Correcciones terminadas — proyecto al 100% ✅' : 'Correcciones pendientes: avance limitado a 90%');
+    } catch {
+      toast.error('No se pudo guardar el switch de correcciones');
+      setSegMap((prev) => { const n = new Map(prev); n.set(String(rowId), { ...(n.get(String(rowId)) || {}), correccionesListas: !valor }); return n; });
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(rowId) ? { ...r, correccionesListas: !valor } : r));
     }
   };
 
@@ -596,6 +664,25 @@ const SeguimientoMensual = () => {
     finally { setSaving(null); }
   };
 
+  // Switch correcciones terminadas (apagado = proyecto abierto, tope 90%)
+  const CorrSwitch = ({ row, compact = false }) => (
+    <label
+      className={`sm-corr ${row.correccionesListas ? 'on' : ''} ${compact ? 'compact' : ''}`}
+      onClick={(e) => e.stopPropagation()}
+      title={row.correccionesListas
+        ? 'Correcciones terminadas — proyecto al 100%. Clic para reabrir.'
+        : 'Correcciones pendientes (o sin confirmar) — el avance se queda en 90%. Clic cuando ya no haya correcciones.'}
+    >
+      <input
+        type="checkbox"
+        checked={!!row.correccionesListas}
+        onChange={() => handleCorrecciones(row.id, !row.correccionesListas)}
+      />
+      <span className="sm-corr-track"><span className="sm-corr-knob" /></span>
+      <span className="sm-corr-lbl">{compact ? 'Correcciones' : 'Correcciones terminadas'}</span>
+    </label>
+  );
+
   const PrioBtn = ({ row }) => (
     <button
       className={`sm-prio-btn ${row.prioritario ? 'on' : ''}`}
@@ -671,12 +758,12 @@ const SeguimientoMensual = () => {
   };
 
   const exportCsv = () => {
-    const headers = ['Cliente', 'Proyecto', 'Número', 'Monto periodo', 'Cobrado', 'Por cobrar', 'Vencido', 'Estado pago', 'Atención', 'Avance', 'Entrega', 'Gestión', 'Última nota'];
+    const headers = ['Cliente', 'Proyecto', 'Número', 'Monto periodo', 'Cobrado', 'Por cobrar', 'Vencido', 'Estado pago', 'Atención', 'Avance', 'Correcciones terminadas', 'Entrega', 'Gestión', 'Última nota'];
     const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map((r) => [
       r.client, r.title, r.phone, r.montoSel, r.cobradoSel, r.porCobrarSel, r.vencidoSel,
       ESTADO_META[r.estadoPago]?.label, r.vendedorFinal,
-      r.progress != null ? `${r.progress}%` : '', r.dueDate ? new Date(r.dueDate).toISOString().slice(0, 10) : '',
+      `${r.avance}%`, r.correccionesListas ? 'Sí' : 'No', r.dueDate ? new Date(r.dueDate).toISOString().slice(0, 10) : '',
       ESTADO_GESTION.find((e) => e.value === r.estadoGestion)?.label,
       r.notas?.length ? r.notas[r.notas.length - 1].texto : (r.nota || ''),
     ].map(esc).join(','));
@@ -851,7 +938,7 @@ const SeguimientoMensual = () => {
                 </thead>
                 <tbody>
                   {entregasData.porEntregar.map((r) => {
-                    const ps = PROJ_STATUS[r.projectStatus];
+                    const avance = calcAvance(r.montoTotal || 0, r.pagado || 0, r.correccionesListas);
                     const dEnt = diasHasta(r.fechaEntrega);
                     const entCls = dEnt === null ? 'sm-faint' : dEnt < 0 ? 'sm-red' : dEnt <= 3 ? 'sm-amber' : '';
                     return (
@@ -874,12 +961,11 @@ const SeguimientoMensual = () => {
                                 : <span className="sm-chip sm-chip-gray"><FaRegClock /> {relDias(r.fechaEntrega)}</span>}
                         </td>
                         <td className="sm-col-prog">
-                          {ps ? (
-                            <div className="sm-prog" title={`${ps.label}${r.progress != null ? ` · ${r.progress}%` : ''}`}>
-                              <div className="sm-prog-bar"><span style={{ width: `${r.progress ?? 0}%`, background: ps.color }} /></div>
-                              <span className="sm-prog-lbl" style={{ color: ps.color }}>{r.progress != null ? `${r.progress}%` : ps.label}</span>
-                            </div>
-                          ) : <span className="sm-faint">Sin proyecto</span>}
+                          <div className="sm-prog" title={avanceTitle(avance, r.correccionesListas)}>
+                            <div className="sm-prog-bar"><span style={{ width: `${avance}%`, background: avanceColor(avance) }} /></div>
+                            <span className="sm-prog-lbl" style={{ color: avanceColor(avance) }}>{avance}%</span>
+                          </div>
+                          <CorrSwitch row={r} compact />
                         </td>
                         <td className={`sm-fecha sm-col-fecha ${entCls}`}>
                           {r.fechaEntrega ? fmtFechaFull(r.fechaEntrega) : '—'}
@@ -1156,7 +1242,6 @@ const SeguimientoMensual = () => {
                     const isOpen = expanded.has(r.id);
                     const meta = ESTADO_META[r.estadoPago];
                     const Icon = meta.icon;
-                    const ps = PROJ_STATUS[r.projectStatus];
                     const rowSaving = saving === `row-${r.id}`;
                     const lastNota = r.notas?.length ? r.notas[r.notas.length - 1].texto : '';
                     return (
@@ -1209,13 +1294,12 @@ const SeguimientoMensual = () => {
                             <span className={`sm-chip ${meta.cls}`}><Icon /> {meta.label}</span>
                           </td>
                           <td className="sm-col-vend">{r.vendedorFinal ? <span className="sm-vend"><FaUserTie /> {r.vendedorFinal}</span> : <span className="sm-faint">—</span>}</td>
-                          <td className="sm-col-prog">
-                            {ps ? (
-                              <div className="sm-prog" title={`${ps.label}${r.progress != null ? ` · ${r.progress}%` : ''}`}>
-                                <div className="sm-prog-bar"><span style={{ width: `${r.progress ?? 0}%`, background: ps.color }} /></div>
-                                <span className="sm-prog-lbl" style={{ color: ps.color }}>{r.progress != null ? `${r.progress}%` : ps.label}</span>
-                              </div>
-                            ) : <span className="sm-faint">—</span>}
+                          <td className="sm-col-prog" onClick={(e) => e.stopPropagation()}>
+                            <div className="sm-prog" title={avanceTitle(r.avance, r.correccionesListas)}>
+                              <div className="sm-prog-bar"><span style={{ width: `${r.avance}%`, background: avanceColor(r.avance) }} /></div>
+                              <span className="sm-prog-lbl" style={{ color: avanceColor(r.avance) }}>{r.avance}%</span>
+                            </div>
+                            <CorrSwitch row={r} compact />
                           </td>
                           <td className="sm-fecha sm-col-fecha">{fmtFecha(r.dueDate)}</td>
                           <td className="sm-col-act">
@@ -1309,6 +1393,14 @@ const SeguimientoMensual = () => {
                                     <select value={r.estadoGestion} onChange={(e) => handleEstadoGestion(r, e.target.value)}>
                                       {ESTADO_GESTION.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
                                     </select>
+                                  </div>
+                                  <div className="sm-corr-row">
+                                    <CorrSwitch row={r} />
+                                    <span className="sm-corr-hint">
+                                      {r.correccionesListas
+                                        ? 'Proyecto cerrado: sin correcciones pendientes.'
+                                        : 'El avance se queda en 90% hasta terminar las correcciones.'}
+                                    </span>
                                   </div>
                                 </div>
                                 {/* Notas / contestación — hilo con respuesta por mensaje */}

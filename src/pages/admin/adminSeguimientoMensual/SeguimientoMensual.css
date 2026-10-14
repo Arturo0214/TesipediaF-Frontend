@@ -442,3 +442,16 @@
     font-size: 0.68rem; font-weight: 700; color: #93C5FD;
     background: rgba(59, 130, 246, 0.12); border-radius: 999px; padding: 1px 7px; white-space: nowrap;
 }
+
+/* ── Switch "correcciones terminadas" (libera el 10% final del avance) ── */
+.sm-corr { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; margin-top: 0.3rem; user-select: none; }
+.sm-corr input { display: none; }
+.sm-corr-track { width: 28px; height: 15px; border-radius: 999px; background: var(--s-inset); border: 1px solid var(--s-border-2); position: relative; transition: background 0.2s, border-color 0.2s; flex-shrink: 0; }
+.sm-corr-knob { position: absolute; top: 1px; left: 1px; width: 11px; height: 11px; border-radius: 50%; background: var(--s-muted); transition: transform 0.2s, background 0.2s; }
+.sm-corr.on .sm-corr-track { background: rgba(16, 185, 129, 0.25); border-color: #10B981; }
+.sm-corr.on .sm-corr-knob { transform: translateX(13px); background: #10B981; }
+.sm-corr-lbl { font-size: 0.68rem; font-weight: 600; color: var(--s-muted); white-space: nowrap; }
+.sm-corr.on .sm-corr-lbl { color: #10B981; }
+.sm-corr.compact .sm-corr-lbl { font-size: 0.62rem; }
+.sm-corr-row { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.sm-corr-hint { font-size: 0.68rem; color: var(--s-muted); }
