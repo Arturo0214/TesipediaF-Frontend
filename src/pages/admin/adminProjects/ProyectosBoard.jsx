@@ -713,23 +713,6 @@ export default function ProyectosBoard() {
                 : <div className="pb-faint">Esta cotización no tiene PDF guardado.</div>}
             </div>
 
-            {/* Archivos — todos */}
-            <div className="pb-panel">
-              <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).length})</h4>
-              {(detail.archivos || []).length === 0 && <div className="pb-faint">Sin archivos. Se cargan desde Seguimiento.</div>}
-              <div className="pb-files">
-                {[...(detail.archivos || [])].reverse().map((a, i) => (
-                  <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
-                    <FaFileAlt />
-                    <span className="pb-file-info">
-                      <b>{a.nombre || 'archivo'}</b>
-                      <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
-                    </span>
-                    {i === 0 && <span className="pb-file-badge">último</span>}
-                  </a>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="pb-dp-col">
@@ -804,6 +787,24 @@ export default function ProyectosBoard() {
                   onChange={(e) => setNotaInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddNota(detail)} />
                 <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddNota(detail)}>Enviar</button>
+              </div>
+            </div>
+
+            {/* Archivos — todos */}
+            <div className="pb-panel">
+              <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).length})</h4>
+              {(detail.archivos || []).length === 0 && <div className="pb-faint">Sin archivos. Se cargan desde Seguimiento.</div>}
+              <div className="pb-files">
+                {[...(detail.archivos || [])].reverse().map((a, i) => (
+                  <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
+                    <FaFileAlt />
+                    <span className="pb-file-info">
+                      <b>{a.nombre || 'archivo'}</b>
+                      <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
+                    </span>
+                    {i === 0 && <span className="pb-file-badge">último</span>}
+                  </a>
+                ))}
               </div>
             </div>
           </div>
