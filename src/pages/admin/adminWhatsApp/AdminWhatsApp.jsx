@@ -1509,7 +1509,12 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
       const clientShort = (f.clientName || 'Cliente').split(' ')[0].replace(/[^\w\s\-áéíóúñÁÉÍÓÚÑ]/gi, '').trim() || 'Cliente';
       const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
 
+      // Un solo publicId para TODO el flujo: el folio COT- que imprime el PDF es el
+      // mismo que se guarda en la BD (antes el PDF inventaba un folio no buscable)
+      const quotePublicId = (window.crypto?.randomUUID?.() || `${Date.now()}${Math.random().toString(16).slice(2, 10)}`);
+
       const pdfBody = JSON.stringify({
+        publicId: quotePublicId,
         clientName: f.clientName,
         nombre: f.clientName,
         tituloTrabajo: f.tituloTrabajo || f.tema || '',
@@ -1573,6 +1578,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
       const precioConDescuento = precioBase - descuentoMonto;
       try {
         const saveResult = await dispatch(saveGeneratedQuote({
+          publicId: quotePublicId, // mismo publicId del PDF → mismo folio COT- en el buscador
           clientName: f.clientName,
           clientPhone: f.clientPhone,
           tituloTrabajo: f.tituloTrabajo || f.tema || '',

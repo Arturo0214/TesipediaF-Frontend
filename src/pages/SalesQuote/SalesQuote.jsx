@@ -395,10 +395,12 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
 
             // 💾 1. Guardar primero en backend para obtener el ID (necesario para vincular el PDF)
             let savedQuoteId = null;
+            let savedQuote = null;
             try {
                 const savedResult = await dispatch(saveGeneratedQuote(quoteData)).unwrap();
-                savedQuoteId = savedResult?.quote?._id || savedResult?._id || null;
-                console.log('✅ Cotización guardada en BD con ID:', savedQuoteId);
+                savedQuote = savedResult?.quote || savedResult || null;
+                savedQuoteId = savedQuote?._id || null;
+                console.log('✅ Cotización guardada en BD con ID:', savedQuoteId, 'folio:', savedQuote?.folio);
             } catch (saveErr) {
                 console.error('⚠️ Error al guardar cotización en BD:', saveErr, JSON.stringify(saveErr));
                 Swal.fire({
@@ -419,6 +421,9 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
             const pdfFilename = `Tesipedia-Cotizacion-${clientShort}-${dd}${mm}`;
 
             const pdfBody = {
+                // Folio de la cotización YA guardada → el PDF imprime el mismo COT- que el buscador
+                folio: savedQuote?.folio || undefined,
+                publicId: savedQuote?.publicId || undefined,
                 clientName: quoteData.clientName,
                 nombre: quoteData.clientName,
                 tituloTrabajo: quoteData.tituloTrabajo || '',
