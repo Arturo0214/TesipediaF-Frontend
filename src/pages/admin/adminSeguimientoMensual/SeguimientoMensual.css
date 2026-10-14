@@ -455,3 +455,31 @@
 .sm-corr.compact .sm-corr-lbl { font-size: 0.62rem; }
 .sm-corr-row { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.15rem; }
 .sm-corr-hint { font-size: 0.68rem; color: var(--s-muted); }
+
+/* ═══ Responsive (refuerzo móvil/tablet) ═══ */
+@media (max-width: 1000px) {
+  /* Mejor scroll horizontal que esconder columnas clave */
+  .sm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sm-table { min-width: 740px; }
+}
+@media (max-width: 640px) {
+  .sm-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .sm-head-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .sm-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .sm-tab { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 0.84rem; }
+  .sm-months { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .sm-month { flex-shrink: 0; }
+  .sm-toolbar { flex-direction: column; align-items: stretch; }
+  .sm-search { width: 100%; }
+  .sm-estado-chips { overflow-x: auto; flex-wrap: nowrap; display: flex; padding-bottom: 4px; }
+  .sm-fchip { white-space: nowrap; flex-shrink: 0; }
+  .sm-detail { grid-template-columns: 1fr; padding: 0.7rem; gap: 0.8rem; }
+  .sm-detail-contact { flex-wrap: wrap; }
+  .sm-acuerdo-form { flex-wrap: wrap; }
+  .sm-acuerdo-form input:not([type='date']) { min-width: 150px; flex: 1; }
+  .sm-kpis { gap: 0.4rem; }
+  .sm-kpi { padding: 0.5rem 0.6rem; }
+  .sm-ent-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .sm-ent-actions { flex-wrap: wrap; }
+  .sm-nota-add { flex-wrap: wrap; }
+}

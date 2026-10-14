@@ -254,3 +254,17 @@
   .ac-cal-title { flex-direction: column; align-items: flex-start; }
   .ac-legend-total { margin-left: 0; }
 }
+
+/* ═══ Responsive (refuerzo móvil) ═══ */
+@media (max-width: 768px) {
+  .ac-container { padding: 12px; }
+  /* El mes mantiene sus 7 columnas con scroll horizontal (en vez de aplastarse) */
+  .ac-calendar-section { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+  .ac-cal-grid { min-width: 640px; }
+  .ac-cal-header { position: sticky; left: 0; }
+  .ac-cal-events { max-height: 110px; }
+  .ac-cal-chip { font-size: 0.6rem; }
+  .ac-modal { max-width: 100%; max-height: 92vh; }
+  .ac-modal-day .ac-tl-row, .ac-modal-day .ac-tl-allday { grid-template-columns: 52px 1fr; }
+  .ac-cal-actions { flex-wrap: wrap; }
+}

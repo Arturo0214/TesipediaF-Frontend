@@ -58,7 +58,7 @@ import authService from '../../../services/authService';
 // Lazy-loaded admin sections — each loads only when its tab is active
 // This splits the 1.3MB AdminPanel chunk into ~100-200KB per section
 const ManageQuotes = lazy(() => import('../adminQuotes/ManageQuotes.jsx'));
-const ManageProjects = lazy(() => import('../adminProjects/ManageProjects.jsx'));
+const ProyectosBoard = lazy(() => import('../adminProjects/ProyectosBoard.jsx'));
 const ManagePayments = lazy(() => import('../adminPayments/ManagePayments.jsx'));
 const ManageVisits = lazy(() => import('../adminVisits/ManageVisits.jsx'));
 const ManageUsers = lazy(() => import('../adminUsers/ManageUsers.jsx'));
@@ -338,7 +338,7 @@ const AdminPanel = () => {
         dashboard: AdminDashboard,
         cotizar: SalesQuote,
         cotizaciones: ManageQuotes,
-        proyectos: ManageProjects,
+        proyectos: ProyectosBoard,
         pagos: ManagePayments,
         mercadopago: AdminMercadoPago,
         seguimientomensual: SeguimientoMensual,
