@@ -378,6 +378,7 @@ const AdminPanel = () => {
         whatsapp: 'whatsapp',
         lead: 'whatsapp',
         seguimiento: 'seguimientomensual',
+        calendario: 'calendarios',
         alerta: 'dashboard',
         info: 'dashboard',
     };

@@ -13,6 +13,7 @@ import {
   uploadComprobante, deleteComprobante, uploadArchivo,
 } from '../../../services/seguimientoService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
+import { onSocketEvent, offSocketEvent, isSocketConnected } from '../../../services/socket/socketService';
 import './ProyectosBoard.css';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -165,6 +166,23 @@ export default function ProyectosBoard() {
     }
   }, []);
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Refresco EN VIVO: cuando Arturo o Paula cambian algo (nota, archivo, desahogo,
+  // envío, flags) el backend emite 'proyectos:update' y la sección se actualiza sola.
+  useEffect(() => {
+    const handler = (data) => {
+      fetchAll({ silent: true });
+      if (data?.por) toast(`🔄 ${data.por} ${data.accion || 'actualizó proyectos'}`, { duration: 3500 });
+    };
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (isSocketConnected() || tries++ > 20) {
+        clearInterval(timer);
+        onSocketEvent('proyectos:update', handler);
+      }
+    }, 500);
+    return () => { clearInterval(timer); offSocketEvent('proyectos:update', handler); };
+  }, [fetchAll]);
 
   const patchRow = (id, patch) => setRows((prev) => prev.map((r) => {
     if (String(r.id) !== String(id)) return r;

@@ -96,6 +96,12 @@ export const onSocketEvent = (event, callback) => {
     }
 };
 
+export const offSocketEvent = (event, callback) => {
+    if (socket) {
+        socket.off(event, callback);
+    }
+};
+
 export const isSocketConnected = () => {
     return socket?.connected || false;
 }; 
