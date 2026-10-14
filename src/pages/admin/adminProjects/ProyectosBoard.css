@@ -419,3 +419,60 @@
   .pb-pdf { height: 360px; }
   .pb-msg-bubble { max-width: 95%; }
 }
+
+/* ═══ Modal nueva entrega ═══ */
+.pb-modal-overlay {
+  position: fixed; inset: 0; background: rgba(2,6,17,0.72); backdrop-filter: blur(4px);
+  z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.pb-modal {
+  background: var(--pb-surface, #111827); border: 1px solid #2b3a52; border-radius: 16px;
+  width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; color: #F3F4F6;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6); animation: pb-slide 0.18s ease-out;
+}
+.pb-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #1F2937; }
+.pb-modal-head h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+.pb-modal-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+.pb-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid #1F2937; }
+.pb-field { display: flex; flex-direction: column; gap: 5px; font-size: 0.74rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.04em; }
+.pb-field input, .pb-field textarea {
+  background: #0d1322; border: 1px solid #2b3a52; color: #F3F4F6; border-radius: 8px;
+  padding: 9px 11px; font-size: 0.86rem; color-scheme: dark; text-transform: none; letter-spacing: normal; font-weight: 500;
+}
+.pb-field input:focus, .pb-field textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.18); }
+.pb-field-row { display: grid; grid-template-columns: 1fr 1fr 0.7fr; gap: 10px; }
+.pb-lead-list { display: flex; flex-direction: column; border: 1px solid #2b3a52; border-radius: 8px; overflow: hidden; }
+.pb-lead-list button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; background: #0d1322;
+  border: none; border-bottom: 1px solid #1F2937; padding: 8px 11px; cursor: pointer; text-align: left;
+}
+.pb-lead-list button:last-child { border-bottom: none; }
+.pb-lead-list button:hover { background: #151e30; }
+.pb-lead-list button b { color: #F3F4F6; font-size: 0.82rem; }
+.pb-lead-list button span { color: #64748B; font-size: 0.68rem; }
+.pb-sel-lead { display: flex; align-items: center; gap: 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.35); border-radius: 8px; padding: 8px 11px; }
+.pb-sel-lead b { font-size: 0.84rem; color: #F3F4F6; }
+.pb-sel-lead .pb-title { flex: 1; }
+@media (max-width: 600px) { .pb-field-row { grid-template-columns: 1fr; } }
+
+/* ═══ Calendario de entregas más grande + proceso Paula carga / Arturo desahoga ═══ */
+.pb-cal-day { min-height: 128px; }
+.pb-cal-chips { max-height: 170px; }
+.pb-cal-chip { font-size: 0.7rem; padding: 3px 7px; border-radius: 5px; }
+.pb-cal-dow { padding: 9px; font-size: 0.72rem; }
+.pb-agenda-item { grid-template-columns: 10px 170px 1fr auto auto 16px; }
+.pb-ent-estado {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 700; white-space: nowrap;
+}
+.pb-ent-estado.done { color: #34d399; background: rgba(16,185,129,0.14); }
+.pb-ent-estado.loaded { color: #fbbf24; background: rgba(245,158,11,0.14); }
+.pb-ent-estado.none { color: #64748B; background: #0d1322; }
+.pb-agenda-actions { display: flex; gap: 6px; align-items: center; }
+.pb-btn-desahogar { background: rgba(16,185,129,0.14); color: #6ee7b7; border-color: rgba(16,185,129,0.35); }
+.pb-btn-desahogar:hover { background: rgba(16,185,129,0.25); }
+@media (max-width: 820px) {
+  .pb-cal-day { min-height: 76px; }
+  .pb-agenda-item { grid-template-columns: 10px 1fr auto 16px; }
+  .pb-agenda-item .pb-ent-estado { display: none; }
+}

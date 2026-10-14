@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import {
   getSeguimientos, addNota, updateSeguimiento, addAcuerdo,
-  uploadComprobante, deleteComprobante,
+  uploadComprobante, deleteComprobante, uploadArchivo,
 } from '../../../services/seguimientoService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import './ProyectosBoard.css';
@@ -98,6 +98,7 @@ export default function ProyectosBoard() {
   const { user, isSuperAdmin } = useSelector((s) => s.auth || {});
   const uname = (user?.name || '').toLowerCase();
   const canMark = isSuperAdmin || uname.includes('arturo') || uname.includes('paula');
+  const canDesahogar = isSuperAdmin || uname.includes('arturo'); // Paula carga, Arturo desahoga
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,6 +124,12 @@ export default function ProyectosBoard() {
   const [entregaHora, setEntregaHora] = useState('10:00');
   const [agendando, setAgendando] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Nueva entrega manual (botón + Entrega)
+  const [showNueva, setShowNueva] = useState(false);
+  const [nueva, setNueva] = useState({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+  // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
+  const [rangeFrom, setRangeFrom] = useState('');
+  const [rangeTo, setRangeTo] = useState('');
 
   const fetchAll = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -180,6 +187,12 @@ export default function ProyectosBoard() {
     let arr = rows.filter((r) => {
       if (flagFilter === 'personal' && !r.personal) return false;
       if (flagFilter === 'prioritario' && !r.prioritario) return false;
+      if (rangeFrom || rangeTo) {
+        if (!r.fechaEntrega) return false;
+        const f = new Date(r.fechaEntrega);
+        if (rangeFrom && f < new Date(`${rangeFrom}T00:00:00`)) return false;
+        if (rangeTo && f > new Date(`${rangeTo}T23:59:59`)) return false;
+      }
       if (statusFilter === 'activos' && r.status === 'completado') return false;
       if (statusFilter !== 'activos' && statusFilter !== 'todos' && r.status !== statusFilter) return false;
       if (yearFilter !== 'todos') {
@@ -213,7 +226,7 @@ export default function ProyectosBoard() {
       return fa - fb;
     });
     return arr;
-  }, [rows, search, statusFilter, yearFilter, monthFilter, entregaFilter, flagFilter]);
+  }, [rows, search, statusFilter, yearFilter, monthFilter, entregaFilter, flagFilter, rangeFrom, rangeTo]);
 
   const statusCounts = useMemo(() => rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {}), [rows]);
 
@@ -255,7 +268,15 @@ export default function ProyectosBoard() {
       if (!byDay.has(key)) byDay.set(key, []);
       byDay.get(key).push(r);
     }
-    return [...byDay.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    // Orden por URGENCIA: días con pendientes primero (vencidos más viejos arriba),
+    // días donde ya todo se entregó se van al final.
+    const entries = [...byDay.entries()];
+    const done = ([, list]) => list.every((r) => r.status === 'completado') ? 1 : 0;
+    entries.sort((a, b) => done(a) - done(b) || a[0].localeCompare(b[0]));
+    for (const [, list] of entries) {
+      list.sort((x, y) => ((x.status === 'completado') - (y.status === 'completado')) || (!!y.prioritario - !!x.prioritario));
+    }
+    return entries;
   }, [conFecha]);
 
   // ── Acciones ──
@@ -383,6 +404,63 @@ export default function ProyectosBoard() {
   };
 
   const abrirProyecto = (id) => { setDetailId(id); window.scrollTo({ top: 0 }); };
+
+  // ── Entregable: Paula CARGA el archivo, Arturo DESAHOGA (marca entregado) ──
+  const handleUploadEntregable = async (row, file) => {
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) { toast.error('Máximo 15 MB'); return; }
+    setSaving(true);
+    try {
+      const { archivos } = await uploadArchivo('quote', row.id, file);
+      patchRow(row.id, { archivos });
+      toast.success('Archivo cargado 📎 — listo para que Arturo lo desahogue');
+    } catch { toast.error('No se pudo subir el archivo'); }
+    finally { setSaving(false); }
+  };
+
+  // ── Nueva entrega manual: acuerdo + fecha de entrega + nota + evento en el calendario de Arturo ──
+  const handleGuardarNueva = async () => {
+    const row = rows.find((r) => String(r.id) === String(nueva.rowId));
+    if (!row) { toast.error('Selecciona el lead'); return; }
+    if (!nueva.paraCuando) { toast.error('Pon la fecha de entrega (¿para cuándo es?)'); return; }
+    setSaving(true);
+    try {
+      const texto = [
+        nueva.quePidio ? `Pidió: ${nueva.quePidio}` : 'Entrega agendada',
+        nueva.cuandoPidio ? `(lo pidió el ${fmtFecha(`${nueva.cuandoPidio}T12:00:00`)})` : '',
+      ].filter(Boolean).join(' ');
+      const { acuerdos, fechaEntrega } = await addAcuerdo('quote', row.id, { texto, fechaEntrega: nueva.paraCuando });
+      patchRow(row.id, { acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null, fechaEntrega: fechaEntrega || `${nueva.paraCuando}T12:00:00` });
+      if (nueva.nota.trim()) {
+        const { notas } = await addNota('quote', row.id, nueva.nota.trim());
+        patchRow(row.id, { notas });
+      }
+      // Evento con horario en el Google Calendar de Arturo
+      try {
+        await axiosWithAuth.post('/google/events', {
+          adminKey: 'arturo',
+          summary: `📦 Entrega: ${row.cliente} — ${nueva.quePidio || row.title || 'Proyecto'}`,
+          description: [
+            row.celular ? `Tel: ${row.celular}` : '',
+            nueva.quePidio ? `Pidió: ${nueva.quePidio}` : '',
+            nueva.cuandoPidio ? `Lo pidió el: ${nueva.cuandoPidio}` : '',
+            nueva.nota.trim() ? `Nota: ${nueva.nota.trim()}` : '',
+            'Agendado desde Proyectos',
+          ].filter(Boolean).join('\n'),
+          startDate: nueva.paraCuando,
+          startTime: nueva.hora || '10:00',
+          colorId: '6',
+        });
+        toast.success(`Entrega agendada y en el calendario: ${fmtFecha(`${nueva.paraCuando}T12:00:00`)} ${nueva.hora} 📅`);
+      } catch {
+        toast('Entrega guardada, pero no se pudo crear el evento en Google Calendar', { icon: '⚠️' });
+      }
+      setShowNueva(false);
+      setNueva({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'No se pudo guardar la entrega');
+    } finally { setSaving(false); }
+  };
 
   const ENTREGA_CARDS = [
     { k: 'atrasadas', lbl: 'Atrasadas', cls: 'red' },
@@ -697,6 +775,7 @@ export default function ProyectosBoard() {
             <button className={`pb-view-tab ${view === 'lista' ? 'active' : ''}`} onClick={() => setView('lista')}><FaListUl /> Lista</button>
             <button className={`pb-view-tab ${view === 'calendario' ? 'active' : ''}`} onClick={() => setView('calendario')}><FaCalendarAlt /> Calendario de entregas</button>
           </div>
+          <button className="pb-btn pb-btn-blue" onClick={() => setShowNueva(true)}>+ Entrega</button>
           <button className="pb-btn" onClick={() => fetchAll()} disabled={loading} title="Actualizar">
             <FaSyncAlt className={loading ? 'pb-spin' : ''} />
           </button>
@@ -770,16 +849,41 @@ export default function ProyectosBoard() {
                       <FaCalendarDay /> {date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
                       <small>{relDias(date)}</small>
                     </div>
-                    {list.map((r) => (
-                      <div key={r.id} className="pb-agenda-item" onClick={() => abrirProyecto(r.id)}>
-                        <span className="pb-agenda-dot" style={{ background: entregaColor(r) }} />
-                        <b>{r.cliente}</b>
-                        <span className="pb-title">{r.title}</span>
-                        <StatusChip status={r.status} />
-                        <AvanceBar avance={r.avance} />
-                        <FaChevronRight className="pb-open" />
-                      </div>
-                    ))}
+                    {list.map((r) => {
+                      const nArch = r.archivos?.length || 0;
+                      const done = r.status === 'completado' || r.entregado;
+                      return (
+                        <div key={r.id} className="pb-agenda-item" onClick={() => abrirProyecto(r.id)}>
+                          <span className="pb-agenda-dot" style={{ background: entregaColor(r) }} />
+                          <b>{r.cliente}</b>
+                          <span className="pb-title">{r.title}</span>
+                          {done
+                            ? <span className="pb-ent-estado done"><FaCheckCircle /> Entregado</span>
+                            : nArch > 0
+                              ? <span className="pb-ent-estado loaded"><FaPaperclip /> Cargado ({nArch}) · falta desahogar</span>
+                              : <span className="pb-ent-estado none"><FaPaperclip /> Sin archivo</span>}
+                          <div className="pb-agenda-actions" onClick={(e) => e.stopPropagation()}>
+                            {!done && (
+                              <>
+                                <button className="pb-btn pb-btn-sm-link" disabled={saving}
+                                  onClick={() => fileRefs.current[`ent-${r.id}`]?.click()} title="Paula: cargar el entregable">
+                                  <FaCloudUploadAlt /> Cargar
+                                </button>
+                                <input type="file" hidden ref={(el) => { fileRefs.current[`ent-${r.id}`] = el; }}
+                                  onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f); }} />
+                                {canDesahogar && nArch > 0 && (
+                                  <button className="pb-btn pb-btn-sm-link pb-btn-desahogar" disabled={saving}
+                                    onClick={() => handleEntregado(r, true)} title="Arturo: marcar como entregado">
+                                    <FaCheckCircle /> Desahogar
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          <FaChevronRight className="pb-open" />
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
@@ -836,6 +940,15 @@ export default function ProyectosBoard() {
               </button>
             </div>
             <div className="pb-period">
+              <label className="pb-date-lbl">Entrega del:
+                <input type="date" value={rangeFrom} onChange={(e) => setRangeFrom(e.target.value)} />
+              </label>
+              <label className="pb-date-lbl">al:
+                <input type="date" value={rangeTo} onChange={(e) => setRangeTo(e.target.value)} />
+              </label>
+              {(rangeFrom || rangeTo) && (
+                <button className="pb-fchip" onClick={() => { setRangeFrom(''); setRangeTo(''); }}>✕ Quitar rango</button>
+              )}
               <select value={yearFilter} onChange={(e) => { setYearFilter(e.target.value); setMonthFilter('todos'); }}>
                 <option value="todos">Todos los años</option>
                 {years.map((y) => <option key={y} value={y}>{y}</option>)}
@@ -908,6 +1021,78 @@ export default function ProyectosBoard() {
           )}
         </>
       )}
+
+      {/* ══ MODAL: NUEVA ENTREGA MANUAL ══ */}
+      {showNueva && (() => {
+        const q = nueva.query.trim().toLowerCase();
+        const matches = q
+          ? rows.filter((r) => `${r.cliente} ${r.title} ${r.celular}`.toLowerCase().includes(q)).slice(0, 8)
+          : [];
+        const sel = rows.find((r) => String(r.id) === String(nueva.rowId));
+        return (
+          <div className="pb-modal-overlay" onClick={() => setShowNueva(false)}>
+            <div className="pb-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="pb-modal-head">
+                <h3>📦 Agendar entrega</h3>
+                <button className="pb-x" onClick={() => setShowNueva(false)}>✕</button>
+              </div>
+              <div className="pb-modal-body">
+                <label className="pb-field">¿De qué lead es? *
+                  {sel ? (
+                    <div className="pb-sel-lead">
+                      <b>{sel.cliente}</b>
+                      <span className="pb-title">{sel.title}</span>
+                      <button className="pb-fchip" onClick={() => setNueva({ ...nueva, rowId: null, query: '' })}>Cambiar</button>
+                    </div>
+                  ) : (
+                    <>
+                      <input autoFocus placeholder="Busca por nombre, proyecto o teléfono…" value={nueva.query}
+                        onChange={(e) => setNueva({ ...nueva, query: e.target.value })} />
+                      {matches.length > 0 && (
+                        <div className="pb-lead-list">
+                          {matches.map((r) => (
+                            <button key={r.id} onClick={() => setNueva({ ...nueva, rowId: r.id, query: '' })}>
+                              <b>{r.cliente}</b>
+                              <span>{r.title || 'Proyecto'}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {q && !matches.length && <small className="pb-faint">Sin resultados — el lead debe tener cotización pagada.</small>}
+                    </>
+                  )}
+                </label>
+                <label className="pb-field">¿Qué pidió?
+                  <input placeholder="Ej: Capítulo 3 corregido, avance de metodología…" value={nueva.quePidio}
+                    onChange={(e) => setNueva({ ...nueva, quePidio: e.target.value })} />
+                </label>
+                <div className="pb-field-row">
+                  <label className="pb-field">¿Cuándo lo pidió?
+                    <input type="date" value={nueva.cuandoPidio} onChange={(e) => setNueva({ ...nueva, cuandoPidio: e.target.value })} />
+                  </label>
+                  <label className="pb-field">¿Para cuándo es? *
+                    <input type="date" value={nueva.paraCuando} onChange={(e) => setNueva({ ...nueva, paraCuando: e.target.value })} />
+                  </label>
+                  <label className="pb-field">Hora
+                    <input type="time" value={nueva.hora} onChange={(e) => setNueva({ ...nueva, hora: e.target.value })} />
+                  </label>
+                </div>
+                <label className="pb-field">Nota de Paula (opcional)
+                  <textarea rows="2" placeholder="Detalles, acuerdos, contexto…" value={nueva.nota}
+                    onChange={(e) => setNueva({ ...nueva, nota: e.target.value })} />
+                </label>
+                <div className="pb-hint">Se guarda como acuerdo + fecha de entrega del proyecto, aparece en el Calendario de entregas y crea el evento con hora en el Google Calendar de Arturo.</div>
+              </div>
+              <div className="pb-modal-foot">
+                <button className="pb-btn" onClick={() => setShowNueva(false)}>Cancelar</button>
+                <button className="pb-btn pb-btn-blue" disabled={saving} onClick={handleGuardarNueva}>
+                  {saving ? 'Guardando…' : '📅 Agendar entrega'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
