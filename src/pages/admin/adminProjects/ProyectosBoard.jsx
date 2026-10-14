@@ -63,6 +63,10 @@ const calcStatus = (r) => {
 
 const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '↳ ');
 
+// URGENTE: la fecha de entrega ya pasó y no se ha desahogado
+const isUrgente = (r) => r.status !== 'completado' && !r.entregado && r.fechaEntrega && diasHasta(r.fechaEntrega) < 0;
+const UrgenteTag = () => <span className="pb-urgente">🚨 URGENTE</span>;
+
 // Categorías de entrega para el modal "+ Entrega"
 const CATEGORIAS_ENTREGA = [
   { k: 'avance_1', l: '1ª entrega · Avance' },
@@ -563,6 +567,7 @@ export default function ProyectosBoard() {
             <div className="pb-dp-title">
               <h2>{detail.cliente}</h2>
               <StatusChip status={detail.status} />
+              {isUrgente(detail) && <UrgenteTag />}
               {canMark ? (
                 <>
                   <button className={`pb-flag prio ${detail.prioritario ? 'on' : ''}`}
@@ -894,7 +899,7 @@ export default function ProyectosBoard() {
                       <button key={r.id} className="pb-cal-chip" title={`${r.cliente} — ${r.title}`}
                         style={{ borderLeftColor: entregaColor(r), background: `${entregaColor(r)}22` }}
                         onClick={() => setEntregaModalId(r.id)}>
-                        {r.status === 'completado' ? '✓ ' : ''}{r.cliente}
+                        {r.status === 'completado' ? '✓ ' : isUrgente(r) ? '🚨 ' : ''}{r.cliente}
                       </button>
                     ))}
                   </div>
@@ -922,7 +927,7 @@ export default function ProyectosBoard() {
                       return (
                         <div key={r.id} className="pb-agenda-item" onClick={() => setEntregaModalId(r.id)}>
                           <span className="pb-agenda-dot" style={{ background: entregaColor(r) }} />
-                          <b>{r.cliente}</b>
+                          <b>{r.cliente}{isUrgente(r) && <> <UrgenteTag /></>}</b>
                           <span className="pb-title">{r.title}</span>
                           {done
                             ? (r.entregaEnviada
@@ -1066,6 +1071,7 @@ export default function ProyectosBoard() {
                       <div className="pb-client-line">
                         {r.prioritario && <FaStar className="pb-star" title="Prioritario" />}
                         {r.personal && <span className="pb-badge-pers" title="Proyecto PERSONAL de Arturo"><FaUser /></span>}
+                        {isUrgente(r) && <UrgenteTag />}
                         {r.celular && (
                           <a className="pb-wa" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()} title={r.celular}><FaWhatsapp /></a>
@@ -1136,7 +1142,7 @@ export default function ProyectosBoard() {
                     : nArch > 0
                       ? <span className="pb-ent-estado loaded"><FaPaperclip /> Cargado · falta desahogar</span>
                       : <span className="pb-ent-estado none"><FaPaperclip /> Sin archivo</span>}
-                  {d !== null && d < 0 && !done && <span className="pb-vencidas">atrasada {-d}d</span>}
+                  {d !== null && d < 0 && !done && <><UrgenteTag /><span className="pb-vencidas">atrasada {-d}d</span></>}
                 </div>
 
                 {/* Requisitos de la entrega (acuerdos) */}
