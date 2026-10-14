@@ -19,10 +19,12 @@ const ADMINS = [
 // Paleta dark-friendly: fondos traslúcidos + texto claro (antes eran pasteles
 // claros con texto oscuro que en modo oscuro no se leían)
 const EVENT_COLORS = {
+  '📦': { bg: 'rgba(250,204,21,0.18)', border: '#facc15', text: '#fde047', label: 'Entrega' },     // entregas = AMARILLO
   '📋': { bg: 'rgba(245,158,11,0.16)', border: '#f59e0b', text: '#fcd34d', label: 'Proyecto' },
   '💰': { bg: 'rgba(16,185,129,0.16)', border: '#10b981', text: '#6ee7b7', label: 'Pago' },
   '📞': { bg: 'rgba(59,130,246,0.16)', border: '#3b82f6', text: '#93c5fd', label: 'Llamada' },
 };
+const MEET_STYLE = { bg: 'rgba(59,130,246,0.2)', border: '#3b82f6', text: '#93c5fd', label: 'Reunión Meet' }; // reuniones con Meet = AZUL
 
 const hexToRgba = (hex, a) => {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
@@ -31,10 +33,11 @@ const hexToRgba = (hex, a) => {
 };
 
 // Si el evento no es de Tesipedia (📋💰📞), hereda el color de SU calendario de Google
-function getEventStyle(summary, calendarColor) {
+function getEventStyle(summary, calendarColor, hasMeet = false) {
   for (const [emoji, style] of Object.entries(EVENT_COLORS)) {
     if (summary?.startsWith(emoji)) return style;
   }
+  if (hasMeet) return MEET_STYLE;
   const c = calendarColor || '#94a3b8';
   return { bg: hexToRgba(c, 0.15), border: c, text: '#e2e8f0', label: 'Evento' };
 }
@@ -331,7 +334,7 @@ export default function AdminCalendars() {
                   {day && <span className="ac-cal-day-num">{day.getDate()}</span>}
                   <div className="ac-cal-events">
                     {dayEvents.map((ev, i) => {
-                      const style = getEventStyle(ev.summary, ev.calendarColor);
+                      const style = getEventStyle(ev.summary, ev.calendarColor, !!ev.hangoutLink);
                       const hora = ev.start?.dateTime ? ev.start.dateTime.split('T')[1]?.slice(0, 5) : '';
                       return (
                         <div key={i} className="ac-cal-chip" title={`${hora ? hora + ' · ' : ''}${ev.summary}${ev.calendarSummary ? ` · ${ev.calendarSummary}` : ''}`}
@@ -339,7 +342,7 @@ export default function AdminCalendars() {
                           onClick={(e) => { e.stopPropagation(); openEditEvent(ev); }}>
                           <span className="ac-cal-chip-text" style={{ color: style.text }}>
                             {hora && <em className="ac-chip-hora">{hora}</em>}
-                            {ev.summary?.replace(/^[📋💰📞🔔]\s*/, '') || '(sin título)'}
+                            {ev.summary?.replace(/^[📋💰📞🔔📦]\s*/, '') || '(sin título)'}
                           </span>
                         </div>
                       );
@@ -352,6 +355,8 @@ export default function AdminCalendars() {
           </div>
 
           <div className="ac-legend">
+            <span><span className="ac-legend-dot" style={{ background: '#facc15' }} /> Entregas</span>
+            <span><span className="ac-legend-dot" style={{ background: '#3b82f6' }} /> Reuniones Meet</span>
             <span><span className="ac-legend-dot" style={{ background: '#f59e0b' }} /> Proyectos</span>
             <span><span className="ac-legend-dot" style={{ background: '#10b981' }} /> Pagos</span>
             <span><span className="ac-legend-dot" style={{ background: '#3b82f6' }} /> Llamadas</span>
@@ -393,7 +398,7 @@ export default function AdminCalendars() {
         const fmtH = (h) => `${String(h).padStart(2, '0')}:00`;
 
         const renderEv = (ev) => {
-          const style = getEventStyle(ev.summary, ev.calendarColor);
+          const style = getEventStyle(ev.summary, ev.calendarColor, !!ev.hangoutLink);
           const id = `${ev.id}-${ev.calendarId || ''}`;
           const open = expandedEv === id;
           const ini = ev.start?.dateTime ? ev.start.dateTime.split('T')[1].slice(0, 5) : '';
