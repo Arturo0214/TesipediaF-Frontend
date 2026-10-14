@@ -63,8 +63,9 @@ const calcStatus = (r) => {
 
 const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '↳ ');
 
-// URGENTE: la fecha de entrega ya pasó y no se ha desahogado
-const isUrgente = (r) => r.status !== 'completado' && !r.entregado && r.fechaEntrega && diasHasta(r.fechaEntrega) < 0;
+// URGENTE: la entrega es de HOY (o ya pasó) y no se ha desahogado —
+// si la tarea del día no se cumple, se queda marcada urgente automáticamente
+const isUrgente = (r) => r.status !== 'completado' && !r.entregado && r.fechaEntrega && diasHasta(r.fechaEntrega) <= 0;
 const UrgenteTag = () => <span className="pb-urgente">🚨 URGENTE</span>;
 
 // Categorías de entrega para el modal "+ Entrega"
@@ -1142,7 +1143,8 @@ export default function ProyectosBoard() {
                     : nArch > 0
                       ? <span className="pb-ent-estado loaded"><FaPaperclip /> Cargado · falta desahogar</span>
                       : <span className="pb-ent-estado none"><FaPaperclip /> Sin archivo</span>}
-                  {d !== null && d < 0 && !done && <><UrgenteTag /><span className="pb-vencidas">atrasada {-d}d</span></>}
+                  {isUrgente(r) && <UrgenteTag />}
+                  {d !== null && d < 0 && !done && <span className="pb-vencidas">atrasada {-d}d</span>}
                 </div>
 
                 {/* Requisitos de la entrega (acuerdos) */}
