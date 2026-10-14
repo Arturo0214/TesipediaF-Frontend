@@ -65,7 +65,7 @@ const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '�
 
 // URGENTE: la entrega es de HOY (o ya pasó) y no se ha desahogado —
 // si la tarea del día no se cumple, se queda marcada urgente automáticamente
-const isUrgente = (r) => r.status !== 'completado' && !r.entregado && r.fechaEntrega && diasHasta(r.fechaEntrega) <= 0;
+const isUrgente = (r) => r.urgente || (r.status !== 'completado' && !r.entregado && r.fechaEntrega && diasHasta(r.fechaEntrega) <= 0);
 const UrgenteTag = () => <span className="pb-urgente">🚨 URGENTE</span>;
 
 // Categorías de entrega para el modal "+ Entrega"
@@ -580,6 +580,11 @@ export default function ProyectosBoard() {
                     onClick={() => handleFlag(detail, 'personal', !detail.personal)}
                     title="PERSONAL = proyecto de Arturo">
                     {detail.personal ? <FaUser /> : <FaRegUser />} Personal
+                  </button>
+                  <button className={`pb-flag urg ${detail.urgente ? 'on' : ''}`}
+                    onClick={() => handleFlag(detail, 'urgente', !detail.urgente)}
+                    title="Marcar/desmarcar URGENTE a mano (el automático por fecha se calcula solo)">
+                    🚨 Urgente
                   </button>
                 </>
               ) : (
@@ -1145,6 +1150,13 @@ export default function ProyectosBoard() {
                       : <span className="pb-ent-estado none"><FaPaperclip /> Sin archivo</span>}
                   {isUrgente(r) && <UrgenteTag />}
                   {d !== null && d < 0 && !done && <span className="pb-vencidas">atrasada {-d}d</span>}
+                  {canMark && (
+                    <button className={`pb-flag urg sm ${r.urgente ? 'on' : ''}`}
+                      onClick={() => handleFlag(r, 'urgente', !r.urgente)}
+                      title={r.urgente ? 'Quitar la marca manual de urgente' : 'Marcar esta entrega como URGENTE'}>
+                      🚨 {r.urgente ? 'Quitar urgente' : 'Marcar urgente'}
+                    </button>
+                  )}
                 </div>
 
                 {/* Requisitos de la entrega (acuerdos) */}
