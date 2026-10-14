@@ -929,8 +929,14 @@ export default function ProyectosBoard() {
                   title={entregaFilter === c.k ? 'Quitar filtro' : 'Filtrar la lista por estas entregas'}>
                   <span className="pb-ent-lbl"><FaCalendarDay /> {c.lbl}</span>
                   <span className="pb-ent-num">{list.length}</span>
-                  <span className="pb-ent-names">
-                    {list.slice(0, 3).map((r) => r.cliente).join(' · ') || '—'}
+                  <span className="pb-ent-names" onClick={(e) => e.stopPropagation()}>
+                    {list.length === 0 && '—'}
+                    {list.slice(0, 3).map((r, i) => (
+                      <React.Fragment key={r.id}>
+                        {i > 0 && ' · '}
+                        <a className="pb-ent-name" onClick={() => setEntregaModalId(r.id)} title="Ver la entrega">{r.cliente}</a>
+                      </React.Fragment>
+                    ))}
                     {list.length > 3 ? ` +${list.length - 3}` : ''}
                   </span>
                 </button>
@@ -1010,7 +1016,9 @@ export default function ProyectosBoard() {
                 const lastNota = r.notas?.length ? r.notas[r.notas.length - 1] : null;
                 const lastAcuerdo = r.ultimoAcuerdo;
                 return (
-                  <div key={r.id} className={`pb-row ${r.prioritario ? 'prio' : ''}`} onClick={() => abrirProyecto(r.id)}>
+                  <div key={r.id} className={`pb-row ${r.prioritario ? 'prio' : ''}`}
+                    onClick={() => entregaFilter ? setEntregaModalId(r.id) : abrirProyecto(r.id)}
+                    title={entregaFilter ? 'Ver la entrega (solo requisitos, notas y archivos)' : 'Abrir proyecto completo'}>
                     <div className="pb-cell-client" data-label="Cliente">
                       <div className="pb-client-line">
                         {r.prioritario && <FaStar className="pb-star" title="Prioritario" />}
