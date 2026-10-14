@@ -5,7 +5,7 @@ import {
   FaCalendarAlt, FaGoogle, FaSync, FaLink, FaUnlink, FaTimes,
   FaChevronLeft, FaChevronRight, FaCheckCircle, FaClock, FaPlus,
   FaToggleOn, FaToggleOff, FaWhatsapp, FaEdit, FaTrash,
-  FaCloudUploadAlt, FaProjectDiagram, FaDollarSign, FaPhone,
+  FaCloudUploadAlt, FaProjectDiagram, FaDollarSign, FaPhone, FaRegCopy,
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import './AdminCalendars.css';
@@ -173,7 +173,15 @@ export default function AdminCalendars() {
 
       if (editEvent === 'new') {
         const { data } = await axiosWithAuth.post('/google/events', payload);
-        toast.success(data.hangoutLink ? 'Reunión creada con link de Meet 🎥' : 'Evento creado');
+        if (data.hangoutLink) {
+          // Reunión con Meet: dejar el modal abierto mostrando el link recién generado
+          toast.success('Reunión creada — aquí está tu link de Meet 🎥');
+          setEditEvent(data);
+          fetchEvents();
+          setSaving(false);
+          return;
+        }
+        toast.success('Evento creado');
       } else {
         await axiosWithAuth.put(`/google/events/${editEvent.id}`, { ...payload, calendarId: editEvent.calendarId || 'primary' });
         toast.success('Evento actualizado');
@@ -184,6 +192,21 @@ export default function AdminCalendars() {
       toast.error(err.response?.data?.message || 'Error al guardar evento');
     }
     setSaving(false);
+  };
+
+  const copyMeetLink = async (link) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success('Link de Meet copiado 📋');
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = link;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast.success('Link de Meet copiado 📋');
+    }
   };
 
   const handleDeleteEvent = async (ev) => {
@@ -437,8 +460,23 @@ export default function AdminCalendars() {
                   🎥 Crear link de Google Meet (reunión por videollamada)
                 </label>
               )}
+              {editEvent === 'new' && eventForm.meet && (
+                <div className={`ac-meet-link ${saving ? 'generating' : ''}`}>
+                  {saving
+                    ? <span className="ac-meet-url"><FaSync className="spinning" /> Generando link de Meet…</span>
+                    : <span className="ac-meet-url faint">El link aparecerá aquí al guardar la reunión.</span>}
+                </div>
+              )}
               {editEvent !== 'new' && editEvent?.hangoutLink && (
-                <a className="ac-btn ac-btn-meet ac-btn-full" href={editEvent.hangoutLink} target="_blank" rel="noopener noreferrer">🎥 Abrir Google Meet de esta reunión</a>
+                <div className="ac-meet-link">
+                  <a className="ac-meet-url" href={editEvent.hangoutLink} target="_blank" rel="noopener noreferrer" title="Abrir Google Meet">
+                    🎥 {editEvent.hangoutLink.replace(/^https?:\/\//, '')}
+                  </a>
+                  <button type="button" className="ac-btn ac-btn-sm" onClick={() => copyMeetLink(editEvent.hangoutLink)}>
+                    <FaRegCopy /> Copiar
+                  </button>
+                  <a className="ac-btn ac-btn-sm ac-btn-meet" href={editEvent.hangoutLink} target="_blank" rel="noopener noreferrer">Abrir</a>
+                </div>
               )}
               <div className="ac-form-group">
                 <label>Descripción</label>
