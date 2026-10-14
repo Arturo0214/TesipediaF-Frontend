@@ -497,3 +497,8 @@
 /* Archivos adjuntos en el modal de nueva entrega */
 .pb-nueva-files { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .pb-nueva-files .pb-comp a { cursor: default; }
+
+/* Modal de detalle de entrega */
+.pb-modal-entrega { max-width: 560px; }
+.pb-ent-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pb-ent-reqs { display: flex; flex-direction: column; gap: 6px; }

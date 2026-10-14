@@ -128,6 +128,7 @@ export default function ProyectosBoard() {
   const [showNueva, setShowNueva] = useState(false);
   const [nueva, setNueva] = useState({ rowId: null, query: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
+  const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
   const [rangeFrom, setRangeFrom] = useState('');
   const [rangeTo, setRangeTo] = useState('');
@@ -158,6 +159,7 @@ export default function ProyectosBoard() {
   }));
 
   const detail = useMemo(() => rows.find((r) => String(r.id) === String(detailId)) || null, [rows, detailId]);
+  const entregaModal = useMemo(() => rows.find((r) => String(r.id) === String(entregaModalId)) || null, [rows, entregaModalId]);
 
   // ── Dashboard de entregas (solo proyectos no completados) ──
   const entregas = useMemo(() => {
@@ -838,7 +840,7 @@ export default function ProyectosBoard() {
                     {dayEntregas.map((r) => (
                       <button key={r.id} className="pb-cal-chip" title={`${r.cliente} — ${r.title}`}
                         style={{ borderLeftColor: entregaColor(r), background: `${entregaColor(r)}22` }}
-                        onClick={() => abrirProyecto(r.id)}>
+                        onClick={() => setEntregaModalId(r.id)}>
                         {r.status === 'completado' ? '✓ ' : ''}{r.cliente}
                       </button>
                     ))}
@@ -865,7 +867,7 @@ export default function ProyectosBoard() {
                       const nArch = r.archivos?.length || 0;
                       const done = r.status === 'completado' || r.entregado;
                       return (
-                        <div key={r.id} className="pb-agenda-item" onClick={() => abrirProyecto(r.id)}>
+                        <div key={r.id} className="pb-agenda-item" onClick={() => setEntregaModalId(r.id)}>
                           <span className="pb-agenda-dot" style={{ background: entregaColor(r) }} />
                           <b>{r.cliente}</b>
                           <span className="pb-title">{r.title}</span>
@@ -1033,6 +1035,104 @@ export default function ProyectosBoard() {
           )}
         </>
       )}
+
+      {/* ══ MODAL: DETALLE DE UNA ENTREGA (requisitos + notas + archivos, sin todo el expediente) ══ */}
+      {entregaModal && (() => {
+        const r = entregaModal;
+        const done = r.status === 'completado' || r.entregado;
+        const nArch = r.archivos?.length || 0;
+        const d = diasHasta(r.fechaEntrega);
+        return (
+          <div className="pb-modal-overlay" onClick={() => setEntregaModalId(null)}>
+            <div className="pb-modal pb-modal-entrega" onClick={(e) => e.stopPropagation()}>
+              <div className="pb-modal-head">
+                <h3>📦 Entrega · {r.cliente}</h3>
+                <button className="pb-x" onClick={() => setEntregaModalId(null)}>✕</button>
+              </div>
+              <div className="pb-modal-body">
+                <div className="pb-ent-meta">
+                  <span className={`pb-chip`} style={{ color: entregaColor(r), background: `${entregaColor(r)}22` }}>
+                    <FaCalendarDay /> {fmtFecha(r.fechaEntrega)} · {relDias(r.fechaEntrega)}
+                  </span>
+                  {done
+                    ? <span className="pb-ent-estado done"><FaCheckCircle /> Entregado{r.entregadoEn ? ` el ${fmtFecha(r.entregadoEn)}` : ''}</span>
+                    : nArch > 0
+                      ? <span className="pb-ent-estado loaded"><FaPaperclip /> Cargado · falta desahogar</span>
+                      : <span className="pb-ent-estado none"><FaPaperclip /> Sin archivo</span>}
+                  {d !== null && d < 0 && !done && <span className="pb-vencidas">atrasada {-d}d</span>}
+                </div>
+
+                {/* Requisitos de la entrega (acuerdos) */}
+                <div className="pb-field">Requisitos de la entrega
+                  <div className="pb-ent-reqs">
+                    {(r.acuerdos || []).length === 0 && <div className="pb-faint">Sin requisitos registrados.</div>}
+                    {[...(r.acuerdos || [])].reverse().slice(0, 5).map((a) => (
+                      <div key={a._id || a.creadoEn} className="pb-todo-item">
+                        <span>{a.fuente === 'fireflies' ? '🎙' : '🤝'}</span>
+                        <div>
+                          {a.texto || <em>Sin texto</em>}
+                          {a.fechaEntrega && <b> · para el {fmtFecha(a.fechaEntrega)}</b>}
+                          <small className="pb-faint"> ({fmtFecha(a.meetingDate || a.creadoEn)})</small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notas (últimas) */}
+                <div className="pb-field">Notas
+                  <div className="pb-ent-reqs">
+                    {(r.notas || []).length === 0 && <div className="pb-faint">Sin notas.</div>}
+                    {[...(r.notas || [])].reverse().slice(0, 4).map((n) => (
+                      <div key={n._id || n.fecha} className="pb-nota">
+                        <div className="pb-nota-txt">{cleanNota(n.texto)}</div>
+                        <div className="pb-nota-meta">{n.autor || 'Admin'} · {fmtNota(n.fecha)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Archivos de la entrega */}
+                <div className="pb-field">Archivos ({nArch})
+                  <div className="pb-files">
+                    {[...(r.archivos || [])].reverse().map((a, i) => (
+                      <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
+                        <FaFileAlt />
+                        <span className="pb-file-info">
+                          <b>{a.nombre || 'archivo'}</b>
+                          <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
+                        </span>
+                        {i === 0 && <span className="pb-file-badge">último</span>}
+                      </a>
+                    ))}
+                  </div>
+                  {!done && (
+                    <div className="pb-agenda-actions" style={{ marginTop: 8 }}>
+                      <button className="pb-btn" disabled={saving} onClick={() => fileRefs.current[`entm-${r.id}`]?.click()}>
+                        <FaCloudUploadAlt /> Cargar archivo
+                      </button>
+                      <input type="file" hidden ref={(el) => { fileRefs.current[`entm-${r.id}`] = el; }}
+                        onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleUploadEntregable(r, f); }} />
+                      {canDesahogar && nArch > 0 && (
+                        <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => handleEntregado(r, true)}>
+                          <FaCheckCircle /> Desahogar (entregado)
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="pb-modal-foot">
+                <button className="pb-btn" onClick={() => { setEntregaModalId(null); abrirProyecto(r.id); }}>
+                  Ver proyecto completo <FaChevronRight />
+                </button>
+                <div style={{ flex: 1 }} />
+                <button className="pb-btn pb-btn-blue" onClick={() => setEntregaModalId(null)}>Cerrar</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ══ MODAL: NUEVA ENTREGA MANUAL ══ */}
       {showNueva && (() => {
