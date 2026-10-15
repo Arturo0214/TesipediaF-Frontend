@@ -212,6 +212,9 @@ export default function ProyectosBoard() {
     }
     const byFecha = (a, b) => new Date(a.fechaEntrega || 0) - new Date(b.fechaEntrega || 0);
     Object.values(bucket).forEach((arr) => arr.sort(byFecha));
+    // Atrasadas: la vencida más RECIENTE arriba (lo de ayer es lo accionable;
+    // los proyectos viejos con fecha pasada se van al fondo, no la entierran)
+    bucket.atrasadas.reverse();
     return bucket;
   }, [rows]);
 
@@ -267,6 +270,10 @@ export default function ProyectosBoard() {
         if (ea !== eb) return ea - eb;
         return new Date(b.entregadoEn || 0) - new Date(a.entregadoEn || 0);
       }
+      if (entregaFilter === 'atrasadas') {
+        // Orden estricto por fecha: la vencida más reciente primero (ayer arriba)
+        return new Date(b.fechaEntrega || 0) - new Date(a.fechaEntrega || 0);
+      }
       if (!!a.prioritario !== !!b.prioritario) return !!b.prioritario - !!a.prioritario;
       const da = diasHasta(a.fechaEntrega); const db = diasHasta(b.fechaEntrega);
       const fa = da === null ? 9999 : da; const fb = db === null ? 9999 : db;
@@ -320,12 +327,13 @@ export default function ProyectosBoard() {
     // días donde ya todo se entregó se van al final.
     const entries = [...byDay.entries()];
     const done = ([, list]) => list.every((r) => r.status === 'completado') ? 1 : 0;
-    entries.sort((a, b) => done(a) - done(b) || a[0].localeCompare(b[0]));
+    // Con filtro "Vencidas": el día vencido más RECIENTE primero (ayer arriba)
+    entries.sort((a, b) => done(a) - done(b) || (calFilter === 'vencidas' ? b[0].localeCompare(a[0]) : a[0].localeCompare(b[0])));
     for (const [, list] of entries) {
       list.sort((x, y) => ((x.status === 'completado') - (y.status === 'completado')) || (!!y.prioritario - !!x.prioritario));
     }
     return entries;
-  }, [conFecha]);
+  }, [conFecha, calFilter]);
 
   // ── Acciones ──
   const handleCorrecciones = async (row, valor) => {
