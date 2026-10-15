@@ -300,17 +300,21 @@ const SeguimientoMensual = () => {
   const buildRow = useCallback((p) => {
     const insts = (p.installments || []).filter((it) => selKey === 'year' ? String(it.mes).startsWith(String(year)) : it.mes === selKey);
     let montoSel = 0, cobradoSel = 0, porCobrarSel = 0, perdidoSel = 0, vencidoSel = 0;
-    let vencidaMasAntigua = null; // fecha del vencido más viejo (para ordenar cobranza)
     for (const it of insts) {
       montoSel += it.amount || 0;
       if (it.status === 'paid') cobradoSel += it.amount || 0;
       else if (it.status === 'lost') perdidoSel += it.amount || 0;
       else {
         porCobrarSel += it.amount || 0;
-        if (it.fecha && new Date(it.fecha) < hoy) {
-          vencidoSel += it.amount || 0;
-          if (!vencidaMasAntigua || new Date(it.fecha) < new Date(vencidaMasAntigua)) vencidaMasAntigua = it.fecha;
-        }
+        if (it.fecha && new Date(it.fecha) < hoy) vencidoSel += it.amount || 0;
+      }
+    }
+    // Vencida más antigua GLOBAL del proyecto (sobre TODAS sus parcialidades, no
+    // solo las del mes en pantalla): es la antigüedad real de la deuda.
+    let vencidaMasAntigua = null;
+    for (const it of (p.installments || [])) {
+      if (it.status !== 'paid' && it.status !== 'lost' && it.fecha && new Date(it.fecha) < hoy) {
+        if (!vencidaMasAntigua || new Date(it.fecha) < new Date(vencidaMasAntigua)) vencidaMasAntigua = it.fecha;
       }
     }
     const estadoPago = calcEstadoPago({ montoSel, cobradoSel, porCobrarSel, perdidoSel, vencidoSel });
@@ -364,14 +368,17 @@ const SeguimientoMensual = () => {
     });
     const rank = { vencido: 0, por_cobrar: 1, pagado: 2, perdido: 3, sin_cobro: 4 };
     arr.sort((a, b) => {
-      if (a.prioritario !== b.prioritario) return b.prioritario - a.prioritario;
-      if (rank[a.estadoPago] !== rank[b.estadoPago]) return rank[a.estadoPago] - rank[b.estadoPago];
       if (orden === 'antiguedad') {
-        // Vencidos del más antiguo al más reciente
+        // ESTRICTO: vencidos arriba y del más antiguo al más reciente (la estrella
+        // y el monto no alteran este orden)
+        if (rank[a.estadoPago] !== rank[b.estadoPago]) return rank[a.estadoPago] - rank[b.estadoPago];
         const fa = a.vencidaMasAntigua ? new Date(a.vencidaMasAntigua).getTime() : Infinity;
         const fb = b.vencidaMasAntigua ? new Date(b.vencidaMasAntigua).getTime() : Infinity;
         if (fa !== fb) return fa - fb;
+        return (b.montoSel || 0) - (a.montoSel || 0);
       }
+      if (a.prioritario !== b.prioritario) return b.prioritario - a.prioritario;
+      if (rank[a.estadoPago] !== rank[b.estadoPago]) return rank[a.estadoPago] - rank[b.estadoPago];
       return (b.montoSel || 0) - (a.montoSel || 0);
     });
     return arr;
@@ -1307,6 +1314,9 @@ const SeguimientoMensual = () => {
                           </td>
                           <td className="sm-col-estado">
                             <span className={`sm-chip ${meta.cls}`}><Icon /> {meta.label}</span>
+                            {r.estadoPago === 'vencido' && r.vencidaMasAntigua && (
+                              <div className="sm-fecha-rel sm-red">desde {fmtFecha(r.vencidaMasAntigua)} ({relDias(r.vencidaMasAntigua)})</div>
+                            )}
                           </td>
                           <td className="sm-col-vend">{r.vendedorFinal ? <span className="sm-vend"><FaUserTie /> {r.vendedorFinal}</span> : <span className="sm-faint">—</span>}</td>
                           <td className="sm-col-prog" onClick={(e) => e.stopPropagation()}>
