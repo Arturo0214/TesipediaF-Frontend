@@ -18,6 +18,7 @@ import {
 } from '../../../features/quotes/quoteSlice';
 import { toast } from 'react-hot-toast';
 import { generateSalesQuotePDF } from '../../../utils/generateSalesQuotePDF';
+import axiosWithAuth from '../../../utils/axioswithAuth';
 import './ManageQuotes.css';
 
 const statusConfig = {
@@ -167,7 +168,30 @@ const editableFromQuote = (q) => ({
 const ManageQuotes = () => {
   const dispatch = useDispatch();
   const { quotes, generatedQuotes, loading, error } = useSelector((state) => state.quotes);
-  const { isAuthenticated, isAdmin } = useSelector((state) => state.auth);
+  const { isAuthenticated, isAdmin, isSuperAdmin, user } = useSelector((state) => state.auth);
+  // 🔒 Candado de cotización PERSONAL: solo Arturo y Paula lo ven/usan.
+  // Al activarlo, Hugo (y cualquier otro admin) deja de ver la cotización
+  // aquí, en Seguimiento, Revenue, Pagos y sus leads.
+  const puedeCandado = isSuperAdmin || /paula/i.test(user?.name || '');
+  const [privadoSaving, setPrivadoSaving] = useState(null);
+  const togglePrivado = async (quote, e) => {
+    e.stopPropagation();
+    if (quote._source !== 'generated') { toast.error('Solo aplica a cotizaciones del cotizador'); return; }
+    setPrivadoSaving(quote._id);
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/privado', {
+        source: 'sofia', id: quote._id, privado: !quote.privado,
+      });
+      toast.success(data.privado
+        ? `🔒 ${data.clientName || 'Cotización'}: ahora solo tú y Paula la ven`
+        : `🔓 ${data.clientName || 'Cotización'}: visible para todos`);
+      dispatch(getGeneratedQuotes());
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'No se pudo cambiar la visibilidad');
+    } finally {
+      setPrivadoSaving(null);
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
@@ -684,6 +708,19 @@ const ManageQuotes = () => {
                       </span>
                       {quote._createdBy && (
                         <span className="mq-sofia-badge">{quote._createdBy}</span>
+                      )}
+                      {quote.privado && puedeCandado && (
+                        <span className="mq-privado-chip" title="Cotización PERSONAL: solo tú y Paula la ven">🔒 Personal</span>
+                      )}
+                      {puedeCandado && quote._source === 'generated' && (
+                        <button
+                          className={`mq-privado-btn ${quote.privado ? 'on' : ''}`}
+                          disabled={privadoSaving === quote._id}
+                          title={quote.privado
+                            ? 'Hacerla visible para todos los admins'
+                            : 'Marcar PERSONAL: Hugo no la verá aquí, ni en Seguimiento, Revenue, Pagos o leads'}
+                          onClick={(e) => togglePrivado(quote, e)}
+                        >{privadoSaving === quote._id ? '…' : (quote.privado ? '🔒' : '🔓')}</button>
                       )}
                     </div>
                   </div>
