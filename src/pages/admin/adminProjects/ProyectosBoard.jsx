@@ -403,6 +403,17 @@ export default function ProyectosBoard() {
     } catch { toast.error('No se pudo guardar'); patchRow(row.id, { [campo]: !valor }); }
   };
 
+  // ── 🔒 Candado de venta PERSONAL: mismo flag global de Cotizaciones/Revenue/Seguimiento ──
+  const handleTogglePrivado = async (row) => {
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/privado', { source: 'sofia', id: row.id, privado: !row.privado });
+      patchRow(row.id, { privado: data.privado });
+      toast.success(data.privado
+        ? `🔒 ${data.clientName || 'Proyecto'}: ahora solo tú y Paula lo ven`
+        : `🔓 ${data.clientName || 'Proyecto'}: visible para todos`);
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo cambiar la visibilidad'); }
+  };
+
   // ── Comprobante de pago por parcialidad ──
   const handleUploadComprobante = async (row, idx, file) => {
     if (!file) return;
@@ -623,6 +634,13 @@ export default function ProyectosBoard() {
                     onClick={() => handleFlag(detail, 'urgente', !detail.urgente)}
                     title="Marcar/desmarcar URGENTE a mano (el automático por fecha se calcula solo)">
                     🚨 Urgente
+                  </button>
+                  <button className={`pb-flag priv ${detail.privado ? 'on' : ''}`}
+                    onClick={() => handleTogglePrivado(detail)}
+                    title={detail.privado
+                      ? 'Venta PERSONAL: solo tú y Paula la ven en todo el panel — click para hacerla visible'
+                      : 'Candado: Hugo deja de verla en Cotizaciones, Seguimiento, Revenue, Pagos y leads'}>
+                    {detail.privado ? '🔒' : '🔓'} Candado
                   </button>
                 </>
               ) : (

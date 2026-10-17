@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import {
   FaCalendarCheck, FaSyncAlt, FaSearch, FaWhatsapp, FaCheckCircle, FaExclamationTriangle,
@@ -200,6 +201,9 @@ const AtencionChip = ({ atencion }) => {
 };
 
 const SeguimientoMensual = () => {
+  // 🔒 Candado de venta PERSONAL: mismo flag global de Cotizaciones/Revenue/Proyectos
+  const { user, isSuperAdmin } = useSelector((s) => s.auth || {});
+  const puedeCandado = isSuperAdmin || /paula/i.test(user?.name || '');
   const now = new Date();
   const [view, setView] = useState('entregas'); // entregas | flujo | pendientes
   const [year, setYear] = useState(now.getFullYear());
@@ -711,6 +715,30 @@ const SeguimientoMensual = () => {
     </button>
   );
 
+  // ── 🔒 Venta PERSONAL: mismo flag global que Cotizaciones/Revenue/Proyectos.
+  // Al activarlo, Hugo deja de ver el proyecto en TODAS las secciones del panel.
+  const handleTogglePrivado = async (row) => {
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/privado', { source: 'sofia', id: row.id, privado: !row.privado });
+      toast.success(data.privado
+        ? `🔒 ${data.clientName || 'Proyecto'}: ahora solo tú y Paula lo ven`
+        : `🔓 ${data.clientName || 'Proyecto'}: visible para todos`);
+      setCf((prev) => prev ? { ...prev, projects: (prev.projects || []).map((p) => String(p.id) === String(row.id) ? { ...p, privado: data.privado } : p) } : prev);
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(row.id) ? { ...r, privado: data.privado } : r));
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo cambiar la visibilidad'); }
+  };
+  const PrivadoBtn = ({ row }) => puedeCandado ? (
+    <button
+      className={`sm-priv-btn ${row.privado ? 'on' : ''}`}
+      onClick={(e) => { e.stopPropagation(); handleTogglePrivado(row); }}
+      title={row.privado
+        ? 'PERSONAL: solo tú y Paula lo ven en todo el panel — click para hacerlo visible'
+        : 'Marcar PERSONAL: desaparece para Hugo en Cotizaciones, Seguimiento, Revenue, Pagos y leads'}
+    >
+      {row.privado ? '🔒' : '🔓'}
+    </button>
+  ) : null;
+
   // ── Acuerdos: correcciones + fecha de entrega ──
   const openAcuerdo = (rowId) => { setAcuerdoOpen(rowId); setAcuerdoTexto(''); setAcuerdoFecha(''); };
   const handleAddAcuerdo = async (rowId) => {
@@ -963,7 +991,7 @@ const SeguimientoMensual = () => {
                       <tr key={r.id} className={`sm-row ${dEnt !== null && dEnt < 0 ? 'vencido' : ''} ${r.prioritario ? 'sm-prio' : ''}`}>
                         <td className="sm-cell-client">
                           <div className="sm-client-line">
-                            <PrioBtn row={r} />
+                            <PrioBtn row={r} /><PrivadoBtn row={r} />
                             {r.celular && (
                               <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
                             )}
@@ -1021,7 +1049,7 @@ const SeguimientoMensual = () => {
                 <div key={r.id} className="sm-ent-item">
                   <div className="sm-ent-item-info">
                     <div className="sm-client-line">
-                      <PrioBtn row={r} />
+                      <PrioBtn row={r} /><PrivadoBtn row={r} />
                       {r.celular && (
                         <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
                       )}
@@ -1129,7 +1157,7 @@ const SeguimientoMensual = () => {
                       <tr key={r.id} className={`sm-row ${r.nVencidas > 0 ? 'vencido' : ''} ${r.prioritario ? 'sm-prio' : ''}`}>
                         <td className="sm-cell-client">
                           <div className="sm-client-line">
-                            <PrioBtn row={r} />
+                            <PrioBtn row={r} /><PrivadoBtn row={r} />
                             {r.celular && (
                               <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
                             )}
@@ -1276,7 +1304,7 @@ const SeguimientoMensual = () => {
                           </td>
                           <td className="sm-cell-client">
                             <div className="sm-client-line">
-                              <PrioBtn row={r} />
+                              <PrioBtn row={r} /><PrivadoBtn row={r} />
                               {r.phone && (
                                 <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()} title={`WhatsApp ${r.phone}`}><FaWhatsapp /></a>

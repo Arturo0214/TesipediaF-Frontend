@@ -74,7 +74,9 @@ const fmt = (n) => {
 const AdminRevenue = () => {
   const dispatch = useDispatch();
   const { dashboard, cashflow, cashflowLoading, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading, cleanupResult, cleanupLoading } = useSelector(state => state.revenue);
-  const { isSuperAdmin } = useSelector((s) => s.auth || {});
+  const { isSuperAdmin, user } = useSelector((s) => s.auth || {});
+  // 🔒 Mismo círculo que puede VER ventas personales: Arturo y Paula
+  const puedeCandado = isSuperAdmin || /paula/i.test(user?.name || '');
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -120,6 +122,7 @@ const AdminRevenue = () => {
         ? `🔒 ${data.clientName || 'Venta'}: ahora solo tú y Paula la ven`
         : `🔓 ${data.clientName || 'Venta'}: visible para todos`);
       dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+      if (activeView === 'cashflow') dispatch(fetchCashflow({ year: cfYear === 'all' ? now.getFullYear() : cfYear }));
     } catch (e) {
       toast.error(e.response?.data?.message || 'No se pudo cambiar la visibilidad');
     }
@@ -1535,6 +1538,20 @@ const AdminRevenue = () => {
                       <span style={{ color: '#5a6675', marginRight: 4 }}>{open ? '▾' : '▸'}</span>
                       <span style={{ color: '#e6edf5' }}>{p.client}</span>
                       <span style={{ color: '#5a6675', fontSize: 11 }}> · {p.vendedor || '—'}</span>
+                      {puedeCandado && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); togglePrivado({ _id: p.id, _source: 'sofia', privado: p.privado, clientName: p.client }); }}
+                          title={p.privado
+                            ? 'Proyecto PERSONAL (solo tú y Paula) — click para hacerlo visible a todos'
+                            : 'Marcar PERSONAL: desaparece para Hugo en todas las secciones'}
+                          style={{
+                            marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 6, cursor: 'pointer',
+                            background: p.privado ? '#251a08' : 'transparent',
+                            border: `1px solid ${p.privado ? '#f59e0b' : '#2a323d'}`,
+                            opacity: p.privado ? 1 : 0.6,
+                          }}
+                        >{p.privado ? '🔒' : '🔓'}</button>
+                      )}
                       {p.concluido && !monthMode
                         ? <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 8, background: '#0e2a1c', color: '#34d399', border: '1px solid #1b4d33' }}>🏁 Concluido</span>
                         : (p.dPorCobrar < 0.5 && p.dPerdido < 0.5 && p.dCobrado > 0.5)
