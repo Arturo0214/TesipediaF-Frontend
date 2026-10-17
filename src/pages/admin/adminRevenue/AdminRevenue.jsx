@@ -74,6 +74,7 @@ const fmt = (n) => {
 const AdminRevenue = () => {
   const dispatch = useDispatch();
   const { dashboard, cashflow, cashflowLoading, expenses, loading, expensesLoading, costPerSale, categories, syncing, syncResult, syncError, syncStatus, syncStatusLoading, campaigns, campaignsLoading, campaignsError, usage, usageLoading, cleanupResult, cleanupLoading } = useSelector(state => state.revenue);
+  const { isSuperAdmin } = useSelector((s) => s.auth || {});
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -105,6 +106,24 @@ const AdminRevenue = () => {
     dispatch(fetchCategories());
     dispatch(fetchSyncStatus());
   }, [dispatch, selectedYear, selectedMonth]);
+
+  // Venta PERSONAL: solo el superadmin marca/desmarca; para los demás admins
+  // el backend ya ni siquiera las devuelve (listas y totales)
+  const togglePrivado = async (p) => {
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/privado', {
+        source: p._source === 'sofia' ? 'sofia' : 'payment',
+        id: p._id,
+        privado: !p.privado,
+      });
+      toast.success(data.privado
+        ? `🔒 ${data.clientName || 'Venta'}: ahora solo tú y Paula la ven`
+        : `🔓 ${data.clientName || 'Venta'}: visible para todos`);
+      dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'No se pudo cambiar la visibilidad');
+    }
+  };
 
   useEffect(() => {
     // El endpoint devuelve TODO el horizonte en `monthly`/`projects`; el año solo afecta yearTotals,
@@ -520,13 +539,23 @@ const AdminRevenue = () => {
             payments.map((p, i) => (
               <div key={p._id || i} className="rev-payment-row">
                 <div className="rev-payment-info">
-                  <span className="rev-payment-client">{p.clientName || p.title || 'Venta sin nombre'}</span>
+                  <span className="rev-payment-client">
+                    {p.clientName || p.title || 'Venta sin nombre'}
+                    {p.privado && <span className="rev-privado-chip" title="Solo Arturo y Paula ven esta venta">🔒 Personal</span>}
+                  </span>
                   <span className="rev-payment-meta">
                     {p.vendedor && `${p.vendedor} · `}
                     {new Date(p.paymentDate || p.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                     {p.currency && p.currency !== 'MXN' && ` · ${p.currency}`}
                   </span>
                 </div>
+                {isSuperAdmin && (
+                  <button
+                    className={`rev-privado-btn ${p.privado ? 'on' : ''}`}
+                    title={p.privado ? 'Hacerla visible para todos' : 'Marcar PERSONAL: solo tú y Paula la verán'}
+                    onClick={() => togglePrivado(p)}
+                  >{p.privado ? '🔒' : '🔓'}</button>
+                )}
                 <span className="rev-method-badge">{METHOD_LABELS[p.method] || p.method || '—'}</span>
                 <span className="rev-payment-amount positive">{fmt(p.amount)}</span>
               </div>
