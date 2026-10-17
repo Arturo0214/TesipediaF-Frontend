@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Form, Button, Spinner, Collapse } from 'react-bootstrap';
-import { useDispatch } from 'react-redux';
-import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaCreditCard, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { FaFilePdf, FaUser, FaListAlt, FaMoneyBillWave, FaCreditCard, FaChevronDown, FaChevronUp, FaLock, FaLockOpen } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { calculateSalesQuotePrice, saveGeneratedQuote } from '../../features/quotes/quoteSlice';
 import './SalesQuote.css';
@@ -18,6 +18,11 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
     const manualDiscountLocked = useRef(false);
     const [isAlcanceOpen, setIsAlcanceOpen] = useState(false);
     const [metodoPago, setMetodoPago] = useState('tarjeta-banamex'); // 'tarjeta-banamex', 'tarjeta-nu', 'tarjeta-bbva', 'efectivo'
+    // 🔒 Venta PERSONAL: candado visible solo para Arturo (superadmin) y Paula.
+    // Marca la cotización como privada desde el origen y suprime el aviso de WhatsApp al equipo.
+    const { user, isSuperAdmin } = useSelector((s) => s.auth || {});
+    const puedeCandado = isSuperAdmin || /paula/i.test(user?.name || '');
+    const [esPersonal, setEsPersonal] = useState(false);
     const [formData, setFormData] = useState(() => { const _base = {
         clientName: '',
         clientEmail: '',
@@ -391,6 +396,8 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
                 fechaPago1: formData.fechaPago1 || '',
                 fechaAvance: formData.fechaAvance || '',
                 fechaEntregaRaw: formData.fechaEntrega || '',
+                // 🔒 Venta PERSONAL (solo Arturo/Paula): privada + sin aviso de WhatsApp al equipo
+                privado: puedeCandado && esPersonal,
             };
 
             // 💾 1. Guardar primero en backend para obtener el ID (necesario para vincular el PDF)
@@ -541,7 +548,25 @@ const SalesQuote = ({ initialData = null, embedded = false, onClose } = {}) => {
                             <div className="text-center mb-3 sales-quote-header">
                                 <h5 className="mb-1 fw-bold text-primary">
                                     <FaFilePdf className="me-2" />Generador de Cotizaciones
+                                    {puedeCandado && (
+                                        <button
+                                            type="button"
+                                            className={`sq-candado ${esPersonal ? 'on' : ''}`}
+                                            title={esPersonal
+                                                ? 'Venta PERSONAL: solo tú y Paula la verán y NO se avisará por WhatsApp al equipo'
+                                                : 'Marcar como venta PERSONAL (privada y sin aviso de WhatsApp)'}
+                                            onClick={() => setEsPersonal((v) => !v)}
+                                        >
+                                            {esPersonal ? <FaLock /> : <FaLockOpen />}
+                                            {esPersonal ? ' Personal' : ''}
+                                        </button>
+                                    )}
                                 </h5>
+                                {esPersonal && (
+                                    <div className="sq-candado-aviso">
+                                        🔒 Esta cotización será privada (solo tú y Paula) y no mandará aviso por WhatsApp
+                                    </div>
+                                )}
                                 {/* Toggle Método de Pago */}
                                 <div className="payment-method-toggle mt-2">
                                     <button
