@@ -1343,9 +1343,12 @@ export default function ProyectosBoard() {
                       {matches.length > 0 && (
                         <div className="pb-lead-list">
                           {matches.map((r) => (
-                            <button key={r.id}
-                              onPointerDown={(e) => { e.preventDefault(); setNueva({ ...nueva, rowId: r.id, query: '' }); }}
-                              onClick={(e) => e.preventDefault()}>
+                            /* pointerdown SOLO evita el blur (teclado abierto); la selección va en
+                               click: si se selecciona en pointerdown, el re-render pone "Cambiar"
+                               bajo el dedo y el click del mismo tap la deshace al instante */
+                            <button key={r.id} type="button"
+                              onPointerDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.preventDefault(); setNueva({ ...nueva, rowId: r.id, query: '' }); }}>
                               <b>{r.cliente}</b>
                               <span>{r.title || 'Proyecto'}</span>
                             </button>
