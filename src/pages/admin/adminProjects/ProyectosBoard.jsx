@@ -206,8 +206,10 @@ export default function ProyectosBoard() {
       if (d === null) bucket.sin_fecha.push(r);
       else if (d < 0) {
         bucket.atrasadas.push(r);
-        // Lo que venció AYER sin desahogarse se arrastra a HOY: sigue siendo tarea del día
-        if (d === -1) bucket.hoy.push(r);
+        // Toda entrega AGENDADA (tiene acuerdo) que venció sin desahogarse se queda en
+        // HOY hasta resolverse — no desaparece al día siguiente. Las vencidas de ayer
+        // se arrastran aunque no tengan acuerdo (fecha puesta a mano).
+        if ((r.acuerdos || []).length > 0 || d === -1) bucket.hoy.push(r);
       }
       else if (d === 0) bucket.hoy.push(r);
       else if (d === 1) bucket.manana.push(r);
@@ -254,7 +256,7 @@ export default function ProyectosBoard() {
         const d = diasHasta(r.fechaEntrega);
         if (r.status === 'completado') return false;
         if (entregaFilter === 'atrasadas' && !(d !== null && d < 0)) return false;
-        if (entregaFilter === 'hoy' && !(d === 0 || d === -1)) return false;
+        if (entregaFilter === 'hoy' && !(d === 0 || (d !== null && d < 0 && ((r.acuerdos || []).length > 0 || d === -1)))) return false;
         if (entregaFilter === 'manana' && d !== 1) return false;
         if (entregaFilter === 'pasado' && d !== 2) return false;
         if (entregaFilter === 'semana' && !(d !== null && d >= 3 && d <= 7)) return false;
@@ -297,7 +299,7 @@ export default function ProyectosBoard() {
       const d = diasHasta(r.fechaEntrega);
       if (r.status === 'completado') { stat.entregadas++; continue; }
       stat.porEntregar++;
-      if (d < 0) { stat.vencidas++; if (d === -1) stat.hoy++; }
+      if (d < 0) { stat.vencidas++; if ((r.acuerdos || []).length > 0 || d === -1) stat.hoy++; }
       else if (d === 0) { stat.hoy++; stat.semana++; stat.quincena++; }
       else if (d <= 7) { stat.semana++; stat.quincena++; }
       else if (d <= 14) stat.quincena++;
@@ -309,7 +311,7 @@ export default function ProyectosBoard() {
     const d = diasHasta(r.fechaEntrega);
     switch (calFilter) {
       case 'vencidas': return r.status !== 'completado' && d !== null && d < 0;
-      case 'hoy': return r.status !== 'completado' && (d === 0 || d === -1); // incluye lo vencido ayer sin desahogar
+      case 'hoy': return r.status !== 'completado' && (d === 0 || (d !== null && d < 0 && ((r.acuerdos || []).length > 0 || d === -1))); // + vencidas agendadas sin desahogar
       case 'semana': return r.status !== 'completado' && d !== null && d >= 0 && d <= 7;
       case 'quincena': return r.status !== 'completado' && d !== null && d >= 0 && d <= 14;
       case 'entregadas': return r.status === 'completado';
