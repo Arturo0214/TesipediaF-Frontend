@@ -561,3 +561,23 @@
 
 /* ── 🔒 Candado de venta PERSONAL ── */
 .pb-flag.priv.on { background: rgba(245, 158, 11, 0.16); border-color: #f59e0b; color: #fbbf24; }
+
+/* ── 💬 Comentario nuevo del equipo (últimas 48h, de otro autor) ── */
+.pb-row.nota-nueva { border-left: 3px solid #38bdf8; background: rgba(56, 189, 248, 0.05); }
+.pb-chip-nuevo {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #0b1220;
+  background: #38bdf8;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  animation: pbNuevoPulse 2s ease-in-out infinite;
+}
+@keyframes pbNuevoPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.45); }
+  50% { box-shadow: 0 0 0 5px rgba(56, 189, 248, 0); }
+}

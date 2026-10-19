@@ -1127,8 +1127,13 @@ export default function ProyectosBoard() {
                 const entCls = d === null ? 'faint' : d < 0 ? 'red' : d <= 2 ? 'amber' : '';
                 const lastNota = r.notas?.length ? r.notas[r.notas.length - 1] : null;
                 const lastAcuerdo = r.ultimoAcuerdo;
+                // 💬 Comentario NUEVO: nota de las últimas 48h escrita por alguien que no soy yo
+                const miNombre = (user?.name || '').split(' ')[0].toLowerCase();
+                const notaNueva = !!(lastNota && lastNota.fecha
+                  && (Date.now() - new Date(lastNota.fecha).getTime()) < 48 * 3600 * 1000
+                  && !(miNombre && String(lastNota.autor || '').toLowerCase().includes(miNombre)));
                 return (
-                  <div key={r.id} className={`pb-row ${r.prioritario ? 'prio' : ''}`}
+                  <div key={r.id} className={`pb-row ${r.prioritario ? 'prio' : ''} ${notaNueva ? 'nota-nueva' : ''}`}
                     onClick={() => entregaFilter ? setEntregaModalId(r.id) : abrirProyecto(r.id)}
                     title={entregaFilter ? 'Ver la entrega (solo requisitos, notas y archivos)' : 'Abrir proyecto completo'}>
                     <div className="pb-cell-client" data-label="Cliente">
@@ -1161,6 +1166,7 @@ export default function ProyectosBoard() {
                       {r.fechaEntrega ? <>{fmtFecha(r.fechaEntrega)}<small>{relDias(r.fechaEntrega)}</small></> : '—'}
                     </div>
                     <div className="pb-cell-nota" data-label="Nota">
+                      {notaNueva && <span className="pb-chip-nuevo" title={`Comentario de ${lastNota.autor || 'equipo'} · ${fmtNota(lastNota.fecha)}`}>💬 nuevo</span>}
                       {lastAcuerdo?.texto
                         ? <span title={lastAcuerdo.texto}><FaHandshake /> {lastAcuerdo.texto}</span>
                         : lastNota
