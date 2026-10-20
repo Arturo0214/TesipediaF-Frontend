@@ -413,15 +413,24 @@ export default function AdminCalendars() {
           maxH = Math.min(23, Math.max(maxH, hEnd, h));
         }
         const hours = Array.from({ length: maxH - minH + 1 }, (_, i) => minH + i);
-        // ¿El evento CUBRE esta hora (sin iniciar en ella)? Para estirar el bloque
-        // por toda su duración (ej. Sueño 22:30→6:30 pinta 00-06 y 22-23)
-        const cubreHora = (e, h) => {
+        // ── Layout tipo calendario: un solo bloque por evento, alto según su duración ──
+        const HPX = 46; // px por hora
+        const lanes = [];
+        const posiciones = timed.map((e) => {
+          const s = new Date(e.start.dateTime);
           const en = e.end?.dateTime ? new Date(e.end.dateTime) : null;
-          if (!en) return false;
-          const hIni = horaEfectiva(e);
-          const hFin = en.toDateString() === dayStr ? en.getHours() + (en.getMinutes() > 0 ? 1 : 0) : 24;
-          return h > hIni && h < hFin;
-        };
+          const iniMin = s.toDateString() === dayStr ? s.getHours() * 60 + s.getMinutes() : 0;
+          const finMin = en ? (en.toDateString() === dayStr ? en.getHours() * 60 + en.getMinutes() : 24 * 60) : iniMin + 60;
+          // carril para eventos encimados (se desplazan un poco a la derecha)
+          let lane = 0;
+          while (lanes[lane] && lanes[lane] > iniMin) lane++;
+          lanes[lane] = finMin;
+          return {
+            e, lane,
+            top: ((iniMin / 60) - minH) * HPX + 2,
+            height: Math.max(24, ((finMin - iniMin) / 60) * HPX - 4),
+          };
+        });
         const fmtH = (h) => `${String(h).padStart(2, '0')}:00`;
 
         const renderEv = (ev) => {
@@ -476,26 +485,20 @@ export default function AdminCalendars() {
                     <div className="ac-tl-slot">{allDay.map(renderEv)}</div>
                   </div>
                 )}
-                <div className="ac-timeline">
-                  {hours.map((h) => {
-                    const evs = timed.filter((e) => horaEfectiva(e) === h);
-                    const conts = timed.filter((e) => cubreHora(e, h));
+                <div className="ac-timeline ac-timeline-abs" style={{ height: hours.length * HPX }}>
+                  {hours.map((h) => (
+                    <div key={h} className="ac-tl-gridrow" style={{ top: (h - minH) * HPX, height: HPX }}
+                      title="Clic para agendar a esta hora"
+                      onClick={() => { setDayDetail(null); openNewEvent(dayDetail.date, fmtH(h)); }}>
+                      <span className="ac-tl-hour">{fmtH(h)}</span>
+                    </div>
+                  ))}
+                  {posiciones.map(({ e: ev, lane, top, height }) => {
+                    const id = `${ev.id}-${ev.calendarId || ''}`;
                     return (
-                      <div key={h} className={`ac-tl-row ${(evs.length || conts.length) ? 'has' : ''}`}>
-                        <span className="ac-tl-hour">{fmtH(h)}</span>
-                        <div className="ac-tl-slot" title="Clic para agendar a esta hora"
-                          onClick={() => { setDayDetail(null); openNewEvent(dayDetail.date, fmtH(h)); }}>
-                          {evs.map(renderEv)}
-                          {conts.map((ev) => {
-                            const st = getEventStyle(ev.summary, ev.calendarColor, !!ev.hangoutLink);
-                            return (
-                              <div key={`cont-${ev.id}-${h}`} className="ac-tl-cont"
-                                style={{ background: st.bg, borderLeft: `3px solid ${st.border}` }}>
-                                <span style={{ color: st.text }}>{ev.summary || '(sin título)'}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <div key={id} className="ac-tl-abs"
+                        style={{ top, minHeight: height, height: expandedEv === id ? 'auto' : height, left: 68 + lane * 16, zIndex: expandedEv === id ? 30 : 10 + lane }}>
+                        {renderEv(ev)}
                       </div>
                     );
                   })}

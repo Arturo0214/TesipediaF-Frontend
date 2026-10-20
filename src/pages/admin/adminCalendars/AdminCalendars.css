@@ -282,3 +282,32 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── Agenda del día con bloques de duración real (tipo calendario) ── */
+.ac-timeline-abs { position: relative; }
+.ac-tl-gridrow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+}
+.ac-tl-gridrow:hover { background: rgba(148, 163, 184, 0.05); }
+.ac-tl-gridrow .ac-tl-hour { padding-top: 2px; }
+.ac-tl-abs {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+}
+.ac-tl-abs .ac-tl-ev {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.ac-tl-abs .ac-tl-ev.open { overflow: visible; height: auto; }
