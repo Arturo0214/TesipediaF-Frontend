@@ -323,8 +323,17 @@ export default function AdminCalendars() {
             {dayLabels.map(d => <div key={d} className="ac-cal-day-header">{d}</div>)}
             {calDays.map((day, idx) => {
               const isToday = day && day.toDateString() === new Date().toDateString();
-              // parseEventDate evita el corrimiento de -1 día en eventos de todo el día
-              const dayEvents = day ? events.filter(e => parseEventDate(e).toDateString() === day.toDateString()) : [];
+              // parseEventDate evita el corrimiento de -1 día en eventos de todo el día.
+              // Los eventos que cruzan medianoche (ej. 😴 Sueño 22:30→6:30) cuentan en
+              // AMBOS días: el que empiezan y el que terminan.
+              const dayEvents = day ? events.filter(e => {
+                if (parseEventDate(e).toDateString() === day.toDateString()) return true;
+                if (e.start?.dateTime && e.end?.dateTime) {
+                  const s = new Date(e.start.dateTime); const en = new Date(e.end.dateTime);
+                  if (s.toDateString() !== en.toDateString() && en.toDateString() === day.toDateString()) return true;
+                }
+                return false;
+              }) : [];
               const hasEvents = dayEvents.length > 0;
 
               return (
@@ -383,16 +392,25 @@ export default function AdminCalendars() {
       {/* ===== DAY DETAIL MODAL: agenda hora por hora ===== */}
       {dayDetail && (() => {
         const allDay = dayDetail.events.filter((e) => !e.start?.dateTime);
+        const dayStr = dayDetail.date.toDateString();
+        // Hora "efectiva" en ESTE día: un evento que empezó el día anterior
+        // (ej. Sueño 22:30→6:30) se pinta desde la medianoche
+        const horaEfectiva = (e) => {
+          const s = new Date(e.start.dateTime);
+          return s.toDateString() === dayStr ? s.getHours() : 0;
+        };
         const timed = dayDetail.events
           .filter((e) => e.start?.dateTime)
-          .sort((a, b) => new Date(a.start.dateTime) - new Date(b.start.dateTime));
+          .sort((a, b) => (horaEfectiva(a) - horaEfectiva(b)) || (new Date(a.start.dateTime) - new Date(b.start.dateTime)));
         // Rango de horas: 7–21 por default, extendido si hay eventos fuera
+        // (los que cruzan medianoche abren el rango hasta 23 o desde 00)
         let minH = 7, maxH = 21;
         for (const e of timed) {
-          const h = new Date(e.start.dateTime).getHours();
-          const hEnd = e.end?.dateTime ? new Date(e.end.dateTime).getHours() : h + 1;
+          const en = e.end?.dateTime ? new Date(e.end.dateTime) : null;
+          const h = horaEfectiva(e);
+          const hEnd = en ? (en.toDateString() === dayStr ? en.getHours() + (en.getMinutes() > 0 ? 1 : 0) : 24) : h + 1;
           if (h < minH) minH = h;
-          if (hEnd > maxH) maxH = Math.min(23, hEnd);
+          maxH = Math.min(23, Math.max(maxH, hEnd, h));
         }
         const hours = Array.from({ length: maxH - minH + 1 }, (_, i) => minH + i);
         const fmtH = (h) => `${String(h).padStart(2, '0')}:00`;
@@ -451,7 +469,7 @@ export default function AdminCalendars() {
                 )}
                 <div className="ac-timeline">
                   {hours.map((h) => {
-                    const evs = timed.filter((e) => new Date(e.start.dateTime).getHours() === h);
+                    const evs = timed.filter((e) => horaEfectiva(e) === h);
                     return (
                       <div key={h} className={`ac-tl-row ${evs.length ? 'has' : ''}`}>
                         <span className="ac-tl-hour">{fmtH(h)}</span>
