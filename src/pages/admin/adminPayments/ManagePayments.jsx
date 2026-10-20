@@ -298,7 +298,8 @@ function ManagePayments() {
     }
 
     const { payments = [], summary = {} } = dashboardData || {};
-    const isOwner = isSuperAdmin || currentUserName === 'arturo' || currentUserName === 'hugo serrano';
+    // Owners ven TODOS los pagos/cobros y pueden asignar vendedor (Paula incluida)
+    const isOwner = isSuperAdmin || currentUserName === 'arturo' || currentUserName === 'hugo serrano' || currentUserName.includes('paula');
 
     // Filters
     const filtered = payments.filter((p) => {
