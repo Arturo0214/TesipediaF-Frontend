@@ -268,3 +268,17 @@
   .ac-modal-day .ac-tl-row, .ac-modal-day .ac-tl-allday { grid-template-columns: 52px 1fr; }
   .ac-cal-actions { flex-wrap: wrap; }
 }
+
+/* ── Continuación de evento (horas cubiertas tras la hora de inicio) ── */
+.ac-tl-cont {
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.55;
+  margin-top: 2px;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

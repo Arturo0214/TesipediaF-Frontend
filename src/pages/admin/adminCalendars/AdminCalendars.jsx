@@ -413,6 +413,15 @@ export default function AdminCalendars() {
           maxH = Math.min(23, Math.max(maxH, hEnd, h));
         }
         const hours = Array.from({ length: maxH - minH + 1 }, (_, i) => minH + i);
+        // ¿El evento CUBRE esta hora (sin iniciar en ella)? Para estirar el bloque
+        // por toda su duración (ej. Sueño 22:30→6:30 pinta 00-06 y 22-23)
+        const cubreHora = (e, h) => {
+          const en = e.end?.dateTime ? new Date(e.end.dateTime) : null;
+          if (!en) return false;
+          const hIni = horaEfectiva(e);
+          const hFin = en.toDateString() === dayStr ? en.getHours() + (en.getMinutes() > 0 ? 1 : 0) : 24;
+          return h > hIni && h < hFin;
+        };
         const fmtH = (h) => `${String(h).padStart(2, '0')}:00`;
 
         const renderEv = (ev) => {
@@ -470,12 +479,22 @@ export default function AdminCalendars() {
                 <div className="ac-timeline">
                   {hours.map((h) => {
                     const evs = timed.filter((e) => horaEfectiva(e) === h);
+                    const conts = timed.filter((e) => cubreHora(e, h));
                     return (
-                      <div key={h} className={`ac-tl-row ${evs.length ? 'has' : ''}`}>
+                      <div key={h} className={`ac-tl-row ${(evs.length || conts.length) ? 'has' : ''}`}>
                         <span className="ac-tl-hour">{fmtH(h)}</span>
                         <div className="ac-tl-slot" title="Clic para agendar a esta hora"
                           onClick={() => { setDayDetail(null); openNewEvent(dayDetail.date, fmtH(h)); }}>
                           {evs.map(renderEv)}
+                          {conts.map((ev) => {
+                            const st = getEventStyle(ev.summary, ev.calendarColor, !!ev.hangoutLink);
+                            return (
+                              <div key={`cont-${ev.id}-${h}`} className="ac-tl-cont"
+                                style={{ background: st.bg, borderLeft: `3px solid ${st.border}` }}>
+                                <span style={{ color: st.text }}>{ev.summary || '(sin título)'}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
