@@ -36,6 +36,7 @@ import {
     FaFileInvoiceDollar,
     FaRecycle,
     FaBookOpen,
+    FaBook,
     FaVideo,
     FaUserClock,
     FaStore,
@@ -85,6 +86,7 @@ const Contabilidad = lazy(() => import('../adminContabilidad/Contabilidad.jsx'))
 const LeadsDiario = lazy(() => import('../adminLeadsDiario/LeadsDiario.jsx'));
 const AdminVideoStudio = lazy(() => import('../adminVideoStudio/AdminVideoStudio.jsx'));
 const AdminMercadoPago = lazy(() => import('../adminMercadoPago/AdminMercadoPago.jsx'));
+const AdminBiblioteca = lazy(() => import('../adminBiblioteca/AdminBiblioteca.jsx'));
 import NotificationDropdown from '../../../components/admin/NotificationDropdown.jsx';
 
 
@@ -173,6 +175,7 @@ const AdminPanel = () => {
         if (path.includes('/loops')) return 'loops';
         if (path.includes('/estudio-video')) return 'estudiovideo';
         if (path.includes('/contenido')) return 'contenido';
+        if (path.includes('/biblioteca')) return 'biblioteca';
         return 'dashboard';
     };
 
@@ -195,6 +198,7 @@ const AdminPanel = () => {
         { key: 'usuarios', icon: FaUsers, label: 'Usuarios', section: 'gestion', path: '/admin/usuarios', color: '#818CF8' },
         { key: 'funnel', icon: FaFunnelDollar, label: 'Funnel', section: 'gestion', path: '/admin/funnel', color: '#F59E0B' },
         { key: 'revivals', icon: FaFireAlt, label: 'Revivals', section: 'gestion', path: '/admin/revivals', color: '#EF4444' },
+        { key: 'biblioteca', icon: FaBook, label: 'Biblioteca', section: 'gestion', path: '/admin/biblioteca', color: '#8B5CF6' },
         { key: 'revenue', icon: FaChartPie, label: 'Revenue', section: 'finanzas', path: '/admin/revenue', color: '#34D399' },
         { key: 'informes', icon: FaClipboardCheck, label: 'Informes', section: 'finanzas', path: '/admin/informes', color: '#60A5FA' },
         { key: 'campaigns', icon: FaFacebookF, label: 'Campañas Meta', section: 'finanzas', path: '/admin/campaigns', color: '#1877F2' },
@@ -363,6 +367,7 @@ const AdminPanel = () => {
         loops: AdminLoops,
         contenido: AdminContent,
         estudiovideo: AdminVideoStudio,
+        biblioteca: AdminBiblioteca,
     };
 
     const notifications = useSelector(state => state.notifications.notifications || []);

@@ -191,6 +191,7 @@ const router = createBrowserRouter(
             { path: 'admin/loops', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/contenido', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/estudio-video', element: <LazyPage><AdminPanel /></LazyPage> },
+            { path: 'admin/biblioteca', element: <LazyPage><AdminPanel /></LazyPage> },
             { path: 'admin/*', element: <LazyPage><AdminPanel /></LazyPage> },
           ],
         },
