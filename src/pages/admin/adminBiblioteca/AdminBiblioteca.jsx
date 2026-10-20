@@ -55,7 +55,9 @@ const AdminBiblioteca = () => {
   const [origenF, setOrigenF] = useState('');
   const [copiado, setCopiado] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [nueva, setNueva] = useState({ cliente: '', texto: '', calificacion: 5, fuente: 'whatsapp', servicio: '', destacada: false });
+  const [nueva, setNueva] = useState({ cliente: '', calificacion: 5, fuente: 'whatsapp', servicio: '', destacada: false });
+  const [captura, setCaptura] = useState(null); // File de la captura de WA
+  const [capturaPreview, setCapturaPreview] = useState('');
   const [guardando, setGuardando] = useState(false);
 
   const cargar = async (t = tab, force = false) => {
@@ -106,12 +108,22 @@ const AdminBiblioteca = () => {
     } catch { /* clipboard no disponible */ }
   };
 
+  const elegirCaptura = (file) => {
+    setCaptura(file || null);
+    if (capturaPreview) URL.revokeObjectURL(capturaPreview);
+    setCapturaPreview(file ? URL.createObjectURL(file) : '');
+  };
+
   const guardarResena = async () => {
-    if (!nueva.cliente.trim() || !nueva.texto.trim()) return;
+    if (!nueva.cliente.trim() || !captura) return;
     try {
       setGuardando(true);
-      await createResena(nueva);
-      setNueva({ cliente: '', texto: '', calificacion: 5, fuente: 'whatsapp', servicio: '', destacada: false });
+      const fd = new FormData();
+      fd.append('file', captura);
+      Object.entries(nueva).forEach(([k, v]) => fd.append(k, v));
+      await createResena(fd);
+      setNueva({ cliente: '', calificacion: 5, fuente: 'whatsapp', servicio: '', destacada: false });
+      elegirCaptura(null);
       setShowForm(false);
       setResenas((await getResenas()).resenas);
       setContexto(null); // el contexto IA cambia con las reseñas
@@ -272,6 +284,12 @@ const AdminBiblioteca = () => {
           </div>
           {showForm && (
             <div className="bib-card bib-form">
+              <label className="bib-dropzone">
+                <input type="file" accept="image/*" hidden onChange={(e) => elegirCaptura(e.target.files?.[0])} />
+                {capturaPreview
+                  ? <img src={capturaPreview} alt="Captura de la reseña" className="bib-captura-preview" />
+                  : <span>📱 Toca para subir la <strong>captura de WhatsApp</strong> con la reseña del cliente<br /><small>El texto se extrae automáticamente con IA para alimentar a Sofia</small></span>}
+              </label>
               <div className="bib-form-row">
                 <input placeholder="Cliente (nombre)" value={nueva.cliente} onChange={(e) => setNueva({ ...nueva, cliente: e.target.value })} />
                 <input placeholder="Servicio (ej. Tesis de maestría)" value={nueva.servicio} onChange={(e) => setNueva({ ...nueva, servicio: e.target.value })} />
@@ -280,12 +298,11 @@ const AdminBiblioteca = () => {
                   <option value="instagram">Instagram</option><option value="sitio">Sitio web</option><option value="otro">Otro</option>
                 </select>
               </div>
-              <textarea rows={3} placeholder="Texto de la reseña (copia el mensaje real del cliente)" value={nueva.texto} onChange={(e) => setNueva({ ...nueva, texto: e.target.value })} />
               <div className="bib-form-row">
                 <Estrellas n={nueva.calificacion} onChange={(n) => setNueva({ ...nueva, calificacion: n })} />
                 <label className="bib-check"><input type="checkbox" checked={nueva.destacada} onChange={(e) => setNueva({ ...nueva, destacada: e.target.checked })} /> Destacada (va al contexto IA)</label>
-                <button className="bib-btn bib-btn-primary" onClick={guardarResena} disabled={guardando || !nueva.cliente.trim() || !nueva.texto.trim()}>
-                  {guardando ? 'Guardando…' : 'Guardar'}
+                <button className="bib-btn bib-btn-primary" onClick={guardarResena} disabled={guardando || !nueva.cliente.trim() || !captura}>
+                  {guardando ? 'Subiendo y leyendo captura…' : 'Guardar'}
                 </button>
               </div>
             </div>
@@ -304,11 +321,16 @@ const AdminBiblioteca = () => {
                     <button className="bib-icon-btn bib-danger" title="Borrar" onClick={() => borrarResena(r)}><FaTrash /></button>
                   </div>
                 </div>
-                <p className="bib-resena-texto">“{r.texto}”</p>
+                {r.imagen?.url && (
+                  <a href={r.imagen.url} target="_blank" rel="noreferrer" className="bib-resena-img-link">
+                    <img src={r.imagen.url} alt={`Reseña de ${r.cliente}`} className="bib-resena-img" loading="lazy" />
+                  </a>
+                )}
+                {r.texto && <p className="bib-resena-texto">“{r.texto}”</p>}
               </div>
             ))}
             {!resenas.length && !loading && (
-              <p className="bib-empty">Aún no hay reseñas. Captura los mensajes reales de agradecimiento de tus clientes — las destacadas se inyectan al contexto de Sofia para dar confianza en ventas.</p>
+              <p className="bib-empty">Aún no hay reseñas. Sube las capturas de WhatsApp con los agradecimientos reales de tus clientes — el texto se extrae con IA y las destacadas se inyectan al contexto de Sofia para dar confianza en ventas.</p>
             )}
           </div>
         </div>

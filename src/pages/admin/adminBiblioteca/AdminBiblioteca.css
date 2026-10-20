@@ -106,6 +106,15 @@
 .bib-form textarea { width: 100%; resize: vertical; font-family: inherit; }
 .bib-check { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--b-muted); cursor: pointer; }
 
+.bib-dropzone {
+  display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer;
+  background: var(--b-inset); border: 2px dashed var(--b-border-2); border-radius: 11px;
+  padding: 1.1rem 1rem; color: var(--b-muted); font-size: 0.84rem; line-height: 1.5; transition: all 0.15s;
+}
+.bib-dropzone:hover { border-color: var(--b-violet); color: var(--b-text); }
+.bib-dropzone small { color: var(--b-muted); font-size: 0.72rem; }
+.bib-captura-preview { max-height: 260px; max-width: 100%; border-radius: 9px; }
+
 .bib-resenas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.6rem; }
 .bib-resena { background: var(--b-surface); border: 1px solid var(--b-border); border-radius: 11px; padding: 0.7rem 0.85rem; }
 .bib-resena.destacada { border-color: rgba(251, 191, 36, 0.45); box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.25) inset; }
@@ -113,6 +122,8 @@
 .bib-resena-meta { color: var(--b-muted); font-size: 0.7rem; }
 .bib-resena-actions { margin-left: auto; display: flex; gap: 0.25rem; }
 .bib-resena-texto { margin: 0.45rem 0 0; font-size: 0.82rem; color: #E5E7EB; line-height: 1.45; }
+.bib-resena-img-link { display: block; margin-top: 0.5rem; }
+.bib-resena-img { width: 100%; max-height: 320px; object-fit: contain; object-position: left top; border-radius: 9px; background: var(--b-inset); border: 1px solid var(--b-border); }
 .bib-stars { display: inline-flex; gap: 0.05rem; color: #FBBF24; font-size: 0.78rem; }
 .bib-star-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0 1px; font-size: inherit; }
 .bib-star-btn:disabled { cursor: default; }
