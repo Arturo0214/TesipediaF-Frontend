@@ -1191,7 +1191,14 @@ export default function ProyectosBoard() {
         // capturado desde entonces (nota de Paula + archivos de ESTA entrega), no el
         // historial completo del lead (ese vive en el proyecto).
         const acuerdoRef = [...(r.acuerdos || [])].pop() || null;
-        const desde = acuerdoRef?.creadoEn ? new Date(acuerdoRef.creadoEn) : null;
+        // Sin acuerdo agendado (fecha puesta a mano): la entrega vigente se ancla al
+        // PRIMER archivo de entrega (soporte/final) — si no, el modal salía vacío
+        // aunque hubiera archivos FINAL y mensaje para el cliente (caso Ross).
+        let desde = acuerdoRef?.creadoEn ? new Date(acuerdoRef.creadoEn) : null;
+        if (!desde) {
+          const deEntrega = (r.archivos || []).filter((a) => (a.rol === 'soporte' || a.rol === 'final') && a.subidoEn);
+          if (deEntrega.length) desde = new Date(Math.min(...deEntrega.map((a) => new Date(a.subidoEn).getTime())) - 60 * 1000);
+        }
         const notasEntrega = desde ? (r.notas || []).filter((n) => n.fecha && new Date(n.fecha) >= desde) : [];
         const archivosEntrega = desde ? (r.archivos || []).filter((a) => a.subidoEn && new Date(a.subidoEn) >= desde) : [];
         const nArch = archivosEntrega.length;
