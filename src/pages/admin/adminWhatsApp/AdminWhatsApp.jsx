@@ -59,6 +59,7 @@ import {
   deleteLeadNote,
   toggleBlockLead,
   updateLeadNotes,
+  contactAdvisor,
 } from '../../../services/whatsapp/supabaseWhatsApp';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -228,6 +229,7 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
   const [error, setError] = useState(null);
   const [togglingHuman, setTogglingHuman] = useState(false);
   const [togglingAutoPaused, setTogglingAutoPaused] = useState(false);
+  const [escalandoAsesor, setEscalandoAsesor] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]); // [{ file, previewUrl }]
   const [showNewChat, setShowNewChat] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState('');
@@ -934,6 +936,24 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
       toast.error('Error al cambiar automatizaciones: ' + err.message);
     } finally {
       setTogglingAutoPaused(false);
+    }
+  };
+
+  // Contactar asesor: escala a 'esperando_aprobacion', silencia a Sofia y avisa al equipo
+  const handleContactAdvisor = async () => {
+    if (!selectedLead || escalandoAsesor) return;
+    setEscalandoAsesor(true);
+    try {
+      await contactAdvisor(selectedLead.wa_id);
+      setSelectedLead(prev => ({ ...prev, estado_sofia: 'esperando_aprobacion', modo_humano: true, auto_paused: true }));
+      setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id
+        ? { ...l, estado_sofia: 'esperando_aprobacion', modo_humano: true, auto_paused: true } : l));
+      toast.success('📞 Lead escalado a asesor — equipo notificado. Está en Esperando aprobación.');
+      fetchLeads(true);
+    } catch (err) {
+      toast.error('Error al escalar a asesor: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setEscalandoAsesor(false);
     }
   };
 
@@ -2542,6 +2562,17 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
                     style={{ fontSize: '0.6rem', padding: '2px 6px' }}
                   >
                     {readLeads.has(selectedLead.wa_id) ? <><FaEnvelope className="me-1" /> No leído</> : <><FaEnvelopeOpen className="me-1" /> Leído</>}
+                  </Button>
+                  <Button
+                    variant={selectedLead.estado_sofia === 'esperando_aprobacion' ? 'success' : 'outline-primary'}
+                    size="sm"
+                    onClick={handleContactAdvisor}
+                    disabled={escalandoAsesor}
+                    className="wa-advisor-btn"
+                    title="Escalar con un asesor: pasa a Esperando aprobación, silencia a Sofia y avisa al equipo"
+                    style={{ fontSize: '0.6rem', padding: '2px 7px', fontWeight: 700 }}
+                  >
+                    {escalandoAsesor ? <Spinner size="sm" /> : <><FaUserTie className="me-1" /> Asesor</>}
                   </Button>
                 </div>
               </div>

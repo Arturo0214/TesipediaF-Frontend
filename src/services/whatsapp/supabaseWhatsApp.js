@@ -264,6 +264,14 @@ export async function toggleBlockLead(waId, blocked) {
   return data;
 }
 
+/**
+ * Contactar asesor: escala el lead a 'esperando_aprobacion', silencia a Sofia y avisa al equipo.
+ */
+export async function contactAdvisor(waId, motivo = '') {
+  const { data } = await axiosWithAuth.patch(`${BASE}/leads/${waId}/contact-advisor`, { motivo });
+  return data;
+}
+
 // ─── ManyChat Reactivation ─────────────────────────────────────
 
 /**
