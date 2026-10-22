@@ -11,80 +11,46 @@ const API_URL = import.meta.env.VITE_BASE_URL || 'https://tesipedia-backend-serv
 
 // ─── Conversation Flow (state-machine) ──────────────────────
 const STEPS = {
+  // ── PASO 1: pedir el NOMBRE de entrada (datos primero) ──
   welcome: {
     messages: [
-      `¡Hola! 👋 Soy ${BOT_NAME}, asesora virtual de Tesipedia.`,
-      '¿En qué puedo ayudarte hoy?',
-    ],
-    options: [
-      { label: 'Necesito ayuda con mi tesis', next: 'nivel' },
-      { label: 'Quiero una cotización', next: 'nivel' },
-      { label: 'Tengo dudas sobre el servicio', next: 'dudas' },
-      { label: 'Ya soy cliente', next: 'cliente' },
-    ],
-  },
-  nivel: {
-    messages: ['¡Perfecto! Para darte la mejor asesoría, cuéntame un poco más.', '¿Qué nivel académico es tu trabajo?'],
-    options: [
-      { label: 'Licenciatura', next: 'tipo_trabajo' },
-      { label: 'Maestría', next: 'tipo_trabajo' },
-      { label: 'Doctorado', next: 'tipo_trabajo' },
-      { label: 'Otro', next: 'tipo_trabajo' },
-    ],
-  },
-  tipo_trabajo: {
-    messages: ['¿Qué tipo de trabajo necesitas?'],
-    options: [
-      { label: 'Tesis completa', next: 'avance' },
-      { label: 'Tesina / Monografía', next: 'avance' },
-      { label: 'Protocolo de investigación', next: 'avance' },
-      { label: 'Corrección / Revisión', next: 'avance' },
-      { label: 'Artículo científico', next: 'avance' },
-      { label: 'Otro', next: 'avance' },
-    ],
-  },
-  avance: {
-    messages: ['¿Cuánto llevas avanzado?'],
-    options: [
-      { label: 'Nada, empiezo de cero', next: 'urgencia' },
-      { label: 'Tengo el tema aprobado', next: 'urgencia' },
-      { label: 'Ya tengo avance parcial', next: 'urgencia' },
-      { label: 'Solo necesito correcciones', next: 'urgencia' },
-    ],
-  },
-  urgencia: {
-    messages: ['¿Para cuándo lo necesitas?'],
-    options: [
-      { label: 'Menos de 1 mes', next: 'contacto' },
-      { label: '1 a 3 meses', next: 'contacto' },
-      { label: '3 a 6 meses', next: 'contacto' },
-      { label: 'No tengo fecha límite', next: 'contacto' },
-    ],
-  },
-  contacto: {
-    messages: [
-      '¡Excelente! Con esa información puedo orientarte mejor.',
-      'Para enviarte una cotización personalizada, ¿podrías darme tu nombre?',
+      `¡Hola! 👋 Soy ${BOT_NAME}, tu asesora en Tesipedia.`,
+      'Te ayudo a terminar tu tesis con el acompañamiento de un especialista en tu área. 🎓',
+      'Para asesorarte y armarte tu cotización gratis, ¿cómo te llamas?',
     ],
     input: 'name',
   },
-  contacto_telefono: {
-    messages: (data) => [`Mucho gusto, ${data.name}. ¿Me compartes tu número de WhatsApp? 📱 Así un asesor te contacta directamente.`],
+  // ── PASO 2: pedir el WHATSAPP (el dato clave) → aquí se captura el lead ──
+  pide_whatsapp: {
+    messages: (data) => [
+      `¡Mucho gusto, ${data.name}! 😊`,
+      '📱 ¿Cuál es tu número de WhatsApp? Ahí te atiende un asesor al instante y te mandamos tu cotización personalizada.',
+    ],
     input: 'phone',
   },
-  contacto_email: {
-    messages: ['¡Perfecto! ¿Y tu correo electrónico? (para enviarte la cotización)'],
-    input: 'email',
-  },
-  resumen: {
+  // ── PASO 3: 1 pregunta de gancho (prospección rápida) ──
+  que_necesitas: {
     messages: (data) => [
-      `¡Listo, ${data.name}! 🎉`,
-      `Tengo toda tu información. Un asesor de Tesipedia se comunicará contigo muy pronto por WhatsApp para darte una cotización personalizada.`,
+      `¡Perfecto, ${data.name}! Ya casi 🙌`,
+      '¿Con qué necesitas ayuda?',
     ],
     options: [
-      { label: '💬 Escríbenos por WhatsApp ahora', action: 'whatsapp' },
-      { label: 'Tengo otra pregunta', next: 'dudas' },
-      { label: 'Eso es todo, gracias', next: 'despedida' },
+      { label: 'Tesis completa', next: 'cierre' },
+      { label: 'Tesina / Monografía', next: 'cierre' },
+      { label: 'Corrección / Revisión', next: 'cierre' },
+      { label: 'Protocolo de investigación', next: 'cierre' },
+      { label: 'Otro proyecto', next: 'cierre' },
+    ],
+  },
+  // ── PASO 4: CIERRE — empujar directo a WhatsApp ──
+  cierre: {
+    messages: (data) => [
+      `¡Listo, ${data.name}! 🎉 Ya tengo tus datos.`,
+      '👇 Da clic aquí para que te atendamos AHORA por WhatsApp y te mandemos tu cotización. Es gratis y sin compromiso. 💬',
+    ],
+    options: [
+      { label: '💬 Chatear por WhatsApp ahora', action: 'whatsapp', primary: true },
+      { label: 'Tengo una duda primero', next: 'dudas' },
     ],
   },
   dudas: {
@@ -105,9 +71,9 @@ const STEPS = {
       '¿Te puedo ayudar con algo más?',
     ],
     options: [
-      { label: 'Quiero cotizar', next: 'nivel' },
+      { label: 'Quiero cotizar', next: 'welcome' },
       { label: 'Tengo otra duda', next: 'dudas' },
-      { label: 'Quiero que me contacten', next: 'captura_nombre' },
+      { label: 'Quiero que me contacten', next: 'welcome' },
       { label: '💬 Hablar por WhatsApp', action: 'whatsapp' },
     ],
   },
@@ -118,8 +84,8 @@ const STEPS = {
       '¿Quieres que te cotice?',
     ],
     options: [
-      { label: 'Sí, quiero cotizar', next: 'nivel' },
-      { label: 'Quiero que me contacten', next: 'captura_nombre' },
+      { label: 'Sí, quiero cotizar', next: 'welcome' },
+      { label: 'Quiero que me contacten', next: 'welcome' },
       { label: '💬 Hablar por WhatsApp', action: 'whatsapp' },
     ],
   },
@@ -130,8 +96,8 @@ const STEPS = {
       'Te damos un cronograma detallado al iniciar. ¿Te gustaría cotizar?',
     ],
     options: [
-      { label: 'Sí, quiero cotizar', next: 'nivel' },
-      { label: 'Quiero que me contacten', next: 'captura_nombre' },
+      { label: 'Sí, quiero cotizar', next: 'welcome' },
+      { label: 'Quiero que me contacten', next: 'welcome' },
       { label: '💬 Hablar por WhatsApp', action: 'whatsapp' },
     ],
   },
@@ -141,8 +107,8 @@ const STEPS = {
       'Firmamos acuerdos de confidencialidad y nunca compartimos datos de nuestros clientes. Tu privacidad es nuestra prioridad.',
     ],
     options: [
-      { label: 'Quiero cotizar', next: 'nivel' },
-      { label: 'Quiero que me contacten', next: 'captura_nombre' },
+      { label: 'Quiero cotizar', next: 'welcome' },
+      { label: 'Quiero que me contacten', next: 'welcome' },
       { label: '💬 Hablar por WhatsApp', action: 'whatsapp' },
     ],
   },
@@ -152,8 +118,8 @@ const STEPS = {
       'Tu asesor revisa tus avances y te da retroalimentación en cada capítulo, con revisiones incluidas para que llegues seguro a tu defensa. Más de 3,000 estudiantes ya se titularon con nuestra asesoría.',
     ],
     options: [
-      { label: 'Quiero cotizar', next: 'nivel' },
-      { label: 'Quiero que me contacten', next: 'captura_nombre' },
+      { label: 'Quiero cotizar', next: 'welcome' },
+      { label: 'Quiero que me contacten', next: 'welcome' },
       { label: '💬 Hablar por WhatsApp', action: 'whatsapp' },
     ],
   },
@@ -167,9 +133,9 @@ const STEPS = {
       '¿Te gustaría que te contactemos por WhatsApp?',
     ],
     options: [
-      { label: 'Sí, quiero que me contacten', next: 'captura_nombre' },
+      { label: 'Sí, quiero que me contacten', next: 'welcome' },
       { label: '💬 Yo les escribo por WhatsApp', action: 'whatsapp' },
-      { label: 'Quiero cotizar', next: 'nivel' },
+      { label: 'Quiero cotizar', next: 'welcome' },
     ],
   },
   // ─── Captura rápida (nombre + WhatsApp) para flujos que no pasan por cotización ───
@@ -190,7 +156,7 @@ const STEPS = {
     options: [
       { label: '💬 Escríbenos por WhatsApp ahora', action: 'whatsapp' },
       { label: 'Prefiero esperar la llamada', next: 'despedida' },
-      { label: 'Quiero cotizar completo', next: 'nivel' },
+      { label: 'Quiero cotizar completo', next: 'welcome' },
     ],
   },
   cliente: {
@@ -348,18 +314,26 @@ const TesipediaBot = ({ isOpen, onClose }) => {
 
     // Guardar la selección en userData para el resumen del lead
     const stepToField = {
+      que_necesitas: 'tipo_trabajo',
       nivel: 'nivel',
       tipo_trabajo: 'tipo_trabajo',
       avance: 'avance',
       urgencia: 'urgencia',
     };
     if (currentStep && stepToField[currentStep]) {
-      setUserData(prev => ({ ...prev, [stepToField[currentStep]]: option.label }));
+      const campo = stepToField[currentStep];
+      setUserData(prev => ({ ...prev, [campo]: option.label }));
+      // Al elegir qué necesita, enriquece el lead en admin con su interés
+      if (campo === 'tipo_trabajo' && publicIdRef.current) {
+        sendChatMessage(publicIdRef.current, `Interés: ${option.label}`, userData.name);
+      }
     }
 
     if (option.action === 'whatsapp') {
+      // Mensaje pre-llenado con sus datos para que Sofía (WhatsApp) continúe el cierre
+      const interes = userData.tipo_trabajo ? ` Necesito ayuda con: ${userData.tipo_trabajo}.` : '';
       const text = encodeURIComponent(
-        `Hola, soy ${userData.name || 'un interesado'}. Me gustaría información sobre la asesoría de tesis.`
+        `Hola, soy ${userData.name || 'un interesado'}.${interes} Me gustaría mi cotización para mi tesis. 🎓`
       );
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
       return;
@@ -418,26 +392,23 @@ const TesipediaBot = ({ isOpen, onClose }) => {
 
     // Navigate based on current step context
     if (field === 'name') {
+      // Nombre capturado → pedir WhatsApp (datos primero)
       if (currentStep === 'captura_nombre') {
-        // Quick capture flow: name → phone → gracias
         setTimeout(() => goToStep('captura_whatsapp', newData), 300);
       } else {
-        // Full quote flow: name → phone → email → resumen
-        setTimeout(() => goToStep('contacto_telefono', newData), 300);
+        setTimeout(() => goToStep('pide_whatsapp', newData), 300);
       }
     } else if (field === 'phone') {
+      // WhatsApp capturado → CAPTURAR EL LEAD YA (nombre + teléfono), luego gancho
+      sendLeadToBackend(newData);
       if (currentStep === 'captura_whatsapp') {
-        // Quick capture — send lead and go to gracias
-        sendLeadToBackend(newData);
         setTimeout(() => goToStep('captura_gracias', newData), 300);
       } else {
-        // Full flow — continue to email
-        setTimeout(() => goToStep('contacto_email', newData), 300);
+        setTimeout(() => goToStep('que_necesitas', newData), 300);
       }
     } else if (field === 'email') {
-      // All contact data collected — send lead + navigate
       sendLeadToBackend(newData);
-      setTimeout(() => goToStep('resumen', newData), 300);
+      setTimeout(() => goToStep('cierre', newData), 300);
     }
   }, [inputValue, currentStep, userData, goToStep]);
 
@@ -451,13 +422,10 @@ const TesipediaBot = ({ isOpen, onClose }) => {
     const summary = [
       `--- DATOS DEL LEAD ---`,
       `Nombre: ${data.name || 'N/A'}`,
-      `Email: ${data.email || 'N/A'}`,
       `WhatsApp: ${data.phone || 'N/A'}`,
-      `Nivel: ${data.nivel || 'N/A'}`,
-      `Tipo: ${data.tipo_trabajo || 'N/A'}`,
-      `Avance: ${data.avance || 'N/A'}`,
-      `Urgencia: ${data.urgencia || 'N/A'}`,
-    ].join('\n');
+      data.tipo_trabajo ? `Interés: ${data.tipo_trabajo}` : null,
+      data.email ? `Email: ${data.email}` : null,
+    ].filter(Boolean).join('\n');
     sendChatMessage(publicIdRef.current, summary, data.name);
   };
 
