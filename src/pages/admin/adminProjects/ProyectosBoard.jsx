@@ -64,6 +64,10 @@ const calcStatus = (r) => {
 
 const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '↳ ');
 
+// Normaliza texto para búsqueda: minúsculas y SIN acentos. Paula teclea "ceon" y el
+// nombre guardado es "Ceón" — sin esto el .includes() falla por la tilde.
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 // URGENTE: la entrega es de HOY (o ya pasó) y no se ha desahogado —
 // si la tarea del día no se cumple, se queda marcada urgente automáticamente
 const isUrgente = (r) => r.urgente || (r.status !== 'completado' && !r.entregado && r.fechaEntrega && diasHasta(r.fechaEntrega) <= 0);
@@ -249,7 +253,7 @@ export default function ProyectosBoard() {
   }, [rows]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = norm(search.trim());
     let arr = rows.filter((r) => {
       if (flagFilter === 'personal' && !r.personal) return false;
       if (flagFilter === 'prioritario' && !r.prioritario) return false;
@@ -282,7 +286,7 @@ export default function ProyectosBoard() {
       }
       }
       if (q) {
-        const hay = `${r.cliente} ${r.title} ${r.celular} ${r.vendedor}`.toLowerCase();
+        const hay = norm(`${r.cliente} ${r.title} ${r.celular} ${r.vendedor}`);
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -1382,10 +1386,10 @@ export default function ProyectosBoard() {
 
       {/* ══ MODAL: NUEVA ENTREGA MANUAL ══ */}
       {showNueva && (() => {
-        const q = nueva.query.trim().toLowerCase();
+        const q = norm(nueva.query.trim());
         // Candidatos del board (cotización pagada, instantáneos)…
         const localMatches = q
-          ? rows.filter((r) => `${r.cliente} ${r.title} ${r.celular}`.toLowerCase().includes(q)).slice(0, 6)
+          ? rows.filter((r) => norm(`${r.cliente} ${r.title} ${r.celular}`).includes(q)).slice(0, 6)
               .map((r) => ({ id: r.id, cliente: r.cliente, title: r.title, celular: r.celular, paid: true }))
           : [];
         const localIds = new Set(localMatches.map((m) => String(m.id)));
