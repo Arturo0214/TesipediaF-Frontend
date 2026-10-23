@@ -66,7 +66,7 @@ const cleanNota = (t) => String(t || '').replace(/^↳@[a-f0-9]{6,32}\|\s?/i, '�
 
 // Normaliza texto para búsqueda: minúsculas y SIN acentos. Paula teclea "ceon" y el
 // nombre guardado es "Ceón" — sin esto el .includes() falla por la tilde.
-const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const norm = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 // URGENTE: la entrega es de HOY (o ya pasó) y no se ha desahogado —
 // si la tarea del día no se cumple, se queda marcada urgente automáticamente
