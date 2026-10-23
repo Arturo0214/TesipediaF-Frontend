@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import {
   getSeguimientos, addNota, updateSeguimiento, addAcuerdo,
-  uploadComprobante, deleteComprobante, uploadArchivo,
+  uploadComprobante, deleteComprobante, uploadArchivo, buscarLead,
 } from '../../../services/seguimientoService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import { onSocketEvent, offSocketEvent, isSocketConnected } from '../../../services/socket/socketService';
@@ -142,8 +142,10 @@ export default function ProyectosBoard() {
   const [saving, setSaving] = useState(false);
   // Nueva entrega manual (botón + Entrega)
   const [showNueva, setShowNueva] = useState(false);
-  const [nueva, setNueva] = useState({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+  const [nueva, setNueva] = useState({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '', leadInfo: null });
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
+  const [leadRemoto, setLeadRemoto] = useState([]); // resultados de búsqueda server-side (cualquier status)
+  const [buscandoLead, setBuscandoLead] = useState(false);
   const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
   const [msgCliente, setMsgCliente] = useState(''); // nota de Arturo para Paula al desahogar: qué decirle al cliente
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
@@ -191,6 +193,22 @@ export default function ProyectosBoard() {
     next.avance = calcAvance(next.montoTotal, next.pagado, next.correccionesListas);
     return next;
   }));
+
+  // Búsqueda server-side de leads para "+ Entrega": encuentra clientes de CUALQUIER
+  // status (no solo cotizaciones pagadas), para agendar entregas a quienes pagaron
+  // por fuera del flujo online. Con debounce para no pegarle al backend en cada tecla.
+  useEffect(() => {
+    if (!showNueva || nueva.rowId) { setLeadRemoto([]); setBuscandoLead(false); return; }
+    const q = nueva.query.trim();
+    if (q.length < 2) { setLeadRemoto([]); setBuscandoLead(false); return; }
+    setBuscandoLead(true);
+    const t = setTimeout(async () => {
+      try { setLeadRemoto(await buscarLead(q)); }
+      catch { setLeadRemoto([]); }
+      finally { setBuscandoLead(false); }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [nueva.query, nueva.rowId, showNueva]);
 
   const detail = useMemo(() => rows.find((r) => String(r.id) === String(detailId)) || null, [rows, detailId]);
   const entregaModal = useMemo(() => rows.find((r) => String(r.id) === String(entregaModalId)) || null, [rows, entregaModalId]);
@@ -539,9 +557,12 @@ export default function ProyectosBoard() {
 
   // ── Nueva entrega manual: acuerdo + fecha de entrega + nota + evento en el calendario de Arturo ──
   const handleGuardarNueva = async () => {
-    const row = rows.find((r) => String(r.id) === String(nueva.rowId));
-    if (!row) { toast.error('Selecciona el lead'); return; }
+    // El lead puede estar en el board (cotización pagada) o ser un lead remoto sin
+    // cotización pagada (leadInfo) que agendamos solo para rastrear su entrega.
+    const row = rows.find((r) => String(r.id) === String(nueva.rowId)) || nueva.leadInfo;
+    if (!row || !nueva.rowId) { toast.error('Selecciona el lead'); return; }
     if (!nueva.paraCuando) { toast.error('Pon la fecha de entrega (¿para cuándo es?)'); return; }
+    const esRemoto = !rows.some((r) => String(r.id) === String(nueva.rowId));
     setSaving(true);
     try {
       const catLbl = CATEGORIAS_ENTREGA.find((c) => c.k === nueva.categoria)?.l || '';
@@ -550,18 +571,18 @@ export default function ProyectosBoard() {
         nueva.quePidio ? `Pidió: ${nueva.quePidio}` : 'Entrega agendada',
         nueva.cuandoPidio ? `(lo pidió el ${fmtFecha(`${nueva.cuandoPidio}T12:00:00`)})` : '',
       ].filter(Boolean).join(' ');
-      const { acuerdos, fechaEntrega } = await addAcuerdo('quote', row.id, { texto, fechaEntrega: nueva.paraCuando });
-      patchRow(row.id, { acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null, fechaEntrega: fechaEntrega || `${nueva.paraCuando}T12:00:00` });
+      const { acuerdos, fechaEntrega } = await addAcuerdo('quote', nueva.rowId, { texto, fechaEntrega: nueva.paraCuando });
+      patchRow(nueva.rowId, { acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null, fechaEntrega: fechaEntrega || `${nueva.paraCuando}T12:00:00` });
       if (nueva.nota.trim()) {
-        const { notas } = await addNota('quote', row.id, nueva.nota.trim());
-        patchRow(row.id, { notas });
+        const { notas } = await addNota('quote', nueva.rowId, nueva.nota.trim());
+        patchRow(nueva.rowId, { notas });
       }
       // Archivos adjuntos de la entrega → archivos del proyecto
       let subidos = 0;
       for (const f of nuevaFiles) {
         try {
-          const { archivos } = await uploadArchivo('quote', row.id, f, 'soporte');
-          patchRow(row.id, { archivos });
+          const { archivos } = await uploadArchivo('quote', nueva.rowId, f, 'soporte');
+          patchRow(nueva.rowId, { archivos });
           subidos++;
         } catch { toast.error(`No se pudo subir ${f.name}`); }
       }
@@ -586,9 +607,13 @@ export default function ProyectosBoard() {
       } catch {
         toast('Entrega guardada, pero no se pudo crear el evento en Google Calendar', { icon: '⚠️' });
       }
+      // Un lead remoto (cotización no pagada) no estaba en el board: recárgalo para
+      // que su entrega recién agendada aparezca en Hoy/Próximos.
+      if (esRemoto) await fetchAll({ silent: true });
       setShowNueva(false);
-      setNueva({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '' });
+      setNueva({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '', leadInfo: null });
       setNuevaFiles([]);
+      setLeadRemoto([]);
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo guardar la entrega');
     } finally { setSaving(false); }
@@ -1358,10 +1383,18 @@ export default function ProyectosBoard() {
       {/* ══ MODAL: NUEVA ENTREGA MANUAL ══ */}
       {showNueva && (() => {
         const q = nueva.query.trim().toLowerCase();
-        const matches = q
-          ? rows.filter((r) => `${r.cliente} ${r.title} ${r.celular}`.toLowerCase().includes(q)).slice(0, 8)
+        // Candidatos del board (cotización pagada, instantáneos)…
+        const localMatches = q
+          ? rows.filter((r) => `${r.cliente} ${r.title} ${r.celular}`.toLowerCase().includes(q)).slice(0, 6)
+              .map((r) => ({ id: r.id, cliente: r.cliente, title: r.title, celular: r.celular, paid: true }))
           : [];
-        const sel = rows.find((r) => String(r.id) === String(nueva.rowId));
+        const localIds = new Set(localMatches.map((m) => String(m.id)));
+        // …+ candidatos del servidor (cualquier status: pagados por fuera del flujo online)
+        const remoteMatches = (leadRemoto || []).filter((r) => !localIds.has(String(r.id))).slice(0, 8);
+        const picks = [...localMatches, ...remoteMatches];
+        const sel = rows.find((r) => String(r.id) === String(nueva.rowId))
+          || (nueva.leadInfo && String(nueva.leadInfo.id) === String(nueva.rowId) ? nueva.leadInfo : null);
+        const selRemoto = !!sel && !rows.some((r) => String(r.id) === String(nueva.rowId));
         return (
           <div className="pb-modal-overlay" onClick={() => setShowNueva(false)}>
             <div className="pb-modal" onClick={(e) => e.stopPropagation()}>
@@ -1376,37 +1409,45 @@ export default function ProyectosBoard() {
                       <div className="pb-sel-lead">
                         <b>{sel.cliente}</b>
                         <span className="pb-title">{sel.title}</span>
-                        <button className="pb-fchip" onClick={() => setNueva({ ...nueva, rowId: null, query: '' })}>Cambiar</button>
+                        <button className="pb-fchip" onClick={() => setNueva({ ...nueva, rowId: null, query: '', leadInfo: null })}>Cambiar</button>
                       </div>
-                      {/* Desglose: en qué estatus va el proyecto */}
-                      <div className="pb-sel-status">
-                        <StatusChip status={sel.status} />
-                        <AvanceBar avance={sel.avance} />
-                        <span className="pb-sel-dato">💰 {mxn(sel.pagado)} / {mxn(sel.montoTotal)} ({sel.nPagadas}/{sel.nParcialidades} pagos)</span>
-                        <span className="pb-sel-dato">📎 {sel.archivos?.length || 0} entrega{(sel.archivos?.length || 0) !== 1 ? 's' : ''} previa{(sel.archivos?.length || 0) !== 1 ? 's' : ''}</span>
-                        {sel.fechaEntrega && <span className="pb-sel-dato">📦 última fecha: {fmtFecha(sel.fechaEntrega)}</span>}
-                      </div>
+                      {/* Desglose: en qué estatus va el proyecto (solo si está en el board) */}
+                      {selRemoto ? (
+                        <div className="pb-sel-status">
+                          <span className="pb-sel-dato">📦 Solo rastreo de entrega — su cotización no está marcada como pagada. La entrega aparecerá en Hoy/Próximos igual.</span>
+                        </div>
+                      ) : (
+                        <div className="pb-sel-status">
+                          <StatusChip status={sel.status} />
+                          <AvanceBar avance={sel.avance} />
+                          <span className="pb-sel-dato">💰 {mxn(sel.pagado)} / {mxn(sel.montoTotal)} ({sel.nPagadas}/{sel.nParcialidades} pagos)</span>
+                          <span className="pb-sel-dato">📎 {sel.archivos?.length || 0} entrega{(sel.archivos?.length || 0) !== 1 ? 's' : ''} previa{(sel.archivos?.length || 0) !== 1 ? 's' : ''}</span>
+                          {sel.fechaEntrega && <span className="pb-sel-dato">📦 última fecha: {fmtFecha(sel.fechaEntrega)}</span>}
+                        </div>
+                      )}
                     </>
                   ) : (
                     <>
                       <input autoFocus placeholder="Busca por nombre, proyecto o teléfono…" value={nueva.query}
                         onChange={(e) => setNueva({ ...nueva, query: e.target.value })} />
-                      {matches.length > 0 && (
+                      {picks.length > 0 && (
                         <div className="pb-lead-list">
-                          {matches.map((r) => (
+                          {picks.map((r) => (
                             /* pointerdown SOLO evita el blur (teclado abierto); la selección va en
                                click: si se selecciona en pointerdown, el re-render pone "Cambiar"
                                bajo el dedo y el click del mismo tap la deshace al instante */
                             <button key={r.id} type="button"
                               onPointerDown={(e) => e.preventDefault()}
-                              onClick={(e) => { e.preventDefault(); setNueva({ ...nueva, rowId: r.id, query: '' }); }}>
+                              onClick={(e) => { e.preventDefault(); setNueva({ ...nueva, rowId: r.id, query: '', leadInfo: { id: r.id, cliente: r.cliente, title: r.title, celular: r.celular } }); }}>
                               <b>{r.cliente}</b>
-                              <span>{r.title || 'Proyecto'}</span>
+                              <span>{r.title || 'Proyecto'}{!r.paid ? ' · sin cotización pagada' : ''}</span>
                             </button>
                           ))}
                         </div>
                       )}
-                      {q && !matches.length && <small className="pb-faint">Sin resultados — el lead debe tener cotización pagada.</small>}
+                      {q.length >= 2 && !picks.length && (
+                        <small className="pb-faint">{buscandoLead ? 'Buscando…' : 'Sin resultados — revisa el nombre o el teléfono.'}</small>
+                      )}
                     </>
                   )}
                 </label>

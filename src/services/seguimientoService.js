@@ -4,6 +4,11 @@ const BASE = '/seguimientos';
 
 export const getSeguimientos = () => axiosWithAuth.get(BASE).then((r) => r.data);
 
+// Buscar leads de CUALQUIER status (para agendar entregas a clientes que pagaron
+// por fuera del flujo online y cuya cotización sigue 'pending')
+export const buscarLead = (q) =>
+  axiosWithAuth.get(`${BASE}/buscar-lead`, { params: { q } }).then((r) => r.data);
+
 export const addNota = (type, id, texto) =>
   axiosWithAuth.post(`${BASE}/${type}/${id}/nota`, { texto }).then((r) => r.data);
 
