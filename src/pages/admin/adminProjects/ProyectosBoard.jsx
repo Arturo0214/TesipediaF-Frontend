@@ -416,6 +416,17 @@ export default function ProyectosBoard() {
     } catch (e) { toast.error(e.response?.data?.message || 'No se pudo cambiar la visibilidad'); }
   };
 
+  // ── 📦 Último pago CONTRA ENTREGA: ese pago deja de contar como vencido en cobranza ──
+  const handleTogglePagoFinal = async (row) => {
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/pago-final-entrega', { source: 'sofia', id: row.id, pagoFinalEntrega: !row.pagoFinalEntrega });
+      patchRow(row.id, { pagoFinalEntrega: data.pagoFinalEntrega });
+      toast.success(data.pagoFinalEntrega
+        ? `📦 ${data.clientName || 'Proyecto'}: último pago contra entrega`
+        : `${data.clientName || 'Proyecto'}: último pago vuelve a cobranza`);
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo cambiar'); }
+  };
+
   // ── Comprobante de pago por parcialidad ──
   const handleUploadComprobante = async (row, idx, file) => {
     if (!file) return;
@@ -643,6 +654,13 @@ export default function ProyectosBoard() {
                       ? 'Venta PERSONAL: solo tú y Paula la ven en todo el panel — click para hacerla visible'
                       : 'Candado: Hugo deja de verla en Cotizaciones, Seguimiento, Revenue, Pagos y leads'}>
                     {detail.privado ? '🔒' : '🔓'} Candado
+                  </button>
+                  <button className={`pb-flag pfe ${detail.pagoFinalEntrega ? 'on' : ''}`}
+                    onClick={() => handleTogglePagoFinal(detail)}
+                    title={detail.pagoFinalEntrega
+                      ? 'Último pago CONTRA ENTREGA: no cuenta como vencido en cobranza — click para quitarlo'
+                      : 'Marcar: el último pago se hace al terminar el proyecto (sale de cobranza vencida)'}>
+                    📦 Pago al entregar
                   </button>
                 </>
               ) : (

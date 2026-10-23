@@ -53,6 +53,22 @@ function ManagePayments() {
         setLoading(false);
     };
 
+    // ── 📦 Último pago CONTRA ENTREGA: ese pago deja de contar como vencido/por cobrar ──
+    const handleTogglePagoFinal = async (payment) => {
+        try {
+            const source = payment.source === 'sofia' ? 'sofia' : 'payment';
+            const { data } = await axiosWithAuth.post('/revenue/pago-final-entrega', {
+                source, id: payment._id, pagoFinalEntrega: !payment.pagoFinalEntrega,
+            });
+            setDashboardData(prev => prev ? { ...prev, payments: (prev.payments || []).map(p => p._id === payment._id ? { ...p, pagoFinalEntrega: data.pagoFinalEntrega } : p) } : prev);
+            toast.success(data.pagoFinalEntrega
+                ? `📦 ${data.clientName || 'Venta'}: último pago contra entrega`
+                : `${data.clientName || 'Venta'}: último pago vuelve a cobranza`);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'No se pudo cambiar');
+        }
+    };
+
     const handleAddPayment = async (e) => {
         e.preventDefault();
         if (!newPayment.clientName || !newPayment.amount || !newPayment.title) {
@@ -807,8 +823,16 @@ function ManagePayments() {
                                             onClick={() => setExpandedPayment(expandedPayment === payment._id ? null : payment._id)}>
                                             <td>
                                                 <div className="mp-pay-client">
-                                                    <strong>{payment.clientName}</strong>
+                                                    <strong>
+                                                        {payment.clientName}
+                                                        {payment.pagoFinalEntrega && <span className="mp-pfe-chip" title="Último pago contra entrega — no cuenta como vencido">📦 Pago al entregar</span>}
+                                                    </strong>
                                                     {payment.clientEmail && <small>{payment.clientEmail}</small>}
+                                                    <button
+                                                        className={`mp-pfe-btn ${payment.pagoFinalEntrega ? 'on' : ''}`}
+                                                        title={payment.pagoFinalEntrega ? 'Quitar: el último pago vuelve a cobranza' : 'Marcar: último pago contra entrega (sale de cobranza vencida)'}
+                                                        onClick={(e) => { e.stopPropagation(); handleTogglePagoFinal(payment); }}
+                                                    >📦 Pago al entregar</button>
                                                 </div>
                                             </td>
                                             <td className="mp-pay-title-cell">{payment.title}</td>

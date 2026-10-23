@@ -913,3 +913,33 @@
 .mp-pay-page-btn { background: #111827; border-color: #1F2937; color: #D1D5DB; }
 .mp-pay-page-btn:hover { background: #1F2937; color: #F9FAFB; }
 .mp-pay-page-btn.active { background: #3b82f6; color: #fff; }
+
+/* ── 📦 Último pago contra entrega (sale de cobranza) ── */
+.mp-pfe-chip {
+  margin-left: 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 999px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.mp-pfe-btn {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 2px 8px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.15s;
+}
+.mp-pfe-btn:hover { opacity: 1; border-color: #3b82f6; color: #1d4ed8; }
+.mp-pfe-btn.on { opacity: 1; background: rgba(59, 130, 246, 0.14); border-color: #3b82f6; color: #1d4ed8; }

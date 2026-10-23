@@ -994,3 +994,29 @@
 }
 .rev-payment-row:hover .rev-privado-btn { opacity: 1; }
 .rev-privado-btn.on { opacity: 1; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); }
+
+/* ── 📦 Último pago contra entrega (sale de cobranza) ── */
+.rev-pfe-chip {
+  margin-left: 8px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 999px;
+  padding: 2px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.rev-pfe-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 4px 6px;
+  opacity: 0.35;
+  transition: opacity 0.15s, background 0.15s;
+}
+.rev-payment-row:hover .rev-pfe-btn { opacity: 1; }
+.rev-pfe-btn.on { opacity: 1; background: rgba(59, 130, 246, 0.14); border-color: rgba(59, 130, 246, 0.4); }

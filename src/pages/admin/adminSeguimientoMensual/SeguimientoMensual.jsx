@@ -739,6 +739,30 @@ const SeguimientoMensual = () => {
     </button>
   ) : null;
 
+  // ── 📦 Último pago CONTRA ENTREGA: ese pago pendiente deja de contar como vencido/por cobrar ──
+  const handleTogglePagoFinal = async (row) => {
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/pago-final-entrega', { source: 'sofia', id: row.id, pagoFinalEntrega: !row.pagoFinalEntrega });
+      toast.success(data.pagoFinalEntrega
+        ? `📦 ${data.clientName || 'Proyecto'}: último pago contra entrega (sale de cobranza)`
+        : `${data.clientName || 'Proyecto'}: el último pago vuelve a cobranza normal`);
+      setCf((prev) => prev ? { ...prev, projects: (prev.projects || []).map((p) => String(p.id) === String(row.id) ? { ...p, pagoFinalEntrega: data.pagoFinalEntrega } : p) } : prev);
+      setSegRows((prev) => prev.map((r) => String(r.id) === String(row.id) ? { ...r, pagoFinalEntrega: data.pagoFinalEntrega } : r));
+      refreshSilent();
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo cambiar'); }
+  };
+  const PagoFinalBtn = ({ row }) => (
+    <button
+      className={`sm-pfe-btn ${row.pagoFinalEntrega ? 'on' : ''}`}
+      onClick={(e) => { e.stopPropagation(); handleTogglePagoFinal(row); }}
+      title={row.pagoFinalEntrega
+        ? 'Último pago CONTRA ENTREGA: no cuenta como vencido — click para volverlo a cobranza'
+        : 'Marcar: el último pago se hace al terminar el proyecto (sale de cobranza vencida)'}
+    >
+      📦
+    </button>
+  );
+
   // ── Acuerdos: correcciones + fecha de entrega ──
   const openAcuerdo = (rowId) => { setAcuerdoOpen(rowId); setAcuerdoTexto(''); setAcuerdoFecha(''); };
   const handleAddAcuerdo = async (rowId) => {
@@ -991,7 +1015,7 @@ const SeguimientoMensual = () => {
                       <tr key={r.id} className={`sm-row ${dEnt !== null && dEnt < 0 ? 'vencido' : ''} ${r.prioritario ? 'sm-prio' : ''}`}>
                         <td className="sm-cell-client">
                           <div className="sm-client-line">
-                            <PrioBtn row={r} /><PrivadoBtn row={r} />
+                            <PrioBtn row={r} /><PrivadoBtn row={r} /><PagoFinalBtn row={r} />
                             {r.celular && (
                               <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
                             )}
@@ -1049,7 +1073,7 @@ const SeguimientoMensual = () => {
                 <div key={r.id} className="sm-ent-item">
                   <div className="sm-ent-item-info">
                     <div className="sm-client-line">
-                      <PrioBtn row={r} /><PrivadoBtn row={r} />
+                      <PrioBtn row={r} /><PrivadoBtn row={r} /><PagoFinalBtn row={r} />
                       {r.celular && (
                         <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
                       )}
@@ -1157,7 +1181,7 @@ const SeguimientoMensual = () => {
                       <tr key={r.id} className={`sm-row ${r.nVencidas > 0 ? 'vencido' : ''} ${r.prioritario ? 'sm-prio' : ''}`}>
                         <td className="sm-cell-client">
                           <div className="sm-client-line">
-                            <PrioBtn row={r} /><PrivadoBtn row={r} />
+                            <PrioBtn row={r} /><PrivadoBtn row={r} /><PagoFinalBtn row={r} />
                             {r.celular && (
                               <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.celular)}`} target="_blank" rel="noopener noreferrer" title={`WhatsApp ${r.celular}`}><FaWhatsapp /></a>
                             )}
@@ -1304,7 +1328,7 @@ const SeguimientoMensual = () => {
                           </td>
                           <td className="sm-cell-client">
                             <div className="sm-client-line">
-                              <PrioBtn row={r} /><PrivadoBtn row={r} />
+                              <PrioBtn row={r} /><PrivadoBtn row={r} /><PagoFinalBtn row={r} />
                               {r.phone && (
                                 <a className="sm-wa-ico" href={`https://wa.me/${soloDigitos(r.phone)}`} target="_blank" rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()} title={`WhatsApp ${r.phone}`}><FaWhatsapp /></a>

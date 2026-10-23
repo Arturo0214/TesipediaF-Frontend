@@ -128,6 +128,24 @@ const AdminRevenue = () => {
     }
   };
 
+  // ── 📦 Último pago CONTRA ENTREGA: ese pago deja de contar como vencido/por cobrar ──
+  const togglePagoFinal = async (p) => {
+    try {
+      const { data } = await axiosWithAuth.post('/revenue/pago-final-entrega', {
+        source: p._source === 'sofia' ? 'sofia' : 'payment',
+        id: p._id,
+        pagoFinalEntrega: !p.pagoFinalEntrega,
+      });
+      toast.success(data.pagoFinalEntrega
+        ? `📦 ${data.clientName || 'Venta'}: último pago contra entrega`
+        : `${data.clientName || 'Venta'}: último pago vuelve a cobranza`);
+      dispatch(fetchRevenueDashboard({ year: selectedYear, month: selectedMonth }));
+      if (activeView === 'cashflow') dispatch(fetchCashflow({ year: cfYear === 'all' ? now.getFullYear() : cfYear }));
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'No se pudo cambiar');
+    }
+  };
+
   useEffect(() => {
     // El endpoint devuelve TODO el horizonte en `monthly`/`projects`; el año solo afecta yearTotals,
     // que no usamos en la vista filtrada. Con cfYear='all' pedimos el año actual y computamos client-side.
@@ -545,6 +563,7 @@ const AdminRevenue = () => {
                   <span className="rev-payment-client">
                     {p.clientName || p.title || 'Venta sin nombre'}
                     {p.privado && <span className="rev-privado-chip" title="Solo Arturo y Paula ven esta venta">🔒 Personal</span>}
+                    {p.pagoFinalEntrega && <span className="rev-pfe-chip" title="Último pago contra entrega — no cuenta como vencido">📦 Pago al entregar</span>}
                   </span>
                   <span className="rev-payment-meta">
                     {p.vendedor && `${p.vendedor} · `}
@@ -559,6 +578,11 @@ const AdminRevenue = () => {
                     onClick={() => togglePrivado(p)}
                   >{p.privado ? '🔒' : '🔓'}</button>
                 )}
+                <button
+                  className={`rev-pfe-btn ${p.pagoFinalEntrega ? 'on' : ''}`}
+                  title={p.pagoFinalEntrega ? 'Quitar: el último pago vuelve a cobranza' : 'Marcar: último pago contra entrega (sale de cobranza vencida)'}
+                  onClick={() => togglePagoFinal(p)}
+                >📦</button>
                 <span className="rev-method-badge">{METHOD_LABELS[p.method] || p.method || '—'}</span>
                 <span className="rev-payment-amount positive">{fmt(p.amount)}</span>
               </div>

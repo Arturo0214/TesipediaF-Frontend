@@ -561,6 +561,8 @@
 
 /* ── 🔒 Candado de venta PERSONAL ── */
 .pb-flag.priv.on { background: rgba(245, 158, 11, 0.16); border-color: #f59e0b; color: #fbbf24; }
+/* ── 📦 Último pago contra entrega (sale de cobranza) ── */
+.pb-flag.pfe.on { background: rgba(59, 130, 246, 0.18); border-color: #3b82f6; color: #93c5fd; }
 
 /* ── 💬 Comentario nuevo del equipo (últimas 48h, de otro autor) ── */
 .pb-row.nota-nueva { border-left: 3px solid #38bdf8; background: rgba(56, 189, 248, 0.05); }

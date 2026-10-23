@@ -497,3 +497,17 @@
 }
 .sm-priv-btn:hover { opacity: 1; border-color: #f59e0b; }
 .sm-priv-btn.on { opacity: 1; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.45); }
+
+/* ── 📦 Último pago contra entrega (sale de cobranza) ── */
+.sm-pfe-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  padding: 1px 4px;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: all 0.15s;
+}
+.sm-pfe-btn:hover { opacity: 1; border-color: #3b82f6; }
+.sm-pfe-btn.on { opacity: 1; background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.5); }
