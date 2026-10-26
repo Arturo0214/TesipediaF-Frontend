@@ -154,6 +154,8 @@ export default function ProyectosBoard() {
   const [acceso, setAcceso] = useState({ loading: false, data: null }); // data: {userId,loginId,password,clientNumber,...}
   // Comentarios del cliente (mini-hilo del portal, visible/respondible desde aquí)
   const [chat, setChat] = useState({ open: false, loading: false, messages: [], text: '', sending: false });
+  // Documentos protegidos del cliente (subir/liberar/borrar desde Proyectos)
+  const [docs, setDocs] = useState({ loaded: false, uploading: false, items: [] });
   const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
   const [msgCliente, setMsgCliente] = useState(''); // nota de Arturo para Paula al desahogar: qué decirle al cliente
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
@@ -220,7 +222,37 @@ export default function ProyectosBoard() {
 
   const detail = useMemo(() => rows.find((r) => String(r.id) === String(detailId)) || null, [rows, detailId]);
   // Limpiar credenciales reveladas al cambiar de proyecto (no filtrar entre clientes)
-  useEffect(() => { setAcceso({ loading: false, data: null }); setChat({ open: false, loading: false, messages: [], text: '', sending: false }); }, [detailId]);
+  useEffect(() => { setAcceso({ loading: false, data: null }); setChat({ open: false, loading: false, messages: [], text: '', sending: false }); setDocs({ loaded: false, uploading: false, items: [] }); }, [detailId]);
+
+  // ── 📄 Documentos protegidos del cliente ──
+  const cargarDocs = async (row) => {
+    try { const { data } = await axiosWithAuth.get('/client-docs', { params: { quoteId: row.id } }); setDocs((d) => ({ ...d, loaded: true, items: data || [] })); }
+    catch { setDocs((d) => ({ ...d, loaded: true })); }
+  };
+  const subirDoc = async (row, file) => {
+    if (!file) return;
+    if (file.type !== 'application/pdf') { toast.error('El documento debe ser PDF'); return; }
+    setDocs((d) => ({ ...d, uploading: true }));
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('clientName', row.cliente); fd.append('clientEmail', row.email || ''); fd.append('clientPhone', row.celular || '');
+      fd.append('quoteId', row.id); fd.append('title', row.title || file.name.replace(/\.pdf$/i, ''));
+      await axiosWithAuth.post('/client-docs', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success('Documento subido y protegido ✅ — el cliente ya lo ve (si pagó)');
+      await cargarDocs(row);
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo subir el documento'); }
+    finally { setDocs((d) => ({ ...d, uploading: false })); }
+  };
+  const liberarDoc = async (id, row) => {
+    try { await axiosWithAuth.post(`/client-docs/${id}/unlock`); toast.success('Documento LIBERADO (sin marca de agua + descargable) ✅'); await cargarDocs(row); }
+    catch (e) { toast.error(e.response?.data?.message || 'No se pudo liberar'); }
+  };
+  const borrarDoc = async (id, row) => {
+    if (!window.confirm('¿Borrar este documento del portal del cliente?')) return;
+    try { await axiosWithAuth.delete(`/client-docs/${id}`); toast.success('Documento borrado'); await cargarDocs(row); }
+    catch { toast.error('No se pudo borrar'); }
+  };
   const entregaModal = useMemo(() => rows.find((r) => String(r.id) === String(entregaModalId)) || null, [rows, entregaModalId]);
 
   // ── Dashboard de entregas (solo proyectos no completados) ──
@@ -823,6 +855,42 @@ export default function ProyectosBoard() {
               <button className="pb-btn" onClick={() => setAcceso({ loading: false, data: null })}>Ocultar</button>
             </div>
             <small className="pb-acceso-hint">Portal: {acceso.data.portalUrl} — el cliente ve sus pagos, documentos y deja comentarios.</small>
+          </div>
+        )}
+
+        {/* 📄 Documentos protegidos del cliente */}
+        {canMark && (
+          <div className="pb-docs">
+            {!docs.loaded ? (
+              <button className="pb-btn" onClick={() => cargarDocs(detail)}>📄 Documentos del cliente</button>
+            ) : (
+              <div className="pb-docs-box">
+                <div className="pb-docs-head">
+                  <span>📄 Documentos protegidos de {detail.cliente}</span>
+                  <label className={`pb-btn pb-btn-blue ${docs.uploading ? 'is-disabled' : ''}`}>
+                    {docs.uploading ? 'Subiendo…' : '⬆️ Subir PDF'}
+                    <input type="file" accept="application/pdf" hidden disabled={docs.uploading}
+                      onChange={(e) => { subirDoc(detail, e.target.files?.[0]); e.target.value = ''; }} />
+                  </label>
+                </div>
+                {docs.items.length ? (
+                  <div className="pb-docs-list">
+                    {docs.items.map((d) => (
+                      <div key={d.id} className="pb-docs-item">
+                        <div className="pb-docs-info">
+                          <b>{d.title}</b>
+                          <small>{d.numPages} págs · {d.status === 'unlocked' ? '🔓 liberado' : `🔒 ${d.previewPages} en vista previa`}</small>
+                        </div>
+                        <div className="pb-docs-actions">
+                          {d.status !== 'unlocked' && <button className="pb-fchip" onClick={() => liberarDoc(d.id, detail)}>Liberar</button>}
+                          <button className="pb-fchip" onClick={() => borrarDoc(d.id, detail)}>Borrar</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : <div className="pb-docs-empty">Sube el PDF del trabajo. El cliente lo verá con marca de agua, censurado y sin referencias (y solo si pagó). Al liberarlo, lo descarga completo.</div>}
+              </div>
+            )}
           </div>
         )}
 

@@ -616,3 +616,14 @@
 .pb-chat-input { display: flex; gap: 8px; }
 .pb-chat-input input { flex: 1; background: var(--pb-inset); border: 1px solid var(--pb-border-2); border-radius: 10px; padding: 9px 12px; color: var(--pb-text); font-size: 13.5px; }
 .pb-chat-input input:focus { outline: none; border-color: var(--pb-blue); }
+
+/* 📄 Documentos protegidos del cliente (detalle) */
+.pb-docs { margin: 6px 0 4px; }
+.pb-docs-box { background: var(--pb-surface-2); border: 1px solid var(--pb-border-2); border-radius: 14px; padding: 12px; }
+.pb-docs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; color: var(--pb-text); font-size: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+.pb-btn.is-disabled { opacity: .6; pointer-events: none; }
+.pb-docs-list { display: flex; flex-direction: column; gap: 8px; }
+.pb-docs-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--pb-inset); border: 1px solid var(--pb-border); border-radius: 10px; padding: 10px 12px; }
+.pb-docs-info b { display: block; color: var(--pb-text); font-size: 13.5px; } .pb-docs-info small { color: var(--pb-faint); font-size: 12px; }
+.pb-docs-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.pb-docs-empty { color: var(--pb-faint); font-size: 12.5px; line-height: 1.5; }

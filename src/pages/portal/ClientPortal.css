@@ -43,11 +43,11 @@
 .pt-auth-aside li { display: flex; align-items: center; gap: 12px; font-size: 15px; color: #d7e3fb; }
 .pt-auth-aside li svg { color: #5eead4; flex-shrink: 0; }
 
-/* ═══════════ APP ═══════════ */
-.pt-app { min-height: 100vh; background: var(--bg); display: flex; }
+/* ═══════════ APP (sidebar FIJO, solo el contenido scrollea) ═══════════ */
+.pt-app { height: 100vh; overflow: hidden; background: var(--bg); display: flex; }
 
-/* Sidebar */
-.pt-side { width: 258px; flex-shrink: 0; background: linear-gradient(180deg, #0c2244, var(--navy)); color: #fff; display: flex; flex-direction: column; padding: 22px 14px; position: sticky; top: 0; height: 100vh; box-shadow: inset -1px 0 0 rgba(255,255,255,.05); }
+/* Sidebar (no scrollea con la página) */
+.pt-side { width: 258px; flex-shrink: 0; background: linear-gradient(180deg, #0c2244, var(--navy)); color: #fff; display: flex; flex-direction: column; padding: 22px 14px; height: 100vh; box-shadow: inset -1px 0 0 rgba(255,255,255,.05); }
 .pt-side-brand { padding: 4px 10px 22px; }
 .pt-side-user { display: flex; align-items: center; gap: 12px; padding: 13px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.08); border-radius: 15px; margin-bottom: 20px; }
 .pt-side-avatar { font-size: 36px; color: #9fc2ff; flex-shrink: 0; }
@@ -64,8 +64,8 @@
 .pt-side-logout:hover { background: rgba(255,80,80,.18); }
 .pt-side-backdrop { display: none; }
 
-/* Content */
-.pt-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+/* Content (ÚNICO scroller de la página) */
+.pt-content { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
 .pt-appbar { display: flex; align-items: center; gap: 12px; padding: 14px clamp(16px, 4vw, 36px); background: rgba(255,255,255,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
 .pt-appbar-title { font-size: 18px; font-weight: 800; color: var(--ink); flex: 1; }
 .pt-hamb { display: none; background: none; border: none; font-size: 22px; color: var(--ink); cursor: pointer; }
@@ -243,7 +243,7 @@
 .pt-guard-overlay svg { font-size: 34px; }
 
 /* Visor con scroll CONTENIDO (como lector de PDF normal) */
-.pt-doc-scroll { max-height: 80vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 14px; background: #eef2f8; border: 1px solid var(--line); border-radius: 14px; }
+.pt-doc-scroll { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 14px; background: #eef2f8; border: 1px solid var(--line); border-radius: 14px; }
 .pt-doc-scroll .pt-docpage { max-width: 720px; width: 100%; margin: 0; }
 
 /* Guías v2: carátulas + buscador + paginación + carrito */
