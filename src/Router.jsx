@@ -30,6 +30,7 @@ const NoticiasIndex = lazy(() => import('./pages/Noticias/NoticiasIndex'));
 const NoticiaArticulo = lazy(() => import('./pages/Noticias/NoticiaArticulo'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 const PublicQuote = lazy(() => import('./pages/PublicQuote/PublicQuote'));
+const ClientPortal = lazy(() => import('./pages/portal/ClientPortal'));
 
 // SEO Landing Pages
 const ComprarTesis = lazy(() => import('./pages/landing/ComprarTesis'));
@@ -78,6 +79,8 @@ const LazyPage = ({ children }) => (
 
 const router = createBrowserRouter(
   [
+    // Portal del cliente — shell propio (sin navbar/footer del sitio), login + dashboard
+    { path: '/portal', element: <LazyPage><ClientPortal /></LazyPage> },
     {
       path: '/',
       element: <MainLayout />, // Público
