@@ -9,9 +9,15 @@ import {
   FaPaperPlane, FaBars, FaFolderOpen, FaRobot, FaBookOpen, FaExternalLinkAlt,
   FaSearch, FaChevronLeft, FaChevronRight,
 } from 'react-icons/fa';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { login, logout } from '../../features/auth/authSlice';
 import axiosWithAuth from '../../utils/axioswithAuth';
 import './ClientPortal.css';
+
+// Worker de pdf.js (lo empaqueta Vite)
+pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
 const mxn = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(Number(n) || 0);
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -105,12 +111,13 @@ function ProtectedViewer({ docId, onClose }) {
   );
 }
 
-/* ═══════════ VISOR TIPO PDF (miniaturas + navegación + zoom) ═══════════ */
+/* ═══════════ VISOR PDF REAL (react-pdf) — nítido, sin copia, con miniaturas + zoom ═══════════ */
 function DocViewerInline({ docId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [zoom, setZoom] = useState(1);
+  const [numPages, setNumPages] = useState(0);
   const [cur, setCur] = useState(1);
+  const [zoom, setZoom] = useState(1);
   const mainRef = useRef(null);
   const pageRefs = useRef({});
   useEffect(() => {
@@ -122,13 +129,12 @@ function DocViewerInline({ docId }) {
     return () => { alive = false; };
   }, [docId]);
   const noCtx = (e) => e.preventDefault();
-  const pages = data?.pages || [];
   const goto = (n) => pageRefs.current[n]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const onScroll = () => {
-    const el = mainRef.current; if (!el) return;
+    const el = mainRef.current; if (!el || !numPages) return;
     const mid = el.scrollTop + el.clientHeight * 0.4;
     let best = 1, bestD = Infinity;
-    for (const p of pages) { const pe = pageRefs.current[p.page]; if (pe) { const c = pe.offsetTop + pe.offsetHeight / 2; const d = Math.abs(c - mid); if (d < bestD) { bestD = d; best = p.page; } } }
+    for (let n = 1; n <= numPages; n++) { const pe = pageRefs.current[n]; if (pe) { const c = pe.offsetTop + pe.offsetHeight / 2; const d = Math.abs(c - mid); if (d < bestD) { bestD = d; best = n; } } }
     setCur(best);
   };
   if (loading) return <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>;
@@ -138,43 +144,48 @@ function DocViewerInline({ docId }) {
         <p>{data.message || 'Realiza tu primer pago para desbloquear la lectura de tu documento.'}</p></div>
     );
   }
+  const baseW = 740;
   return (
     <div className="pt-pdf" onContextMenu={noCtx}>
       {data?.locked
         ? <div className="pt-legend"><FaLock /> <span>Lo ves con marca de agua y sin referencias. Cuando estés al corriente con tus pagos podrás <b>descargar el documento completo con su bibliografía</b> sin marca de agua.</span></div>
         : <div className="pt-legend open"><FaLockOpen /> <span>¡Documento liberado! Ya puedes descargarlo completo.</span>{data?.download && <a className="pt-btn pt-btn-primary pt-legend-dl" href={data.download}><FaDownload /> Descargar PDF</a>}</div>}
 
-      <div className="pt-pdf-toolbar">
-        <div className="pt-pdf-nav">
-          <button onClick={() => goto(Math.max(1, cur - 1))} disabled={cur <= 1}><FaChevronLeft /></button>
-          <span className="pt-pdf-page">{cur} / {pages.length}</span>
-          <button onClick={() => goto(Math.min(pages.length, cur + 1))} disabled={cur >= pages.length}><FaChevronRight /></button>
+      <Document file={data?.pdfUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+        loading={<div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>}
+        error={<div className="pt-center pt-err">No se pudo abrir el documento.</div>} className="pt-pdf-doc">
+        <div className="pt-pdf-toolbar">
+          <div className="pt-pdf-nav">
+            <button onClick={() => goto(Math.max(1, cur - 1))} disabled={cur <= 1}><FaChevronLeft /></button>
+            <span className="pt-pdf-page">{cur} / {numPages || '…'}</span>
+            <button onClick={() => goto(Math.min(numPages, cur + 1))} disabled={cur >= numPages}><FaChevronRight /></button>
+          </div>
+          <div className="pt-pdf-zoom">
+            <button onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))}>−</button>
+            <span>{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.15).toFixed(2)))}>+</button>
+          </div>
         </div>
-        <div className="pt-pdf-zoom">
-          <button onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))}>−</button>
-          <span>{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom((z) => Math.min(2, +(z + 0.15).toFixed(2)))}>+</button>
+        <div className="pt-pdf-body">
+          <div className="pt-pdf-thumbs">
+            {Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`pt-pdf-thumb ${cur === n ? 'active' : ''}`} onClick={() => goto(n)}>
+                <Page pageNumber={n} width={88} renderTextLayer={false} renderAnnotationLayer={false} loading="" />
+                <span>{n}</span>
+              </button>
+            ))}
+          </div>
+          <div className="pt-pdf-main" ref={mainRef} onScroll={onScroll}>
+            {Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
+              <div key={n} className="pt-pdf-page" ref={(el) => { pageRefs.current[n] = el; }}>
+                <Page pageNumber={n} width={Math.round(baseW * zoom)} renderTextLayer={false} renderAnnotationLayer={false}
+                  loading={<div className="pt-pdf-ph" style={{ height: baseW * zoom * 1.3 }}><FaSpinner className="pt-spin" /></div>} />
+                <div className="pt-page-guard" onContextMenu={noCtx} />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="pt-pdf-body">
-        <div className="pt-pdf-thumbs">
-          {pages.map((p) => (
-            <button key={p.page} className={`pt-pdf-thumb ${cur === p.page ? 'active' : ''}`} onClick={() => goto(p.page)}>
-              <img src={p.url} alt="" loading="lazy" draggable={false} />
-              <span>{p.page}</span>
-            </button>
-          ))}
-        </div>
-        <div className="pt-pdf-main" ref={mainRef} onScroll={onScroll}>
-          {pages.length ? pages.map((p) => (
-            <div key={p.page} className="pt-pdf-page" ref={(el) => { pageRefs.current[p.page] = el; }} style={{ maxWidth: `${Math.round(760 * zoom)}px` }}>
-              <img src={p.url} alt={`Página ${p.page}`} draggable={false} onContextMenu={noCtx} loading="lazy" />
-              <div className="pt-page-guard" onContextMenu={noCtx} />
-            </div>
-          )) : <p className="pt-empty">Tu documento aún no tiene páginas disponibles.</p>}
-        </div>
-      </div>
+      </Document>
     </div>
   );
 }

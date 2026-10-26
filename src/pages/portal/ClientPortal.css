@@ -283,3 +283,11 @@
 .pt-pdf-main .pt-pdf-page img { width: 100%; height: auto; display: block; pointer-events: none; -webkit-user-drag: none; border-radius: 4px; }
 .pt-pdf-main .pt-page-guard { position: absolute; inset: 0; }
 @media (max-width: 640px) { .pt-pdf-thumbs { display: none; } .pt-pdf-body { height: 68vh; } }
+
+/* react-pdf dentro del visor */
+.pt-pdf-doc { display: block; }
+.pt-pdf-doc .react-pdf__Page { background: transparent !important; display: flex; justify-content: center; }
+.pt-pdf-doc .react-pdf__Page__canvas { border-radius: 4px; box-shadow: 0 10px 30px -14px rgba(0,0,0,.6); max-width: 100%; height: auto !important; -webkit-user-select: none; user-select: none; }
+.pt-pdf-thumbs .react-pdf__Page__canvas { box-shadow: none; border-radius: 6px; }
+.pt-pdf-ph { display: flex; align-items: center; justify-content: center; width: 100%; background: #fff; border-radius: 4px; color: var(--blue); }
+.pt-pdf-thumb { width: 100%; }
