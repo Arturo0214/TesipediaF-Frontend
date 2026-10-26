@@ -140,12 +140,12 @@
 .pt-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; }
 .pt-chip-lock { background: rgba(245,200,96,.16); color: var(--gold); } .pt-chip-open { background: rgba(102,227,154,.16); color: #66e39a; }
 .pt-viewer-note { text-align: center; color: #c7d4ea; font-size: 13px; padding: 10px; background: rgba(245,200,96,.08); border-bottom: 1px solid rgba(245,200,96,.15); display: flex; align-items: center; justify-content: center; gap: 8px; }
-.pt-pagewrap { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 24px 12px; -webkit-user-select: none; user-select: none; }
-.pt-page { position: relative; max-width: 900px; width: 100%; }
-.pt-page-img { width: 100%; height: auto; display: block; border-radius: 6px; box-shadow: 0 20px 60px -20px rgba(0,0,0,.6); pointer-events: none; -webkit-user-drag: none; }
+.pt-pagewrap { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px 12px 60px; -webkit-user-select: none; user-select: none; }
+.pt-page { position: relative; max-width: 860px; width: 100%; }
+.pt-page-num { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 11px; font-weight: 700; color: #fff; background: rgba(13,25,45,.65); padding: 3px 9px; border-radius: 999px; }
+.pt-page-img { width: 100%; height: auto; display: block; border-radius: 6px; box-shadow: 0 16px 50px -22px rgba(0,0,0,.7); pointer-events: none; -webkit-user-drag: none; background: #fff; }
 .pt-page-guard { position: absolute; inset: 0; }
-.pt-pager { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 14px; background: rgba(13,25,45,.92); color: #cfe0ff; font-weight: 700; font-size: 14px; }
-.pt-viewer-center { display: flex; align-items: center; justify-content: center; padding: 60px; }
+.pt-viewer-center { display: flex; align-items: center; justify-content: center; padding: 60px; flex: 1; }
 .pt-err { color: #fca5a5; }
 
 /* ═══════════ Responsive ═══════════ */
@@ -158,3 +158,12 @@
   .pt-side.open { transform: translateX(0); }
   .pt-side-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 55; }
 }
+
+/* ── Herramientas en sidebar + timeline extras ── */
+.pt-side-group { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #7f98c4; padding: 16px 14px 6px; font-weight: 700; }
+.pt-side-ext { font-size: 10px; margin-left: auto; opacity: .6; }
+.pt-side-link { text-decoration: none; }
+.pt-tl-item.acordada .pt-tl-dot { background: #fff7ed; }
+.pt-tl-item.archivo .pt-tl-dot { background: #eef2ff; }
+.pt-tl-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; background: #eff4ff; color: #2563eb; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.pt-tl-open:hover { background: #dbe8ff; }

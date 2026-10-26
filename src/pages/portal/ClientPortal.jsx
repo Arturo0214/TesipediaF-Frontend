@@ -4,9 +4,9 @@ import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaLock, FaLockOpen, FaFileAlt, FaWhatsapp, FaSignOutAlt, FaCheckCircle,
-  FaClock, FaExclamationCircle, FaChevronLeft, FaChevronRight, FaDownload,
-  FaRegFilePdf, FaEye, FaShieldAlt, FaArrowLeft, FaSpinner, FaHome,
-  FaMoneyBillWave, FaRegComments, FaUserCircle, FaPaperPlane, FaBars,
+  FaClock, FaExclamationCircle, FaDownload, FaRegFilePdf, FaEye, FaShieldAlt,
+  FaArrowLeft, FaSpinner, FaMoneyBillWave, FaRegComments, FaUserCircle,
+  FaPaperPlane, FaBars, FaFolderOpen, FaRobot, FaBookOpen, FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { login, logout } from '../../features/auth/authSlice';
 import axiosWithAuth from '../../utils/axioswithAuth';
@@ -27,7 +27,7 @@ function PortalLogin() {
       <motion.div className="pt-auth-card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="pt-auth-brand"><span className="pt-logo">Tesipedia</span><span className="pt-auth-sub">Portal del cliente</span></div>
         <h1>Tu proyecto, en vivo</h1>
-        <p className="pt-auth-lead">Sigue tus pagos, revisa tus documentos y deja tus comentarios — todo en un solo lugar.</p>
+        <p className="pt-auth-lead">Sigue tus pagos, revisa tu documento y deja tus comentarios — todo en un solo lugar.</p>
         <form onSubmit={(e) => { e.preventDefault(); dispatch(login({ email: email.trim(), password })); }}>
           <label>Usuario (correo o teléfono)
             <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu teléfono o correo" autoComplete="username" autoFocus />
@@ -45,11 +45,11 @@ function PortalLogin() {
       <div className="pt-auth-aside">
         <div className="pt-aside-inner">
           <FaShieldAlt className="pt-aside-ico" />
-          <h2>Tus documentos, protegidos</h2>
+          <h2>Tu documento, protegido</h2>
           <ul>
-            <li><FaCheckCircle /> Revisa tu trabajo en línea cuando quieras</li>
+            <li><FaCheckCircle /> Lee tu trabajo completo en línea</li>
             <li><FaCheckCircle /> Tus pagos siempre claros y al día</li>
-            <li><FaCheckCircle /> Deja comentarios a tu equipo</li>
+            <li><FaCheckCircle /> Escáner anti-IA y guías incluidos</li>
           </ul>
         </div>
       </div>
@@ -57,12 +57,11 @@ function PortalLogin() {
   );
 }
 
-/* ═══════════ VISOR PROTEGIDO ═══════════ */
+/* ═══════════ VISOR PROTEGIDO (scroll continuo: se ve TODO) ═══════════ */
 function ProtectedViewer({ docId, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
-  const [idx, setIdx] = useState(0);
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -75,14 +74,13 @@ function ProtectedViewer({ docId, onClose }) {
   }, [docId]);
   const noCtx = (e) => e.preventDefault();
   const pages = data?.pages || [];
-  const go = (d) => setIdx((i) => Math.max(0, Math.min(pages.length - 1, i + d)));
   return (
     <motion.div className="pt-viewer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onContextMenu={noCtx}>
       <div className="pt-viewer-bar">
         <button className="pt-btn pt-btn-ghost" onClick={onClose}><FaArrowLeft /> Volver</button>
         <div className="pt-viewer-title">{data?.title || 'Documento'}</div>
         <div className="pt-viewer-right">
-          {data?.locked ? <span className="pt-chip pt-chip-lock"><FaLock /> Vista previa</span> : <span className="pt-chip pt-chip-open"><FaLockOpen /> Liberado</span>}
+          {data?.locked ? <span className="pt-chip pt-chip-lock"><FaLock /> {pages.length} págs · con marca de agua</span> : <span className="pt-chip pt-chip-open"><FaLockOpen /> Liberado</span>}
           {data?.download && <a className="pt-btn pt-btn-primary" href={data.download}><FaDownload /> Descargar PDF</a>}
         </div>
       </div>
@@ -90,29 +88,23 @@ function ProtectedViewer({ docId, onClose }) {
       {err && <div className="pt-viewer-center pt-err">{err}</div>}
       {!loading && !err && (
         <>
-          {data?.locked && <div className="pt-viewer-note"><FaShieldAlt /> Vista previa protegida · las referencias se liberan al completar tu pago.</div>}
+          {data?.locked && <div className="pt-viewer-note"><FaShieldAlt /> Documento completo con marca de agua · la sección de referencias se libera al completar tu pago.</div>}
           <div className="pt-pagewrap" onContextMenu={noCtx}>
-            {pages.length ? (
-              <div className="pt-page">
-                <img src={pages[idx].url} alt={`Página ${pages[idx].page}`} draggable={false} onContextMenu={noCtx} className="pt-page-img" />
+            {pages.length ? pages.map((p, i) => (
+              <div className="pt-page" key={i}>
+                <span className="pt-page-num">Página {p.page}</span>
+                <img src={p.url} alt={`Página ${p.page}`} draggable={false} onContextMenu={noCtx} className="pt-page-img" loading="lazy" />
                 <div className="pt-page-guard" onContextMenu={noCtx} />
               </div>
-            ) : <div className="pt-viewer-center">Este documento aún no tiene páginas disponibles.</div>}
+            )) : <div className="pt-viewer-center" style={{ color: '#cfe0ff' }}>Este documento aún no tiene páginas disponibles.</div>}
           </div>
-          {pages.length > 1 && (
-            <div className="pt-pager">
-              <button className="pt-btn pt-btn-ghost" onClick={() => go(-1)} disabled={idx === 0}><FaChevronLeft /></button>
-              <span>{idx + 1} / {pages.length}</span>
-              <button className="pt-btn pt-btn-ghost" onClick={() => go(1)} disabled={idx === pages.length - 1}><FaChevronRight /></button>
-            </div>
-          )}
         </>
       )}
     </motion.div>
   );
 }
 
-/* ═══════════ SECCIÓN COMENTARIOS ═══════════ */
+/* ═══════════ COMENTARIOS ═══════════ */
 function Comentarios() {
   const [items, setItems] = useState([]);
   const [text, setText] = useState('');
@@ -159,17 +151,21 @@ function Comentarios() {
 
 /* ═══════════ DASHBOARD ═══════════ */
 const NAV = [
-  { k: 'resumen', label: 'Resumen', icon: FaHome },
+  { k: 'proyecto', label: 'Mi proyecto', icon: FaFolderOpen },
   { k: 'pagos', label: 'Pagos', icon: FaMoneyBillWave },
   { k: 'documentos', label: 'Documentos', icon: FaFileAlt },
   { k: 'comentarios', label: 'Comentarios', icon: FaRegComments },
   { k: 'perfil', label: 'Mi perfil', icon: FaUserCircle },
 ];
+const TOOLS = [
+  { label: 'Detector de IA', icon: FaRobot, href: '/detector-ia-tesis' },
+  { label: 'Guías de tesis', icon: FaBookOpen, href: '/guias' },
+];
 
 function PortalDashboard() {
   const dispatch = useDispatch();
   const { user } = useSelector((s) => s.auth);
-  const [sec, setSec] = useState('resumen');
+  const [sec, setSec] = useState('proyecto');
   const [projects, setProjects] = useState([]);
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -195,14 +191,13 @@ function PortalDashboard() {
   const nPagados = schedule.filter((s) => s.status === 'paid').length;
   const saludo = (user?.name || 'Cliente').split(' ')[0];
 
-  // Línea de tiempo: eventos del proyecto (creación, pagos, entregas/revisiones)
-  const timeline = [];
-  if (proj) {
-    if (proj.createdAt) timeline.push({ date: proj.createdAt, icon: '🚀', txt: 'Proyecto iniciado' });
-    for (const s of (proj.payment?.schedule || [])) if (s.status === 'paid') timeline.push({ date: s.paidDate || s.dueDate, icon: '💰', txt: `${s.label || 'Pago'} recibido (${mxn(s.amount)})` });
-    for (const r of (proj.revisions || [])) timeline.push({ date: r.createdAt, icon: '📦', txt: `${r.label || `Entrega v${r.version}`}${r.status ? ` · ${r.status}` : ''}` });
-  }
-  timeline.sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Línea de tiempo: entregas acordadas + archivos subidos (con sus fechas)
+  const eventos = [];
+  if (proj?.createdAt) eventos.push({ date: proj.createdAt, tipo: 'inicio', icon: '🚀', titulo: 'Proyecto iniciado', sub: '' });
+  for (const d of docs) eventos.push({ date: d.createdAt, tipo: 'archivo', icon: '📄', titulo: d.title, sub: `Archivo subido · ${d.locked ? 'vista previa' : 'liberado'}`, docId: d.id });
+  for (const p of projects) for (const r of (p.revisions || [])) eventos.push({ date: r.createdAt, tipo: 'entrega', icon: '📦', titulo: r.label || `Entrega v${r.version}`, sub: r.status || '' });
+  if (proj?.dueDate) eventos.push({ date: proj.dueDate, tipo: 'acordada', icon: '📅', titulo: 'Entrega acordada', sub: 'Fecha pactada de entrega' });
+  eventos.sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const Nav = () => (
     <nav className={`pt-side ${navOpen ? 'open' : ''}`}>
@@ -216,6 +211,12 @@ function PortalDashboard() {
           <button key={n.k} className={`pt-side-link ${sec === n.k ? 'active' : ''}`} onClick={() => { setSec(n.k); setNavOpen(false); }}>
             <n.icon /> {n.label}
           </button>
+        ))}
+        <div className="pt-side-group">Herramientas</div>
+        {TOOLS.map((t) => (
+          <a key={t.label} className="pt-side-link" href={t.href} target="_blank" rel="noreferrer">
+            <t.icon /> {t.label} <FaExternalLinkAlt className="pt-side-ext" />
+          </a>
         ))}
       </div>
       <button className="pt-side-logout" onClick={() => dispatch(logout())}><FaSignOutAlt /> Cerrar sesión</button>
@@ -236,8 +237,8 @@ function PortalDashboard() {
         <main className="pt-main">
           {loading ? <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div> : (
             <>
-              {/* ── RESUMEN ── */}
-              {sec === 'resumen' && (
+              {/* ── MI PROYECTO ── */}
+              {sec === 'proyecto' && (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
                   <section className="pt-hero">
                     <div>
@@ -245,26 +246,30 @@ function PortalDashboard() {
                       <h1>{proj?.taskTitle || 'Tu proyecto'}</h1>
                       {proj && <p>{proj.taskType || ''}{proj.educationLevel ? ` · ${proj.educationLevel}` : ''}{proj.pages ? ` · ${proj.pages} págs.` : ''}</p>}
                     </div>
-                    {proj?.dueDate && <div className="pt-hero-due"><small>Entrega</small><b>{fmtDate(proj.dueDate)}</b></div>}
+                    {proj?.dueDate && <div className="pt-hero-due"><small>Entrega acordada</small><b>{fmtDate(proj.dueDate)}</b></div>}
                   </section>
                   <div className="pt-stats">
-                    <div className="pt-stat"><span className="pt-stat-ico blue"><FaFileAlt /></span><div><b>{projects.length}</b><small>Proyecto{projects.length !== 1 ? 's' : ''}</small></div></div>
                     <div className="pt-stat"><span className="pt-stat-ico green"><FaCheckCircle /></span><div><b>{pct}%</b><small>Pagado</small></div></div>
                     <div className="pt-stat"><span className="pt-stat-ico amber"><FaMoneyBillWave /></span><div><b>{nPagados}/{schedule.length}</b><small>Pagos</small></div></div>
-                    <div className="pt-stat"><span className="pt-stat-ico purple"><FaRegFilePdf /></span><div><b>{docs.length}</b><small>Documento{docs.length !== 1 ? 's' : ''}</small></div></div>
+                    <div className="pt-stat"><span className="pt-stat-ico purple"><FaRegFilePdf /></span><div><b>{docs.length}</b><small>Archivo{docs.length !== 1 ? 's' : ''}</small></div></div>
+                    <div className="pt-stat"><span className="pt-stat-ico blue"><FaFolderOpen /></span><div><b>{proj?.status === 'completed' ? 'Listo' : 'En curso'}</b><small>Estado</small></div></div>
                   </div>
                   <div className="pt-card">
-                    <div className="pt-card-head"><h2>Línea de tiempo</h2></div>
-                    {timeline.length ? (
+                    <div className="pt-card-head"><h2>Línea de tiempo del proyecto</h2><small>Archivos subidos y entregas acordadas</small></div>
+                    {eventos.length ? (
                       <div className="pt-timeline">
-                        {timeline.map((e, i) => (
-                          <div key={i} className="pt-tl-item">
+                        {eventos.map((e, i) => (
+                          <div key={i} className={`pt-tl-item ${e.tipo}`}>
                             <span className="pt-tl-dot">{e.icon}</span>
-                            <div className="pt-tl-body"><b>{e.txt}</b><small>{fmtDate(e.date)}</small></div>
+                            <div className="pt-tl-body">
+                              <b>{e.titulo}</b>
+                              <small>{fmtDate(e.date)}{e.sub ? ` · ${e.sub}` : ''}</small>
+                              {e.docId && <button className="pt-tl-open" onClick={() => setOpenDoc(e.docId)}><FaEye /> Ver documento</button>}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    ) : <p className="pt-empty">Los eventos de tu proyecto aparecerán aquí.</p>}
+                    ) : <p className="pt-empty">Los eventos de tu proyecto (archivos y entregas) aparecerán aquí.</p>}
                   </div>
                 </motion.div>
               )}
@@ -295,12 +300,12 @@ function PortalDashboard() {
               {/* ── DOCUMENTOS ── */}
               {sec === 'documentos' && (
                 <motion.div className="pt-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                  <div className="pt-card-head"><h2>Mis documentos</h2></div>
+                  <div className="pt-card-head"><h2>Mis documentos</h2><small>Toca para leer tu documento completo</small></div>
                   <div className="pt-doc-list">
                     {docs.length ? docs.map((d) => (
                       <button key={d.id} className="pt-doc" onClick={() => setOpenDoc(d.id)}>
                         <span className="pt-doc-ico"><FaRegFilePdf /></span>
-                        <div className="pt-doc-info"><b>{d.title}</b><small>{d.visiblePages} página{d.visiblePages !== 1 ? 's' : ''} · {d.locked ? 'Vista previa' : 'Liberado'}</small></div>
+                        <div className="pt-doc-info"><b>{d.title}</b><small>{d.visiblePages} página{d.visiblePages !== 1 ? 's' : ''} · subido {fmtDate(d.createdAt)} · {d.locked ? 'con marca de agua' : 'liberado'}</small></div>
                         <span className={`pt-doc-badge ${d.locked ? 'lock' : 'open'}`}>{d.locked ? <FaLock /> : <FaLockOpen />} <FaEye /></span>
                       </button>
                     )) : <div className="pt-empty-docs"><FaFileAlt /><p>Aún no hay documentos. Cuando tu equipo suba tu avance, aparecerá aquí.</p></div>}
