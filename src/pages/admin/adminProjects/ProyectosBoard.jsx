@@ -458,6 +458,32 @@ export default function ProyectosBoard() {
     try { await navigator.clipboard.writeText(texto); toast.success(msg); } catch { /* noop */ }
   };
 
+  // Descarga un archivo CONSERVANDO su nombre original. Cloudinary lo sirve con el
+  // public_id generado (seg_<id>_<timestamp>.ext), así que al bajarlo "cambia de nombre".
+  // 1º intentamos blob (nombre exacto). Si CORS falla, usamos fl_attachment en la URL.
+  const descargarArchivo = async (a, e) => {
+    if (!a?.url) return;
+    e?.preventDefault?.();
+    const nombre = (a.nombre || 'archivo').trim();
+    try {
+      const resp = await fetch(a.url, { mode: 'cors' });
+      if (!resp.ok) throw new Error('fetch');
+      const blob = await resp.blob();
+      const href = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = href; link.download = nombre;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(href), 2000);
+    } catch {
+      // Fallback: fl_attachment fuerza el nombre en la descarga directa de Cloudinary
+      const base = nombre.replace(/\.[a-z0-9]{1,8}$/i, '');
+      const url = a.url.includes('/upload/')
+        ? a.url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(base)}/`)
+        : a.url;
+      window.open(url, '_blank', 'noopener');
+    }
+  };
+
   // ── Marcas PERSONAL / Prioritario (solo Arturo y Paula) ──
   const handleFlag = async (row, campo, valor) => {
     patchRow(row.id, { [campo]: valor });
@@ -1110,7 +1136,7 @@ export default function ProyectosBoard() {
               {(detail.archivos || []).length === 0 && <div className="pb-faint">Sin archivos. Se cargan desde Seguimiento.</div>}
               <div className="pb-files">
                 {[...(detail.archivos || [])].reverse().map((a, i) => (
-                  <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
+                  <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} download={a.nombre || 'archivo'} onClick={(e) => descargarArchivo(a, e)} rel="noopener noreferrer">
                     <FaFileAlt />
                     <span className="pb-file-info">
                       <b>{a.nombre || 'archivo'}</b>
@@ -1511,7 +1537,7 @@ export default function ProyectosBoard() {
                   const finales = archivosEntrega.filter((a) => a.rol === 'final');
                   const renderFile = (a, esFinal) => (
                     <div key={a._id || a.url} className={`pb-file ${esFinal ? 'final' : ''}`}>
-                      <a className="pb-file-main" href={a.url} target="_blank" rel="noopener noreferrer">
+                      <a className="pb-file-main" href={a.url} download={a.nombre || 'archivo'} onClick={(e) => descargarArchivo(a, e)} rel="noopener noreferrer">
                         <FaFileAlt />
                         <span className="pb-file-info">
                           <b>{a.nombre || 'archivo'}</b>

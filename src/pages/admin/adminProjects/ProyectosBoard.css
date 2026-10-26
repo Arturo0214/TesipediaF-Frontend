@@ -15,6 +15,15 @@
   min-height: 100%;
   color: var(--pb-text);
 }
+
+/* Los campos de texto SIEMPRE respetan mayúsculas/minúsculas y puntuación.
+   (Varios contenedores — p.ej. .pb-field — usan text-transform: uppercase para sus
+   ETIQUETAS, y eso se heredaba a los inputs/textarea escribiendo todo en MAYÚSCULAS.) */
+.pb-wrap input,
+.pb-wrap textarea {
+  text-transform: none;
+  letter-spacing: normal;
+}
 .pb-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 10px; }
 .pb-head h2 { font-size: 1.5rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: -0.02em; }
 .pb-head h2 svg { color: var(--pb-blue); }
