@@ -583,3 +583,21 @@
   0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.45); }
   50% { box-shadow: 0 0 0 5px rgba(56, 189, 248, 0); }
 }
+
+/* ── 🔑 Acceso del cliente al portal ── */
+.pb-btn-key { border-color: #b9821f !important; color: #f5c860 !important; }
+.pb-btn-key:hover { background: rgba(245, 200, 96, 0.12) !important; }
+.pb-acceso {
+  margin: 10px 0 4px; padding: 14px 16px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(245,200,96,0.06), rgba(245,200,96,0.02));
+  border: 1px solid rgba(245, 200, 96, 0.28);
+}
+.pb-acceso-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-weight: 700; color: #f5c860; }
+.pb-acceso-num { font-size: 12px; font-weight: 700; color: #0B0F1A; background: #f5c860; padding: 2px 10px; border-radius: 999px; }
+.pb-acceso-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.pb-acceso-field { display: flex; align-items: center; gap: 8px; background: var(--pb-inset); border: 1px solid var(--pb-border-2); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.pb-acceso-field small { color: var(--pb-faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.pb-acceso-field code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--pb-text); font-size: 14px; font-weight: 700; }
+.pb-acceso-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.pb-acceso-hint { color: var(--pb-faint); font-size: 12px; }
+@media (max-width: 640px) { .pb-acceso-grid { grid-template-columns: 1fr; } }

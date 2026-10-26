@@ -150,6 +150,8 @@ export default function ProyectosBoard() {
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
   const [leadRemoto, setLeadRemoto] = useState([]); // resultados de búsqueda server-side (cualquier status)
   const [buscandoLead, setBuscandoLead] = useState(false);
+  // Acceso del cliente al portal (credenciales reveladas por el admin)
+  const [acceso, setAcceso] = useState({ loading: false, data: null }); // data: {userId,loginId,password,clientNumber,...}
   const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
   const [msgCliente, setMsgCliente] = useState(''); // nota de Arturo para Paula al desahogar: qué decirle al cliente
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
@@ -215,6 +217,8 @@ export default function ProyectosBoard() {
   }, [nueva.query, nueva.rowId, showNueva]);
 
   const detail = useMemo(() => rows.find((r) => String(r.id) === String(detailId)) || null, [rows, detailId]);
+  // Limpiar credenciales reveladas al cambiar de proyecto (no filtrar entre clientes)
+  useEffect(() => { setAcceso({ loading: false, data: null }); }, [detailId]);
   const entregaModal = useMemo(() => rows.find((r) => String(r.id) === String(entregaModalId)) || null, [rows, entregaModalId]);
 
   // ── Dashboard de entregas (solo proyectos no completados) ──
@@ -425,6 +429,46 @@ export default function ProyectosBoard() {
         ? (valor ? 'Marcado como PERSONAL 👤' : 'Ya no es personal')
         : (valor ? 'Marcado como Prioritario ⭐' : 'Ya no es prioritario'));
     } catch { toast.error('No se pudo guardar'); patchRow(row.id, { [campo]: !valor }); }
+  };
+
+  // ── 🔑 Acceso del cliente al portal: revelar / regenerar / reenviar credenciales ──
+  const handleRevelarAcceso = async (row) => {
+    setAcceso({ loading: true, data: null });
+    try {
+      const { data } = await axiosWithAuth.post('/client-access/reveal', {
+        clientName: row.cliente, clientEmail: row.email, clientPhone: row.celular, projectTitle: row.title,
+      });
+      setAcceso({ loading: false, data });
+    } catch (e) {
+      setAcceso({ loading: false, data: null });
+      toast.error(e.response?.data?.message || 'No se pudo obtener el acceso del cliente');
+    }
+  };
+  const handleRegenerarAcceso = async () => {
+    if (!acceso.data?.userId) return;
+    setAcceso((p) => ({ ...p, loading: true }));
+    try {
+      const { data } = await axiosWithAuth.post('/client-access/regenerate', { userId: acceso.data.userId });
+      setAcceso({ loading: false, data });
+      toast.success('Nueva contraseña generada 🔄');
+    } catch (e) { setAcceso((p) => ({ ...p, loading: false })); toast.error(e.response?.data?.message || 'No se pudo regenerar'); }
+  };
+  const handleReenviarAcceso = async () => {
+    if (!acceso.data?.userId) return;
+    try {
+      const { data } = await axiosWithAuth.post('/client-access/resend', { userId: acceso.data.userId });
+      toast.success(data?.sent ? 'Acceso reenviado por WhatsApp 📲' : 'No hay teléfono para reenviar');
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo reenviar'); }
+  };
+  const copiarAcceso = () => {
+    const a = acceso.data; if (!a) return;
+    const txt = [
+      `Hola ${a.nombre || ''} 👋 Aquí das seguimiento a tu proyecto en Tesipedia:`,
+      `${a.portalUrl}`,
+      `Usuario: ${a.loginId}`,
+      `Contraseña: ${a.password}`,
+    ].join('\n');
+    copiar(txt, 'Mensaje de acceso copiado — pégalo al cliente');
   };
 
   // ── 🔒 Candado de venta PERSONAL: mismo flag global de Cotizaciones/Revenue/Seguimiento ──
@@ -726,7 +770,42 @@ export default function ProyectosBoard() {
           {detail.vendedor && <span className="pb-chip pb-chip-gray"><FaUserTie /> {detail.vendedor}</span>}
           {detail.modalidad && <span className="pb-chip pb-chip-gray">{detail.modalidad}</span>}
           {detail.email && <span className="pb-chip pb-chip-gray">{detail.email}</span>}
+          {canMark && !acceso.data && (
+            <button className="pb-btn pb-btn-key" disabled={acceso.loading} onClick={() => handleRevelarAcceso(detail)}
+              title="Ver/crear el usuario y contraseña del portal del cliente">
+              🔑 {acceso.loading ? 'Cargando…' : 'Acceso del cliente'}
+            </button>
+          )}
         </div>
+
+        {/* 🔑 Credenciales del portal del cliente */}
+        {canMark && acceso.data && (
+          <div className="pb-acceso">
+            <div className="pb-acceso-head">
+              <span>🔑 Acceso del cliente al portal</span>
+              {acceso.data.clientNumber && <span className="pb-acceso-num">Cliente #{acceso.data.clientNumber}</span>}
+            </div>
+            <div className="pb-acceso-grid">
+              <div className="pb-acceso-field">
+                <small>Usuario</small>
+                <code>{acceso.data.loginId}</code>
+                <button className="pb-fchip" onClick={() => copiar(acceso.data.loginId, 'Usuario copiado')}><FaRegCopy /></button>
+              </div>
+              <div className="pb-acceso-field">
+                <small>Contraseña</small>
+                <code>{acceso.data.password}</code>
+                <button className="pb-fchip" onClick={() => copiar(acceso.data.password, 'Contraseña copiada')}><FaRegCopy /></button>
+              </div>
+            </div>
+            <div className="pb-acceso-actions">
+              <button className="pb-btn pb-btn-blue" onClick={copiarAcceso}><FaRegCopy /> Copiar mensaje</button>
+              {detail.celular && <button className="pb-btn pb-btn-wa" onClick={handleReenviarAcceso}><FaWhatsapp /> Reenviar por WhatsApp</button>}
+              <button className="pb-btn" disabled={acceso.loading} onClick={handleRegenerarAcceso}><FaSyncAlt /> Regenerar</button>
+              <button className="pb-btn" onClick={() => setAcceso({ loading: false, data: null })}>Ocultar</button>
+            </div>
+            <small className="pb-acceso-hint">Portal: {acceso.data.portalUrl} — el cliente ve sus pagos, documentos y chatea con el equipo.</small>
+          </div>
+        )}
 
         <div className="pb-dp-grid">
           <div className="pb-dp-col">
