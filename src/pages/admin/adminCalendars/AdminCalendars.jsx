@@ -415,22 +415,40 @@ export default function AdminCalendars() {
         const hours = Array.from({ length: maxH - minH + 1 }, (_, i) => minH + i);
         // ── Layout tipo calendario: un solo bloque por evento, alto según su duración ──
         const HPX = 46; // px por hora
-        const lanes = [];
-        const posiciones = timed.map((e) => {
+        const GUTTER = 66; // ancho reservado a la izquierda para las etiquetas de hora
+        // 1) inicio/fin en minutos de cada evento
+        const items = timed.map((e) => {
           const s = new Date(e.start.dateTime);
           const en = e.end?.dateTime ? new Date(e.end.dateTime) : null;
           const iniMin = s.toDateString() === dayStr ? s.getHours() * 60 + s.getMinutes() : 0;
-          const finMin = en ? (en.toDateString() === dayStr ? en.getHours() * 60 + en.getMinutes() : 24 * 60) : iniMin + 60;
-          // carril para eventos encimados (se desplazan un poco a la derecha)
-          let lane = 0;
-          while (lanes[lane] && lanes[lane] > iniMin) lane++;
-          lanes[lane] = finMin;
-          return {
-            e, lane,
-            top: ((iniMin / 60) - minH) * HPX + 2,
-            height: Math.max(24, ((finMin - iniMin) / 60) * HPX - 4),
-          };
+          let finMin = en ? (en.toDateString() === dayStr ? en.getHours() * 60 + en.getMinutes() : 24 * 60) : iniMin + 60;
+          if (finMin <= iniMin) finMin = iniMin + 30;
+          return { e, iniMin, finMin, col: 0, cols: 1 };
         });
+        // 2) Repartir los eventos EMPALMADOS en columnas lado a lado (estilo Google
+        //    Calendar): cada grupo de solape se divide en N columnas y cada evento
+        //    ocupa 1/N del ancho. Antes solo se desplazaban 16px y se encimaban.
+        let cluster = [], colsEnd = [], clusterMaxEnd = -1;
+        const flushCluster = () => {
+          const n = colsEnd.length || 1;
+          for (const it of cluster) it.cols = n;
+          cluster = []; colsEnd = []; clusterMaxEnd = -1;
+        };
+        for (const it of items) {
+          if (cluster.length && it.iniMin >= clusterMaxEnd) flushCluster(); // no se solapa con el grupo → cierra
+          let col = colsEnd.findIndex((end) => end <= it.iniMin); // reusa una columna libre
+          if (col === -1) col = colsEnd.length;
+          colsEnd[col] = it.finMin;
+          it.col = col;
+          cluster.push(it);
+          clusterMaxEnd = Math.max(clusterMaxEnd, it.finMin);
+        }
+        flushCluster();
+        const posiciones = items.map((it) => ({
+          e: it.e, col: it.col, cols: it.cols,
+          top: ((it.iniMin / 60) - minH) * HPX + 2,
+          height: Math.max(24, ((it.finMin - it.iniMin) / 60) * HPX - 4),
+        }));
         const fmtH = (h) => `${String(h).padStart(2, '0')}:00`;
 
         const renderEv = (ev) => {
@@ -493,11 +511,17 @@ export default function AdminCalendars() {
                       <span className="ac-tl-hour">{fmtH(h)}</span>
                     </div>
                   ))}
-                  {posiciones.map(({ e: ev, lane, top, height }) => {
+                  {posiciones.map(({ e: ev, col, cols, top, height }) => {
                     const id = `${ev.id}-${ev.calendarId || ''}`;
+                    const open = expandedEv === id;
+                    // ancho de columna dentro del área disponible (tras el gutter de horas)
+                    const colW = `(100% - ${GUTTER}px - 8px) / ${cols}`;
+                    // al abrir un evento ocupa TODO el ancho (y sube de z-index) para leerse bien
+                    const left = open ? GUTTER : `calc(${GUTTER}px + (${colW}) * ${col})`;
+                    const width = open ? `calc(100% - ${GUTTER}px - 8px)` : `calc((${colW}) - 3px)`;
                     return (
                       <div key={id} className="ac-tl-abs"
-                        style={{ top, minHeight: height, height: expandedEv === id ? 'auto' : height, left: 68 + lane * 16, zIndex: expandedEv === id ? 30 : 10 + lane }}>
+                        style={{ top, minHeight: height, height: open ? 'auto' : height, left, width, right: 'auto', zIndex: open ? 30 : 10 + col }}>
                         {renderEv(ev)}
                       </div>
                     );

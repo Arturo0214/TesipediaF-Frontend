@@ -257,7 +257,18 @@ export default function ProyectosBoard() {
 
   // ── Dashboard de entregas (solo proyectos no completados) ──
   const entregas = useMemo(() => {
-    const activos = rows.filter((r) => r.status !== 'completado');
+    // Un proyecto "completado" (ya pagado y sin pendientes, correcciones cerradas, o
+    // Project 'completed') VUELVE al pipeline de entregas si se le agenda una entrega
+    // con fecha de hoy/futuro (p.ej. una nueva ronda de correcciones). Sin esto, agendar
+    // una entrega a un cliente que ya pagó/entregó "no se marcaba": quedaba OCULTA en
+    // Hoy/Mañana porque la fila era 'completado'. Los que ya están en "Desahogados"
+    // (final adjuntado, falta enviarlo) no se duplican en los buckets por fecha.
+    const activos = rows.filter((r) => {
+      if (r.entregado && !r.entregaEnviada) return false; // ya sale en Desahogados
+      if (r.status !== 'completado') return true;
+      const d = diasHasta(r.fechaEntrega);
+      return d !== null && d >= 0; // completado pero con entrega pendiente hoy/futuro
+    });
     const bucket = { atrasadas: [], hoy: [], manana: [], pasado: [], semana: [], sin_fecha: [], desahogados: [] };
     // Desahogados: Arturo ya adjuntó el FINAL, falta que Paula los envíe al cliente
     for (const r of rows) if (r.entregado && !r.entregaEnviada) bucket.desahogados.push(r);
@@ -314,7 +325,10 @@ export default function ProyectosBoard() {
       }
       if (entregaFilter) {
         const d = diasHasta(r.fechaEntrega);
-        if (r.status === 'completado') return false;
+        if (r.entregado && !r.entregaEnviada) return false; // esos salen en "Desahogados"
+        // 'completado' solo se excluye si NO tiene una entrega pendiente hoy/futuro
+        // (una nueva ronda agendada a un cliente ya pagado SÍ debe salir en su bucket).
+        if (r.status === 'completado' && !(d !== null && d >= 0)) return false;
         if (entregaFilter === 'atrasadas' && !(d !== null && d < 0)) return false;
         if (entregaFilter === 'hoy' && !(d === 0 || (d !== null && d < 0 && ((r.acuerdos || []).length > 0 || d === -1)))) return false;
         if (entregaFilter === 'manana' && d !== 1) return false;
@@ -691,7 +705,6 @@ export default function ProyectosBoard() {
     const row = rows.find((r) => String(r.id) === String(nueva.rowId)) || nueva.leadInfo;
     if (!row || !nueva.rowId) { toast.error('Selecciona el lead'); return; }
     if (!nueva.paraCuando) { toast.error('Pon la fecha de entrega (¿para cuándo es?)'); return; }
-    const esRemoto = !rows.some((r) => String(r.id) === String(nueva.rowId));
     setSaving(true);
     try {
       const catLbl = CATEGORIAS_ENTREGA.find((c) => c.k === nueva.categoria)?.l || '';
@@ -736,9 +749,11 @@ export default function ProyectosBoard() {
       } catch {
         toast('Entrega guardada, pero no se pudo crear el evento en Google Calendar', { icon: '⚠️' });
       }
-      // Un lead remoto (cotización no pagada) no estaba en el board: recárgalo para
-      // que su entrega recién agendada aparezca en Hoy/Próximos.
-      if (esRemoto) await fetchAll({ silent: true });
+      // Recargar SIEMPRE del servidor: así la entrega recién agendada aparece en
+      // Hoy/Próximos con el estado real (el backend reabre entregado/correcciones al
+      // agendar, y un lead remoto ni siquiera estaba en el board). Sin esto, agendar
+      // a un cliente ya pagado/entregado "no se marcaba" por quedar como completado.
+      await fetchAll({ silent: true });
       setShowNueva(false);
       setNueva({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '', leadInfo: null });
       setNuevaFiles([]);

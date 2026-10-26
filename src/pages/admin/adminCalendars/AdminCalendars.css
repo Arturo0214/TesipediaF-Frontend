@@ -298,7 +298,7 @@
 .ac-tl-gridrow .ac-tl-hour { padding-top: 2px; }
 .ac-tl-abs {
   position: absolute;
-  right: 8px;
+  /* left/width/right se calculan inline por columna (eventos empalmados lado a lado) */
   display: flex;
   flex-direction: column;
 }
