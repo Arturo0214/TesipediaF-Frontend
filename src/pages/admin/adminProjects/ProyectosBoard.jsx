@@ -415,7 +415,11 @@ export default function ProyectosBoard() {
     try {
       const resp = await updateSeguimiento('quote', row.id, { entregado: valor });
       patchRow(row.id, { entregadoEn: resp.entregadoEn });
-      toast.success(valor ? 'Marcado como entregado ✅' : 'Entrega desmarcada');
+      // Al marcar entregado, si hay mensaje para el cliente, lo guarda como nota
+      if (valor && msgCliente.trim()) {
+        try { const { notas } = await addNota('quote', row.id, `📨 Mensaje para el cliente: ${msgCliente.trim()}`); patchRow(row.id, { notas }); setMsgCliente(''); } catch { /* noop */ }
+      }
+      toast.success(valor ? 'Entrega marcada como completada ✅' : 'Entrega desmarcada');
     } catch { toast.error('No se pudo guardar'); patchRow(row.id, { entregado: !valor }); }
   };
 
@@ -622,25 +626,14 @@ export default function ProyectosBoard() {
           const { archivos } = await uploadArchivo('quote', row.id, f, rol);
           patchRow(row.id, { archivos });
           subidos++;
-        } catch { toast.error(`No se pudo subir ${f.name}`); }
+        } catch (e) { toast.error(e.response?.data?.message || `No se pudo subir ${f.name}`); }
       }
       if (!subidos) return;
-      if (rol === 'final') {
-        if (!row.entregado) {
-          await updateSeguimiento('quote', row.id, { entregado: true });
-          patchRow(row.id, { entregado: true, entregadoEn: new Date().toISOString() });
-        }
-        if (msgCliente.trim()) {
-          try {
-            const { notas } = await addNota('quote', row.id, `📨 Mensaje para el cliente: ${msgCliente.trim()}`);
-            patchRow(row.id, { notas });
-            setMsgCliente('');
-          } catch { toast.error('No se pudo guardar el mensaje para el cliente'); }
-        }
-        toast.success(`${subidos} archivo${subidos !== 1 ? 's' : ''} FINAL adjuntado${subidos !== 1 ? 's' : ''} ✅ — Paula ya puede enviarlos`);
-      } else {
-        toast.success(`${subidos} archivo${subidos !== 1 ? 's' : ''} de soporte cargado${subidos !== 1 ? 's' : ''} 📎`);
-      }
+      // NO marca entregado automáticamente: sube los archivos y ya. El equipo
+      // agrega comentarios/notas y luego marca "completada" con su botón.
+      toast.success(rol === 'final'
+        ? `${subidos} archivo${subidos !== 1 ? 's' : ''} FINAL adjuntado${subidos !== 1 ? 's' : ''} ✅`
+        : `${subidos} archivo${subidos !== 1 ? 's' : ''} de soporte cargado${subidos !== 1 ? 's' : ''} 📎`);
     } finally { setSaving(false); }
   };
   const handleUploadEntregable = (row, file, rol = 'soporte') => handleUploadEntregables(row, file ? [file] : [], rol);
@@ -1544,12 +1537,22 @@ export default function ProyectosBoard() {
                           {canDesahogar && (
                             <>
                               <button className="pb-btn pb-btn-desahogar" disabled={saving} onClick={() => fileRefs.current[`entf-${r.id}`]?.click()}
-                                title={done ? 'Agregar más archivos finales' : 'Adjunta uno o varios archivos finales; al subirlos la entrega queda desahogada'}>
-                                {done ? <><FaCloudUploadAlt /> Agregar otro archivo FINAL</> : <><FaCheckCircle /> Desahogar (adjuntar archivos FINALES)</>}
+                                title="Adjunta uno o varios archivos finales (no marca la entrega; eso lo haces con el botón de abajo)">
+                                <FaCloudUploadAlt /> {finales.length ? 'Agregar otro archivo FINAL' : 'Adjuntar archivo FINAL'}
                               </button>
                               <input type="file" hidden multiple ref={(el) => { fileRefs.current[`entf-${r.id}`] = el; }}
                                 onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'final'); e.target.value = ''; }} />
                             </>
+                          )}
+                          {/* Botón explícito para marcar/desmarcar la entrega como completada */}
+                          {canMark && (
+                            done
+                              ? <button className="pb-btn" disabled={saving} onClick={() => handleEntregado(r, false)} title="Desmarcar la entrega como completada">
+                                  ↩️ Desmarcar entrega completada {r.entregadoEn ? `(${fmtFecha(r.entregadoEn)})` : ''}
+                                </button>
+                              : <button className="pb-btn pb-btn-enviar" disabled={saving} onClick={() => handleEntregado(r, true)} title="Marca esta entrega como completada">
+                                  ✅ Marcar entrega como completada
+                                </button>
                           )}
                           {done && (
                             r.entregaEnviada
