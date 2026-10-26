@@ -152,6 +152,8 @@ export default function ProyectosBoard() {
   const [buscandoLead, setBuscandoLead] = useState(false);
   // Acceso del cliente al portal (credenciales reveladas por el admin)
   const [acceso, setAcceso] = useState({ loading: false, data: null }); // data: {userId,loginId,password,clientNumber,...}
+  // Comentarios del cliente (mini-hilo del portal, visible/respondible desde aquí)
+  const [chat, setChat] = useState({ open: false, loading: false, messages: [], text: '', sending: false });
   const [entregaModalId, setEntregaModalId] = useState(null); // modal compacto de una entrega
   const [msgCliente, setMsgCliente] = useState(''); // nota de Arturo para Paula al desahogar: qué decirle al cliente
   // Filtro por rango de fechas de entrega (todas las fechas, no solo hoy/mañana)
@@ -218,7 +220,7 @@ export default function ProyectosBoard() {
 
   const detail = useMemo(() => rows.find((r) => String(r.id) === String(detailId)) || null, [rows, detailId]);
   // Limpiar credenciales reveladas al cambiar de proyecto (no filtrar entre clientes)
-  useEffect(() => { setAcceso({ loading: false, data: null }); }, [detailId]);
+  useEffect(() => { setAcceso({ loading: false, data: null }); setChat({ open: false, loading: false, messages: [], text: '', sending: false }); }, [detailId]);
   const entregaModal = useMemo(() => rows.find((r) => String(r.id) === String(entregaModalId)) || null, [rows, entregaModalId]);
 
   // ── Dashboard de entregas (solo proyectos no completados) ──
@@ -469,6 +471,23 @@ export default function ProyectosBoard() {
       `Contraseña: ${a.password}`,
     ].join('\n');
     copiar(txt, 'Mensaje de acceso copiado — pégalo al cliente');
+  };
+
+  // ── 💬 Comentarios del cliente (mini-hilo del portal) ──
+  const cargarChat = async (row) => {
+    setChat((p) => ({ ...p, open: true, loading: true }));
+    try {
+      const { data } = await axiosWithAuth.get('/client-chat', { params: { clientEmail: row.email, clientPhone: row.celular } });
+      setChat((p) => ({ ...p, loading: false, messages: data.messages || [], clientId: data.clientId }));
+    } catch { setChat((p) => ({ ...p, loading: false })); toast.error('No se pudieron cargar los comentarios'); }
+  };
+  const enviarChat = async (row) => {
+    const t = (chat.text || '').trim(); if (!t) return;
+    setChat((p) => ({ ...p, sending: true }));
+    try {
+      const { data } = await axiosWithAuth.post('/client-chat', { clientEmail: row.email, clientPhone: row.celular, text: t });
+      setChat((p) => ({ ...p, sending: false, text: '', messages: [...p.messages, data.message] }));
+    } catch { setChat((p) => ({ ...p, sending: false })); toast.error('No se pudo enviar'); }
   };
 
   // ── 🔒 Candado de venta PERSONAL: mismo flag global de Cotizaciones/Revenue/Seguimiento ──
@@ -803,7 +822,35 @@ export default function ProyectosBoard() {
               <button className="pb-btn" disabled={acceso.loading} onClick={handleRegenerarAcceso}><FaSyncAlt /> Regenerar</button>
               <button className="pb-btn" onClick={() => setAcceso({ loading: false, data: null })}>Ocultar</button>
             </div>
-            <small className="pb-acceso-hint">Portal: {acceso.data.portalUrl} — el cliente ve sus pagos, documentos y chatea con el equipo.</small>
+            <small className="pb-acceso-hint">Portal: {acceso.data.portalUrl} — el cliente ve sus pagos, documentos y deja comentarios.</small>
+          </div>
+        )}
+
+        {/* 💬 Comentarios del cliente (mini-hilo del portal) */}
+        {canMark && (
+          <div className="pb-chat">
+            {!chat.open ? (
+              <button className="pb-btn" onClick={() => cargarChat(detail)}>💬 Comentarios del cliente</button>
+            ) : (
+              <div className="pb-chat-box">
+                <div className="pb-chat-head"><span>💬 Comentarios con {detail.cliente}</span>
+                  <button className="pb-fchip" onClick={() => cargarChat(detail)}>Actualizar</button>
+                </div>
+                <div className="pb-chat-list">
+                  {chat.loading ? <div className="pb-chat-loading">Cargando…</div>
+                    : chat.messages.length ? chat.messages.map((m) => (
+                      <div key={m.id} className={`pb-chat-msg ${m.from === 'team' ? 'team' : 'client'}`}>
+                        <div className="pb-chat-bubble"><div className="pb-chat-meta">{m.from === 'team' ? (m.authorName || 'Equipo') : detail.cliente} · {fmtFecha(m.createdAt)}</div>{m.text}</div>
+                      </div>
+                    )) : <div className="pb-chat-empty">Sin comentarios todavía.</div>}
+                </div>
+                <div className="pb-chat-input">
+                  <input value={chat.text} onChange={(e) => setChat((p) => ({ ...p, text: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') enviarChat(detail); }} placeholder="Responder al cliente…" />
+                  <button className="pb-btn pb-btn-blue" disabled={chat.sending || !chat.text.trim()} onClick={() => enviarChat(detail)}>Enviar</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
