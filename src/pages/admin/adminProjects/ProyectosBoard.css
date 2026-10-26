@@ -627,3 +627,9 @@
 .pb-docs-info b { display: block; color: var(--pb-text); font-size: 13.5px; } .pb-docs-info small { color: var(--pb-faint); font-size: 12px; }
 .pb-docs-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .pb-docs-empty { color: var(--pb-faint); font-size: 12.5px; line-height: 1.5; }
+
+/* Archivo con link + botón borrar */
+.pb-file { display: flex; align-items: center; gap: 10px; }
+.pb-file-main { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
+.pb-file-del { flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(239,68,68,.35); background: rgba(239,68,68,.1); color: #f87171; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.pb-file-del:hover { background: rgba(239,68,68,.2); }

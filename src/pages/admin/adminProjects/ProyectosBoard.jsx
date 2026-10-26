@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import {
   getSeguimientos, addNota, updateSeguimiento, addAcuerdo,
-  uploadComprobante, deleteComprobante, uploadArchivo, buscarLead,
+  uploadComprobante, deleteComprobante, uploadArchivo, deleteArchivo, buscarLead,
 } from '../../../services/seguimientoService';
 import axiosWithAuth from '../../../utils/axioswithAuth';
 import { onSocketEvent, offSocketEvent, isSocketConnected } from '../../../services/socket/socketService';
@@ -637,6 +637,17 @@ export default function ProyectosBoard() {
     } finally { setSaving(false); }
   };
   const handleUploadEntregable = (row, file, rol = 'soporte') => handleUploadEntregables(row, file ? [file] : [], rol);
+
+  // Borrar un archivo de la entrega
+  const handleBorrarArchivo = async (row, archivoId) => {
+    if (!archivoId) { toast.error('No se puede borrar este archivo'); return; }
+    if (!window.confirm('¿Borrar este archivo de la entrega?')) return;
+    try {
+      const { archivos } = await deleteArchivo('quote', row.id, archivoId);
+      patchRow(row.id, { archivos });
+      toast.success('Archivo borrado 🗑️');
+    } catch (e) { toast.error(e.response?.data?.message || 'No se pudo borrar el archivo'); }
+  };
 
   // Paula marca si el archivo final ya se le envió al cliente
   const handleEnviado = async (row, valor) => {
@@ -1499,14 +1510,17 @@ export default function ProyectosBoard() {
                   const soporte = archivosEntrega.filter((a) => a.rol !== 'final');
                   const finales = archivosEntrega.filter((a) => a.rol === 'final');
                   const renderFile = (a, esFinal) => (
-                    <a key={a._id || a.url} className={`pb-file ${esFinal ? 'final' : ''}`} href={a.url} target="_blank" rel="noopener noreferrer">
-                      <FaFileAlt />
-                      <span className="pb-file-info">
-                        <b>{a.nombre || 'archivo'}</b>
-                        <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
-                      </span>
+                    <div key={a._id || a.url} className={`pb-file ${esFinal ? 'final' : ''}`}>
+                      <a className="pb-file-main" href={a.url} target="_blank" rel="noopener noreferrer">
+                        <FaFileAlt />
+                        <span className="pb-file-info">
+                          <b>{a.nombre || 'archivo'}</b>
+                          <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
+                        </span>
+                      </a>
                       <span className={`pb-file-badge ${esFinal ? 'final' : ''}`}>{esFinal ? 'FINAL' : 'soporte'}</span>
-                    </a>
+                      {canMark && <button className="pb-file-del" title="Borrar archivo" onClick={() => handleBorrarArchivo(r, a._id)}><FaTrashAlt /></button>}
+                    </div>
                   );
                   return (
                     <>
@@ -1544,14 +1558,14 @@ export default function ProyectosBoard() {
                                 onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'final'); e.target.value = ''; }} />
                             </>
                           )}
-                          {/* Botón explícito para marcar/desmarcar la entrega como completada */}
+                          {/* Botón explícito: Arturo marca su parte lista (handoff a Paula) */}
                           {canMark && (
                             done
-                              ? <button className="pb-btn" disabled={saving} onClick={() => handleEntregado(r, false)} title="Desmarcar la entrega como completada">
-                                  ↩️ Desmarcar entrega completada {r.entregadoEn ? `(${fmtFecha(r.entregadoEn)})` : ''}
+                              ? <button className="pb-btn" disabled={saving} onClick={() => handleEntregado(r, false)} title="Desmarcar: mi parte ya no está lista">
+                                  ↩️ Desmarcar mi parte {r.entregadoEn ? `(${fmtFecha(r.entregadoEn)})` : ''}
                                 </button>
-                              : <button className="pb-btn pb-btn-enviar" disabled={saving} onClick={() => handleEntregado(r, true)} title="Marca esta entrega como completada">
-                                  ✅ Marcar entrega como completada
+                              : <button className="pb-btn pb-btn-enviar" disabled={saving} onClick={() => handleEntregado(r, true)} title="Marca que TU parte está lista; Paula lo envía al cliente">
+                                  ✅ Marcar mi parte lista (para Paula)
                                 </button>
                           )}
                           {done && (
