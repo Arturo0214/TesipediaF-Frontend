@@ -241,3 +241,27 @@
 .pt-doc-pages.guarded > .pt-docpage { filter: blur(18px); transition: filter .12s; }
 .pt-guard-overlay { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #fff; font-weight: 700; background: rgba(10,18,32,.82); border-radius: 12px; }
 .pt-guard-overlay svg { font-size: 34px; }
+
+/* Visor con scroll CONTENIDO (como lector de PDF normal) */
+.pt-doc-scroll { max-height: 80vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 14px; background: #eef2f8; border: 1px solid var(--line); border-radius: 14px; }
+.pt-doc-scroll .pt-docpage { max-width: 720px; width: 100%; margin: 0; }
+
+/* Guías v2: carátulas + buscador + paginación + carrito */
+.pt-btn-ghost-dark { background: #f1f5f9; color: var(--ink); border-color: var(--line); }
+.pt-btn-ghost-dark:hover { background: #e7edf5; }
+.pt-guia-search { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 18px; }
+.pt-guia-search svg { color: var(--faint); } .pt-guia-search input { flex: 1; border: none; background: transparent; font-size: 14px; color: var(--ink); outline: none; }
+.pt-guia-clear { border: none; background: #e2e8f0; color: var(--muted); border-radius: 8px; width: 24px; height: 24px; cursor: pointer; }
+.pt-guias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 16px; }
+.pt-guia-card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.pt-guia-card:hover { transform: translateY(-3px); box-shadow: 0 18px 34px -24px rgba(15,23,42,.5); }
+.pt-guia-card.in-cart { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+.pt-guia-cover { aspect-ratio: 3/4; background: linear-gradient(135deg,#eef2f8,#e2e8f0); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pt-guia-cover img { width: 100%; height: 100%; object-fit: cover; } .pt-guia-cover svg { font-size: 40px; color: #cbd5e1; }
+.pt-guia-body { padding: 12px 14px 6px; flex: 1; } .pt-guia-kicker { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .03em; } .pt-guia-body b { display: block; font-size: 13.5px; color: var(--ink); margin-top: 3px; line-height: 1.3; }
+.pt-guia-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px 14px; }
+.pt-guia-price { font-size: 17px; font-weight: 800; color: var(--ink); }
+.pt-guia-foot .pt-btn { padding: 8px 12px; font-size: 13px; }
+.pt-guia-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; color: var(--muted); font-weight: 700; font-size: 14px; }
+.pt-cart-bar { position: sticky; bottom: 0; margin: 18px -24px -24px; padding: 16px 24px; background: linear-gradient(135deg, var(--navy), var(--navy2)); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-radius: 0 0 22px 22px; }
+.pt-cart-bar b { font-size: 17px; } .pt-cart-actions { display: flex; gap: 10px; }

@@ -7,6 +7,7 @@ import {
   FaClock, FaExclamationCircle, FaDownload, FaRegFilePdf, FaEye, FaShieldAlt,
   FaArrowLeft, FaSpinner, FaMoneyBillWave, FaRegComments, FaUserCircle,
   FaPaperPlane, FaBars, FaFolderOpen, FaRobot, FaBookOpen, FaExternalLinkAlt,
+  FaSearch, FaChevronLeft, FaChevronRight,
 } from 'react-icons/fa';
 import { login, logout } from '../../features/auth/authSlice';
 import axiosWithAuth from '../../utils/axioswithAuth';
@@ -104,31 +105,10 @@ function ProtectedViewer({ docId, onClose }) {
   );
 }
 
-/* Anti-captura: oscurece el contenido al salir de la ventana / cambiar de pestaña
-   y al detectar PrintScreen o Ctrl/Cmd+P. No es infalible (web), pero disuade. */
-function useScreenGuard() {
-  const [hide, setHide] = useState(false);
-  useEffect(() => {
-    const vis = () => setHide(document.hidden);
-    const onBlur = () => setHide(true);
-    const onFocus = () => setHide(false);
-    const onKey = (e) => {
-      if (e.key === 'PrintScreen') { setHide(true); try { navigator.clipboard.writeText(' '); } catch { /* noop */ } setTimeout(() => setHide(document.hidden), 1600); }
-      if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 'p') { e.preventDefault(); setHide(true); setTimeout(() => setHide(document.hidden), 1600); }
-    };
-    document.addEventListener('visibilitychange', vis);
-    window.addEventListener('blur', onBlur); window.addEventListener('focus', onFocus);
-    window.addEventListener('keyup', onKey); window.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('visibilitychange', vis); window.removeEventListener('blur', onBlur); window.removeEventListener('focus', onFocus); window.removeEventListener('keyup', onKey); window.removeEventListener('keydown', onKey); };
-  }, []);
-  return hide;
-}
-
-/* ═══════════ VISOR INLINE (dentro de Documentos) ═══════════ */
-function DocViewerInline({ docId, clientName }) {
+/* ═══════════ VISOR INLINE (dentro de Documentos) — scroll contenido ═══════════ */
+function DocViewerInline({ docId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const guard = useScreenGuard();
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -139,7 +119,6 @@ function DocViewerInline({ docId, clientName }) {
   }, [docId]);
   const noCtx = (e) => e.preventDefault();
   const pages = data?.pages || [];
-  const wm = (clientName || 'TESIPEDIA').toUpperCase();
   if (loading) return <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>;
 
   // Candado por pago: si no ha pagado, no puede ver
@@ -155,15 +134,13 @@ function DocViewerInline({ docId, clientName }) {
   return (
     <div className="pt-inlinedoc" onContextMenu={noCtx}>
       {data?.locked
-        ? <div className="pt-legend"><FaLock /> <span>Lo ves con marca de agua y la sección de referencias oculta. Una vez que estés al corriente con tus pagos podrás <b>descargar el documento completo con su bibliografía</b> y revisarlo sin marca de agua.</span></div>
+        ? <div className="pt-legend"><FaLock /> <span>Lo ves con marca de agua y sin la sección de referencias. Cuando estés al corriente con tus pagos podrás <b>descargar el documento completo con su bibliografía</b> y revisarlo sin marca de agua.</span></div>
         : <div className="pt-legend open"><FaLockOpen /> <span>¡Documento liberado! Ya puedes descargarlo completo con su bibliografía.</span>{data?.download && <a className="pt-btn pt-btn-primary pt-legend-dl" href={data.download}><FaDownload /> Descargar PDF</a>}</div>}
-      <div className={`pt-doc-pages ${guard ? 'guarded' : ''}`}>
-        {guard && <div className="pt-guard-overlay"><FaShieldAlt /> Contenido protegido</div>}
+      <div className="pt-doc-scroll" onContextMenu={noCtx}>
         {pages.length ? pages.map((p, i) => (
           <div className="pt-docpage" key={i}>
-            <span className="pt-page-num">Página {p.page}</span>
+            <span className="pt-page-num">Página {p.page} de {pages.length}</span>
             <img src={p.url} alt={`Página ${p.page}`} draggable={false} onContextMenu={noCtx} loading="lazy" />
-            <div className="pt-wm" aria-hidden>{Array.from({ length: 10 }).map((_, k) => <span key={k}>{wm} · MUESTRA</span>)}</div>
             <div className="pt-page-guard" onContextMenu={noCtx} />
           </div>
         )) : <p className="pt-empty">Tu documento aún no tiene páginas disponibles.</p>}
@@ -290,46 +267,92 @@ function EscanerSection() {
   );
 }
 
-/* ═══════════ GUÍAS (tienda con MercadoPago) ═══════════ */
+/* ═══════════ GUÍAS (tienda: carátulas + buscador + paginación + carrito) ═══════════ */
 function GuiasSection({ email }) {
   const [prods, setProds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState('');
+  const [q, setQ] = useState('');
+  const [page, setPage] = useState(1);
+  const [cart, setCart] = useState([]);
+  const [paying, setPaying] = useState(false);
+  const PER = 9;
   useEffect(() => {
     axiosWithAuth.get('/guias/productos')
       .then((r) => setProds(Array.isArray(r.data) ? r.data : (r.data?.productos || [])))
       .catch(() => {}).finally(() => setLoading(false));
   }, []);
-  const comprar = async (id) => {
-    setBusy(id);
+  useEffect(() => { setPage(1); }, [q]);
+  const norm = (s) => String(s || '').toLowerCase();
+  const filt = prods.filter((p) => !q || norm(`${p.nombre} ${p.kicker} ${p.resumen}`).includes(norm(q)));
+  const nPages = Math.max(1, Math.ceil(filt.length / PER));
+  const items = filt.slice((page - 1) * PER, page * PER);
+  const toggle = (id) => setCart((c) => c.includes(id) ? c.filter((x) => x !== id) : [...c, id]);
+  const cartProds = cart.map((id) => prods.find((p) => p.id === id)).filter(Boolean);
+  const total = cartProds.reduce((t, p) => t + (p.precio || 0), 0);
+  const pagar = async () => {
+    if (!cart.length) return;
+    setPaying(true);
     try {
-      const { data } = await axiosWithAuth.post('/guias/checkout', { productId: id, email: email || '' });
-      if (data?.url) window.location.href = data.url;
-      else setBusy('');
-    } catch { setBusy(''); }
+      const { data } = cart.length === 1
+        ? await axiosWithAuth.post('/guias/checkout', { productId: cart[0], email: email || '' })
+        : await axiosWithAuth.post('/guias/checkout-cart', { items: cart, email: email || '' });
+      if (data?.url) window.location.href = data.url; else setPaying(false);
+    } catch { setPaying(false); }
   };
+
   return (
     <motion.div className="pt-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
       <div className="pt-card-head"><h2>Guías de tesis</h2><small>Paga seguro con MercadoPago y descárgalas al instante</small></div>
-      {loading ? <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>
-        : prods.length ? (
-          <div className="pt-guias-grid">
-            {prods.map((p) => {
-              const id = p.id || p._id; const nombre = p.nombre || p.titulo || p.name || 'Guía';
-              const precio = p.precio ?? p.price ?? p.monto;
-              return (
-                <div key={id} className="pt-guia-card">
-                  <div className="pt-guia-ico"><FaBookOpen /></div>
-                  <div className="pt-guia-info"><b>{nombre}</b>{p.descripcion && <small>{p.descripcion}</small>}</div>
-                  <div className="pt-guia-foot">
-                    <span className="pt-guia-price">{precio != null ? mxn(precio) : ''}</span>
-                    <button className="pt-btn pt-btn-primary" disabled={busy === id} onClick={() => comprar(id)}>{busy === id ? 'Abriendo…' : 'Comprar'}</button>
-                  </div>
-                </div>
-              );
-            })}
+      {loading ? <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div> : (
+        <>
+          <div className="pt-guia-search">
+            <FaSearch />
+            <input placeholder="Buscar guía por nombre o tema…" value={q} onChange={(e) => setQ(e.target.value)} />
+            {q && <button className="pt-guia-clear" onClick={() => setQ('')}>✕</button>}
           </div>
-        ) : <p className="pt-empty">Pronto habrá guías disponibles aquí.</p>}
+          {items.length ? (
+            <div className="pt-guias-grid">
+              {items.map((p) => {
+                const cover = Array.isArray(p.pages) ? p.pages[0] : null;
+                const en = cart.includes(p.id);
+                return (
+                  <div key={p.id} className={`pt-guia-card ${en ? 'in-cart' : ''}`}>
+                    <div className="pt-guia-cover">{cover ? <img src={cover} alt={p.nombre} loading="lazy" /> : <FaBookOpen />}</div>
+                    <div className="pt-guia-body">
+                      {p.kicker && <span className="pt-guia-kicker">{p.kicker}</span>}
+                      <b>{p.nombre}</b>
+                    </div>
+                    <div className="pt-guia-foot">
+                      <span className="pt-guia-price">{p.precio != null ? mxn(p.precio) : ''}</span>
+                      <button className={`pt-btn ${en ? 'pt-btn-ghost-dark' : 'pt-btn-primary'}`} onClick={() => toggle(p.id)}>
+                        {en ? '✓ Agregada' : 'Agregar'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : <p className="pt-empty">Sin resultados para “{q}”.</p>}
+
+          {nPages > 1 && (
+            <div className="pt-guia-pager">
+              <button className="pt-btn pt-btn-ghost-dark" disabled={page === 1} onClick={() => setPage((p) => p - 1)}><FaChevronLeft /></button>
+              <span>Página {page} de {nPages}</span>
+              <button className="pt-btn pt-btn-ghost-dark" disabled={page === nPages} onClick={() => setPage((p) => p + 1)}><FaChevronRight /></button>
+            </div>
+          )}
+        </>
+      )}
+
+      {cart.length > 0 && (
+        <div className="pt-cart-bar">
+          <div><b>{cart.length}</b> guía{cart.length !== 1 ? 's' : ''} · {mxn(total)}</div>
+          <div className="pt-cart-actions">
+            <button className="pt-btn pt-btn-ghost-dark" onClick={() => setCart([])}>Vaciar</button>
+            <button className="pt-btn pt-btn-primary" disabled={paying} onClick={pagar}>{paying ? 'Abriendo…' : `Pagar ${mxn(total)} con MercadoPago`}</button>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
