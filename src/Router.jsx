@@ -79,8 +79,6 @@ const LazyPage = ({ children }) => (
 
 const router = createBrowserRouter(
   [
-    // Portal del cliente — shell propio (sin navbar/footer del sitio), login + dashboard
-    { path: '/portal', element: <LazyPage><ClientPortal /></LazyPage> },
     {
       path: '/',
       element: <MainLayout />, // Público
@@ -151,7 +149,7 @@ const router = createBrowserRouter(
           element: <LazyPage><ClientLayout /></LazyPage>,
           children: [
             { path: 'dashboard', element: <LazyPage><RoleDashboard /></LazyPage> },
-            { path: 'mi-proyecto', element: <Navigate to="/portal" replace /> },
+            { path: 'mi-proyecto', element: <Navigate to="/dashboard" replace /> },
             { path: 'panel-redactor', element: <LazyPage><WriterPanel /></LazyPage> },
           ],
         },

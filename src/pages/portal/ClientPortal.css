@@ -229,3 +229,15 @@
 .pt-guia-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .pt-guia-price { font-size: 18px; font-weight: 800; color: var(--ink); }
 @media (max-width: 640px) { .pt-tools-grid { grid-template-columns: 1fr; } }
+
+/* Candado por pago */
+.pt-doc-locked { text-align: center; padding: 48px 20px; border: 2px dashed var(--line); border-radius: 18px; background: #f8fafc; }
+.pt-doc-locked svg { font-size: 40px; color: #d97706; margin-bottom: 14px; }
+.pt-doc-locked h3 { font-size: 18px; font-weight: 800; color: var(--ink); margin: 0 0 8px; }
+.pt-doc-locked p { color: var(--muted); font-size: 14px; max-width: 420px; margin: 0 auto; line-height: 1.5; }
+
+/* Anti-captura: blur al salir de ventana */
+.pt-doc-pages { position: relative; }
+.pt-doc-pages.guarded > .pt-docpage { filter: blur(18px); transition: filter .12s; }
+.pt-guard-overlay { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #fff; font-weight: 700; background: rgba(10,18,32,.82); border-radius: 12px; }
+.pt-guard-overlay svg { font-size: 34px; }

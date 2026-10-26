@@ -104,10 +104,31 @@ function ProtectedViewer({ docId, onClose }) {
   );
 }
 
+/* Anti-captura: oscurece el contenido al salir de la ventana / cambiar de pestaña
+   y al detectar PrintScreen o Ctrl/Cmd+P. No es infalible (web), pero disuade. */
+function useScreenGuard() {
+  const [hide, setHide] = useState(false);
+  useEffect(() => {
+    const vis = () => setHide(document.hidden);
+    const onBlur = () => setHide(true);
+    const onFocus = () => setHide(false);
+    const onKey = (e) => {
+      if (e.key === 'PrintScreen') { setHide(true); try { navigator.clipboard.writeText(' '); } catch { /* noop */ } setTimeout(() => setHide(document.hidden), 1600); }
+      if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 'p') { e.preventDefault(); setHide(true); setTimeout(() => setHide(document.hidden), 1600); }
+    };
+    document.addEventListener('visibilitychange', vis);
+    window.addEventListener('blur', onBlur); window.addEventListener('focus', onFocus);
+    window.addEventListener('keyup', onKey); window.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('visibilitychange', vis); window.removeEventListener('blur', onBlur); window.removeEventListener('focus', onFocus); window.removeEventListener('keyup', onKey); window.removeEventListener('keydown', onKey); };
+  }, []);
+  return hide;
+}
+
 /* ═══════════ VISOR INLINE (dentro de Documentos) ═══════════ */
 function DocViewerInline({ docId, clientName }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const guard = useScreenGuard();
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -120,12 +141,24 @@ function DocViewerInline({ docId, clientName }) {
   const pages = data?.pages || [];
   const wm = (clientName || 'TESIPEDIA').toUpperCase();
   if (loading) return <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>;
+
+  // Candado por pago: si no ha pagado, no puede ver
+  if (data?.cannotView) {
+    return (
+      <div className="pt-doc-locked">
+        <FaLock />
+        <h3>Documento bloqueado</h3>
+        <p>{data.message || 'Realiza tu primer pago para desbloquear la lectura de tu documento.'}</p>
+      </div>
+    );
+  }
   return (
     <div className="pt-inlinedoc" onContextMenu={noCtx}>
       {data?.locked
-        ? <div className="pt-legend"><FaLock /> <span>Una vez que estés al corriente con tus pagos podrás <b>descargar el documento con la bibliografía correspondiente</b> y revisarlo completamente, sin marca de agua.</span></div>
+        ? <div className="pt-legend"><FaLock /> <span>Lo ves con marca de agua y la sección de referencias oculta. Una vez que estés al corriente con tus pagos podrás <b>descargar el documento completo con su bibliografía</b> y revisarlo sin marca de agua.</span></div>
         : <div className="pt-legend open"><FaLockOpen /> <span>¡Documento liberado! Ya puedes descargarlo completo con su bibliografía.</span>{data?.download && <a className="pt-btn pt-btn-primary pt-legend-dl" href={data.download}><FaDownload /> Descargar PDF</a>}</div>}
-      <div className="pt-doc-pages">
+      <div className={`pt-doc-pages ${guard ? 'guarded' : ''}`}>
+        {guard && <div className="pt-guard-overlay"><FaShieldAlt /> Contenido protegido</div>}
         {pages.length ? pages.map((p, i) => (
           <div className="pt-docpage" key={i}>
             <span className="pt-page-num">Página {p.page}</span>

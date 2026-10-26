@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import WriterPanel from '../../pages/Writer/WriterPanel';
+import ClientPortal from '../../pages/portal/ClientPortal';
 
 const RoleDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -10,8 +11,8 @@ const RoleDashboard = () => {
   const role = user?.role;
   if (role === 'admin' || role === 'superadmin') return <Navigate to="/admin" replace />;
   if (role === 'writer' || role === 'redactor') return <WriterPanel />;
-  // Los clientes caen en el PORTAL nuevo (rediseño: pagos + documentos + visor + chat)
-  return <Navigate to="/portal" replace />;
+  // El cliente ve su dashboard directamente tras el login NORMAL (sin ruta /portal aparte)
+  return <ClientPortal />;
 };
 
 export default RoleDashboard;
