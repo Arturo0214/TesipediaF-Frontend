@@ -151,7 +151,7 @@ const router = createBrowserRouter(
           element: <LazyPage><ClientLayout /></LazyPage>,
           children: [
             { path: 'dashboard', element: <LazyPage><RoleDashboard /></LazyPage> },
-            { path: 'mi-proyecto', element: <LazyPage><ClientPanel /></LazyPage> },
+            { path: 'mi-proyecto', element: <Navigate to="/portal" replace /> },
             { path: 'panel-redactor', element: <LazyPage><WriterPanel /></LazyPage> },
           ],
         },
