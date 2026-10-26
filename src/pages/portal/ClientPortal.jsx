@@ -105,10 +105,14 @@ function ProtectedViewer({ docId, onClose }) {
   );
 }
 
-/* ═══════════ VISOR INLINE (dentro de Documentos) — scroll contenido ═══════════ */
+/* ═══════════ VISOR TIPO PDF (miniaturas + navegación + zoom) ═══════════ */
 function DocViewerInline({ docId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [zoom, setZoom] = useState(1);
+  const [cur, setCur] = useState(1);
+  const mainRef = useRef(null);
+  const pageRefs = useRef({});
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -119,31 +123,57 @@ function DocViewerInline({ docId }) {
   }, [docId]);
   const noCtx = (e) => e.preventDefault();
   const pages = data?.pages || [];
+  const goto = (n) => pageRefs.current[n]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const onScroll = () => {
+    const el = mainRef.current; if (!el) return;
+    const mid = el.scrollTop + el.clientHeight * 0.4;
+    let best = 1, bestD = Infinity;
+    for (const p of pages) { const pe = pageRefs.current[p.page]; if (pe) { const c = pe.offsetTop + pe.offsetHeight / 2; const d = Math.abs(c - mid); if (d < bestD) { bestD = d; best = p.page; } } }
+    setCur(best);
+  };
   if (loading) return <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>;
-
-  // Candado por pago: si no ha pagado, no puede ver
   if (data?.cannotView) {
     return (
-      <div className="pt-doc-locked">
-        <FaLock />
-        <h3>Documento bloqueado</h3>
-        <p>{data.message || 'Realiza tu primer pago para desbloquear la lectura de tu documento.'}</p>
-      </div>
+      <div className="pt-doc-locked"><FaLock /><h3>Documento bloqueado</h3>
+        <p>{data.message || 'Realiza tu primer pago para desbloquear la lectura de tu documento.'}</p></div>
     );
   }
   return (
-    <div className="pt-inlinedoc" onContextMenu={noCtx}>
+    <div className="pt-pdf" onContextMenu={noCtx}>
       {data?.locked
-        ? <div className="pt-legend"><FaLock /> <span>Lo ves con marca de agua y sin la sección de referencias. Cuando estés al corriente con tus pagos podrás <b>descargar el documento completo con su bibliografía</b> y revisarlo sin marca de agua.</span></div>
-        : <div className="pt-legend open"><FaLockOpen /> <span>¡Documento liberado! Ya puedes descargarlo completo con su bibliografía.</span>{data?.download && <a className="pt-btn pt-btn-primary pt-legend-dl" href={data.download}><FaDownload /> Descargar PDF</a>}</div>}
-      <div className="pt-doc-scroll" onContextMenu={noCtx}>
-        {pages.length ? pages.map((p, i) => (
-          <div className="pt-docpage" key={i}>
-            <span className="pt-page-num">Página {p.page} de {pages.length}</span>
-            <img src={p.url} alt={`Página ${p.page}`} draggable={false} onContextMenu={noCtx} loading="lazy" />
-            <div className="pt-page-guard" onContextMenu={noCtx} />
-          </div>
-        )) : <p className="pt-empty">Tu documento aún no tiene páginas disponibles.</p>}
+        ? <div className="pt-legend"><FaLock /> <span>Lo ves con marca de agua y sin referencias. Cuando estés al corriente con tus pagos podrás <b>descargar el documento completo con su bibliografía</b> sin marca de agua.</span></div>
+        : <div className="pt-legend open"><FaLockOpen /> <span>¡Documento liberado! Ya puedes descargarlo completo.</span>{data?.download && <a className="pt-btn pt-btn-primary pt-legend-dl" href={data.download}><FaDownload /> Descargar PDF</a>}</div>}
+
+      <div className="pt-pdf-toolbar">
+        <div className="pt-pdf-nav">
+          <button onClick={() => goto(Math.max(1, cur - 1))} disabled={cur <= 1}><FaChevronLeft /></button>
+          <span className="pt-pdf-page">{cur} / {pages.length}</span>
+          <button onClick={() => goto(Math.min(pages.length, cur + 1))} disabled={cur >= pages.length}><FaChevronRight /></button>
+        </div>
+        <div className="pt-pdf-zoom">
+          <button onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))}>−</button>
+          <span>{Math.round(zoom * 100)}%</span>
+          <button onClick={() => setZoom((z) => Math.min(2, +(z + 0.15).toFixed(2)))}>+</button>
+        </div>
+      </div>
+
+      <div className="pt-pdf-body">
+        <div className="pt-pdf-thumbs">
+          {pages.map((p) => (
+            <button key={p.page} className={`pt-pdf-thumb ${cur === p.page ? 'active' : ''}`} onClick={() => goto(p.page)}>
+              <img src={p.url} alt="" loading="lazy" draggable={false} />
+              <span>{p.page}</span>
+            </button>
+          ))}
+        </div>
+        <div className="pt-pdf-main" ref={mainRef} onScroll={onScroll}>
+          {pages.length ? pages.map((p) => (
+            <div key={p.page} className="pt-pdf-page" ref={(el) => { pageRefs.current[p.page] = el; }} style={{ maxWidth: `${Math.round(760 * zoom)}px` }}>
+              <img src={p.url} alt={`Página ${p.page}`} draggable={false} onContextMenu={noCtx} loading="lazy" />
+              <div className="pt-page-guard" onContextMenu={noCtx} />
+            </div>
+          )) : <p className="pt-empty">Tu documento aún no tiene páginas disponibles.</p>}
+        </div>
       </div>
     </div>
   );
