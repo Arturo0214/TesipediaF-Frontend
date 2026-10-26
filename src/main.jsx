@@ -17,6 +17,9 @@ import './assets/styles/design-system.css';
 // El único consumidor (VentasPorVendedor) registra sus propios componentes de Chart.js.
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// react-hot-toast: lo usan ProyectosBoard y varias páginas admin. Sin este <Toaster />
+// sus toasts (errores y éxitos) NO se mostraban → fallos "silenciosos".
+import { Toaster } from 'react-hot-toast';
 
 // Inicializar Google Analytics
 initGA();
@@ -31,6 +34,7 @@ const app = (
       <PersistGate loading={null} persistor={persistor}>
         <HelmetProvider>
           <RouterProvider router={Router} />
+          <Toaster position="top-right" toastOptions={{ duration: 4000, style: { zIndex: 99999 } }} containerStyle={{ zIndex: 99999 }} />
           <ToastContainer
             position="top-right"
             autoClose={5000}
