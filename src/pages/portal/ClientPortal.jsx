@@ -104,6 +104,41 @@ function ProtectedViewer({ docId, onClose }) {
   );
 }
 
+/* ═══════════ VISOR INLINE (dentro de Documentos) ═══════════ */
+function DocViewerInline({ docId, clientName }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try { const { data } = await axiosWithAuth.get(`/portal/documents/${docId}`); if (alive) { setData(data); setLoading(false); } }
+      catch { if (alive) setLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, [docId]);
+  const noCtx = (e) => e.preventDefault();
+  const pages = data?.pages || [];
+  const wm = (clientName || 'TESIPEDIA').toUpperCase();
+  if (loading) return <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>;
+  return (
+    <div className="pt-inlinedoc" onContextMenu={noCtx}>
+      {data?.locked
+        ? <div className="pt-legend"><FaLock /> <span>Una vez que estés al corriente con tus pagos podrás <b>descargar el documento con la bibliografía correspondiente</b> y revisarlo completamente, sin marca de agua.</span></div>
+        : <div className="pt-legend open"><FaLockOpen /> <span>¡Documento liberado! Ya puedes descargarlo completo con su bibliografía.</span>{data?.download && <a className="pt-btn pt-btn-primary pt-legend-dl" href={data.download}><FaDownload /> Descargar PDF</a>}</div>}
+      <div className="pt-doc-pages">
+        {pages.length ? pages.map((p, i) => (
+          <div className="pt-docpage" key={i}>
+            <span className="pt-page-num">Página {p.page}</span>
+            <img src={p.url} alt={`Página ${p.page}`} draggable={false} onContextMenu={noCtx} loading="lazy" />
+            <div className="pt-wm" aria-hidden>{Array.from({ length: 10 }).map((_, k) => <span key={k}>{wm} · MUESTRA</span>)}</div>
+            <div className="pt-page-guard" onContextMenu={noCtx} />
+          </div>
+        )) : <p className="pt-empty">Tu documento aún no tiene páginas disponibles.</p>}
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════ COMENTARIOS ═══════════ */
 function Comentarios() {
   const [items, setItems] = useState([]);
@@ -149,6 +184,146 @@ function Comentarios() {
   );
 }
 
+/* Cambiar contraseña */
+function ChangePassword() {
+  const [actual, setActual] = useState('');
+  const [nueva, setNueva] = useState('');
+  const [conf, setConf] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const submit = async () => {
+    setMsg(null);
+    if (nueva.length < 6) { setMsg({ err: true, t: 'La nueva contraseña debe tener al menos 6 caracteres' }); return; }
+    if (nueva !== conf) { setMsg({ err: true, t: 'Las contraseñas no coinciden' }); return; }
+    setSaving(true);
+    try { await axiosWithAuth.post('/portal/change-password', { actual, nueva }); setMsg({ err: false, t: '¡Contraseña actualizada! ✅' }); setActual(''); setNueva(''); setConf(''); }
+    catch (e) { setMsg({ err: true, t: e.response?.data?.message || 'No se pudo cambiar la contraseña' }); }
+    finally { setSaving(false); }
+  };
+  return (
+    <div className="pt-pwd">
+      <h3>Cambiar contraseña</h3>
+      <div className="pt-pwd-grid">
+        <input type="password" placeholder="Contraseña actual" value={actual} onChange={(e) => setActual(e.target.value)} autoComplete="current-password" />
+        <input type="password" placeholder="Nueva contraseña" value={nueva} onChange={(e) => setNueva(e.target.value)} autoComplete="new-password" />
+        <input type="password" placeholder="Confirmar nueva contraseña" value={conf} onChange={(e) => setConf(e.target.value)} autoComplete="new-password" />
+      </div>
+      {msg && <div className={`pt-pwd-msg ${msg.err ? 'err' : 'ok'}`}>{msg.t}</div>}
+      <button className="pt-btn pt-btn-primary" disabled={saving || !nueva} onClick={submit}>
+        {saving ? <><FaSpinner className="pt-spin" /> Guardando…</> : 'Actualizar contraseña'}
+      </button>
+    </div>
+  );
+}
+
+/* ═══════════ ESCÁNER (anti-IA / antiplagio) ═══════════ */
+function EscanerSection() {
+  const [sent, setSent] = useState('');
+  const [busy, setBusy] = useState('');
+  const solicitar = async (tipo, precio) => {
+    setBusy(tipo);
+    try {
+      await axiosWithAuth.post('/portal/messages', { text: `🔍 Solicito *${tipo}* — $${precio} MXN. Por favor envíenme el enlace de pago y las instrucciones para mi revisión.` });
+      setSent(tipo);
+    } catch { /* noop */ } finally { setBusy(''); }
+  };
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="pt-card">
+        <div className="pt-card-head"><h2>Escáner anti-IA y antiplagio</h2><small>Revisa tu documento antes de entregarlo</small></div>
+        <p className="pt-empty" style={{ marginBottom: 18 }}>Elige el tipo de revisión. Al solicitarla, tu equipo te envía el enlace de pago y procesa tu escaneo.</p>
+        <div className="pt-tools-grid">
+          <div className="pt-tool-card">
+            <div className="pt-tool-ico blue"><FaRobot /></div>
+            <h3>Escáner local</h3>
+            <p>Detección anti-IA + antiplagio con nuestro motor. Revisión rápida y confiable.</p>
+            <div className="pt-tool-price">$100 <small>MXN</small></div>
+            {sent === 'Escáner local'
+              ? <div className="pt-tool-done">✅ Solicitud enviada. Te contactamos con el pago.</div>
+              : <button className="pt-btn pt-btn-primary pt-btn-block" disabled={!!busy} onClick={() => solicitar('Escáner local', 100)}>{busy === 'Escáner local' ? 'Enviando…' : 'Solicitar — $100'}</button>}
+          </div>
+          <div className="pt-tool-card">
+            <div className="pt-tool-ico purple"><FaShieldAlt /></div>
+            <h3>Compilatio Studium</h3>
+            <p>Revisión profesional con Compilatio Studium: reporte oficial de similitud.</p>
+            <div className="pt-tool-price">$500 <small>MXN / revisión</small></div>
+            {sent === 'Compilatio Studium'
+              ? <div className="pt-tool-done">✅ Solicitud enviada. Te contactamos con el pago.</div>
+              : <button className="pt-btn pt-btn-primary pt-btn-block" disabled={!!busy} onClick={() => solicitar('Compilatio Studium', 500)}>{busy === 'Compilatio Studium' ? 'Enviando…' : 'Solicitar — $500'}</button>}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ═══════════ GUÍAS (tienda con MercadoPago) ═══════════ */
+function GuiasSection({ email }) {
+  const [prods, setProds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState('');
+  useEffect(() => {
+    axiosWithAuth.get('/guias/productos')
+      .then((r) => setProds(Array.isArray(r.data) ? r.data : (r.data?.productos || [])))
+      .catch(() => {}).finally(() => setLoading(false));
+  }, []);
+  const comprar = async (id) => {
+    setBusy(id);
+    try {
+      const { data } = await axiosWithAuth.post('/guias/checkout', { productId: id, email: email || '' });
+      if (data?.url) window.location.href = data.url;
+      else setBusy('');
+    } catch { setBusy(''); }
+  };
+  return (
+    <motion.div className="pt-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="pt-card-head"><h2>Guías de tesis</h2><small>Paga seguro con MercadoPago y descárgalas al instante</small></div>
+      {loading ? <div className="pt-center"><FaSpinner className="pt-spin pt-big" /></div>
+        : prods.length ? (
+          <div className="pt-guias-grid">
+            {prods.map((p) => {
+              const id = p.id || p._id; const nombre = p.nombre || p.titulo || p.name || 'Guía';
+              const precio = p.precio ?? p.price ?? p.monto;
+              return (
+                <div key={id} className="pt-guia-card">
+                  <div className="pt-guia-ico"><FaBookOpen /></div>
+                  <div className="pt-guia-info"><b>{nombre}</b>{p.descripcion && <small>{p.descripcion}</small>}</div>
+                  <div className="pt-guia-foot">
+                    <span className="pt-guia-price">{precio != null ? mxn(precio) : ''}</span>
+                    <button className="pt-btn pt-btn-primary" disabled={busy === id} onClick={() => comprar(id)}>{busy === id ? 'Abriendo…' : 'Comprar'}</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : <p className="pt-empty">Pronto habrá guías disponibles aquí.</p>}
+    </motion.div>
+  );
+}
+
+/* Anillo de progreso animado */
+function Ring({ pct = 0, size = 118, stroke = 11 }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const off = c - (Math.max(0, Math.min(100, pct)) / 100) * c;
+  const mid = size / 2;
+  return (
+    <svg width={size} height={size} className="pt-ring" viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        <linearGradient id="ptRingGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#60a5fa" /><stop offset="100%" stopColor="#34d399" />
+        </linearGradient>
+      </defs>
+      <circle cx={mid} cy={mid} r={r} stroke="rgba(255,255,255,.16)" strokeWidth={stroke} fill="none" />
+      <circle cx={mid} cy={mid} r={r} stroke="url(#ptRingGrad)" strokeWidth={stroke} fill="none"
+        strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round"
+        transform={`rotate(-90 ${mid} ${mid})`} style={{ transition: 'stroke-dashoffset 1s ease' }} />
+      <text x="50%" y="48%" textAnchor="middle" dominantBaseline="central" fill="#fff" fontSize="26" fontWeight="800">{pct}%</text>
+      <text x="50%" y="63%" textAnchor="middle" dominantBaseline="central" fill="#cfe0ff" fontSize="11" fontWeight="600">pagado</text>
+    </svg>
+  );
+}
+
 /* ═══════════ DASHBOARD ═══════════ */
 const NAV = [
   { k: 'proyecto', label: 'Mi proyecto', icon: FaFolderOpen },
@@ -158,9 +333,10 @@ const NAV = [
   { k: 'perfil', label: 'Mi perfil', icon: FaUserCircle },
 ];
 const TOOLS = [
-  { label: 'Detector de IA', icon: FaRobot, href: '/detector-ia-tesis' },
-  { label: 'Guías de tesis', icon: FaBookOpen, href: '/guias' },
+  { k: 'escaner', label: 'Escáner anti-IA', icon: FaRobot },
+  { k: 'guias', label: 'Guías de tesis', icon: FaBookOpen },
 ];
+const ALL_NAV = [...NAV, ...TOOLS];
 
 function PortalDashboard() {
   const dispatch = useDispatch();
@@ -170,6 +346,7 @@ function PortalDashboard() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDoc, setOpenDoc] = useState(null);
+  const [docSel, setDocSel] = useState(null);
   const [navOpen, setNavOpen] = useState(false);
 
   const load = useCallback(async () => {
@@ -214,9 +391,9 @@ function PortalDashboard() {
         ))}
         <div className="pt-side-group">Herramientas</div>
         {TOOLS.map((t) => (
-          <a key={t.label} className="pt-side-link" href={t.href} target="_blank" rel="noreferrer">
-            <t.icon /> {t.label} <FaExternalLinkAlt className="pt-side-ext" />
-          </a>
+          <button key={t.k} className={`pt-side-link ${sec === t.k ? 'active' : ''}`} onClick={() => { setSec(t.k); setNavOpen(false); }}>
+            <t.icon /> {t.label}
+          </button>
         ))}
       </div>
       <button className="pt-side-logout" onClick={() => dispatch(logout())}><FaSignOutAlt /> Cerrar sesión</button>
@@ -230,7 +407,7 @@ function PortalDashboard() {
       <div className="pt-content">
         <header className="pt-appbar">
           <button className="pt-hamb" onClick={() => setNavOpen(true)}><FaBars /></button>
-          <span className="pt-appbar-title">{NAV.find((n) => n.k === sec)?.label}</span>
+          <span className="pt-appbar-title">{ALL_NAV.find((n) => n.k === sec)?.label}</span>
           <a className="pt-btn pt-btn-wa pt-appbar-wa" href="https://wa.me/5215583352096" target="_blank" rel="noreferrer"><FaWhatsapp /> <span>WhatsApp</span></a>
         </header>
 
@@ -241,12 +418,17 @@ function PortalDashboard() {
               {sec === 'proyecto' && (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
                   <section className="pt-hero">
-                    <div>
+                    <div className="pt-hero-glow" />
+                    <div className="pt-hero-main">
                       <span className="pt-hero-hi">Hola, {saludo} 👋</span>
                       <h1>{proj?.taskTitle || 'Tu proyecto'}</h1>
                       {proj && <p>{proj.taskType || ''}{proj.educationLevel ? ` · ${proj.educationLevel}` : ''}{proj.pages ? ` · ${proj.pages} págs.` : ''}</p>}
+                      <div className="pt-hero-chips">
+                        {proj?.dueDate && <span className="pt-hero-chip">📅 Entrega acordada · {fmtDate(proj.dueDate)}</span>}
+                        <span className="pt-hero-chip">{proj?.status === 'completed' ? '✅ Terminado' : '⏳ En curso'}</span>
+                      </div>
                     </div>
-                    {proj?.dueDate && <div className="pt-hero-due"><small>Entrega acordada</small><b>{fmtDate(proj.dueDate)}</b></div>}
+                    <div className="pt-hero-ring"><Ring pct={pct} /></div>
                   </section>
                   <div className="pt-stats">
                     <div className="pt-stat"><span className="pt-stat-ico green"><FaCheckCircle /></span><div><b>{pct}%</b><small>Pagado</small></div></div>
@@ -254,22 +436,12 @@ function PortalDashboard() {
                     <div className="pt-stat"><span className="pt-stat-ico purple"><FaRegFilePdf /></span><div><b>{docs.length}</b><small>Archivo{docs.length !== 1 ? 's' : ''}</small></div></div>
                     <div className="pt-stat"><span className="pt-stat-ico blue"><FaFolderOpen /></span><div><b>{proj?.status === 'completed' ? 'Listo' : 'En curso'}</b><small>Estado</small></div></div>
                   </div>
-                  <div className="pt-card">
-                    <div className="pt-card-head"><h2>Línea de tiempo del proyecto</h2><small>Archivos subidos y entregas acordadas</small></div>
-                    {eventos.length ? (
-                      <div className="pt-timeline">
-                        {eventos.map((e, i) => (
-                          <div key={i} className={`pt-tl-item ${e.tipo}`}>
-                            <span className="pt-tl-dot">{e.icon}</span>
-                            <div className="pt-tl-body">
-                              <b>{e.titulo}</b>
-                              <small>{fmtDate(e.date)}{e.sub ? ` · ${e.sub}` : ''}</small>
-                              {e.docId && <button className="pt-tl-open" onClick={() => setOpenDoc(e.docId)}><FaEye /> Ver documento</button>}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : <p className="pt-empty">Los eventos de tu proyecto (archivos y entregas) aparecerán aquí.</p>}
+                  <div className="pt-card pt-cta">
+                    <div>
+                      <h2>Tu documento y avances</h2>
+                      <p className="pt-empty">Revisa tu documento completo (con marca de agua) y la línea de tiempo de tus archivos y entregas en la sección Documentos.</p>
+                    </div>
+                    <button className="pt-btn pt-btn-primary" onClick={() => setSec('documentos')}><FaFolderOpen /> Ir a Documentos</button>
                   </div>
                 </motion.div>
               )}
@@ -297,21 +469,55 @@ function PortalDashboard() {
                 </motion.div>
               )}
 
-              {/* ── DOCUMENTOS ── */}
-              {sec === 'documentos' && (
-                <motion.div className="pt-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                  <div className="pt-card-head"><h2>Mis documentos</h2><small>Toca para leer tu documento completo</small></div>
-                  <div className="pt-doc-list">
-                    {docs.length ? docs.map((d) => (
-                      <button key={d.id} className="pt-doc" onClick={() => setOpenDoc(d.id)}>
-                        <span className="pt-doc-ico"><FaRegFilePdf /></span>
-                        <div className="pt-doc-info"><b>{d.title}</b><small>{d.visiblePages} página{d.visiblePages !== 1 ? 's' : ''} · subido {fmtDate(d.createdAt)} · {d.locked ? 'con marca de agua' : 'liberado'}</small></div>
-                        <span className={`pt-doc-badge ${d.locked ? 'lock' : 'open'}`}>{d.locked ? <FaLock /> : <FaLockOpen />} <FaEye /></span>
-                      </button>
-                    )) : <div className="pt-empty-docs"><FaFileAlt /><p>Aún no hay documentos. Cuando tu equipo suba tu avance, aparecerá aquí.</p></div>}
-                  </div>
-                </motion.div>
-              )}
+              {/* ── DOCUMENTOS (línea de tiempo + visor inline con marca de agua + leyenda) ── */}
+              {sec === 'documentos' && (() => {
+                const selId = docSel || docs[0]?.id;
+                const selMeta = docs.find((d) => d.id === selId);
+                return (
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                    {/* Línea de tiempo: archivos subidos vs entregas acordadas */}
+                    <div className="pt-card">
+                      <div className="pt-card-head"><h2>Línea de tiempo</h2><small>Cada archivo subido y las entregas acordadas</small></div>
+                      {eventos.length ? (
+                        <div className="pt-timeline">
+                          {eventos.map((e, i) => (
+                            <div key={i} className={`pt-tl-item ${e.tipo}`}>
+                              <span className="pt-tl-dot">{e.icon}</span>
+                              <div className="pt-tl-body">
+                                <b>{e.titulo}</b>
+                                <small>{fmtDate(e.date)}{e.sub ? ` · ${e.sub}` : ''}</small>
+                                {e.docId && <button className="pt-tl-open" onClick={() => { setDocSel(e.docId); }}><FaEye /> Ver este archivo</button>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : <p className="pt-empty">Los archivos subidos y las entregas acordadas aparecerán aquí.</p>}
+                    </div>
+
+                    {/* Documento con visor inline (marca de agua + leyenda) */}
+                    <div className="pt-card">
+                      <div className="pt-card-head">
+                        <h2>{selMeta?.title || 'Mi documento'}</h2>
+                        {selMeta && <small>{selMeta.visiblePages} páginas · subido {fmtDate(selMeta.createdAt)}</small>}
+                      </div>
+                      {docs.length ? (
+                        <>
+                          {docs.length > 1 && (
+                            <div className="pt-doc-tabs">
+                              {docs.map((d) => (
+                                <button key={d.id} className={`pt-doc-tab ${selId === d.id ? 'active' : ''}`} onClick={() => setDocSel(d.id)}>
+                                  <FaRegFilePdf /> {d.title}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {selId && <DocViewerInline docId={selId} clientName={user?.name} />}
+                        </>
+                      ) : <div className="pt-empty-docs"><FaFileAlt /><p>Aún no hay documentos. Cuando tu equipo suba tu avance, aparecerá aquí para que lo revises.</p></div>}
+                    </div>
+                  </motion.div>
+                );
+              })()}
 
               {/* ── COMENTARIOS ── */}
               {sec === 'comentarios' && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><Comentarios /></motion.div>}
@@ -327,8 +533,16 @@ function PortalDashboard() {
                     {user?.phone && <div className="pt-profile-row"><small>Teléfono</small><b>{user.phone}</b></div>}
                   </div>
                   <p className="pt-empty" style={{ marginTop: 12 }}>¿Necesitas cambiar un dato? Escríbenos por WhatsApp o déjalo en Comentarios.</p>
+                  <div className="pt-divider" />
+                  <ChangePassword />
                 </motion.div>
               )}
+
+              {/* ── ESCÁNER ── */}
+              {sec === 'escaner' && <EscanerSection />}
+
+              {/* ── GUÍAS ── */}
+              {sec === 'guias' && <GuiasSection email={user?.email} />}
             </>
           )}
         </main>
