@@ -315,7 +315,14 @@ export default function ProyectosBoard() {
       if (entregaFilter === 'desahogados') {
         if (!r.entregado) return false; // historial completo: pendientes de envío + ya enviados
       } else {
-      if (statusFilter === 'activos' && r.status === 'completado') return false;
+      // Al ver un bucket de fecha (Hoy/Mañana…), un 'completado' CON entrega pendiente
+      // hoy/futuro NO se excluye por el filtro "Activos": así el número de la tarjeta y
+      // la lista COINCIDEN (bug "dice 5 pero veo 3"). Fuera de un bucket no cambia nada.
+      const esBucketFecha = entregaFilter && entregaFilter !== 'desahogados';
+      const dRow = diasHasta(r.fechaEntrega);
+      const completadoConPendiente = esBucketFecha && r.status === 'completado'
+        && dRow !== null && dRow >= 0 && !(r.entregado && !r.entregaEnviada);
+      if (statusFilter === 'activos' && r.status === 'completado' && !completadoConPendiente) return false;
       if (statusFilter !== 'activos' && statusFilter !== 'todos' && r.status !== statusFilter) return false;
       if (yearFilter !== 'todos') {
         if (!r.fechaEntrega) return false;
