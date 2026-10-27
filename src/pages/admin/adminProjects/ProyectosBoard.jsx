@@ -705,6 +705,7 @@ export default function ProyectosBoard() {
     const row = rows.find((r) => String(r.id) === String(nueva.rowId)) || nueva.leadInfo;
     if (!row || !nueva.rowId) { toast.error('Selecciona el lead'); return; }
     if (!nueva.paraCuando) { toast.error('Pon la fecha de entrega (¿para cuándo es?)'); return; }
+    let paso = 'inicio';
     setSaving(true);
     try {
       const catLbl = CATEGORIAS_ENTREGA.find((c) => c.k === nueva.categoria)?.l || '';
@@ -713,9 +714,14 @@ export default function ProyectosBoard() {
         nueva.quePidio ? `Pidió: ${nueva.quePidio}` : 'Entrega agendada',
         nueva.cuandoPidio ? `(lo pidió el ${fmtFecha(`${nueva.cuandoPidio}T12:00:00`)})` : '',
       ].filter(Boolean).join(' ');
+      // 🔎 LOG: todo lo que mandamos, para cazar el error "no se pone la entrega"
+      console.log('[+Entrega] ENVIANDO', { rowId: nueva.rowId, cliente: row.cliente, texto, fechaEntrega: nueva.paraCuando });
+      paso = 'guardar acuerdo/fecha (addAcuerdo)';
       const { acuerdos, fechaEntrega } = await addAcuerdo('quote', nueva.rowId, { texto, fechaEntrega: nueva.paraCuando });
+      console.log('[+Entrega] ✅ acuerdo guardado', { fechaEntrega, nAcuerdos: acuerdos?.length });
       patchRow(nueva.rowId, { acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null, fechaEntrega: fechaEntrega || `${nueva.paraCuando}T12:00:00` });
       if (nueva.nota.trim()) {
+        paso = 'guardar nota (addNota)';
         const { notas } = await addNota('quote', nueva.rowId, nueva.nota.trim());
         patchRow(nueva.rowId, { notas });
       }
@@ -753,13 +759,20 @@ export default function ProyectosBoard() {
       // Hoy/Próximos con el estado real (el backend reabre entregado/correcciones al
       // agendar, y un lead remoto ni siquiera estaba en el board). Sin esto, agendar
       // a un cliente ya pagado/entregado "no se marcaba" por quedar como completado.
+      paso = 'recargar tablero (fetchAll)';
       await fetchAll({ silent: true });
+      console.log('[+Entrega] ✅ COMPLETADO y tablero recargado');
       setShowNueva(false);
       setNueva({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '', leadInfo: null });
       setNuevaFiles([]);
       setLeadRemoto([]);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'No se pudo guardar la entrega');
+      // 🔎 Error DETALLADO y visible: paso exacto + código HTTP + mensaje del servidor.
+      const status = err?.response?.status;
+      const serverMsg = err?.response?.data?.message;
+      console.error('[+Entrega] ❌ FALLÓ en el paso:', paso, { status, serverMsg, url: err?.config?.url, err });
+      const detalle = [serverMsg, status ? `HTTP ${status}` : null].filter(Boolean).join(' · ');
+      toast.error(`No se pudo guardar la entrega — paso: "${paso}"${detalle ? `\n${detalle}` : '\n(sin respuesta del servidor — revisa conexión/sesión)'}`, { duration: 12000 });
     } finally { setSaving(false); }
   };
 
