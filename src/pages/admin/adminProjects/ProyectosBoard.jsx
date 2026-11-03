@@ -148,6 +148,8 @@ export default function ProyectosBoard() {
   const [showNueva, setShowNueva] = useState(false);
   const [nueva, setNueva] = useState({ rowId: null, query: '', categoria: '', quePidio: '', cuandoPidio: '', paraCuando: '', hora: '10:00', nota: '', leadInfo: null });
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
+  const [dragOver, setDragOver] = useState(false);   // dropzone de "Archivos del proyecto"
+  const [dropRol, setDropRol] = useState('final');   // 'final' = va al portal del cliente | 'soporte' = interno
   const [leadRemoto, setLeadRemoto] = useState([]); // resultados de búsqueda server-side (cualquier status)
   const [buscandoLead, setBuscandoLead] = useState(false);
   // Acceso del cliente al portal (credenciales reveladas por el admin)
@@ -1165,10 +1167,39 @@ export default function ProyectosBoard() {
               </div>
             </div>
 
-            {/* Archivos — todos */}
+            {/* Archivos — todos (subida directa por arrastrar/soltar) */}
             <div className="pb-panel">
               <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).length})</h4>
-              {(detail.archivos || []).length === 0 && <div className="pb-faint">Sin archivos. Se cargan desde Seguimiento.</div>}
+
+              {/* Selector de rol: FINAL se libera al cliente en su portal (al 2º pago) */}
+              <div className="pb-drop-rol">
+                <label className={dropRol === 'final' ? 'on' : ''}>
+                  <input type="radio" name="dropRol" checked={dropRol === 'final'} onChange={() => setDropRol('final')} />
+                  Final — lo ve el cliente
+                </label>
+                <label className={dropRol === 'soporte' ? 'on' : ''}>
+                  <input type="radio" name="dropRol" checked={dropRol === 'soporte'} onChange={() => setDropRol('soporte')} />
+                  Soporte — interno
+                </label>
+              </div>
+
+              {/* Dropzone */}
+              <label
+                className={`pb-dropzone ${dragOver ? 'over' : ''} ${saving ? 'busy' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUploadEntregables(detail, e.dataTransfer.files, dropRol); }}
+              >
+                <input type="file" multiple hidden disabled={saving}
+                  onChange={(e) => { handleUploadEntregables(detail, e.target.files, dropRol); e.target.value = ''; }} />
+                <FaCloudUploadAlt className="pb-dropzone-ic" />
+                <span>{saving ? 'Subiendo…' : 'Arrastra archivos aquí o haz clic para subir'}</span>
+                <small>{dropRol === 'final'
+                  ? 'Se liberará al cliente en su portal al realizar su 2º pago.'
+                  : 'Archivo interno de soporte (no lo ve el cliente).'}</small>
+              </label>
+
+              {(detail.archivos || []).length === 0 && <div className="pb-faint">Aún no hay archivos. Súbelos aquí arriba.</div>}
               <div className="pb-files">
                 {[...(detail.archivos || [])].reverse().map((a, i) => (
                   <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} download={a.nombre || 'archivo'} onClick={(e) => descargarArchivo(a, e)} rel="noopener noreferrer">

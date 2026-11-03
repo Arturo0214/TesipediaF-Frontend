@@ -441,6 +441,7 @@ function PortalDashboard() {
   const [sec, setSec] = useState('proyecto');
   const [projects, setProjects] = useState([]);
   const [docs, setDocs] = useState([]);
+  const [finalFiles, setFinalFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDoc, setOpenDoc] = useState(null);
   const [docSel, setDocSel] = useState(null);
@@ -448,11 +449,12 @@ function PortalDashboard() {
 
   const load = useCallback(async () => {
     try {
-      const [p, d] = await Promise.all([
+      const [p, d, f] = await Promise.all([
         axiosWithAuth.get('/projects/client').catch(() => ({ data: [] })),
         axiosWithAuth.get('/portal/documents').catch(() => ({ data: [] })),
+        axiosWithAuth.get('/portal/final-files').catch(() => ({ data: [] })),
       ]);
-      setProjects(p.data || []); setDocs(d.data || []);
+      setProjects(p.data || []); setDocs(d.data || []); setFinalFiles(f.data || []);
     } finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -612,6 +614,31 @@ function PortalDashboard() {
                         </>
                       ) : <div className="pt-empty-docs"><FaFileAlt /><p>Aún no hay documentos. Cuando tu equipo suba tu avance, aparecerá aquí para que lo revises.</p></div>}
                     </div>
+
+                    {/* Documentos finales entregados por el equipo (board de Proyectos).
+                        Se liberan SIN marca de agua a partir del segundo pago. */}
+                    {finalFiles.length > 0 && (
+                      <div className="pt-card">
+                        <div className="pt-card-head">
+                          <h2>Documentos finales</h2>
+                          <small>Tu entrega final, lista para descargar</small>
+                        </div>
+                        <div className="pt-finals">
+                          {finalFiles.map((f) => (
+                            <div key={f.id} className={`pt-final ${f.locked ? 'locked' : ''}`}>
+                              <FaFileAlt className="pt-final-ic" />
+                              <div className="pt-final-body">
+                                <b>{f.title}</b>
+                                <small>{fmtDate(f.createdAt)}{f.ext ? ` · ${f.ext.toUpperCase()}` : ''}</small>
+                              </div>
+                              {f.locked
+                                ? <span className="pt-final-lock"><FaLock /> {f.message || 'Disponible al realizar tu segundo pago.'}</span>
+                                : <a className="pt-btn pt-btn-primary" href={f.download} target="_blank" rel="noreferrer"><FaDownload /> Descargar</a>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 );
               })()}
