@@ -942,12 +942,17 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
   // Contactar asesor: escala a 'esperando_aprobacion', silencia a Sofia y avisa al equipo
   const handleContactAdvisor = async () => {
     if (!selectedLead || escalandoAsesor) return;
+    // Capturar el MOTIVO para que quede guardado en el lead y el equipo sepa por qué
+    // escaló (antes se perdía y la conversación parecía una cotización normal).
+    const motivo = window.prompt('¿Por qué se escala a asesor? (se guarda y lo verá el equipo en el chat)', '');
+    if (motivo === null) return; // canceló
+    const motivoFinal = motivo.trim() || 'Pidió hablar con un asesor';
     setEscalandoAsesor(true);
     try {
-      await contactAdvisor(selectedLead.wa_id);
-      setSelectedLead(prev => ({ ...prev, estado_sofia: 'esperando_aprobacion', modo_humano: true, auto_paused: true }));
+      await contactAdvisor(selectedLead.wa_id, motivoFinal);
+      setSelectedLead(prev => ({ ...prev, estado_sofia: 'esperando_aprobacion', modo_humano: true, auto_paused: true, motivo_intervencion: motivoFinal }));
       setLeads(prev => prev.map(l => l.wa_id === selectedLead.wa_id
-        ? { ...l, estado_sofia: 'esperando_aprobacion', modo_humano: true, auto_paused: true } : l));
+        ? { ...l, estado_sofia: 'esperando_aprobacion', modo_humano: true, auto_paused: true, motivo_intervencion: motivoFinal } : l));
       toast.success('📞 Lead escalado a asesor — equipo notificado. Está en Esperando aprobación.');
       fetchLeads(true);
     } catch (err) {
@@ -2803,6 +2808,19 @@ const AdminWhatsApp = ({ guideOnly = false } = {}) => {
 
               {/* Mensajes */}
               <div className="wa-messages-container" ref={messagesContainerRef}>
+                {/* Motivo del escalado a asesor — sticky para que no se pierda al hacer scroll.
+                    Antes el motivo se tiraba y el chat parecía una cotización normal. */}
+                {selectedLead.motivo_intervencion && (selectedLead.estado_sofia === 'esperando_aprobacion' || selectedLead.modo_humano) && (
+                  <div style={{
+                    position: 'sticky', top: 0, zIndex: 3,
+                    background: '#eff6ff', color: '#1e40af', padding: '8px 16px',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    fontSize: '0.8rem', fontWeight: 600, borderBottom: '1px solid #bfdbfe'
+                  }}>
+                    <FaUserTie style={{ flex: 'none' }} />
+                    <span><b>Escalado a asesor:</b> {selectedLead.motivo_intervencion}</span>
+                  </div>
+                )}
                 {/* Info de quién atiende este lead (solo informativo, no bloquea) */}
                 {getLeadAttendedBy(selectedLead) && (
                   <div style={{
