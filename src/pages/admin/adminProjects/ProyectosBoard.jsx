@@ -150,6 +150,7 @@ export default function ProyectosBoard() {
   const [nuevaFiles, setNuevaFiles] = useState([]); // archivos adjuntos de la entrega
   const [dragOver, setDragOver] = useState(false);   // dropzone de "Archivos del proyecto"
   const [dropRol, setDropRol] = useState('final');   // 'final' = va al portal del cliente | 'soporte' = interno
+  const [entregaTab, setEntregaTab] = useState(1);   // pestaña de entrega activa (= n.º de parcialidad)
   const [leadRemoto, setLeadRemoto] = useState([]); // resultados de búsqueda server-side (cualquier status)
   const [buscandoLead, setBuscandoLead] = useState(false);
   // Acceso del cliente al portal (credenciales reveladas por el admin)
@@ -225,6 +226,14 @@ export default function ProyectosBoard() {
   const detail = useMemo(() => rows.find((r) => String(r.id) === String(detailId)) || null, [rows, detailId]);
   // Limpiar credenciales reveladas al cambiar de proyecto (no filtrar entre clientes)
   useEffect(() => { setAcceso({ loading: false, data: null }); setChat({ open: false, loading: false, messages: [], text: '', sending: false }); setDocs({ loaded: false, uploading: false, items: [] }); }, [detailId]);
+  // Al abrir un proyecto, posicionar la pestaña en la ENTREGA ACTUAL (primera parcialidad
+  // no pagada; si todas están pagadas, la última).
+  useEffect(() => {
+    const sched = detail?.schedule || [];
+    const pend = sched.find((s) => s.status !== 'paid' && s.status !== 'lost');
+    setEntregaTab(pend ? pend.number : (sched.length || 1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailId]);
 
   // ── 📄 Documentos protegidos del cliente ──
   const cargarDocs = async (row) => {
@@ -453,23 +462,23 @@ export default function ProyectosBoard() {
     catch { toast.error('No se pudo guardar la fecha'); patchRow(row.id, { fechaEntrega: prev }); }
   };
 
-  const handleAddNota = async (row) => {
+  const handleAddNota = async (row, entrega = null) => {
     const t = notaInput.trim();
     if (!t) return;
     setSaving(true);
     try {
-      const { notas } = await addNota('quote', row.id, t);
+      const { notas } = await addNota('quote', row.id, t, entrega);
       patchRow(row.id, { notas });
       setNotaInput('');
     } catch { toast.error('No se pudo agregar la nota'); }
     finally { setSaving(false); }
   };
 
-  const handleAddAcuerdo = async (row) => {
+  const handleAddAcuerdo = async (row, entrega = null) => {
     if (!acuerdoTexto.trim() && !acuerdoFecha) { toast.error('Escribe el acuerdo o pon fecha'); return; }
     setSaving(true);
     try {
-      const { acuerdos, fechaEntrega } = await addAcuerdo('quote', row.id, { texto: acuerdoTexto, fechaEntrega: acuerdoFecha || null });
+      const { acuerdos, fechaEntrega } = await addAcuerdo('quote', row.id, { texto: acuerdoTexto, fechaEntrega: acuerdoFecha || null, entrega });
       patchRow(row.id, { acuerdos, ultimoAcuerdo: acuerdos[acuerdos.length - 1] || null, fechaEntrega: fechaEntrega || row.fechaEntrega });
       setAcuerdoTexto(''); setAcuerdoFecha('');
       toast.success('Acuerdo guardado ✅');
@@ -661,7 +670,7 @@ export default function ProyectosBoard() {
 
   // ── Entregable: Paula CARGA el archivo, Arturo DESAHOGA (marca entregado) ──
   // Acepta VARIOS archivos; con rol 'final' el primer lote desahoga la entrega
-  const handleUploadEntregables = async (row, fileList, rol = 'soporte') => {
+  const handleUploadEntregables = async (row, fileList, rol = 'soporte', entrega = null) => {
     const files = [...(fileList || [])].filter((f) => {
       if (f.size > 15 * 1024 * 1024) { toast.error(`${f.name} pasa de 15 MB`); return false; }
       return true;
@@ -672,7 +681,7 @@ export default function ProyectosBoard() {
       let subidos = 0;
       for (const f of files) {
         try {
-          const { archivos } = await uploadArchivo('quote', row.id, f, rol);
+          const { archivos } = await uploadArchivo('quote', row.id, f, rol, entrega);
           patchRow(row.id, { archivos });
           subidos++;
         } catch (e) { toast.error(e.response?.data?.message || `No se pudo subir ${f.name}`); }
@@ -1093,11 +1102,35 @@ export default function ProyectosBoard() {
           </div>
 
           <div className="pb-dp-col">
+            {/* Pestañas por ENTREGA (= parcialidades de pago). Acuerdos, notas y archivos
+                se dividen por entrega. Los datos viejos sin entrega caen en la 1ª. */}
+            {(() => {
+              const sched = detail.schedule || [];
+              const n = Math.max(sched.length, 1);
+              const ord = ['', '1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª', '9ª', '10ª'];
+              return (
+                <div className="pb-entrega-tabs">
+                  {Array.from({ length: n }, (_, i) => i + 1).map((num) => {
+                    const s = sched[num - 1];
+                    const pagada = s && s.status === 'paid';
+                    return (
+                      <button key={num} type="button"
+                        className={`pb-etab ${entregaTab === num ? 'active' : ''} ${pagada ? 'paid' : ''}`}
+                        onClick={() => setEntregaTab(num)}>
+                        {(ord[num] || `${num}ª`)} entrega
+                        {pagada && <span className="pb-etab-dot" title="Pago cubierto">●</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             {/* Acuerdos */}
             <div className="pb-panel">
-              <h4><FaHandshake /> Acuerdos y correcciones</h4>
-              {(detail.acuerdos || []).length === 0 && <div className="pb-faint">Sin acuerdos registrados.</div>}
-              {[...(detail.acuerdos || [])].reverse().map((a) => (
+              <h4><FaHandshake /> Acuerdos y correcciones <span className="pb-etab-badge">{entregaTab}ª entrega</span></h4>
+              {(detail.acuerdos || []).filter((a) => (a.entrega ?? 1) === entregaTab).length === 0 && <div className="pb-faint">Sin acuerdos en esta entrega.</div>}
+              {[...(detail.acuerdos || []).filter((a) => (a.entrega ?? 1) === entregaTab)].reverse().map((a) => (
                 <div key={a._id || a.creadoEn} className="pb-acuerdo">
                   {a.fuente === 'fireflies' ? <FaMicrophone className="pb-acuerdo-ico ff" /> : <FaHandshake className="pb-acuerdo-ico" />}
                   <span>
@@ -1111,18 +1144,19 @@ export default function ProyectosBoard() {
                 <input type="date" value={acuerdoFecha} onChange={(e) => setAcuerdoFecha(e.target.value)} title="Fecha de entrega acordada" />
                 <input placeholder="Nuevo acuerdo / correcciones pactadas…" value={acuerdoTexto}
                   onChange={(e) => setAcuerdoTexto(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddAcuerdo(detail)} />
-                <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddAcuerdo(detail)}>Guardar</button>
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddAcuerdo(detail, entregaTab)} />
+                <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddAcuerdo(detail, entregaTab)}>Guardar</button>
               </div>
             </div>
 
             {/* Notas — hilo tipo chat: lo que ENVIAMOS (azul, derecha) vs lo que CONTESTÓ el cliente (verde, izquierda) */}
             <div className="pb-panel">
-              <h4><FaStickyNote /> Notas de seguimiento ({(detail.notas || []).length})</h4>
+              <h4><FaStickyNote /> Notas de seguimiento <span className="pb-etab-badge">{entregaTab}ª entrega</span></h4>
               <div className="pb-chat pb-notas-page">
                 {(() => {
-                  const { mains, repliesByParent } = buildThread(detail.notas);
-                  if (!mains.length) return <div className="pb-faint">Sin notas todavía. Escribe tu mensaje abajo.</div>;
+                  const { mains: allMains, repliesByParent } = buildThread(detail.notas);
+                  const mains = allMains.filter((n) => (n.entrega ?? 1) === entregaTab);
+                  if (!mains.length) return <div className="pb-faint">Sin notas en esta entrega. Escribe tu mensaje abajo.</div>;
                   return mains.map((n) => {
                     const replies = repliesByParent[n._id] || [];
                     return (
@@ -1162,14 +1196,14 @@ export default function ProyectosBoard() {
               <div className="pb-add-row">
                 <input placeholder="Escribe tu mensaje / nota de seguimiento…" value={notaInput}
                   onChange={(e) => setNotaInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddNota(detail)} />
-                <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddNota(detail)}>Enviar</button>
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddNota(detail, entregaTab)} />
+                <button className="pb-btn pb-btn-blue" disabled={saving} onClick={() => handleAddNota(detail, entregaTab)}>Enviar</button>
               </div>
             </div>
 
             {/* Archivos — todos (subida directa por arrastrar/soltar) */}
             <div className="pb-panel">
-              <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).length})</h4>
+              <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).filter((a) => (a.entrega ?? 1) === entregaTab).length}) <span className="pb-etab-badge">{entregaTab}ª entrega</span></h4>
 
               {/* Selector de rol: FINAL se libera al cliente en su portal (al 2º pago) */}
               <div className="pb-drop-rol">
@@ -1188,10 +1222,10 @@ export default function ProyectosBoard() {
                 className={`pb-dropzone ${dragOver ? 'over' : ''} ${saving ? 'busy' : ''}`}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
-                onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUploadEntregables(detail, e.dataTransfer.files, dropRol); }}
+                onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUploadEntregables(detail, e.dataTransfer.files, dropRol, entregaTab); }}
               >
                 <input type="file" multiple hidden disabled={saving}
-                  onChange={(e) => { handleUploadEntregables(detail, e.target.files, dropRol); e.target.value = ''; }} />
+                  onChange={(e) => { handleUploadEntregables(detail, e.target.files, dropRol, entregaTab); e.target.value = ''; }} />
                 <FaCloudUploadAlt className="pb-dropzone-ic" />
                 <span>{saving ? 'Subiendo…' : 'Arrastra archivos aquí o haz clic para subir'}</span>
                 <small>{dropRol === 'final'
@@ -1199,9 +1233,9 @@ export default function ProyectosBoard() {
                   : 'Archivo interno de soporte (no lo ve el cliente).'}</small>
               </label>
 
-              {(detail.archivos || []).length === 0 && <div className="pb-faint">Aún no hay archivos. Súbelos aquí arriba.</div>}
+              {(detail.archivos || []).filter((a) => (a.entrega ?? 1) === entregaTab).length === 0 && <div className="pb-faint">Aún no hay archivos en esta entrega. Súbelos aquí arriba.</div>}
               <div className="pb-files">
-                {[...(detail.archivos || [])].reverse().map((a, i) => (
+                {[...(detail.archivos || []).filter((a) => (a.entrega ?? 1) === entregaTab)].reverse().map((a, i) => (
                   <div key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`}>
                     <a className="pb-file-main" href={a.url} download={a.nombre || 'archivo'} onClick={(e) => descargarArchivo(a, e)} rel="noopener noreferrer">
                       <FaFileAlt />

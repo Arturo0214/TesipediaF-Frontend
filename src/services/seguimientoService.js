@@ -9,8 +9,8 @@ export const getSeguimientos = () => axiosWithAuth.get(BASE).then((r) => r.data)
 export const buscarLead = (q) =>
   axiosWithAuth.get(`${BASE}/buscar-lead`, { params: { q } }).then((r) => r.data);
 
-export const addNota = (type, id, texto) =>
-  axiosWithAuth.post(`${BASE}/${type}/${id}/nota`, { texto }).then((r) => r.data);
+export const addNota = (type, id, texto, entrega = null) =>
+  axiosWithAuth.post(`${BASE}/${type}/${id}/nota`, { texto, entrega }).then((r) => r.data);
 
 export const deleteNota = (type, id, notaId) =>
   axiosWithAuth.delete(`${BASE}/${type}/${id}/nota/${notaId}`).then((r) => r.data);
@@ -18,10 +18,11 @@ export const deleteNota = (type, id, notaId) =>
 export const updateSeguimiento = (type, id, data) =>
   axiosWithAuth.patch(`${BASE}/${type}/${id}`, data).then((r) => r.data);
 
-export const uploadArchivo = (type, id, file, rol = '') => {
+export const uploadArchivo = (type, id, file, rol = '', entrega = null) => {
   const fd = new FormData();
   fd.append('file', file);
   if (rol) fd.append('rol', rol); // 'soporte' (Paula) | 'final' (Arturo al desahogar)
+  if (entrega != null) fd.append('entrega', String(entrega)); // n.º de entrega (parcialidad)
   return axiosWithAuth.post(`${BASE}/${type}/${id}/archivo`, fd).then((r) => r.data);
 };
 
