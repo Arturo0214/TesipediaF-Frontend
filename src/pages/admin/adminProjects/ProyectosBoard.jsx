@@ -1202,14 +1202,18 @@ export default function ProyectosBoard() {
               {(detail.archivos || []).length === 0 && <div className="pb-faint">Aún no hay archivos. Súbelos aquí arriba.</div>}
               <div className="pb-files">
                 {[...(detail.archivos || [])].reverse().map((a, i) => (
-                  <a key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`} href={a.url} download={a.nombre || 'archivo'} onClick={(e) => descargarArchivo(a, e)} rel="noopener noreferrer">
-                    <FaFileAlt />
-                    <span className="pb-file-info">
-                      <b>{a.nombre || 'archivo'}</b>
-                      <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
-                    </span>
+                  <div key={a._id || a.url} className={`pb-file ${i === 0 ? 'latest' : ''}`}>
+                    <a className="pb-file-main" href={a.url} download={a.nombre || 'archivo'} onClick={(e) => descargarArchivo(a, e)} rel="noopener noreferrer">
+                      <FaFileAlt />
+                      <span className="pb-file-info">
+                        <b>{a.nombre || 'archivo'}</b>
+                        <small>{a.subidoPor || 'Admin'} · {a.subidoEn ? fmtFecha(a.subidoEn) : ''} {a.size ? `· ${fmtBytes(a.size)}` : ''}</small>
+                      </span>
+                    </a>
+                    {a.rol && <span className={`pb-file-badge ${a.rol === 'final' ? 'final' : ''}`}>{a.rol === 'final' ? 'FINAL' : 'soporte'}</span>}
                     {i === 0 && <span className="pb-file-badge">último</span>}
-                  </a>
+                    <button className="pb-file-del" title="Borrar archivo" onClick={() => handleBorrarArchivo(detail, a._id)}><FaTrashAlt /></button>
+                  </div>
                 ))}
               </div>
             </div>
