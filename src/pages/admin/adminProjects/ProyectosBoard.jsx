@@ -751,6 +751,21 @@ export default function ProyectosBoard() {
     } catch { toast.error('No se pudo guardar'); patchRow(row.id, { entregaEnviada: !valor }); }
   };
 
+  // 🔓 Liberar el documento al cliente: quita marca de agua / censura / restricción de
+  // bibliografía, lo hace descargable y habilita la versión editable. Se marca al pagar.
+  const handleLiberarDoc = async (row, valor) => {
+    if (valor && !window.confirm('¿Liberar el documento al cliente?\n\nSe le quita la marca de agua, el texto censurado y la restricción de bibliografía; podrá DESCARGARLO y ver la versión editable. Hazlo solo si ya pagó.')) return;
+    patchRow(row.id, { docLiberado: valor });
+    setSaving(true);
+    try {
+      const resp = await updateSeguimiento('quote', row.id, { docLiberado: valor });
+      patchRow(row.id, { docLiberado: resp.docLiberado, docLiberadoEn: resp.docLiberadoEn });
+      if (docs.loaded) cargarDocs(row); // refrescar estado de los documentos protegidos
+      toast.success(valor ? '🔓 Documento liberado al cliente' : 'Documento re-bloqueado');
+    } catch { toast.error('No se pudo cambiar la liberación'); patchRow(row.id, { docLiberado: !valor }); }
+    finally { setSaving(false); }
+  };
+
   // ── Nueva entrega manual: acuerdo + fecha de entrega + nota + evento en el calendario de Arturo ──
   const handleGuardarNueva = async () => {
     // El lead puede estar en el board (cotización pagada) o ser un lead remoto sin
@@ -1072,6 +1087,11 @@ export default function ProyectosBoard() {
                   <input type="checkbox" checked={!!detail.entregado} onChange={() => handleEntregado(detail, !detail.entregado)} />
                   <span className="pb-track"><span className="pb-knob" /></span>
                   Entregado {detail.entregadoEn ? `(${fmtFecha(detail.entregadoEn)})` : ''}
+                </label>
+                <label className={`pb-switch pb-switch-liberar ${detail.docLiberado ? 'on' : ''}`} title="Quita marca de agua, censura y restricción de bibliografía; descargable + editable">
+                  <input type="checkbox" checked={!!detail.docLiberado} onChange={() => handleLiberarDoc(detail, !detail.docLiberado)} />
+                  <span className="pb-track"><span className="pb-knob" /></span>
+                  🔓 Documento liberado {detail.docLiberadoEn ? `(${fmtFecha(detail.docLiberadoEn)})` : ''}
                 </label>
               </div>
             </div>

@@ -442,6 +442,7 @@ function PortalDashboard() {
   const [projects, setProjects] = useState([]);
   const [docs, setDocs] = useState([]);
   const [finalFiles, setFinalFiles] = useState([]);
+  const [finalTab, setFinalTab] = useState(null); // pestaña de entrega activa en Documentos finales
   const [loading, setLoading] = useState(true);
   const [openDoc, setOpenDoc] = useState(null);
   const [docSel, setDocSel] = useState(null);
@@ -617,28 +618,42 @@ function PortalDashboard() {
 
                     {/* Documentos finales entregados por el equipo (board de Proyectos).
                         Se liberan SIN marca de agua a partir del segundo pago. */}
-                    {finalFiles.length > 0 && (
-                      <div className="pt-card">
-                        <div className="pt-card-head">
-                          <h2>Documentos finales</h2>
-                          <small>Tu entrega final, lista para descargar</small>
-                        </div>
-                        <div className="pt-finals">
-                          {finalFiles.map((f) => (
-                            <div key={f.id} className={`pt-final ${f.locked ? 'locked' : ''}`}>
-                              <FaFileAlt className="pt-final-ic" />
-                              <div className="pt-final-body">
-                                <b>{f.title}</b>
-                                <small>{fmtDate(f.createdAt)}{f.ext ? ` · ${f.ext.toUpperCase()}` : ''}</small>
-                              </div>
-                              {f.locked
-                                ? <span className="pt-final-lock"><FaLock /> {f.message || 'Disponible al realizar tu segundo pago.'}</span>
-                                : <a className="pt-btn pt-btn-primary" href={f.download} target="_blank" rel="noreferrer"><FaDownload /> Descargar</a>}
+                    {finalFiles.length > 0 && (() => {
+                      // Agrupar por entrega (1ª, 2ª, Correcciones 1…). Pestañas si hay más de una.
+                      const groups = [...new Set(finalFiles.map((f) => f.entrega ?? 1))].sort((a, b) => a - b);
+                      const activeTab = (finalTab != null && groups.includes(finalTab)) ? finalTab : groups[0];
+                      const labelOf = (ent) => finalFiles.find((f) => (f.entrega ?? 1) === ent)?.entregaLabel || `Entrega ${ent}`;
+                      const shown = finalFiles.filter((f) => (f.entrega ?? 1) === activeTab);
+                      return (
+                        <div className="pt-card">
+                          <div className="pt-card-head">
+                            <h2>Documentos finales</h2>
+                            <small>Tu entrega, lista para descargar</small>
+                          </div>
+                          {groups.length > 1 && (
+                            <div className="pt-final-tabs">
+                              {groups.map((g) => (
+                                <button key={g} className={`pt-final-tab ${activeTab === g ? 'active' : ''}`} onClick={() => setFinalTab(g)}>{labelOf(g)}</button>
+                              ))}
                             </div>
-                          ))}
+                          )}
+                          <div className="pt-finals">
+                            {shown.map((f) => (
+                              <div key={f.id} className={`pt-final ${f.locked ? 'locked' : ''}`}>
+                                <FaFileAlt className="pt-final-ic" />
+                                <div className="pt-final-body">
+                                  <b>{f.title} {f.editable && <span className="pt-final-tag">editable</span>}</b>
+                                  <small>{fmtDate(f.createdAt)}{f.ext ? ` · ${f.ext.toUpperCase()}` : ''}</small>
+                                </div>
+                                {f.locked
+                                  ? <span className="pt-final-lock"><FaLock /> {f.message || 'Disponible al realizar tu segundo pago.'}</span>
+                                  : <a className="pt-btn pt-btn-primary" href={f.download} target="_blank" rel="noreferrer"><FaDownload /> Descargar</a>}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </motion.div>
                 );
               })()}
