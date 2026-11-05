@@ -294,6 +294,8 @@
 .pb-etab:hover { border-color: var(--pb-border-2); color: var(--pb-text); }
 .pb-etab.active { color: #fff; background: #2563eb; border-color: #2563eb; }
 .pb-etab.paid:not(.active) { border-color: #10b98166; color: #34d399; }
+.pb-etab.corr:not(.active) { border-color: #f59e0b55; color: #fbbf24; }
+.pb-etab.corr.active { background: #d97706; border-color: #d97706; }
 .pb-etab-dot { font-size: 0.6rem; color: #34d399; }
 .pb-etab.active .pb-etab-dot { color: #bbf7d0; }
 .pb-etab-badge {

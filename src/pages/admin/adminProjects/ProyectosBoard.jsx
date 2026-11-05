@@ -152,6 +152,33 @@ export default function ProyectosBoard() {
   const [dropRol, setDropRol] = useState('final');   // 'final' = va al portal del cliente | 'soporte' = interno
   const [entregaTab, setEntregaTab] = useState(1);   // pestaña de entrega activa (= n.º de parcialidad)
   const [modalEntrega, setModalEntrega] = useState(1); // entrega elegida en el modal de Entrega (para taggear lo que suba)
+  // ── Modelo de entregas ──
+  // El 1er pago es ADELANTO (no es entrega). Las entregas arrancan en el 2º pago:
+  // 1ª entrega = 2º pago, 2ª entrega = 3er pago… Después del último pago vienen las
+  // Correcciones en rondas (1, 2, 3…). Codificación del campo `entrega`:
+  //   1..K  = entregas | 101,102… = Correcciones 1,2… | null = 1ª entrega (datos viejos).
+  const ORD_ENT = ['', '1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª', '9ª', '10ª'];
+  const corrRoundOf = (v) => (v != null && Number(v) >= 101 ? Number(v) - 100 : 0);
+  const maxCorrOf = (items) => (items || []).reduce((m, x) => Math.max(m, corrRoundOf(x.entrega)), 0);
+  const labelForEntrega = (value, schedule) => {
+    if (Number(value) >= 101) return `Correcciones ${Number(value) - 100}`;
+    const N = Math.max((schedule || []).length, 1);
+    const numEnt = N <= 1 ? 1 : N - 1;
+    return numEnt === 1 ? 'Entrega' : `${ORD_ENT[value] || `${value}ª`} entrega`;
+  };
+  const buildEntregaSlots = (schedule = [], corrShown = 2) => {
+    const N = Math.max((schedule || []).length, 1);
+    const numEnt = N <= 1 ? 1 : N - 1;   // 1 entrega si es pago único; si no, (pagos − adelanto)
+    const slots = [];
+    for (let i = 1; i <= numEnt; i++) {
+      const payIdx = N <= 1 ? 0 : i;     // parcialidad (0-based) que cubre esta entrega
+      slots.push({ value: i, label: labelForEntrega(i, schedule), paid: schedule[payIdx]?.status === 'paid', kind: 'entrega' });
+    }
+    for (let r = 1; r <= Math.max(corrShown, 2); r++) {
+      slots.push({ value: 100 + r, label: `Correcciones ${r}`, paid: false, kind: 'correccion' });
+    }
+    return slots;
+  };
   const [leadRemoto, setLeadRemoto] = useState([]); // resultados de búsqueda server-side (cualquier status)
   const [buscandoLead, setBuscandoLead] = useState(false);
   // Acceso del cliente al portal (credenciales reveladas por el admin)
@@ -231,8 +258,15 @@ export default function ProyectosBoard() {
   // no pagada; si todas están pagadas, la última).
   useEffect(() => {
     const sched = detail?.schedule || [];
-    const pend = sched.find((s) => s.status !== 'paid' && s.status !== 'lost');
-    setEntregaTab(pend ? pend.number : (sched.length || 1));
+    const N = Math.max(sched.length, 1);
+    const numEnt = N <= 1 ? 1 : N - 1;
+    let def = 1;
+    for (let i = 1; i <= numEnt; i++) {
+      const payIdx = N <= 1 ? 0 : i;
+      if (sched[payIdx]?.status !== 'paid') { def = i; break; }
+      if (i === numEnt) def = 101; // todas las entregas pagadas → Correcciones 1
+    }
+    setEntregaTab(def);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailId]);
 
@@ -1106,30 +1140,25 @@ export default function ProyectosBoard() {
             {/* Pestañas por ENTREGA (= parcialidades de pago). Acuerdos, notas y archivos
                 se dividen por entrega. Los datos viejos sin entrega caen en la 1ª. */}
             {(() => {
-              const sched = detail.schedule || [];
-              const n = Math.max(sched.length, 1);
-              const ord = ['', '1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª', '9ª', '10ª'];
+              const allItems = [...(detail.archivos || []), ...(detail.acuerdos || []), ...(detail.notas || [])];
+              const slots = buildEntregaSlots(detail.schedule, maxCorrOf(allItems) + 1);
               return (
                 <div className="pb-entrega-tabs">
-                  {Array.from({ length: n }, (_, i) => i + 1).map((num) => {
-                    const s = sched[num - 1];
-                    const pagada = s && s.status === 'paid';
-                    return (
-                      <button key={num} type="button"
-                        className={`pb-etab ${entregaTab === num ? 'active' : ''} ${pagada ? 'paid' : ''}`}
-                        onClick={() => setEntregaTab(num)}>
-                        {(ord[num] || `${num}ª`)} entrega
-                        {pagada && <span className="pb-etab-dot" title="Pago cubierto">●</span>}
-                      </button>
-                    );
-                  })}
+                  {slots.map((s) => (
+                    <button key={s.value} type="button"
+                      className={`pb-etab ${entregaTab === s.value ? 'active' : ''} ${s.paid ? 'paid' : ''} ${s.kind === 'correccion' ? 'corr' : ''}`}
+                      onClick={() => setEntregaTab(s.value)}>
+                      {s.label}
+                      {s.paid && <span className="pb-etab-dot" title="Pago cubierto">●</span>}
+                    </button>
+                  ))}
                 </div>
               );
             })()}
 
             {/* Acuerdos */}
             <div className="pb-panel">
-              <h4><FaHandshake /> Acuerdos y correcciones <span className="pb-etab-badge">{entregaTab}ª entrega</span></h4>
+              <h4><FaHandshake /> Acuerdos y correcciones <span className="pb-etab-badge">{labelForEntrega(entregaTab, detail.schedule)}</span></h4>
               {(detail.acuerdos || []).filter((a) => (a.entrega ?? 1) === entregaTab).length === 0 && <div className="pb-faint">Sin acuerdos en esta entrega.</div>}
               {[...(detail.acuerdos || []).filter((a) => (a.entrega ?? 1) === entregaTab)].reverse().map((a) => (
                 <div key={a._id || a.creadoEn} className="pb-acuerdo">
@@ -1152,7 +1181,7 @@ export default function ProyectosBoard() {
 
             {/* Notas — hilo tipo chat: lo que ENVIAMOS (azul, derecha) vs lo que CONTESTÓ el cliente (verde, izquierda) */}
             <div className="pb-panel">
-              <h4><FaStickyNote /> Notas de seguimiento <span className="pb-etab-badge">{entregaTab}ª entrega</span></h4>
+              <h4><FaStickyNote /> Notas de seguimiento <span className="pb-etab-badge">{labelForEntrega(entregaTab, detail.schedule)}</span></h4>
               <div className="pb-chat pb-notas-page">
                 {(() => {
                   const { mains: allMains, repliesByParent } = buildThread(detail.notas);
@@ -1204,7 +1233,7 @@ export default function ProyectosBoard() {
 
             {/* Archivos — todos (subida directa por arrastrar/soltar) */}
             <div className="pb-panel">
-              <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).filter((a) => (a.entrega ?? 1) === entregaTab).length}) <span className="pb-etab-badge">{entregaTab}ª entrega</span></h4>
+              <h4><FaPaperclip /> Archivos del proyecto ({(detail.archivos || []).filter((a) => (a.entrega ?? 1) === entregaTab).length}) <span className="pb-etab-badge">{labelForEntrega(entregaTab, detail.schedule)}</span></h4>
 
               {/* Selector de rol: FINAL se libera al cliente en su portal (al 2º pago) */}
               <div className="pb-drop-rol">
@@ -1653,15 +1682,15 @@ export default function ProyectosBoard() {
                       {canMark && <button className="pb-file-del" title="Borrar archivo" onClick={() => handleBorrarArchivo(r, a._id)}><FaTrashAlt /></button>}
                     </div>
                   );
-                  const nEnt = Math.max((r.schedule || []).length, 4);
-                  const ordE = ['', '1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª'];
+                  const rItems = [...(r.archivos || []), ...(r.acuerdos || []), ...(r.notas || [])];
+                  const slotsModal = buildEntregaSlots(r.schedule, maxCorrOf(rItems) + 1);
                   return (
                     <>
                       <div className="pb-field">¿A qué entrega pertenece lo que subas aquí?
                         <div className="pb-entrega-tabs" style={{ marginTop: 6 }}>
-                          {Array.from({ length: nEnt }, (_, i) => i + 1).map((num) => (
-                            <button key={num} type="button" className={`pb-etab ${modalEntrega === num ? 'active' : ''}`} onClick={() => setModalEntrega(num)}>
-                              {ordE[num] || `${num}ª`} entrega
+                          {slotsModal.map((s) => (
+                            <button key={s.value} type="button" className={`pb-etab ${modalEntrega === s.value ? 'active' : ''} ${s.kind === 'correccion' ? 'corr' : ''}`} onClick={() => setModalEntrega(s.value)}>
+                              {s.label}
                             </button>
                           ))}
                         </div>
