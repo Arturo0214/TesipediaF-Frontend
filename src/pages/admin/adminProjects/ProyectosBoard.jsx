@@ -151,6 +151,7 @@ export default function ProyectosBoard() {
   const [dragOver, setDragOver] = useState(false);   // dropzone de "Archivos del proyecto"
   const [dropRol, setDropRol] = useState('final');   // 'final' = va al portal del cliente | 'soporte' = interno
   const [entregaTab, setEntregaTab] = useState(1);   // pestaña de entrega activa (= n.º de parcialidad)
+  const [modalEntrega, setModalEntrega] = useState(1); // entrega elegida en el modal de Entrega (para taggear lo que suba)
   const [leadRemoto, setLeadRemoto] = useState([]); // resultados de búsqueda server-side (cualquier status)
   const [buscandoLead, setBuscandoLead] = useState(false);
   // Acceso del cliente al portal (credenciales reveladas por el admin)
@@ -1652,8 +1653,19 @@ export default function ProyectosBoard() {
                       {canMark && <button className="pb-file-del" title="Borrar archivo" onClick={() => handleBorrarArchivo(r, a._id)}><FaTrashAlt /></button>}
                     </div>
                   );
+                  const nEnt = Math.max((r.schedule || []).length, 4);
+                  const ordE = ['', '1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª'];
                   return (
                     <>
+                      <div className="pb-field">¿A qué entrega pertenece lo que subas aquí?
+                        <div className="pb-entrega-tabs" style={{ marginTop: 6 }}>
+                          {Array.from({ length: nEnt }, (_, i) => i + 1).map((num) => (
+                            <button key={num} type="button" className={`pb-etab ${modalEntrega === num ? 'active' : ''}`} onClick={() => setModalEntrega(num)}>
+                              {ordE[num] || `${num}ª`} entrega
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <div className="pb-field">Soporte de la entrega ({soporte.length}) — lo carga Paula
                         <div className="pb-files">
                           {soporte.length === 0 && <div className="pb-faint">Sin archivos de soporte todavía.</div>}
@@ -1664,7 +1676,7 @@ export default function ProyectosBoard() {
                             <FaCloudUploadAlt /> Cargar soporte
                           </button>
                           <input type="file" hidden multiple ref={(el) => { fileRefs.current[`entm-${r.id}`] = el; }}
-                            onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'soporte'); e.target.value = ''; }} />
+                            onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'soporte', modalEntrega); e.target.value = ''; }} />
                         </div>
                       </div>
                       <div className="pb-field">Archivo FINAL ({finales.length}) — lo adjunta Arturo al desahogar
@@ -1685,7 +1697,7 @@ export default function ProyectosBoard() {
                                 <FaCloudUploadAlt /> {finales.length ? 'Agregar otro archivo FINAL' : 'Adjuntar archivo FINAL'}
                               </button>
                               <input type="file" hidden multiple ref={(el) => { fileRefs.current[`entf-${r.id}`] = el; }}
-                                onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'final'); e.target.value = ''; }} />
+                                onChange={(e) => { const fs = e.target.files; handleUploadEntregables(r, fs, 'final', modalEntrega); e.target.value = ''; }} />
                             </>
                           )}
                           {/* Botón explícito: Arturo marca su parte lista (handoff a Paula) */}
