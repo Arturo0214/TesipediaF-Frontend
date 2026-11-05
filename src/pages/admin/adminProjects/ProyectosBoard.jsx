@@ -160,11 +160,10 @@ export default function ProyectosBoard() {
   const ORD_ENT = ['', '1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª', '9ª', '10ª'];
   const corrRoundOf = (v) => (v != null && Number(v) >= 101 ? Number(v) - 100 : 0);
   const maxCorrOf = (items) => (items || []).reduce((m, x) => Math.max(m, corrRoundOf(x.entrega)), 0);
-  const labelForEntrega = (value, schedule) => {
+  const labelForEntrega = (value) => {
     if (Number(value) >= 101) return `Correcciones ${Number(value) - 100}`;
-    const N = Math.max((schedule || []).length, 1);
-    const numEnt = N <= 1 ? 1 : N - 1;
-    return numEnt === 1 ? 'Entrega' : `${ORD_ENT[value] || `${value}ª`} entrega`;
+    // Siempre numerada: 1ª entrega = 2º pago, 2ª entrega = 3er pago…
+    return `${ORD_ENT[value] || `${value}ª`} entrega`;
   };
   const buildEntregaSlots = (schedule = [], corrShown = 2) => {
     const N = Math.max((schedule || []).length, 1);
